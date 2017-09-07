@@ -2,7 +2,6 @@ node_modules/
 .eslintrc.js
 .deploy/
 client/definitions/
-client/site/
 client/themes/
 client/semantic.less
 client/theme.import.less
