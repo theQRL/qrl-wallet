@@ -1,0 +1,25 @@
+{
+  "name": "qrl-wallet",
+  "version": "1.0.0",
+  "description": "QRL lite web wallet",
+  "main": "index.js",
+  "dependencies": {
+    "babel-runtime": "^6.26.0",
+    "json-formatter-js": "^2.2.0"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theQRL/qrl-wallet.git"
+  },
+  "keywords": [
+    "QRL",
+    "blockchain"
+  ],
+  "author": "see AUTHORS.md",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/theQRL/qrl-wallet/issues"
+  },
+  "homepage": "https://github.com/theQRL/qrl-wallet#readme"
+}
