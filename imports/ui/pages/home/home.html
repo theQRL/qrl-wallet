@@ -1,41 +1,43 @@
 <template name="appHome">
-
-    <div class="ui grid">
+  <div class="ui grid">
     <div class="row">
-
-
-          <div class="twelve wide column">
-            <strong>CONNECTION STATUS</strong><br>
-            <i class="icon green circle"></i> Connected to QRL Testnet
-          </div>
-          <div class="four wide column">
-            <div class="ui selection dropdown">
-              <input name="gender" type="hidden" value="default">
-              <i class="dropdown icon"></i>
-              <div class="text">QRL Testnet</div>
-              <div class="menu">
-                <div class="item" data-value="default">QRL Testnet</div>
-                <div class="disabled item" data-value="0">QRL Mainnet</div>
-              </div>
-            </div>
-          </div>
-
-
-    </div>
-    </div>
-    <div class="ui grey inverted segment">
-  <div class="ui center aligned grid stackable">
-    <div class="row">
-      <div class="four wide column">
-        <div class="ui segment"><i class="huge circular inverted red plus icon"></i><br><br><a href="/create" class="ui blue button">Create</a></div>
+      <div class="twelve wide column">
+        <strong>CONNECTION STATUS</strong>
+        <br>
+        <i class="icon green circle"></i> Connected to QRL Testnet
       </div>
       <div class="four wide column">
-        <div class="ui segment"><i class="huge circular inverted yellow unlock icon"></i><br><br><a href="/view" class="ui blue button">View</a></div>
-      </div>
-      <div class="four wide column">
-        <div class="ui segment"><i class="huge circular inverted purple send icon"></i><br><br><a href="/transfer" class="ui blue button">Transfer</a></div>
+        <div class="ui selection dropdown">
+          <input name="gender" type="hidden" value="default">
+          <i class="dropdown icon"></i>
+          <div class="text">QRL Testnet</div>
+          <div class="menu">
+            <div class="item" data-value="default">QRL Testnet</div>
+            <div class="disabled item" data-value="0">QRL Mainnet</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+  <div class="ui grey inverted segment">
+    <div class="ui center aligned grid stackable">
+      <div class="row">
+        <div class="four wide column">
+          <div class="ui segment"><i class="huge circular inverted red plus icon"></i>
+            <br>
+            <br><a href="/create" class="ui blue button">Create</a></div>
+        </div>
+        <div class="four wide column">
+          <div class="ui segment"><i class="huge circular inverted yellow unlock icon"></i>
+            <br>
+            <br><a href="/view" class="ui blue button">View</a></div>
+        </div>
+        <div class="four wide column">
+          <div class="ui segment"><i class="huge circular inverted purple send icon"></i>
+            <br>
+            <br><a href="/transfer" class="ui blue button">Transfer</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>

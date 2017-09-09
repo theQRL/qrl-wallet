@@ -1,79 +1,81 @@
 body {
-    background: #fff;
+  background: #fff;
 }
 
 .pushable {
-    background: #fff !important;
+  background: #fff !important;
 }
 
 .ui .label {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .ui.menu {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 body.pushable {
-    background: #fff !important;
+  background: #fff !important;
 }
 
 @media (max-width: 519px) {
-    .pusher {
-        margin-top: 40px;
-    }
+  .pusher {
+    margin-top: 40px;
+  }
 }
 
 .ui.label {
-    overflow: auto;
-    word-break: break-all;
+  overflow: auto;
+  word-break: break-all;
 }
 
 td a {
-    font-weight: normal;
-    overflow: auto;
-    word-break: break-all;
+  font-weight: normal;
+  overflow: auto;
+  word-break: break-all;
 }
 
 td {
-    font-weight: normal;
-    overflow: auto;
-    word-break: break-all;
+  font-weight: normal;
+  overflow: auto;
+  word-break: break-all;
 }
 
 .value {
-    overflow: hidden;
-    word-break: break-all;
+  overflow: hidden;
+  word-break: break-all;
 }
 
 @media (max-width: 519px) {
-    .ui.statistics .statistic>.value,
-    .ui.statistic>.value {
-        font-size: 2rem !important;
-    }
+  .ui.statistics .statistic>.value,
+  .ui.statistic>.value {
+    font-size: 2rem !important;
+  }
 }
 
 td .ui.label {
-    word-break: keep-all !important;
-    overflow: visible;
+  word-break: keep-all !important;
+  overflow: visible;
 }
 
 td .unbreakable {
-    word-break: keep-all !important;
-    overflow: visible;
+  word-break: keep-all !important;
+  overflow: visible;
 }
 
 .unbreakable {
-    overflow: hidden;
-    word-break: break-all;
+  overflow: hidden;
+  word-break: break-all;
 }
 
-.ui.inverted.segment, .ui.primary.inverted.segment {
-background: #1d2951;
-    }
+.ui.inverted.segment,
+.ui.primary.inverted.segment {
+  background: #1d2951;
+}
 
-.footbanner { /* Increased specificity for SO snippet priority */
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-      }
+.footbanner {
+  /* Increased specificity for SO snippet priority */
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
