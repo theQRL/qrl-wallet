@@ -1,34 +1,37 @@
-import { Session } from 'meteor/session'
 import './body.html'
 import './sidebar.html'
+import './customNode.html'
 import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
 // Set session state based on selected network node.
-const updateNode = () => {
-  const selectedNode = document.getElementById('network').value
+const updateNode = (selectedNode) => {
   switch (selectedNode) {
     case 'testnet':
     case 'mainnet':
-    case 'localhost': {
+    case 'localhost':
       const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
-      Session.set('nodeId', nodeData.id)
-      Session.set('nodeName', nodeData.name)
-      Session.set('nodeExplorerUrl', nodeData.explorerUrl)
-      Session.set('nodeApiUrl', nodeData.apiUrl)
+      localStorage.setItem('nodeId', nodeData.id)
+      localStorage.setItem('nodeName', nodeData.name)
+      localStorage.setItem('nodeExplorerUrl', nodeData.explorerUrl)
+      localStorage.setItem('nodeApiUrl', nodeData.apiUrl)
       break
-    }
-    default: {
-      Session.set('connectionStatus', 'Unknown')
+    case 'add':
+      $('.small.modal').modal('show')
       break
-    }
+    default:
+      localStorage.setItem('nodeId', '')
+      localStorage.setItem('nodeName', '')
+      localStorage.setItem('nodeExplorerUrl', '')
+      localStorage.setItem('nodeApiUrl', '')
+      break
   }
 }
 
 Template.appBody.onRendered(() => {
   $('#networkDropdown').dropdown()
-  $('.modal').modal()
+  $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
   updateNode()
 })
@@ -39,22 +42,43 @@ Template.appBody.events({
     $('.ui.sidebar').sidebar('toggle')
   },
   'change #network': () => {
-    updateNode()
+    const selectedNode = document.getElementById('network').value
+    updateNode(selectedNode)
+    if (selectedNode !== 'add') {
+      Meteor._reload.reload()
+    }
   },
 })
 
 Template.appBody.helpers({
   nodeId() {
-    return Session.get('nodeId')
+    if (localStorage.getItem('nodeId') === '') {
+      return DEFAULT_NODES[0].id
+    } else {
+      return localStorage.getItem('nodeId')
+    }
   },
   nodeName() {
-    return Session.get('nodeName')
+    if (localStorage.getItem('nodeName') === '') {
+      return DEFAULT_NODES[0].name
+    } else {
+      return localStorage.getItem('nodeName')
+    }
   },
   nodeExplorerUrl() {
-    return Session.get('nodeExplorerUrl')
+    if (localStorage.getItem('nodeExplorerUrl') === '') {
+      return DEFAULT_NODES[0].explorerUrl
+    } else {
+      return localStorage.getItem('nodeExplorerUrl')
+    }
+    return localStorage.getItem('')
   },
   nodeApiUrl() {
-    return Session.get('nodeApiUrl')
+    if (localStorage.getItem('nodeApiUrl') === '') {
+      return DEFAULT_NODES[0].apiUrl
+    } else {
+      return localStorage.getItem('nodeApiUrl')
+    }
   },
   defaultNodes() {
     return DEFAULT_NODES

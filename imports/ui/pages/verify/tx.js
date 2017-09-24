@@ -5,7 +5,7 @@ Template.appVerifyTxid.onRendered(() => {
   Session.set('txhash', {})
   Session.set('qrl', 0)
   const thisTxId = FlowRouter.getParam('txId')
-  const thisNodeApiUrl = Session.get('nodeApiUrl')
+  const thisNodeApiUrl = localStorage.getItem('nodeApiUrl')
   if (thisTxId) {
     Meteor.call('txhash', { txId: thisTxId, nodeApiUrl: thisNodeApiUrl }, (err, res) => {
       if (err) {
@@ -60,7 +60,7 @@ Template.appVerifyTxid.helpers({
     $('.json').append(formatter.render())
   },
   nodeExplorerUrl() {
-    return Session.get('nodeExplorerUrl')
+    return localStorage.getItem('nodeExplorerUrl')
   },
 })
 
