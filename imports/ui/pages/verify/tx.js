@@ -59,6 +59,9 @@ Template.appVerifyTxid.helpers({
     const formatter = new JSONFormatter(myJSON)
     $('.json').append(formatter.render())
   },
+  nodeExplorerUrl() {
+    return Session.get('nodeExplorerUrl')
+  },
 })
 
 Template.appVerifyTxid.events({
