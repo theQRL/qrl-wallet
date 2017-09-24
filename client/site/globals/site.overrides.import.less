@@ -10,11 +10,17 @@
             #m_menu {
                 display:block;
             }
+        /* then push down mainpusher element */
+            .mainpusher {
+                margin-top: 4em;
+            }
         /* lastly, show your mobile menu button */
             #m_btn{
                 display:inline-block;
             }
         }
+
+
         @media all and (min-width:520px) {
         /* Hide the mobile menu */
             #m_menu {
@@ -23,6 +29,10 @@
         /* Unhide the regular menu */
             #menu{
               display:block;
+            }
+        /* then push up mainpusher element */
+            .mainpusher {
+                margin-top: 0em;
             }
         /* Lastly, hide the mobile menu button */
             #m_btn{
