@@ -1,22 +1,26 @@
 <template name="appCreate">
-<div class="ui segment">
+        <div id="warning" class="ui red segment">
+          <h4>Warning</h4>
+          <p>Generating a new wallet can take several minutes - please be patient!</p>
+        </div>
+        <div class="ui center aligned segment">
+          <h2 class="ui center aligned icon header">
+            <i class="circular plus icon"></i>
+            Create Wallet
+          </h2>
+        <button id="generate" class="ui huge primary button">Begin &raquo;</button>
+        <div id="generating" style="display: none;">
+        <div class="ui active centered inline loader"></div>
+        <p>Generating new wallet...</p>
+      </div>
 
-  <!-- Create Wallet Page -->
-  <div class="ui center aligned grid stackable">
-    <div class="row">
-      <div class="sixteen wide column">
-        <h2 class="ui center aligned icon header">
-          <i class="circular plus icon"></i>
-          Create Wallet
-        </h2>
-        <div class="ui action input" style="width: 40%">
-          <input type="text" placeholder="Passphrase">
-          <div type="submit" class="ui button">Create Wallet</div>
+      <div class="ui padded segment" id="result" style="display: none;">
+
+        <h1 class="unbreakable"><a class="ui purple label">Address</a> Q78e793597084b9ae07a7e8c24f8384f99a7fba2c765757f96f0ea272195d7fa610d9</h1>
+        <div class="ui pointing label">
+          This is your QRL wallet address
         </div>
       </div>
-    </div>
+
   </div>
-
-
-</div>
 </template>
