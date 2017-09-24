@@ -1,6 +1,5 @@
 <template name="appBody">
-<body>
-  <div class="ui menu" id="menu">
+  <div class="ui menu topmenu" id="menu">
     <div class="ui container">
       <a href="/" class="header item">
         <img class="logo" src="/img/Q@2x.png">
@@ -19,26 +18,25 @@
       </div>
     </div>
   </div>
+  {{>customNode}}
   <div class="pusher mainpusher">
     <div class="ui container">
       <div class="ui grid">
         <div class="row">
           <div class="twelve wide column">
             <strong>CONNECTION STATUS</strong><br>
-            <i class="icon green circle"></i> {{{connectionStatus}}}
+            <i class="icon green circle"></i> Connected to {{nodeName}}
           </div>
           <div class="four wide column">
             <div class="ui selection dropdown floatright" id="networkDropdown">
-              <input id="network" type="hidden" value="testnet">
+              <input id="network" type="hidden" value="{{nodeId}}">
               <i class="dropdown icon"></i>
-              <div class="text">QRL Testnet</div>
+              <div class="text"></div>
               <div class="menu">
-
                 {{#each defaultNodes}}
                 <div class="{{this.disabled}} item" data-value="{{this.id}}">{{this.name}}</div>
                 {{/each}}
                 <div class="item" data-value="add">Add Node</div>
-
               </div>
             </div>
           </div>
@@ -61,5 +59,4 @@
       </div>
     </div>
   </div>
-</body>
 </template>

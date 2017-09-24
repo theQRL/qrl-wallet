@@ -29,6 +29,7 @@ ecmascript-runtime-server@0.5.0-beta.24
 ejson@1.1.0-beta.24
 es5-shim@4.6.15
 fastclick@1.0.13
+frozeman:storage@0.1.9
 geojson-utils@1.0.10
 hot-code-push@1.0.4
 html-tools@1.0.11
@@ -44,6 +45,7 @@ kadira:flow-router@2.12.1
 launch-screen@1.1.1
 less@2.7.11-beta.24
 livedata@1.0.18
+localstorage@1.2.0-beta.24
 logging@1.1.17
 meteor@1.8.0-beta.24
 meteor-base@1.2.0-beta.24

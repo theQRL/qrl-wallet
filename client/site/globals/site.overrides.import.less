@@ -3,49 +3,43 @@
 *******************************/
 
 .floatright {
-    float: right;
+  float: right;
 }
 
+.topmenu{
+  margin-top: 0px !important;
+}
 
-    @media all and (max-width:519px) {
-        /* First, hide the main menu */
-            #menu {
-              display:none;
-            }
-        /* then display the mobile menu */
-            #m_menu {
-                display:block;
-            }
-        /* then push down mainpusher element */
-            .mainpusher {
-                margin-top: 4em;
-            }
-        /* lastly, show your mobile menu button */
-            #m_btn{
-                display:inline-block;
-            }
-        }
+@media all and (max-width:519px) {
+  #menu {
+    display:none;
+  }
+  #m_menu {
+    display:block;
+  }
+  .mainpusher {
+    margin-top: 4em !important;
+  }
+  #m_btn{
+    display:inline-block;
+  }
+}
 
-
-        @media all and (min-width:520px) {
-        /* Hide the mobile menu */
-            #m_menu {
-                display:none;
-            }
-        /* Unhide the regular menu */
-            #menu{
-              display:block;
-            }
-        /* then push up mainpusher element */
-            .mainpusher {
-                margin-top: 1em;
-            }
-        /* Lastly, hide the mobile menu button */
-            #m_btn{
-               display:none;
-           }    
-        }
-        .ui.container ul li {
-        word-wrap: break-word;
-        word-break: break-all;
-        }
+@media all and (min-width:520px) {
+  #m_menu {
+    display:none;
+  }
+  #menu{
+    display:block;
+  }
+  .mainpusher {
+    margin-top: 1em;
+  }
+  #m_btn{
+    display:none;
+ }
+}
+.ui.container ul li {
+  word-wrap: break-word;
+  word-break: break-all;
+}

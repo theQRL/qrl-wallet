@@ -1,24 +1,24 @@
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
 
-
-Template.appVerifyTxid.onCreated(() => {
-  Session.set('txhash', {})
-  Session.set('qrl', 0)
-  const txId = FlowRouter.getParam('txId')
-  if (txId) {
-    Meteor.call('txhash', txId, (err, res) => {
+Template.appVerifyTxid.onRendered(() => {
+  LocalStore.set('txhash', {})
+  LocalStore.set('qrl', 0)
+  const thisTxId = FlowRouter.getParam('txId')
+  const thisNodeApiUrl = LocalStore.get('nodeApiUrl')
+  if (thisTxId) {
+    Meteor.call('txhash', { txId: thisTxId, nodeApiUrl: thisNodeApiUrl }, (err, res) => {
       if (err) {
-        Session.set('txhash', { error: err, id: txId })
+        LocalStore.set('txhash', { error: err, id: thisTxId })
       } else {
-        Session.set('txhash', res)
+        LocalStore.set('txhash', res)
       }
     })
     Meteor.call('QRLvalue', (err, res) => {
       if (err) {
-        Session.set('qrl', 'Error getting value from API')
+        LocalStore.set('qrl', 'Error getting value from API')
       } else {
-        Session.set('qrl', res)
+        LocalStore.set('qrl', res)
       }
     })
   }
@@ -26,13 +26,13 @@ Template.appVerifyTxid.onCreated(() => {
 
 Template.appVerifyTxid.helpers({
   txhash() {
-    return Session.get('txhash')
+    return LocalStore.get('txhash')
   },
   qrl() {
-    const txhash = Session.get('txhash')
+    const txhash = LocalStore.get('txhash')
     try {
       const value = txhash.amount
-      const x = Session.get('qrl')
+      const x = LocalStore.get('qrl')
       return Math.round((x * value) * 100) / 100
     } catch (e) {
       return 0
@@ -58,6 +58,9 @@ Template.appVerifyTxid.helpers({
     const myJSON = this
     const formatter = new JSONFormatter(myJSON)
     $('.json').append(formatter.render())
+  },
+  nodeExplorerUrl() {
+    return LocalStore.get('nodeExplorerUrl')
   },
 })
 

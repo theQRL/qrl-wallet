@@ -23,3 +23,22 @@ DEFAULT_NODES = [
     apiUrl: 'http://localhost:8080/',
   },
 ]
+
+findNodeData = function (array, key) {
+  const objFound = _.find(array, function (obj) {
+    if (obj.id === key) {
+      return obj
+    }
+  })
+  if (objFound) {
+    return objFound
+  }
+  return null
+}
+
+const checkNodeStatus = function (nodeData) {
+  // Check that the API is responsive
+  console.log('TODO')
+  // Check the explorer is responsive
+  console.log('TODO')
+}

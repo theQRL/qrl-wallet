@@ -5,7 +5,6 @@ import { check } from 'meteor/check'
 import '/imports/startup/both'
 import '/imports/startup/server'
 
-
 const apiCall = (apiUrl, callback) => {
   try {
     const response = HTTP.get(apiUrl).data
@@ -18,16 +17,18 @@ const apiCall = (apiUrl, callback) => {
 }
 
 Meteor.methods({
-  txhash(txId) {
-    check(txId, String)
+  txhash(request) {
+    check(request, Object)
+    const { txId } = request
+    const { nodeApiUrl } = request
     if (!((Match.test(txId, String)) && (txId.length === 64))) {
       const errorCode = 400
       const errorMessage = 'Badly formed transaction ID'
       throw new Meteor.Error(errorCode, errorMessage)
     } else {
       this.unblock()
-      const apiUrl = `http://104.251.219.215:8080/api/txhash/${txId}`
-      const response = Meteor.wrapAsync(apiCall)(apiUrl)
+      const apiPath = `${nodeApiUrl}api/txhash/${txId}`
+      const response = Meteor.wrapAsync(apiCall)(apiPath)
       return response
     }
   },

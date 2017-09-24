@@ -1,43 +1,31 @@
-import { Session } from 'meteor/session'
 import './body.html'
 import './sidebar.html'
+import './customNode.html'
 import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
-function findValue(array, key) {
-  const objFound = _.find(array, function(obj) {
-    if (obj.id === key) {
-      return obj
-    }
-  })
-  if (objFound) {
-    return objFound
-  }
-  return null
-}
-
 // Set session state based on selected network node.
-const updateNode = () => {
-  const selectedNode = document.getElementById('network').value
+const updateNode = (selectedNode) => {
   switch (selectedNode) {
     case 'testnet':
     case 'mainnet':
-    case 'localhost': {
-      const nodeData = findValue(DEFAULT_NODES, selectedNode)
-      Session.set('connectionStatus', 'Connected to ' + nodeData.name)
+    case 'localhost':
+      const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
+      LocalStore.set('nodeId', nodeData.id)
+      LocalStore.set('nodeName', nodeData.name)
+      LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
+      LocalStore.set('nodeApiUrl', nodeData.apiUrl)
       break
-    }
-    default: {
-      Session.set('connectionStatus', 'Unknown')
+    case 'add':
+      $('.small.modal').modal('show')
       break
-    }
   }
 }
 
 Template.appBody.onRendered(() => {
   $('#networkDropdown').dropdown()
-  $('.modal').modal()
+  $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
   updateNode()
 })
@@ -48,13 +36,39 @@ Template.appBody.events({
     $('.ui.sidebar').sidebar('toggle')
   },
   'change #network': () => {
-    updateNode()
+    const selectedNode = document.getElementById('network').value
+    updateNode(selectedNode)
   },
 })
 
 Template.appBody.helpers({
-  connectionStatus() {
-    return Session.get('connectionStatus')
+  nodeId() {
+    if (LocalStore.get('nodeId') === '') {
+      return DEFAULT_NODES[0].id
+    } else {
+      return LocalStore.get('nodeId')
+    }
+  },
+  nodeName() {
+    if (LocalStore.get('nodeName') === '') {
+      return DEFAULT_NODES[0].name
+    } else {
+      return LocalStore.get('nodeName')
+    }
+  },
+  nodeExplorerUrl() {
+    if (LocalStore.get('nodeExplorerUrl') === '') {
+      return DEFAULT_NODES[0].explorerUrl
+    } else {
+      return LocalStore.get('nodeExplorerUrl')
+    }
+  },
+  nodeApiUrl() {
+    if (LocalStore.get('nodeApiUrl') === '') {
+      return DEFAULT_NODES[0].apiUrl
+    } else {
+      return LocalStore.get('nodeApiUrl')
+    }
   },
   defaultNodes() {
     return DEFAULT_NODES
