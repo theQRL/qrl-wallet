@@ -21,16 +21,18 @@ function findValue(array, key) {
 const updateNode = () => {
   try {
     const selectedNode = document.getElementById('network').value
-    switch(selectedNode) {
+    switch (selectedNode) {
       case 'testnet':
       case 'mainnet':
-      case 'localhost':
+      case 'localhost': {
         const nodeData = findValue(DEFAULT_NODES, selectedNode)
         Session.set('connectionStatus', 'Connected to ' + nodeData.name)
         break
-      default:
+      }
+      default: {
         Session.set('connectionStatus', 'Unknown')
         break
+      }
     }
   } catch (error) {
     Meteor.Error(500, 'Error Updating Node Status')
@@ -49,7 +51,7 @@ Template.appBody.events({
     event.preventDefault()
     $('.ui.sidebar').sidebar('toggle')
   },
-  'change #network': (event) => {
+  'change #network': () => {
     updateNode()
   },
 })
