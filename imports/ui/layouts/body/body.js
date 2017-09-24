@@ -19,23 +19,19 @@ function findValue(array, key) {
 
 // Set session state based on selected network node.
 const updateNode = () => {
-  try {
-    const selectedNode = document.getElementById('network').value
-    switch (selectedNode) {
-      case 'testnet':
-      case 'mainnet':
-      case 'localhost': {
-        const nodeData = findValue(DEFAULT_NODES, selectedNode)
-        Session.set('connectionStatus', 'Connected to ' + nodeData.name)
-        break
-      }
-      default: {
-        Session.set('connectionStatus', 'Unknown')
-        break
-      }
+  const selectedNode = document.getElementById('network').value
+  switch (selectedNode) {
+    case 'testnet':
+    case 'mainnet':
+    case 'localhost': {
+      const nodeData = findValue(DEFAULT_NODES, selectedNode)
+      Session.set('connectionStatus', 'Connected to ' + nodeData.name)
+      break
     }
-  } catch (error) {
-    Meteor.Error(500, 'Error Updating Node Status')
+    default: {
+      Session.set('connectionStatus', 'Unknown')
+      break
+    }
   }
 }
 
