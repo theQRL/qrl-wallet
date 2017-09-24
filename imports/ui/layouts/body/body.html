@@ -25,13 +25,13 @@
         <div class="row">
           <div class="twelve wide column">
             <strong>CONNECTION STATUS</strong><br>
-            <i class="icon green circle"></i> {{{connectionStatus}}}
+            <i class="icon green circle"></i> Connected to {{{nodeName}}}
           </div>
           <div class="four wide column">
             <div class="ui selection dropdown floatright" id="networkDropdown">
               <input id="network" type="hidden" value="testnet">
               <i class="dropdown icon"></i>
-              <div class="text">QRL Testnet</div>
+              <div class="text">{{defaultNodes.[0].name}}</div>
               <div class="menu">
 
                 {{#each defaultNodes}}

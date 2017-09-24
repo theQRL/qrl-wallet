@@ -23,3 +23,16 @@ DEFAULT_NODES = [
     apiUrl: 'http://localhost:8080/',
   },
 ]
+
+// Some function
+findNodeData = function(array, key){
+  const objFound = _.find(array, function(obj) {
+    if (obj.id === key) {
+      return obj
+    }
+  })
+  if (objFound) {
+    return objFound
+  }
+  return null
+}

@@ -5,18 +5,6 @@ import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
-function findValue(array, key) {
-  const objFound = _.find(array, function(obj) {
-    if (obj.id === key) {
-      return obj
-    }
-  })
-  if (objFound) {
-    return objFound
-  }
-  return null
-}
-
 // Set session state based on selected network node.
 const updateNode = () => {
   const selectedNode = document.getElementById('network').value
@@ -24,8 +12,11 @@ const updateNode = () => {
     case 'testnet':
     case 'mainnet':
     case 'localhost': {
-      const nodeData = findValue(DEFAULT_NODES, selectedNode)
-      Session.set('connectionStatus', 'Connected to ' + nodeData.name)
+      const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
+      Session.set('nodeId', nodeData.id)
+      Session.set('nodeName', nodeData.name)
+      Session.set('nodeExplorerUrl', nodeData.explorerUrl)
+      Session.set('nodeApiUrl', nodeData.apiUrl)
       break
     }
     default: {
@@ -53,8 +44,17 @@ Template.appBody.events({
 })
 
 Template.appBody.helpers({
-  connectionStatus() {
-    return Session.get('connectionStatus')
+  nodeId() {
+    return Session.get('nodeId')
+  },
+  nodeName() {
+    return Session.get('nodeName')
+  },
+  nodeExplorerUrl() {
+    return Session.get('nodeExplorerUrl')
+  },
+  nodeApiUrl() {
+    return Session.get('nodeApiUrl')
   },
   defaultNodes() {
     return DEFAULT_NODES

@@ -1,15 +1,15 @@
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
 
-
-Template.appVerifyTxid.onCreated(() => {
+Template.appVerifyTxid.onRendered(() => {
   Session.set('txhash', {})
   Session.set('qrl', 0)
-  const txId = FlowRouter.getParam('txId')
-  if (txId) {
-    Meteor.call('txhash', txId, (err, res) => {
+  const thisTxId = FlowRouter.getParam('txId')
+  const thisNodeApiUrl = Session.get('nodeApiUrl')
+  if (thisTxId) {
+    Meteor.call('txhash', { txId: thisTxId, nodeApiUrl: thisNodeApiUrl }, (err, res) => {
       if (err) {
-        Session.set('txhash', { error: err, id: txId })
+        Session.set('txhash', { error: err, id: thisTxId })
       } else {
         Session.set('txhash', res)
       }
