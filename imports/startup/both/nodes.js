@@ -24,7 +24,6 @@ DEFAULT_NODES = [
   },
 ]
 
-// Some function
 findNodeData = function (array, key) {
   const objFound = _.find(array, function (obj) {
     if (obj.id === key) {
@@ -39,6 +38,7 @@ findNodeData = function (array, key) {
 
 const checkNodeStatus = function (nodeData) {
   // Check that the API is responsive
-  console.log('test')
+  console.log('TODO')
   // Check the explorer is responsive
+  console.log('TODO')
 }
