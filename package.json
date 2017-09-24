@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "json-formatter-js": "^2.2.0"
+    "json-formatter-js": "^2.2.0",
+    "meteor-babel-helpers": "0.0.3"
   },
   "private": true,
   "repository": {
