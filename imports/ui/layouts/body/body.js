@@ -12,19 +12,13 @@ const updateNode = (selectedNode) => {
     case 'mainnet':
     case 'localhost':
       const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
-      localStorage.setItem('nodeId', nodeData.id)
-      localStorage.setItem('nodeName', nodeData.name)
-      localStorage.setItem('nodeExplorerUrl', nodeData.explorerUrl)
-      localStorage.setItem('nodeApiUrl', nodeData.apiUrl)
+      LocalStore.set('nodeId', nodeData.id)
+      LocalStore.set('nodeName', nodeData.name)
+      LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
+      LocalStore.set('nodeApiUrl', nodeData.apiUrl)
       break
     case 'add':
       $('.small.modal').modal('show')
-      break
-    default:
-      localStorage.setItem('nodeId', '')
-      localStorage.setItem('nodeName', '')
-      localStorage.setItem('nodeExplorerUrl', '')
-      localStorage.setItem('nodeApiUrl', '')
       break
   }
 }
@@ -44,40 +38,36 @@ Template.appBody.events({
   'change #network': () => {
     const selectedNode = document.getElementById('network').value
     updateNode(selectedNode)
-    if (selectedNode !== 'add') {
-      Meteor._reload.reload()
-    }
   },
 })
 
 Template.appBody.helpers({
   nodeId() {
-    if (localStorage.getItem('nodeId') === '') {
+    if (LocalStore.get('nodeId') === '') {
       return DEFAULT_NODES[0].id
     } else {
-      return localStorage.getItem('nodeId')
+      return LocalStore.get('nodeId')
     }
   },
   nodeName() {
-    if (localStorage.getItem('nodeName') === '') {
+    if (LocalStore.get('nodeName') === '') {
       return DEFAULT_NODES[0].name
     } else {
-      return localStorage.getItem('nodeName')
+      return LocalStore.get('nodeName')
     }
   },
   nodeExplorerUrl() {
-    if (localStorage.getItem('nodeExplorerUrl') === '') {
+    if (LocalStore.get('nodeExplorerUrl') === '') {
       return DEFAULT_NODES[0].explorerUrl
     } else {
-      return localStorage.getItem('nodeExplorerUrl')
+      return LocalStore.get('nodeExplorerUrl')
     }
-    return localStorage.getItem('')
   },
   nodeApiUrl() {
-    if (localStorage.getItem('nodeApiUrl') === '') {
+    if (LocalStore.get('nodeApiUrl') === '') {
       return DEFAULT_NODES[0].apiUrl
     } else {
-      return localStorage.getItem('nodeApiUrl')
+      return LocalStore.get('nodeApiUrl')
     }
   },
   defaultNodes() {
