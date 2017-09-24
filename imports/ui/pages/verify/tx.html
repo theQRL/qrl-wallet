@@ -1,0 +1,75 @@
+<template name="appVerifyTxid">
+<div class="ui segment">
+
+  <!-- View Transaction -->
+  <div class="ui center aligned grid stackable">
+    <div class="row">
+      <div class="sixteen wide column">
+        <h2 class="ui center aligned icon header">
+          <i class="circular exchange icon"></i>
+          Verify Transaction
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  {{#with txhash}}
+    {{#if error}}
+    <h1>Transaction <div class="ui label"><i class="exchange icon"></i>{{txhash.parameter}}</div></h1>
+    <div class="ui negative message">
+      <i class="close icon"></i>
+      <div class="header">
+        Error reading transaction
+      </div>
+      <p>{{txhash.error}}</p>
+    </div>
+    {{else}}
+    <div class="ui raised fluid card">
+      <div class="content">
+        <div class="header">Transaction <div class="ui label"><i class="exchange icon"></i> {{txhash.txhash}}</div></div>
+        <div class="meta">
+          {{#if txhash.confirmations}} {{txhash.confirmations}} confirmations {{else}}Unconfirmed{{/if}}
+        </div>
+        <div class="description">
+          <div class="ui basic center aligned segment">
+            <div class="ui statistic">
+              <div class="label">
+                <div class="ui {{txcolor}} label">{{txhash.subtype}}</div>
+              </div>
+              <div class="value" data-html="<div class='content'>USD ${{qrl}}</div>">
+                {{txhash.amount}}
+              </div>
+              <div class="label">
+                Quanta
+              </div>
+            </div>
+          </div>
+          <table class="ui stackable table">
+            <thead></thead>
+            <tbody>
+            <tr><td class="single line"><div class="ui red label"><i class="sign out icon"></i>from</div></td><td><a href="http://qrlexplorer.info/a/{{txhash.txfrom}}">{{txhash.txfrom}}</a></td>
+            <td><i class="large right arrow icon"></i></td>
+            <td class="single line"><div class="ui purple label"><i class="sign in icon"></i>to</div></td><td><a href="http://qrlexplorer.info/a/{{txhash.txto}}">{{txhash.txto}}</a></td></tr>
+          </tbody>
+          </table>
+          <div class="ui celled horizontal list">
+            <div class="item"><strong>Block</strong> <a href="http://qrlexplorer.info/block/{{txhash.block}}">{{txhash.block}}</a></div>
+            <div class="item"><strong>Nonce</strong> {{txhash.nonce}}</div>
+            <div class="item"><strong>OTS key</strong> {{txhash.ots_key}}</div>
+            <div class="item"><strong>Hexsize</strong> {{txhash.hexsize}}</div>
+            <div class="item"><strong>Fee</strong> {{txhash.fee}}</div>
+          </div>
+      </div>
+      <div class="extra content">
+        <div class="right floated author">
+          OK <i class="ui green circle icon"></i> {{ts}}
+        </div>
+      </div>
+    </div>
+  </div>
+    {{/if}} 
+  {{/with}}
+
+
+</div>
+</template>

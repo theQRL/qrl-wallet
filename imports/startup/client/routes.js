@@ -9,6 +9,7 @@ import '../../ui/pages/create/create.js'
 import '../../ui/pages/view/view.js'
 import '../../ui/pages/transfer/transfer.js'
 import '../../ui/pages/verify/verify.js'
+import '../../ui/pages/verify/tx.js'
 
 
 // Set up all routes in the app
@@ -40,6 +41,12 @@ FlowRouter.route('/verify', {
   name: 'App.verify',
   action() {
     BlazeLayout.render('appBody', { main: 'appVerify' })
+  },
+})
+FlowRouter.route('/verify-txid/:txId', {
+  name: 'App.verifytxid',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appVerifyTxid' })
   },
 })
 FlowRouter.notFound = {
