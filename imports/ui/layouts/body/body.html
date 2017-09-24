@@ -1,41 +1,65 @@
 <template name="appBody">
-  <body>
-    <div class="ui menu" id="menu">
-      <div class="ui container">
-        <a href="/" class="header item">
-              <img class="logo" src="/img/Q@2x.png"><!-- QRL -->
-          </a>
-        <a href="/create" class="item">Create Wallet</a>
-        <a href="/view" class="item">View Wallet</a>
-        <a href="/transfer" class="item">Transfer QRL</a>
+<body>
+  <div class="ui menu" id="menu">
+    <div class="ui container">
+      <a href="/" class="header item">
+        <img class="logo" src="/img/Q@2x.png">
+      </a>
+      <a href="/create" class="item">Create Wallet</a>
+      <a href="/view" class="item">View Wallet</a>
+      <a href="/transfer" class="item">Transfer QRL</a>
+      <a href="/verify" class="item">Verify Transaction</a>
+    </div>
+  </div>
+  {{>sidebar}}
+  <div class="ui fixed menu" id="m_menu">
+    <div class="ui container" id="m_btn">
+      <div class="icon item">
+        <a id="hamburger"><i class="content icon"></i> Menu</a>
       </div>
     </div>
-    {{>sidebar}}
-    <div class="ui fixed menu" id="m_menu">
-      <div class="ui container" id="m_btn">
-        <div class="icon item">
-          <a id="hamburger"><i class="content icon"></i> Menu</a>
-        </div>
-      </div>
-    </div>
-    <div class="pusher">
-      <div class="ui container" style="margin-top: 1em">
-        {{> Template.dynamic template=main}}
-      </div>
-      <div class="ui hidden divider"></div>
-      <div class="ui vertical footer segment">
-        <div class="ui center aligned container">
-          <a href="/"><img width="91" src="/img/Q@2x.png"></a>
-          <p></p>
-          <div class="ui center aligned container">
-            <div class="ui horizontal small divided link list">
-              <a class="item" href="http://theqrl.org/">theQRL.org</a>
-              <a class="item" href="http://qrlexplorer.info">QRL Explorer</a>
-              <a class="item" href="https://github.com/theQRL/QRL">Github</a>
+  </div>
+  <div class="pusher mainpusher">
+    <div class="ui container">
+      <div class="ui grid">
+        <div class="row">
+          <div class="twelve wide column">
+            <strong>CONNECTION STATUS</strong><br>
+            <i class="icon green circle"></i> {{{connectionStatus}}}
+          </div>
+          <div class="four wide column">
+            <div class="ui selection dropdown floatright" id="networkDropdown">
+              <input id="network" type="hidden" value="testnet">
+              <i class="dropdown icon"></i>
+              <div class="text">QRL Testnet</div>
+              <div class="menu">
+
+                {{#each defaultNodes}}
+                <div class="{{this.disabled}} item" data-value="{{this.id}}">{{this.name}}</div>
+                {{/each}}
+                <div class="item" data-value="add">Add Node</div>
+
+              </div>
             </div>
           </div>
         </div>
       </div>
+      {{> Template.dynamic template=main}}
     </div>
-  </body>
+    <div class="ui hidden divider"></div>
+    <div class="ui vertical footer segment">
+      <div class="ui center aligned container">
+        <a href="/"><img width="91" src="/img/Q@2x.png"></a>
+        <p></p>
+        <div class="ui center aligned container">
+          <div class="ui horizontal small divided link list">
+            <a class="item" href="http://theqrl.org/">theQRL.org</a>
+            <a class="item" href="http://qrlexplorer.info">QRL Explorer</a>
+            <a class="item" href="https://github.com/theQRL/QRL">Github</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 </template>

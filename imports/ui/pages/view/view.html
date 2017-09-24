@@ -1,5 +1,25 @@
 <template name="appView">
-  <div class="ui segment">
-    <div style="height:500px">VIEW WALLET PAGE</div>
+<div class="ui segment">
+
+  <!-- Open Wallet for Viewing -->
+  <div class="ui center aligned grid stackable">
+    <div class="row">
+      <div class="sixteen wide column">
+        <h2 class="ui center aligned icon header">
+          <i class="circular unlock icon"></i>
+          View Wallet
+        </h2>
+        <div class="ui action input" style="width: 80%">
+          <input type="text" placeholder="">
+          <select class="ui compact selection dropdown">
+            <option value="mnemonic">Mnemonic Phrase</option>
+            <option value="hexseed">Hexseed</option>
+          </select>
+          <div type="submit" class="ui button">Open Wallet</div>
+        </div>
+      </div>
+    </div>
   </div>
+
+</div>
 </template>
