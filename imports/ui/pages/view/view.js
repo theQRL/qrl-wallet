@@ -39,7 +39,6 @@ Template.appView.events({
     $('#HideTx').hide()
   },
   'click .refresh': () => {
-    
     getAddressDetail('Qfc34eae49e93eb3ffce6edd8e22db89c36e235b73a55791150a909ae66fb031a54a0')
   },
 })
