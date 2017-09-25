@@ -13,7 +13,7 @@ const updateNode = (selectedNode) => {
   switch (selectedNode) {
     case 'testnet':
     case 'mainnet':
-    case 'localhost':
+    case 'localhost': {
       const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
       LocalStore.set('nodeId', nodeData.id)
       LocalStore.set('nodeName', nodeData.name)
@@ -22,8 +22,11 @@ const updateNode = (selectedNode) => {
       // Check the status of the node
       checkNodeStatus(nodeData)
       break
+    }
     case 'add':
       $('.small.modal').modal('show')
+      break
+    default:
       break
   }
 }
@@ -51,30 +54,26 @@ Template.appBody.helpers({
   nodeId() {
     if (LocalStore.get('nodeId') === '') {
       return DEFAULT_NODES[0].id
-    } else {
-      return LocalStore.get('nodeId')
     }
+    return LocalStore.get('nodeId')
   },
   nodeName() {
     if (LocalStore.get('nodeName') === '') {
       return DEFAULT_NODES[0].name
-    } else {
-      return LocalStore.get('nodeName')
     }
+    return LocalStore.get('nodeName')
   },
   nodeExplorerUrl() {
     if (LocalStore.get('nodeExplorerUrl') === '') {
       return DEFAULT_NODES[0].explorerUrl
-    } else {
-      return LocalStore.get('nodeExplorerUrl')
     }
+    return LocalStore.get('nodeExplorerUrl')
   },
   nodeApiUrl() {
     if (LocalStore.get('nodeApiUrl') === '') {
       return DEFAULT_NODES[0].apiUrl
-    } else {
-      return LocalStore.get('nodeApiUrl')
     }
+    return LocalStore.get('nodeApiUrl')
   },
   defaultNodes() {
     return DEFAULT_NODES
