@@ -7,6 +7,9 @@ BlazeLayout.setRoot('body')
 
 // Set session state based on selected network node.
 const updateNode = (selectedNode) => {
+  // Set node status to connecting
+  LocalStore.set('nodeStatus', 'connecting')
+  // Update local node connection details
   switch (selectedNode) {
     case 'testnet':
     case 'mainnet':
@@ -16,6 +19,8 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeName', nodeData.name)
       LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
       LocalStore.set('nodeApiUrl', nodeData.apiUrl)
+      // Check the status of the node
+      checkNodeStatus(nodeData)
       break
     case 'add':
       $('.small.modal').modal('show')
@@ -27,7 +32,8 @@ Template.appBody.onRendered(() => {
   $('#networkDropdown').dropdown()
   $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
-  updateNode()
+  const selectedNode = document.getElementById('network').value
+  updateNode(selectedNode)
 })
 
 Template.appBody.events({
@@ -72,6 +78,20 @@ Template.appBody.helpers({
   },
   defaultNodes() {
     return DEFAULT_NODES
+  },
+  connectionStatus() {
+    const status = {}
+    if (LocalStore.get('nodeStatus') === 'connecting') {
+      status.string = 'Connecting to'
+      status.colour = 'yellow'
+    } else if (LocalStore.get('nodeStatus') === 'ok') {
+      status.string = 'Connected to'
+      status.colour = 'green'
+    } else {
+      status.string = 'Failed to connect to'
+      status.colour = 'red'
+    }
+    return status
   },
 })
 

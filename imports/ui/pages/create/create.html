@@ -1,26 +1,28 @@
 <template name="appCreate">
-        <div id="warning" class="ui red segment">
-          <h4>Warning</h4>
-          <p>Generating a new wallet can take several minutes - please be patient!</p>
-        </div>
-        <div class="ui center aligned segment">
-          <h2 class="ui center aligned icon header">
-            <i class="circular plus icon"></i>
-            Create Wallet
-          </h2>
-        <button id="generate" class="ui huge primary button">Begin &raquo;</button>
-        <div id="generating" style="display: none;">
-        <div class="ui active centered inline loader"></div>
-        <p>Generating new wallet...</p>
-      </div>
-
-      <div class="ui padded segment" id="result" style="display: none;">
-
-        <h1 class="unbreakable"><a class="ui purple label">Address</a> Q78e793597084b9ae07a7e8c24f8384f99a7fba2c765757f96f0ea272195d7fa610d9</h1>
-        <div class="ui pointing label">
-          This is your QRL wallet address
-        </div>
-      </div>
-
+<div id="warning" class="ui red segment">
+  <h4>Warning</h4>
+  <p>Generating a new wallet can take several minutes - please be patient!</p>
+</div>
+<div class="ui center aligned segment">
+  <h2 class="ui center aligned icon header">
+  <i class="circular plus icon"></i>
+  Create Wallet
+  </h2>
+  <button id="generate" class="ui huge primary button">Begin &raquo;</button>
+  <div id="generating" style="display: none;">
+    <div class="ui active centered inline loader"></div>
+    <p>Generating new wallet...</p>
   </div>
+  <div class="ui padded segment" id="result" style="display: none;">
+    <h2 class="unbreakable"><a class="ui purple label">Address</a> Qc74b3e3aa467238d9cab467ce527fde33889d5972cfb582e79dee8edfb10659b9b91</h2>
+    <div class="ui pointing label">
+      This is your QRL wallet address
+    </div>
+    <div id="warning" class="ui yellow segment left aligned">
+      <h4>Store these details in a secure location, and never share them with anyone!</h4>
+      <p><a class="ui grey label">Hexseed</a> 8f65a9a4b668e0de963ebff99588c74b06f8f29949fe510308f5100240ac086c6375814b37f0433f1601d97c1726b487</p>
+      <p><a class="ui grey label">Mnemonic Phrase</a> molar gallon pig hasty teach trail dollar zenith need mexico expect impact verify nasty yale bait answer finite acute armful anger shawl jockey belly deal agenda done grab stride scot champ eric</p>
+    </div>
+  </div>
+</div>
 </template>

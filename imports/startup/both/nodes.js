@@ -36,9 +36,13 @@ findNodeData = function (array, key) {
   return null
 }
 
-const checkNodeStatus = function (nodeData) {
-  // Check that the API is responsive
-  console.log('TODO')
-  // Check the explorer is responsive
-  console.log('TODO')
+checkNodeStatus = (nodeData) => {
+  // Check that the node API is responsive
+  HTTP.call('GET', `${nodeData.apiUrl}api/stats`, {}, (error, result) => {
+    if (!error) {
+      LocalStore.set('nodeStatus', result.data.status)
+    } else {
+      LocalStore.set('nodeStatus', 'failed')
+    }
+  })
 }
