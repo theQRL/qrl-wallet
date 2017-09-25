@@ -1,4 +1,5 @@
 import './view.html'
+/* global LocalStore */
 
 Template.appView.onRendered(() => {
   $('.ui.dropdown').dropdown()

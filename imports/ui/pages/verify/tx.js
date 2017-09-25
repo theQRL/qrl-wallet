@@ -1,13 +1,14 @@
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
+/* global LocalStore */
 
 Template.appVerifyTxid.onRendered(() => {
   LocalStore.set('txhash', {})
   const thisTxId = FlowRouter.getParam('txId')
   const apiUrl = LocalStore.get('nodeApiUrl')
   if (thisTxId) {
-    HTTP.call('GET', `${apiUrl}api/txhash/${thisTxId}`, {}, (error, result) => {
-      if (!error) {
+    HTTP.call('GET', `${apiUrl}api/txhash/${thisTxId}`, {}, (err, result) => {
+      if (!err) {
         LocalStore.set('txhash', result.data)
       } else {
         LocalStore.set('txhash', { error: err, id: thisTxId })

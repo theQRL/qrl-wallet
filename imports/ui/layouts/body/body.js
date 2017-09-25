@@ -2,6 +2,10 @@ import './body.html'
 import './sidebar.html'
 import './customNode.html'
 import '../../stylesheets/overrides.css'
+/* global LocalStore */
+/* global checkNodeStatus */
+/* global findNodeData */
+/* global DEFAULT_NODES */
 
 BlazeLayout.setRoot('body')
 
