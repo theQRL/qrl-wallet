@@ -1,26 +1,50 @@
 <template name="appTransfer">
-<div class="ui segment">
 
-  <!-- Open Wallet for Transfer -->
-  <div class="ui center aligned grid stackable">
-    <div class="row">
-      <div class="sixteen wide column">
-        <h2 class="ui center aligned icon header">
-          <i class="circular send icon"></i>
-          Transfer QRL
-        </h2>
-        <div class="ui action input" style="width: 80%">
-          <input type="text" placeholder="">
-          <select class="ui compact selection dropdown">
-            <option value="mnemonic">Mnemonic Phrase</option>
-            <option value="hexseed">Hexseed</option>
-          </select>
-          <div type="submit" class="ui button">Open Wallet</div>
-        </div>
-      </div>
+<div class="ui center aligned segment">
+  <h2 class="ui center aligned icon header">
+    <i class="circular send icon"></i>
+    Transfer QRL
+  </h2>
+  <div class="ui action input"  id="addressFields" style="width: 80%; margin-bottom: 20px;">
+    <input type="text" placeholder="">
+    <select class="ui compact selection dropdown">
+      <option value="mnemonic">Mnemonic Phrase</option>
+      <option value="hexseed">Hexseed</option>
+    </select>
+    <div id="unlockButton" class="ui button">Unlock Wallet</div>
+  </div>
+
+  <div id="unlocking" style="display: none;">
+    <div class="ui active centered inline loader"></div>
+    <p>Unlocking wallet...</p>
+  </div>
+  <div id="unlockError" style="display: none;">
+    <div id="warning" class="ui red segment">
+      <h4>Error</h4>
+      <p>There was an error unlocking the wallet</p>
     </div>
   </div>
 
+</div>
+
+<div class="ui left aligned segment" id="transferForm" style="display: none;">
+  <h2 class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
+  <h2 class="unbreakable"><a class="ui yellow label">QRL Balance</a> {{transferFrom.balance}}</h2>
+
+  <form class="ui form">
+    <div class="field">
+      <label>Send To</label>
+      <input type="text" name="to" placeholder="Address to send QRL to">
+    </div>
+    <div class="field">
+      <label>QRL Amount</label>
+      <input type="text" name="amount" placeholder="4">
+    </div>
+    <button id="generateTransaction" class="ui huge primary button">Generate Transaction &raquo;</button>
+    <div class="ui error message"></div>
+  </form>
 
 </div>
+
+
 </template>
