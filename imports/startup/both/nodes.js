@@ -1,5 +1,3 @@
-import { HTTP } from 'meteor/http'
-
 // Defines Default QRL Node Details
 // Additional user defined node can be stored in session.
 DEFAULT_NODES = [
