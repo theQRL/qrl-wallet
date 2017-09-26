@@ -1,5 +1,4 @@
 import './create.html'
-import '../../../startup/client/web-libjsqrl.js'
 /* global QRLLIB */
 /* global LocalStore */
 
