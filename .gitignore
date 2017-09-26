@@ -7,3 +7,4 @@ client/semantic.less
 client/theme.import.less
 client/.custom.semantic.json
 client/theme.config.import.less
+browserify/node_modules/
