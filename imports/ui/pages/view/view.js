@@ -1,5 +1,6 @@
 import './view.html'
 /* global LocalStore */
+/* global QRLLIB */
 
 Template.appView.onRendered(() => {
   $('.ui.dropdown').dropdown()
@@ -21,12 +22,41 @@ const getAddressDetail = function (address) {
   })
 }
 
+function viewWallet(walletType) {
+  const userBinSeed = document.getElementById('walletCode').value
+  let thisSeedBin
+
+  // Generate binary seed
+  if (walletType === 'hexseed') {
+    thisSeedBin = QRLLIB.hstr2bin(userBinSeed)
+  } else if (walletType === 'mnemonic') {
+    thisSeedBin = QRLLIB.mnemonic2bin(userBinSeed)
+  }
+
+  const thisHexSeed = QRLLIB.bin2hstr(thisSeedBin)
+  const thisMnemonic = QRLLIB.bin2mnemonic(thisSeedBin)
+
+  let xmss = new QRLLIB.Xmss(thisSeedBin, 12)
+  const thisAddress = xmss.getAddress()
+
+  const walletDetail = {
+    address: thisAddress,
+    hexSeed: thisHexSeed,
+    mnemonicPhrase: thisMnemonic,
+  }
+
+  LocalStore.set('walletDetail', walletDetail)
+
+  getAddressDetail(walletDetail.address)
+}
+
 Template.appView.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
+    $('#unlocking').show()
     // CALL WASM HERE TO VALIDATE HEX OR MNEMONIC
-    // Simulate for now by getting balance of actual address
-    getAddressDetail('Qfc34eae49e93eb3ffce6edd8e22db89c36e235b73a55791150a909ae66fb031a54a0')
+    const walletType = document.getElementById('walletType').value
+    setTimeout(viewWallet(walletType), 1000)
   },
   'click #ShowTx': () => {
     $('table').show()
@@ -39,16 +69,16 @@ Template.appView.events({
     $('#HideTx').hide()
   },
   'click .refresh': () => {
-    getAddressDetail('Qfc34eae49e93eb3ffce6edd8e22db89c36e235b73a55791150a909ae66fb031a54a0')
+    getAddressDetail(LocalStore.get('walletDetail').address)
   },
 })
 
 Template.appView.helpers({
-  address() {
-    return LocalStore.get('addressDetail')
+  walletDetail() {
+    return LocalStore.get('walletDetail')
   },
   addressQR() {
-    return LocalStore.get('addressDetail').state.address
+    return LocalStore.get('walletDetail').address
   },
   ts() {
     const x = moment.unix(this.timestamp)
