@@ -23,40 +23,44 @@ const getAddressDetail = function (address) {
 }
 
 function viewWallet(walletType) {
-  const userBinSeed = document.getElementById('walletCode').value
-  let thisSeedBin
+  try {
+    const userBinSeed = document.getElementById('walletCode').value
+    let thisSeedBin
 
-  // Generate binary seed
-  if (walletType === 'hexseed') {
-    thisSeedBin = QRLLIB.hstr2bin(userBinSeed)
-  } else if (walletType === 'mnemonic') {
-    thisSeedBin = QRLLIB.mnemonic2bin(userBinSeed)
+    // Generate binary seed
+    if (walletType === 'hexseed') {
+      thisSeedBin = QRLLIB.hstr2bin(userBinSeed)
+    } else if (walletType === 'mnemonic') {
+      thisSeedBin = QRLLIB.mnemonic2bin(userBinSeed)
+    }
+
+    const thisHexSeed = QRLLIB.bin2hstr(thisSeedBin)
+    const thisMnemonic = QRLLIB.bin2mnemonic(thisSeedBin)
+
+    let xmss = new QRLLIB.Xmss(thisSeedBin, 12)
+    const thisAddress = xmss.getAddress()
+
+    const walletDetail = {
+      address: thisAddress,
+      hexSeed: thisHexSeed,
+      mnemonicPhrase: thisMnemonic,
+    }
+
+    LocalStore.set('walletDetail', walletDetail)
+
+    getAddressDetail(walletDetail.address)
+  } catch (error) {
+    $('#unlockError').show()
+    $('#unlocking').hide()
   }
-
-  const thisHexSeed = QRLLIB.bin2hstr(thisSeedBin)
-  const thisMnemonic = QRLLIB.bin2mnemonic(thisSeedBin)
-
-  let xmss = new QRLLIB.Xmss(thisSeedBin, 12)
-  const thisAddress = xmss.getAddress()
-
-  const walletDetail = {
-    address: thisAddress,
-    hexSeed: thisHexSeed,
-    mnemonicPhrase: thisMnemonic,
-  }
-
-  LocalStore.set('walletDetail', walletDetail)
-
-  getAddressDetail(walletDetail.address)
 }
 
 Template.appView.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
-    $('#unlocking').show()
     // CALL WASM HERE TO VALIDATE HEX OR MNEMONIC
     const walletType = document.getElementById('walletType').value
-    setTimeout(viewWallet(walletType), 1000)
+    setTimeout(function () { viewWallet(walletType) }, 200)
   },
   'click #ShowTx': () => {
     $('table').show()
