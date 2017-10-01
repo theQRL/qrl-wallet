@@ -13,13 +13,14 @@ function generateWallet() {
   const thisSeed = QRLLIB.bin2hstr(randomSeed)
   const thisMnemonic = QRLLIB.bin2mnemonic(randomSeed)
 
-  let xmss = new QRLLIB.Xmss(randomSeed, 12)
+  let xmss = new QRLLIB.Xmss(randomSeed, 10)
   const thisAddress = xmss.getAddress()
 
   const newWalletDetail = {
     address: thisAddress,
-    hexSeed: thisSeed,
-    mnemonicPhrase: thisMnemonic,
+    hexseed: thisSeed,
+    mnemonic: thisMnemonic,
+    index: 0,
   }
 
   LocalStore.set('newWalletDetail', newWalletDetail)
@@ -29,12 +30,26 @@ function generateWallet() {
   $('#result').show()
 }
 
+function downloadWallet() {
+  const walletJson = ['[', JSON.stringify(LocalStore.get('newWalletDetail')), ']'].join('')
+  const binBlob = new Blob([walletJson])
+  const a = window.document.createElement('a')
+  a.href = window.URL.createObjectURL(binBlob, { type: 'text/plain' })
+  a.download = 'wallet.json'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
 Template.appCreate.events({
   'click #generate': () => {
     $('#generate').hide()
     $('#generating').show()
     // Delay so we get the generating icon up.
     setTimeout(generateWallet, 200)
+  },
+  'click #download': () => {
+    downloadWallet()
   },
 })
 
