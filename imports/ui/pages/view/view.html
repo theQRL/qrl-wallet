@@ -39,7 +39,7 @@
                 <div class="ui label">Balance</div>
               </div>
               <div class="value" data-html="">
-                {{address.state.balance}}
+                {{addressDetail.state.balance}}
               </div>
               <div class="label">
                 Quanta
@@ -54,7 +54,7 @@
       <div class="ui celled horizontal list">
         <div class="item"><button class="ui mini blue button" id="ShowTx"><i class="down arrow icon"></i> Show transactions</button><button style="display:none" class="ui mini blue button" id="HideTx"><i class="up arrow icon"></i> Hide transactions</button></div>
         <div class="item"><strong>Transactions</strong> {{txcount}}</div>
-        <div class="item"><strong>Nonce</strong> {{address.state.nonce}}</div>
+        <div class="item"><strong>Nonce</strong> {{addressDetail.state.nonce}}</div>
       </div>
       <table style="display:none;" class="ui striped table">
         <thead>
@@ -68,7 +68,7 @@
           <th>OTS key</th>
         </thead>
         <tbody>
-          {{#each address.transactions}}
+          {{#each addressDetail.transactions}}
           <tr>
             <td>{{ts}}</td>
             <td>{{this.amount}}</td>

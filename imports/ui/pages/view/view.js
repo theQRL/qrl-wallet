@@ -10,7 +10,19 @@ const getAddressDetail = function (address) {
   const apiUrl = LocalStore.get('nodeApiUrl')
   HTTP.call('GET', `${apiUrl}api/address/${address}`, {}, (error, result) => {
     if (!error) {
-      LocalStore.set('addressDetail', result.data)
+      if (result.data.status !== 'error') {
+        LocalStore.set('addressDetail', result.data)
+      } else {
+        // Wallet not found, put together an empty response
+        const errorResult = {
+          state: {
+            balance: 0,
+            nonce: 0,
+          },
+          transactions: [],
+        }
+        LocalStore.set('addressDetail', errorResult)
+      }
       $('#unlocking').hide()
       $('#addressFields').hide()
       $('#addressDetail').show()
@@ -37,7 +49,7 @@ function viewWallet(walletType) {
     const thisHexSeed = QRLLIB.bin2hstr(thisSeedBin)
     const thisMnemonic = QRLLIB.bin2mnemonic(thisSeedBin)
 
-    let xmss = new QRLLIB.Xmss(thisSeedBin, 12)
+    let xmss = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = xmss.getAddress()
 
     const walletDetail = {
@@ -58,7 +70,6 @@ function viewWallet(walletType) {
 Template.appView.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
-    // CALL WASM HERE TO VALIDATE HEX OR MNEMONIC
     const walletType = document.getElementById('walletType').value
     setTimeout(function () { viewWallet(walletType) }, 200)
   },
@@ -78,6 +89,9 @@ Template.appView.events({
 })
 
 Template.appView.helpers({
+  addressDetail() {
+    return LocalStore.get('addressDetail')
+  },
   walletDetail() {
     return LocalStore.get('walletDetail')
   },
