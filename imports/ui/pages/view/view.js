@@ -70,7 +70,6 @@ function viewWallet(walletType) {
 Template.appView.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
-    // CALL WASM HERE TO VALIDATE HEX OR MNEMONIC
     const walletType = document.getElementById('walletType').value
     setTimeout(function () { viewWallet(walletType) }, 200)
   },
