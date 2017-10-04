@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import process from 'process';
-import { app, dialog } from 'electron';
+import { app, dialog, Menu } from 'electron';
 
 /**
  * Entry point to your native desktop code.
@@ -44,7 +44,36 @@ export default class Desktop {
         eventsBus.on('windowCreated', (window) => {
             window.webContents.on('crashed', Desktop.windowCrashedHandler);
             window.on('unresponsive', Desktop.windowUnresponsiveHandler);
+
+            window.webContents.on('contextmenu', () => {
+                menu.popup(window);
+            });
+
+            var template = [{
+                label: "Application",
+                submenu: [
+                    // { label: "About QRL Wallet", selector: "orderFrontStandardAboutPanel:" },
+                    // { type: "separator" },
+                    { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+                ]}, {
+                label: "Edit",
+                submenu: [
+                    { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+                    { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+                    { type: "separator" },
+                    { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+                    { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+                    { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+                    { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+                ]}
+            ];
+
+            Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
         });
+
+
+
 
         // Consider setting a crash reporter ->
         // https://github.com/electron/electron/blob/master/docs/api/crash-reporter.md
