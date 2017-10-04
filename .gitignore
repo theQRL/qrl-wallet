@@ -7,3 +7,5 @@ client/semantic.less
 client/theme.import.less
 client/.custom.semantic.json
 client/theme.config.import.less
+version.desktop
+.desktop-installer

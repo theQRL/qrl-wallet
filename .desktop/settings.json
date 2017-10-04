@@ -1,0 +1,96 @@
+{
+  "name": "QRL Wallet",
+  "version": "0.1.0",
+  "projectName": "qrl-wallet",
+  "devTools": true,
+  "devtron": true,
+  "desktopHCP": true,
+  "desktopHCPIgnoreCompatibilityVersion": false,
+  "autoUpdateFeedUrl": "http://127.0.0.1/update/:platform/:version",
+  "autoUpdateFeedHeaders": {},
+  "autoUpdateCheckOnStart": false,
+  "rebuildNativeNodeModules": false,
+  "webAppStartupTimeout": 60000,
+  "exposeLocalFilesystem": false,
+  "window": {
+    "icon": "@assets/qrl.png",
+    "_windows": {
+      "icon": "@assets/qrl.ico"
+    }
+  },
+  "windowDev": {},
+  "uglify": true,
+  "plugins": {
+    "meteor-desktop-splash-screen": {
+      "version": "0.3.0",
+      "windowSettings": {
+        "width": 800,
+        "height": 600
+      }
+    },
+    "meteor-desktop-localstorage": "0.0.11"
+  },
+  "dependencies": {},
+  "packageJsonFields": {
+    "description": "QRL Wallet",
+    "author": "Scott Donald, JP Lomas",
+    "private": true
+  },
+  "builderOptions": {
+    "win": {
+      "title": "QRL Wallet",
+      "authors": "Scott Donald, JP Lomas",
+      "target": "squirrel"
+    },
+    "squirrelWindows": {
+      "iconUrl": "https://github.com/wojtkowiak/meteor-desktop/blob/beta/scaffold/assets/meteor.ico?raw=true",
+      "loadingGif": ".desktop/assets/loading.gif"
+    },
+    "icon": ".desktop/assets/qrl.ico",
+    "appId": "qrlwallet.app",
+    "productName": "QRL Wallet",
+    "compression": "maximum",
+    "mac": {
+      "icon": ".desktop/assets/qrl.icns",
+      "target": ["dmg"]
+    },
+    "dmg": {
+      "icon": ".desktop/assets/qrl.icns",
+      "background": ".desktop/assets/dmgBackground.png",
+      "iconSize": 54,
+      "contents": [
+        {
+          "x": 377,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 63,
+          "y": 190,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 480,
+        "height": 300
+      }
+    }
+  },
+  "packagerOptions": {
+    "icon": ".desktop/assets/qrl.ico",
+    "_osx": {
+      "icon": ".desktop/assets/qrl.icns"
+    },
+    "version-string": {
+      "CompanyName": "The QRL",
+      "LegalCopyright": "Copyright 2017 The QRL - All rights reserved.",
+      "FileDescription": "QRLWallet",
+      "OriginalFilename": "QRLWallet.exe",
+      "FileVersion": "@version",
+      "ProductVersion": "@version",
+      "ProductName": "QRLWallet",
+      "InternalName": "QRLWallet.exe"
+    }
+  }
+}

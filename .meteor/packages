@@ -31,3 +31,6 @@ jayuda:flx-qrcode
 momentjs:moment
 audit-argument-checks
 frozeman:storage
+omega:meteor-desktop-watcher@=0.10.0
+omega:meteor-desktop-bundler@=0.10.0
+omega:meteor-desktop-localstorage@=0.0.11
