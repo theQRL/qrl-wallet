@@ -10,7 +10,8 @@ app.on('ready', function() {
   // Create the loading screen
   loading = new BrowserWindow({
     width: 820, height: 300,
-    nodeIntegration: false
+    nodeIntegration: false,
+    icon: __dirname + '/assets/qrl.png'
   });
   loading.loadURL(`file://${__dirname}/loading.html`)
 
@@ -24,7 +25,8 @@ app.on('ready', function() {
     // Show the main QRL Wallet Window
     window = new BrowserWindow({
       width: 1000, height: 550,
-      nodeIntegration: false
+      nodeIntegration: false,
+      icon: __dirname + '/assets/qrl.png'
     });
     window.loadURL(meteor_root_url);
 
