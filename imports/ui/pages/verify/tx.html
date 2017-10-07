@@ -1,18 +1,5 @@
 <template name="appVerifyTxid">
 <div class="ui segment">
-
-  <!-- View Transaction -->
-  <div class="ui center aligned grid stackable">
-    <div class="row">
-      <div class="sixteen wide column">
-        <h2 class="ui center aligned icon header">
-          <i class="circular exchange icon"></i>
-          Verify Transaction
-        </h2>
-      </div>
-    </div>
-  </div>
-
   {{#with txhash}}
     {{#if error}}
     <h1>Transaction <div class="ui label"><i class="exchange icon"></i>{{txhash.parameter}}</div></h1>

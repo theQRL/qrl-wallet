@@ -1,41 +1,65 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 const electrify = require('qrl-electrify')(__dirname);
 
 let window;
-let splash;
+let loading;
 
 
 app.on('ready', function() {
 
-  splash = new BrowserWindow({
+  // Create the loading screen
+  loading = new BrowserWindow({
     width: 820, height: 300,
     nodeIntegration: false
   });
-  
-  splash.loadURL(`file://${__dirname}/loading.html`)
+  loading.loadURL(`file://${__dirname}/loading.html`)
 
-  // electrify start
+
+  // Electrify Start
   electrify.start(function(meteor_root_url) {
 
-    splash.hide();
+    // Hide the loading screen
+    loading.hide();
 
-    // creates a new electron window
+    // Show the main QRL Wallet Window
     window = new BrowserWindow({
       width: 1000, height: 550,
       nodeIntegration: false
     });
-
-    // open up meteor root url
     window.loadURL(meteor_root_url);
 
-    splash.destroy();
+
+    // Setup content menu, and enable copy/paste actions
+    window.webContents.on('contextmenu', () => {
+        menu.popup(window);
+    });
+    var template = [{
+        label: "Application",
+        submenu: [
+            // { label: "About QRL Wallet", selector: "orderFrontStandardAboutPanel:" },
+            // { type: "separator" },
+            { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+        ]}, {
+        label: "Edit",
+        submenu: [
+            { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+            { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+            { type: "separator" },
+            { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+            { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+            { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+            { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+        ]}
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
+    // Destroy the loading page
+    loading.destroy();
 
   });
 });
 
 app.on('will-quit', function terminate_and_quit(event) {
-  
-  
   // if electrify is up, cancel exiting with `preventDefault`,
   // so we can terminate electrify gracefully without leaving child
   // processes hanging in background
