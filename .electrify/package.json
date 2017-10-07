@@ -1,0 +1,26 @@
+{
+  "name": "QRLWallet",
+  "productName": "QRLWallet",
+  "projectName": "qrl-wallet",
+  "version": "0.1.0",
+  "main": "index.js",
+  "dependencies": {
+    "qrl-electrify": "3.0.8"
+  },
+  "electronPackager": {
+    "icon": {
+      "win32": "./assets/qrl.ico",
+      "darwin": "./assets/qrl.icns"
+    },
+    "version-string": {
+      "CompanyName": "The QRL",
+      "LegalCopyright": "Copyright 2017 The QRL - All rights reserved.",
+      "FileDescription": "QRLWallet",
+      "OriginalFilename": "QRLWallet.exe",
+      "FileVersion": "@version",
+      "ProductVersion": "@version",
+      "ProductName": "QRLWallet",
+      "InternalName": "QRLWallet.exe"
+    }
+  }
+}

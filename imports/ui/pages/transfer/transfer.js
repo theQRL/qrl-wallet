@@ -52,6 +52,7 @@ const getBalance = function (address) {
 
       $('#unlocking').hide()
       $('#addressFields').hide()
+      $('#transferQrl').hide()
       $('#transferForm').show()
       $('#unlockError').hide()
     } else {

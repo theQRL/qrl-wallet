@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>QRL Wallet - Loading</title>
+</head>
+<body>
+	<img src="loading.png" alt="QRL Wallet Loading" style="width: 800px;"/>
+	<script type="text/javascript">
+		var pageTitle = "QRL Wallet - Loading";
+		var counter = 0;
+		window.setInterval(function(){
+			counter += 1;
+
+			var dots = "";
+			for (var i = 0; i < counter; i++) { 
+			    dots = dots + ".";
+			}
+
+			document.title = dots + " " + pageTitle + " " + dots;
+
+			if(counter == 4) {
+				counter = 0;
+			}
+		}, 1000);
+	</script>
+</body>
+</html>

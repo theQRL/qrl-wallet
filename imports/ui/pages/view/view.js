@@ -25,6 +25,7 @@ const getAddressDetail = function (address) {
       }
       $('#unlocking').hide()
       $('#addressFields').hide()
+      $('#viewWallet').hide()
       $('#addressDetail').show()
       $('#unlockError').hide()
     } else {

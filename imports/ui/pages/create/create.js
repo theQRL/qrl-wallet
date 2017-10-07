@@ -27,6 +27,7 @@ function generateWallet() {
 
   $('#generating').hide()
   $('#warning').hide()
+  $('#createWallet').hide()
   $('#result').show()
 }
 
