@@ -24,11 +24,5 @@
   "bugs": {
     "url": "https://github.com/theQRL/qrl-wallet/issues"
   },
-  "homepage": "https://github.com/theQRL/qrl-wallet#readme",
-  "scripts": {
-    "desktop": "meteor-desktop"
-  },
-  "devDependencies": {
-    "meteor-desktop": "git+https://github.com/scottdonaldau/meteor-desktop.git"
-  }
+  "homepage": "https://github.com/theQRL/qrl-wallet#readme"
 }
