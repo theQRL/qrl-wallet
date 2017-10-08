@@ -30,7 +30,6 @@ app.on('ready', function() {
     });
     window.loadURL(meteor_root_url);
 
-
     // Setup content menu, and enable copy/paste actions
     window.webContents.on('contextmenu', () => {
         menu.popup(window);
