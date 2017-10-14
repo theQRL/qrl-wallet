@@ -31,7 +31,7 @@ function generateWallet() {
   $('#result').show()
 }
 
-function downloadWallet() {
+function saveWallet() {
   const walletJson = ['[', JSON.stringify(LocalStore.get('newWalletDetail')), ']'].join('')
   const binBlob = new Blob([walletJson])
   const a = window.document.createElement('a')
@@ -49,8 +49,8 @@ Template.appCreate.events({
     // Delay so we get the generating icon up.
     setTimeout(generateWallet, 200)
   },
-  'click #download': () => {
-    downloadWallet()
+  'click #save': () => {
+    saveWallet()
   },
 })
 

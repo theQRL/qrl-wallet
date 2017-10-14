@@ -7,11 +7,21 @@ Template.appView.onRendered(() => {
 })
 
 const getAddressDetail = function (address) {
-  const apiUrl = LocalStore.get('nodeApiUrl')
-  HTTP.call('GET', `${apiUrl}api/address/${address}`, {}, (error, result) => {
-    if (!error) {
-      if (result.data.status !== 'error') {
-        LocalStore.set('addressDetail', result.data)
+  Meteor.call('getAddress', address, (err, res) => {
+    if (err) {
+      console.log('error: ' + err)
+      $('#unlocking').hide()
+      $('#unlockError').show()
+    } else {
+      if (res.address !== '') {
+        const successResult = {
+          state: {
+            balance: res.state.balance / 100000000, // FIXME - Magic number
+            nonce: res.state.nonce,
+          },
+          transactions: res.state.transactions,
+        }
+        LocalStore.set('addressDetail', successResult)
       } else {
         // Wallet not found, put together an empty response
         const errorResult = {
@@ -23,14 +33,9 @@ const getAddressDetail = function (address) {
         }
         LocalStore.set('addressDetail', errorResult)
       }
-      $('#unlocking').hide()
-      $('#addressFields').hide()
-      $('#viewWallet').hide()
+      $('#topsection').hide()
+
       $('#addressDetail').show()
-      $('#unlockError').hide()
-    } else {
-      $('#unlocking').hide()
-      $('#unlockError').show()
     }
   })
 }

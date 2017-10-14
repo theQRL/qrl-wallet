@@ -5,8 +5,9 @@ let window;
 let loading;
 
 
-app.on('ready', function() {
 
+app.on('ready', function() {
+  
   // Create the loading screen
   loading = new BrowserWindow({
     width: 820, height: 300,
@@ -28,6 +29,11 @@ app.on('ready', function() {
       nodeIntegration: false,
       icon: __dirname + '/assets/qrl.png'
     });
+
+    // Destroy the loading page
+    loading.destroy();
+
+    // Load meteor site in new BrowserWindow
     window.loadURL(meteor_root_url);
 
     // Setup content menu, and enable copy/paste actions
@@ -53,10 +59,6 @@ app.on('ready', function() {
         ]}
     ];
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-
-    // Destroy the loading page
-    loading.destroy();
-
   });
 });
 
