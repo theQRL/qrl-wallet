@@ -38,26 +38,23 @@ Template.appTransfer.onRendered(() => {
 })
 
 const getBalance = function (address) {
-  const apiUrl = LocalStore.get('nodeApiUrl')
-  HTTP.call('GET', `${apiUrl}api/address/${address}`, {}, (error, result) => {
-    if (!error) {
-      if (result.data.status !== 'error') {
-        LocalStore.set('transferFromBalance', result.data.state.balance)
-        LocalStore.set('transferFromAddress', result.data.state.address)
+  Meteor.call('getAddress', address, (err, res) => {
+    if (err) {
+      console.log('error: ' + err)
+      $('#unlocking').hide()
+      $('#unlockError').show()
+    } else {
+      console.log(res)
+      if (res.state.address !== '') {
+        LocalStore.set('transferFromBalance', res.state.balance / 100000000) // FIXME - Magic Number
+        LocalStore.set('transferFromAddress', res.state.address)
       } else {
         // Wallet not found, put together an empty response
         LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', result.data.parameter)
+        LocalStore.set('transferFromAddress', address)
       }
-
-      $('#unlocking').hide()
-      $('#addressFields').hide()
       $('#transferQrl').hide()
       $('#transferForm').show()
-      $('#unlockError').hide()
-    } else {
-      $('#unlocking').hide()
-      $('#unlockError').show()
     }
   })
 }
@@ -95,7 +92,7 @@ function viewWallet(walletType) {
   }
 }
 
-function signTrasnaction() {
+function generateTransaction() {
   // Generate binary seed from hexseed
   const seedBin = QRLLIB.hstr2bin(LocalStore.get('walletDetail').hexSeed)
   // Instantiate XMSS
@@ -104,7 +101,39 @@ function signTrasnaction() {
   // Get to/amount details
   const sendTo = document.getElementById('to').value
   const sendAmount = document.getElementById('amount').value
+  const txnFee = 0
+  const pk = QRLLIB.bin2hstr(xmss.getPK())
+  const otsKey = xmss.getIndex()
 
+  // Construct request
+  const request = {
+    fromAddress: LocalStore.get('transferFromAddress'),
+    toAddress: sendTo,
+    amount: sendAmount,
+    fee: txnFee,
+    xmssPk: pk,
+    xmssOtsKey: otsKey,
+  }
+
+  Meteor.call('transferCoins', request, (err, res) => {
+    if (err) {
+      console.log('error: ' + err)
+      LocalStore.set('signedMessage', err)
+      $('#messageSignature').show()
+    } else {
+      console.log('success')
+      LocalStore.set('signedMessage', res)
+      $('#messageSignature').show()
+    }
+  })
+
+
+
+
+
+
+
+  /*
   // Construct binary form of message to sign
   const rawMessage = [
     LocalStore.get('transferFromAddress'),
@@ -119,6 +148,7 @@ function signTrasnaction() {
   LocalStore.set('signedMessage', QRLLIB.bin2hstr(signedMessage))
 
   $('#messageSignature').show()
+  */
 }
 
 Template.appTransfer.events({
@@ -127,10 +157,10 @@ Template.appTransfer.events({
     const walletType = document.getElementById('walletType').value
     setTimeout(function () { viewWallet(walletType) }, 200)
   },
-  'submit #transfer': function (event) {
+  'submit #generateTransactionForm': function (event) {
     event.preventDefault()
     event.stopPropagation()
-    signTrasnaction()
+    generateTransaction()
     return false
   },
 })
