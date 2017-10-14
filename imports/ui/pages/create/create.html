@@ -15,15 +15,12 @@
   </div>
   <div class="ui padded segment" id="result" style="display: none;">
     <h2 class="unbreakable"><a class="ui purple label">Address</a> {{newWalletDetail.address}}</h2>
-    <div class="ui pointing label">
-      This is your QRL wallet address
-    </div>
     <div id="warning" class="ui yellow segment left aligned">
       <h4>Store these details in a secure location, and never share them with anyone!</h4>
       <p><a class="ui grey label">Hexseed</a> {{newWalletDetail.hexseed}}</p>
       <p><a class="ui grey label">Mnemonic Phrase</a> {{newWalletDetail.mnemonic}}</p>
     </div>
-    <button id="download" class="ui huge green button">Download Wallet File &raquo;</button>
+    <button id="save" class="ui huge green button">Save Wallet File &raquo;</button>
   </div>
 </div>
 </template>

@@ -9,6 +9,28 @@ import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
+
+const loadGrpcClient = (nodeData, callback) => {
+  Meteor.call('loadGrpcClient', nodeData, (err, res) => {
+    if (err) {
+      callback(err, null)
+    } else {
+      callback(null, res)
+    }
+  })
+}
+
+const getKnownPeers = (nodeData) => {
+  Meteor.call('getPeers', nodeData, (err, res) => {
+    if (err) {
+      console.log('error: ' + err)
+    } else {
+      console.log('success')
+      console.log(res.known_peers.peers)
+    }
+  })
+}
+
 // Set session state based on selected network node.
 const updateNode = (selectedNode) => {
   // Set node status to connecting
@@ -16,6 +38,7 @@ const updateNode = (selectedNode) => {
   // Update local node connection details
   switch (selectedNode) {
     case 'testnet':
+    case 'testnet-backup':
     case 'mainnet':
     case 'localhost': {
       const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
@@ -23,8 +46,17 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeName', nodeData.name)
       LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
       LocalStore.set('nodeApiUrl', nodeData.apiUrl)
-      // Check the status of the node
-      checkNodeStatus(nodeData)
+
+      console.log('connecting to remote grpc node')
+      loadGrpcClient(nodeData, function (err, res) {
+        if (err) {
+          console.log(err)
+          LocalStore.set('nodeStatus', 'failed')
+        } else {
+          console.log('gRPC client loaded')
+          LocalStore.set('nodeStatus', 'ok')
+        }
+      })
       break
     }
     case 'add':
