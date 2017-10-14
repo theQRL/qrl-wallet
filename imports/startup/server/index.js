@@ -79,6 +79,43 @@ const getAddressState = (address, callback) => {
 }
 
 
+
+// Function to call transferCoins API
+const transferCoins = (request, callback) => {
+  console.log('getting transferCoins object')
+
+  console.log(request)
+
+  grpcPromise.promisifyAll(qrlClient)
+
+  qrlClient.transferCoins()
+    .sendMessage(
+      { 
+        address_from : request.fromAddress,
+        address_to: request.toAddress,
+        amount: request.amount,
+        fee: request.fee,
+        xmss_pk: request.xmssPk,
+        xmss_ots_key: request.xmssOtsKey
+      }
+    )
+    .then(res => { 
+      console.log('success');
+      console.log(res);
+      callback(null, res)
+    })
+    .catch(err => { 
+      console.log('err');
+      console.log(err);
+      callback(err, null)
+    })
+}
+
+
+
+
+
+
 // Define Meteor Methods
 Meteor.methods({
   loadGrpcClient(request) {
@@ -97,6 +134,12 @@ Meteor.methods({
     this.unblock()
     check(address, String)
     const response = Meteor.wrapAsync(getAddressState)(address)
+    return response
+  },
+  transferCoins(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(transferCoins)(request)
     return response
   },
 })

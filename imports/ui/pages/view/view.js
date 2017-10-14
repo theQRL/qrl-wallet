@@ -13,7 +13,7 @@ const getAddressDetail = function (address) {
       $('#unlocking').hide()
       $('#unlockError').show()
     } else {
-      if (res.address !== '') {
+      if (res.state.address !== '') {
         const successResult = {
           state: {
             balance: res.state.balance / 100000000, // FIXME - Magic number
