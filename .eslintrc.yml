@@ -31,7 +31,6 @@ rules:
   import/no-extraneous-dependencies: 0
   import/no-absolute-path: 0
   import/no-unresolved: 0
-  # no-undef: 0 # << use exported comments >>
   import/extensions:
     - off
     - never
