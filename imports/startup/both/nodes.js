@@ -4,6 +4,7 @@
 // so that they can be utilised in other files within Meteor.
 
 // Define the default nodes available in the UI.
+// eslint-disable-next-line no-unused-vars, no-undef
 DEFAULT_NODES = [
   {
     id: 'testnet',
@@ -37,15 +38,16 @@ DEFAULT_NODES = [
 
 // Function to search through the DEFAULT_NODES array and identify and return an
 // object based on its 'id' value.
-findNodeData = function (array, key) {
-  const objFound = _.find(array, function (obj) {
+// eslint-disable-next-line no-unused-vars, no-undef
+findNodeData = (array, key) => {
+  const objFound = _.find(array, (obj) => {
     if (obj.id === key) {
       return obj
     }
+    return null
   })
   if (objFound) {
     return objFound
   }
   return null
 }
-
