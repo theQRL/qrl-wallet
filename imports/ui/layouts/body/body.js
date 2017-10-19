@@ -48,7 +48,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeApiUrl', nodeData.apiUrl)
 
       console.log('connecting to remote grpc node')
-      loadGrpcClient(nodeData, function (err, res) {
+      loadGrpcClient(nodeData, (err, res) => {
         if (err) {
           console.log(err)
           LocalStore.set('nodeStatus', 'failed')
