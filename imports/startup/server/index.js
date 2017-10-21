@@ -74,7 +74,6 @@ const getKnownPeers = (request, callback) => {
       callback(null, response)
     }
   })
-
 }
 
 // Function to call getAddressState API
@@ -115,9 +114,6 @@ const transferCoins = (request, callback) => {
 
       callback(err, null)
     } else {
-      // Modify response in flight to send base64 public_key
-      // response.transaction_unsigned.public_key = response.transaction_unsigned.public_key.toString('base64');
-
       console.log('success')
       console.log(response)
 
@@ -145,14 +141,15 @@ const confirmTransaction = (request, callback) => {
   qrlClient.pushTransaction(confirmTxn, (err, response) => {
     if (err) {
       console.log("confirmTransaction Error: ", err.message)
-      callback(err, null)
+      callback(null, {error: err.message, response: err.message})
     } else {
       console.log('confirm Success')
       console.log(response)
-      callback(null, response)   
+      callback(null, {error: null, response: response})   
     }
   })
 }
+
 
 
 // Define Meteor Methods
