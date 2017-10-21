@@ -99,56 +99,104 @@ function generateTransaction() {
   let xmss = new QRLLIB.Xmss(seedBin, 10)
 
   // Get to/amount details
+  const sendFrom = LocalStore.get('transferFromAddress')
   const sendTo = document.getElementById('to').value
   const sendAmount = document.getElementById('amount').value
-  const txnFee = 0
-  const pk = QRLLIB.bin2hstr(xmss.getPK())
+  const txnFee = 1
+
+  const binaryPublicKey = xmss.getPK()
+  let pubKey = new Uint8Array(binaryPublicKey.size());
+  for(var i=0; i<binaryPublicKey.size(); i++) {
+    pubKey[i] = binaryPublicKey.get(i)
+  }
+
+  const sendFromBin = QRLLIB.str2bin(sendFrom)
+  var sendFromAddress = new Uint8Array(sendFromBin.size());
+  for(var i=0; i<sendFromBin.size(); i++) {
+    sendFromAddress[i] = sendFromBin.get(i)
+  }
+
+  const sendToBin = QRLLIB.str2bin(sendTo)
+  var sendToAddress = new Uint8Array(sendToBin.size());
+  for(var i=0; i<sendToBin.size(); i++) {
+    sendToAddress[i] = sendToBin.get(i)
+  }
+  
+
   const otsKey = xmss.getIndex()
 
   // Construct request
   const request = {
-    fromAddress: LocalStore.get('transferFromAddress'),
-    toAddress: sendTo,
+    fromAddress: sendFromAddress,
+    toAddress: sendToAddress,
     amount: sendAmount,
     fee: txnFee,
-    xmssPk: pk,
+    xmssPk: pubKey,
     xmssOtsKey: otsKey,
   }
+
+  console.log('txn request')
+  console.log(request)
 
   Meteor.call('transferCoins', request, (err, res) => {
     if (err) {
       console.log('error: ' + err)
-      LocalStore.set('signedMessage', err)
-      $('#messageSignature').show()
+      LocalStore.set('transactionConfirmationTest', err)
+      $('#transactionConfirmation').show()
     } else {
       console.log('success')
-      LocalStore.set('signedMessage', res)
-      $('#messageSignature').show()
+      console.log(res)
+      LocalStore.set('transactionConfirmationTest', res)
+      $('#transactionConfirmation').show()
+    }
+  })
+}
+
+function confirmTransaction() {
+  console.log('confirming txn')
+
+  const seedBin = QRLLIB.hstr2bin(LocalStore.get('walletDetail').hexSeed)
+  // Instantiate XMSS
+  let xmss = new QRLLIB.Xmss(seedBin, 10)
+
+
+  let tx = LocalStore.get('transactionConfirmationTest')
+
+  console.log('tx before sign')
+  console.log(tx)
+
+
+  let hashToSign = tx.transaction_unsigned.transaction_hash
+  hashToSign = new QRLLIB.str2bin(hashToSign)
+
+  console.log('hash to sign')
+  console.log(hashToSign)
+
+
+  const signedHash = xmss.sign(hashToSign)
+
+  var signedHashJS = new Uint8Array(signedHash.size());
+  for(var i=0; i<signedHash.size(); i++) {
+    signedHashJS[i] = signedHash.get(i)
+  }
+
+  tx.transaction_unsigned.signature = signedHashJS
+
+
+  console.log('tx after sign')
+  console.log(tx)
+
+
+  Meteor.call('confirmTransaction', tx, (err, res) => {
+    if (err) {
+      console.log('error: ' + err)
+    } else {
+      console.log('success')
+      console.log(res)
     }
   })
 
 
-
-
-
-
-
-  /*
-  // Construct binary form of message to sign
-  const rawMessage = [
-    LocalStore.get('transferFromAddress'),
-    sendTo,
-    sendAmount,
-  ].join('')
-
-  const transactionToSign = new QRLLIB.str2bin(rawMessage)
-
-  LocalStore.set('signatureIndex', xmss.getIndex())
-  const signedMessage = xmss.sign(transactionToSign)
-  LocalStore.set('signedMessage', QRLLIB.bin2hstr(signedMessage))
-
-  $('#messageSignature').show()
-  */
 }
 
 Template.appTransfer.events({
@@ -161,6 +209,12 @@ Template.appTransfer.events({
     event.preventDefault()
     event.stopPropagation()
     generateTransaction()
+    return false
+  },
+  'click #confirmTransaction': function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    confirmTransaction()
     return false
   },
 })
@@ -176,8 +230,8 @@ Template.appTransfer.helpers({
     const signatureIndex = LocalStore.get('signatureIndex')
     return signatureIndex
   },
-  signedMessage() {
-    const signedMessage = LocalStore.get('signedMessage')
+  transactionConfirmationTest() {
+    const signedMessage = LocalStore.get('transactionConfirmationTest')
     return signedMessage
   },
 })
