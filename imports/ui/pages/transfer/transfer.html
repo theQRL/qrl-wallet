@@ -36,7 +36,10 @@
       <label>QRL Amount</label>
       <input type="text" id="amount" placeholder="0">
     </div>
-    <button id="generateTransaction" class="ui huge primary button">Generate Transaction &raquo;</button>
+    <button id="generateTransaction" class="ui huge primary button" style="float: left;">Generate Transaction &raquo;</button>
+    <div style="height: 51px;">
+      <div id="generating" style="display: none;" class="ui active inline loader"></div>
+    </div>
     <div class="ui error message"></div>
   </form>
 </div>
@@ -44,9 +47,42 @@
 
 <div id="transactionConfirmation" class="ui red segment" style="display: none;">
   <h4>Transaction Confirmation</h4>
-  <p style="word-wrap: break-word; word-break: break-all;">{{transactionConfirmationTest}}</p>
-  <button id="confirmTransaction" class="ui huge primary button">Confirm Transaction &raquo;</button>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    From: {{transactionConfirmation.from}}<br />
+    To: {{transactionConfirmation.to}}<br />
+    Amount: {{transactionConfirmation.amount}}<br />
+    Fee: {{transactionConfirmation.fee}}<br />
+    OTS Key: {{transactionConfirmation.otsKey}}
+  </p>
+  <button id="confirmTransaction" class="ui huge primary button" style="float: left;">Confirm Transaction &raquo;</button>
+  <button id="denyTransaction" class="ui huge red button" style="float: left;">Deny Transaction &raquo;</button>
+  <div style="height: 51px;">
+    <div id="relaying" style="display: none;" class="ui active inline loader"></div>
+    <p id="relayingmsg" style="display: none;">Your transaction is being relayed into the QRL network</p>
+  </div>
 </div>
 
+<div id="transactionGenFailed" class="ui red segment" style="display: none;">
+  <h4>Transaction Generation Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
+</div>
+
+
+<div id="transactionComplete" class="ui green segment" style="display: none;">
+  <h4>Transaction Complete</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Success! Your transaction has been relayed into the QRL network.<br />
+    Your transaction hash is: {{transactionComplete.some_response}}
+  </p>
+</div>
+
+
+<div id="transactionFailed" class="ui red segment" style="display: none;">
+  <h4>Transaction Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Error! Your transaction has failed to relay into the QRL network.<br />
+    Error message: {{transactionFailed}}
+  </p>
+</div>
 
 </template>

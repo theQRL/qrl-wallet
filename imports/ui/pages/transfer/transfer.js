@@ -141,13 +141,26 @@ function generateTransaction() {
   Meteor.call('transferCoins', request, (err, res) => {
     if (err) {
       console.log('error: ' + err)
-      LocalStore.set('transactionConfirmationTest', err)
-      $('#transactionConfirmation').show()
+      LocalStore.set('transactionGenerationError', err)
+      $('#transactionGenFailed').show()
+      $('#transferForm').hide()
     } else {
       console.log('success')
       console.log(res)
-      LocalStore.set('transactionConfirmationTest', res)
+
+      const confirmation = {
+        from: new TextDecoder("utf-8").decode(res.transaction_unsigned.addr_from),
+        to: new TextDecoder("utf-8").decode(res.transaction_unsigned.transfer.addr_to),
+        amount: res.transaction_unsigned.transfer.amount,
+        fee: res.transaction_unsigned.transfer.fee,
+        otsKey: res.transaction_unsigned.ots_key,
+      }
+
+      LocalStore.set('transactionConfirmation', confirmation)
+      LocalStore.set('transactionConfirmationResponse', res)
+
       $('#transactionConfirmation').show()
+      $('#transferForm').hide()
     }
   })
 }
@@ -155,12 +168,14 @@ function generateTransaction() {
 function confirmTransaction() {
   console.log('confirming txn')
 
+
+
   const seedBin = QRLLIB.hstr2bin(LocalStore.get('walletDetail').hexSeed)
   // Instantiate XMSS
   let xmss = new QRLLIB.Xmss(seedBin, 10)
 
 
-  let tx = LocalStore.get('transactionConfirmationTest')
+  let tx = LocalStore.get('transactionConfirmationResponse')
 
   console.log('tx before sign')
   console.log(tx)
@@ -188,14 +203,23 @@ function confirmTransaction() {
 
 
   Meteor.call('confirmTransaction', tx, (err, res) => {
-    if (err) {
-      console.log('error: ' + err)
+    if (res.error) {
+      console.log('error: ' + res.error)
+
+      $('#transactionConfirmation').hide()
+      $('#transactionFailed').show()
+
+      LocalStore.set('transactionFailed', res.error)
     } else {
       console.log('success')
-      console.log(res)
+      console.log(res.response)
+
+      $('#transactionConfirmation').hide()
+      $('#transactionComplete').show()
+      
+      LocalStore.set('transactionComplete', res.response)
     }
   })
-
 
 }
 
@@ -208,14 +232,13 @@ Template.appTransfer.events({
   'submit #generateTransactionForm': function (event) {
     event.preventDefault()
     event.stopPropagation()
-    generateTransaction()
-    return false
+    $('#generating').show()
+    setTimeout(function () { generateTransaction() }, 200)
   },
   'click #confirmTransaction': function (event) {
-    event.preventDefault()
-    event.stopPropagation()
-    confirmTransaction()
-    return false
+    $('#relaying').show()
+    $('#relayingmsg').show()
+    setTimeout(function () { confirmTransaction() }, 200)
   },
 })
 
@@ -230,8 +253,20 @@ Template.appTransfer.helpers({
     const signatureIndex = LocalStore.get('signatureIndex')
     return signatureIndex
   },
-  transactionConfirmationTest() {
-    const signedMessage = LocalStore.get('transactionConfirmationTest')
-    return signedMessage
+  transactionConfirmation() {
+    const confirmation = LocalStore.get('transactionConfirmation')
+    return confirmation
   },
+  transactionGenerationError() {
+    const error = LocalStore.get('transactionGenerationError')
+    return error
+  },
+  transactionComplete () {
+    const complete = LocalStore.get('transactionComplete')
+    return complete
+  },
+  transactionFailed() {
+    const failed = LocalStore.get('transactionFailed')
+    return failed
+  }
 })
