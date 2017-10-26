@@ -226,6 +226,8 @@ function confirmTransaction() {
       console.log('success')
       console.log(res.response)
 
+      LocalStore.set('transactionHash', res.response.txnHash)
+
       $('#transactionConfirmation').hide()
       $('#transactionComplete').show()
     }
@@ -245,6 +247,8 @@ function cancelTransaction() {
   $('#transactionConfirmation').hide()
   $('#transactionFailed').show()
 }
+
+
 Template.appTransfer.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
