@@ -36,6 +36,14 @@
       <label>QRL Amount</label>
       <input type="text" id="amount" placeholder="0">
     </div>
+    <div class="field">
+      <label>Transaction Fee</label>
+      <input type="text" id="fee" placeholder="0">
+    </div>
+    <div class="field">
+      <label>OTS Key</label>
+      <input type="text" id="otsKey" placeholder="0">
+    </div>
     <button id="generateTransaction" class="ui huge primary button" style="float: left;">Generate Transaction &raquo;</button>
     <div style="height: 51px;">
       <div id="generating" style="display: none;" class="ui active inline loader"></div>
@@ -50,7 +58,7 @@
   <p style="word-wrap: break-word; word-break: break-all;">
     From: {{transactionConfirmation.from}}<br />
     To: {{transactionConfirmation.to}}<br />
-    Amount: {{transactionConfirmation.amount}}<br />
+    Amount: {{transactionConfirmationAmount}}<br />
     Fee: {{transactionConfirmation.fee}}<br />
     OTS Key: {{transactionConfirmation.otsKey}}
   </p>
@@ -72,7 +80,7 @@
   <h4>Transaction Complete</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
     Success! Your transaction has been relayed into the QRL network.<br />
-    Your transaction hash is: {{transactionComplete.some_response}}
+    Your transaction hash is: {{transactionHash}}
   </p>
 </div>
 

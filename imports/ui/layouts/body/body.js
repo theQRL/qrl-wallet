@@ -88,28 +88,23 @@ Template.appBody.events({
 
 Template.appBody.helpers({
   nodeId() {
-    if (LocalStore.get('nodeId') === '') {
+    if ((LocalStore.get('nodeId') === '') || (LocalStore.get('nodeId') === null)) {
+      console.log(DEFAULT_NODES[0].id)
       return DEFAULT_NODES[0].id
     }
     return LocalStore.get('nodeId')
   },
   nodeName() {
-    if (LocalStore.get('nodeName') === '') {
+    if ((LocalStore.get('nodeName') === '') || (LocalStore.get('nodeName') === null)) {
       return DEFAULT_NODES[0].name
     }
     return LocalStore.get('nodeName')
   },
   nodeExplorerUrl() {
-    if (LocalStore.get('nodeExplorerUrl') === '') {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NODES[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
-  },
-  nodeApiUrl() {
-    if (LocalStore.get('nodeApiUrl') === '') {
-      return DEFAULT_NODES[0].apiUrl
-    }
-    return LocalStore.get('nodeApiUrl')
   },
   defaultNodes() {
     return DEFAULT_NODES

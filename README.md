@@ -5,13 +5,14 @@ Work in progress.
 ## Dependencies
 
 [Meteor](https://www.meteor.com/install)
+	
+	curl https://install.meteor.com/ | sh
 
 ## Install
-
+	
 	git clone https://github.com/theQRL/qrl-wallet.git
 	cd qrl-wallet
-	meteor npm install
-	meteor npm install --save meteor-babel-helpers
+	meteor npm install --unsafe-perm
 
 ## Run
 

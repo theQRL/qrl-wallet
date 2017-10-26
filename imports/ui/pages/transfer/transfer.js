@@ -38,7 +38,12 @@ Template.appTransfer.onRendered(() => {
 })
 
 const getBalance = function (address) {
-  Meteor.call('getAddress', address, (err, res) => {
+
+  const request = {
+    address: address
+  }
+
+  Meteor.call('getAddress', request, (err, res) => {
     if (err) {
       console.log('error: ' + err)
       $('#unlocking').hide()
@@ -47,11 +52,11 @@ const getBalance = function (address) {
       console.log(res)
       if (res.state.address !== '') {
         LocalStore.set('transferFromBalance', res.state.balance / 100000000) // FIXME - Magic Number
-        LocalStore.set('transferFromAddress', res.state.address)
+        LocalStore.set('transferFromAddress', new TextDecoder("utf-8").decode(res.state.address))
       } else {
         // Wallet not found, put together an empty response
         LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', address)
+        LocalStore.set('transferFromAddress', new TextDecoder("utf-8").decode(address))
       }
       $('#transferQrl').hide()
       $('#transferForm').show()
@@ -77,11 +82,20 @@ function viewWallet(walletType) {
     let xmss = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = xmss.getAddress()
 
+    const thisAddressBin = QRLLIB.str2bin(thisAddress)
+    var thisAddressBytes = new Uint8Array(thisAddressBin.size());
+    for(var i=0; i<thisAddressBin.size(); i++) {
+      thisAddressBytes[i] = thisAddressBin.get(i)
+    }
+
     const walletDetail = {
-      address: thisAddress,
+      address: thisAddressBytes,
+      addressString: thisAddress,
       hexSeed: thisHexSeed,
       mnemonicPhrase: thisMnemonic,
     }
+
+    console.log(walletDetail)
 
     LocalStore.set('walletDetail', walletDetail)
 
@@ -102,7 +116,10 @@ function generateTransaction() {
   const sendFrom = LocalStore.get('transferFromAddress')
   const sendTo = document.getElementById('to').value
   const sendAmount = document.getElementById('amount').value
-  const txnFee = 1
+  const txnFee = document.getElementById('fee').value
+  const otsKey = document.getElementById('otsKey').value
+
+  // const otsKey = xmss.getIndex()
 
   const binaryPublicKey = xmss.getPK()
   let pubKey = new Uint8Array(binaryPublicKey.size());
@@ -123,13 +140,11 @@ function generateTransaction() {
   }
   
 
-  const otsKey = xmss.getIndex()
-
   // Construct request
   const request = {
     fromAddress: sendFromAddress,
     toAddress: sendToAddress,
-    amount: sendAmount,
+    amount: sendAmount * 100000000, // Fixme - Magic Number
     fee: txnFee,
     xmssPk: pubKey,
     xmssOtsKey: otsKey,
@@ -157,6 +172,7 @@ function generateTransaction() {
       }
 
       LocalStore.set('transactionConfirmation', confirmation)
+      LocalStore.set('transactionConfirmationAmount', res.transaction_unsigned.transfer.amount / 100000000) // Fixme - Magic Number
       LocalStore.set('transactionConfirmationResponse', res)
 
       $('#transactionConfirmation').show()
@@ -168,18 +184,14 @@ function generateTransaction() {
 function confirmTransaction() {
   console.log('confirming txn')
 
-
-
   const seedBin = QRLLIB.hstr2bin(LocalStore.get('walletDetail').hexSeed)
   // Instantiate XMSS
   let xmss = new QRLLIB.Xmss(seedBin, 10)
-
 
   let tx = LocalStore.get('transactionConfirmationResponse')
 
   console.log('tx before sign')
   console.log(tx)
-
 
   let hashToSign = tx.transaction_unsigned.transaction_hash
   hashToSign = new QRLLIB.str2bin(hashToSign)
@@ -216,8 +228,6 @@ function confirmTransaction() {
 
       $('#transactionConfirmation').hide()
       $('#transactionComplete').show()
-      
-      LocalStore.set('transactionComplete', res.response)
     }
   })
 
@@ -257,6 +267,10 @@ Template.appTransfer.helpers({
     const confirmation = LocalStore.get('transactionConfirmation')
     return confirmation
   },
+  transactionConfirmationAmount() {
+    const confirmationAmount = LocalStore.get('transactionConfirmationAmount')
+    return confirmationAmount
+  },
   transactionGenerationError() {
     const error = LocalStore.get('transactionGenerationError')
     return error
@@ -268,5 +282,9 @@ Template.appTransfer.helpers({
   transactionFailed() {
     const failed = LocalStore.get('transactionFailed')
     return failed
+  },
+  transactionHash() {
+    const hash = LocalStore.get('transactionHash')
+    return hash
   }
 })
