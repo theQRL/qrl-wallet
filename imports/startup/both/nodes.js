@@ -8,15 +8,15 @@
 DEFAULT_NODES = [
   {
     id: 'testnet-backup',
-    name: 'Testnet (Community Node)',
+    name: 'Testnet (Official QRL Node 1)',
     disabled: '',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: 'qrl-faucet.folio.ninja:9009',
   },
   {
     id: 'testnet',
-    name: 'Testnet (Official QRL Node)',
-    disabled: '',
+    name: 'Testnet (Official QRL Node 2)',
+    disabled: 'disabled',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: '104.251.219.215:9009',
   },
@@ -30,7 +30,7 @@ DEFAULT_NODES = [
   {
     id: 'localhost',
     name: 'Localhost (Desktop App Only)',
-    disabled: '',
+    disabled: 'disabled',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: 'localhost:9009',
   },
