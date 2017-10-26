@@ -7,7 +7,12 @@ Template.appView.onRendered(() => {
 })
 
 const getAddressDetail = function (address) {
-  Meteor.call('getAddress', address, (err, res) => {
+
+  const request = {
+    address: address
+  }
+  
+  Meteor.call('getAddress', request, (err, res) => {
     if (err) {
       console.log('error: ' + err)
       $('#unlocking').hide()
@@ -58,8 +63,15 @@ function viewWallet(walletType) {
     let xmss = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = xmss.getAddress()
 
+    const thisAddressBin = QRLLIB.str2bin(thisAddress)
+    var thisAddressBytes = new Uint8Array(thisAddressBin.size());
+    for(var i=0; i<thisAddressBin.size(); i++) {
+      thisAddressBytes[i] = thisAddressBin.get(i)
+    }
+
     const walletDetail = {
-      address: thisAddress,
+      address: thisAddressBytes,
+      addressString: thisAddress,
       hexSeed: thisHexSeed,
       mnemonicPhrase: thisMnemonic,
     }

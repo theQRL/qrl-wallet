@@ -24,18 +24,7 @@ const qrlProtoFilePath = tmp.fileSync({ mode: 0644, prefix: 'qrl-', postfix: '.p
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (request, callback) => {
-
-  // FIXIME - Not the cleanest way to inject timstamp.proto
-  const timestampProto = Assets.getText('timestamp.proto')
-  const tmpDirectory = qrlProtoFilePath.substring(0, qrlProtoFilePath.lastIndexOf('/'))
-  if (!fs.existsSync(tmpDirectory + '/google')) {
-    fs.mkdirSync(tmpDirectory + '/google')
-  }
-  if (!fs.existsSync(tmpDirectory + '/google/protobuf')) {
-    fs.mkdirSync(tmpDirectory + '/google/protobuf')
-  }
-  fs.writeFile(tmpDirectory + '/google/protobuf/timestamp.proto', timestampProto)
-
+  
   // Load qrlbase.proto and fetch current qrl.proto from node
   const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
   const client = new baseGrpcObject.qrl.Base(request.grpc, grpc.credentials.createInsecure())
@@ -44,19 +33,19 @@ const loadGrpcClient = (request, callback) => {
     if (err) {
       console.log('Error fetching qrl.proto from ' + request.grpc)
       callback(err, null)
+    } else {
+
+      fs.writeFile(qrlProtoFilePath, res.grpcProto, function (err) {
+        if (err) throw err
+
+        const grpcObject = grpc.load(qrlProtoFilePath)
+        qrlClient = new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
+
+        console.log('qrlClient loaded')
+
+        callback(null, true)
+      })
     }
-
-    fs.writeFile(qrlProtoFilePath, res.grpcProto, function (err) {
-      if (err) throw err
-
-      const grpcObject = grpc.load(qrlProtoFilePath)
-      qrlClient = new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
-
-      console.log('qrlClient loaded')
-
-      callback(null, true)
-    })
-
   })
 }
 
@@ -77,10 +66,12 @@ const getKnownPeers = (request, callback) => {
 }
 
 // Function to call getAddressState API
-const getAddressState = (address, callback) => {
+const getAddressState = (request, callback) => {
   console.log('getting address state')
 
-  qrlClient.getAddressState({address : address}, (err, response) => {
+  console.log(request)
+
+  qrlClient.getAddressState({address : request.address}, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
       callback(err, null)
@@ -143,9 +134,13 @@ const confirmTransaction = (request, callback) => {
       console.log("confirmTransaction Error: ", err.message)
       callback(null, {error: err.message, response: err.message})
     } else {
-      console.log('confirm Success')
-      console.log(response)
-      callback(null, {error: null, response: response})   
+      console.log('confirmTransaction Success')
+
+      let hashResponse = {
+        txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex')
+      }
+
+      callback(null, {error: null, response: hashResponse}) 
     }
   })
 }
@@ -166,10 +161,10 @@ Meteor.methods({
     const response = Meteor.wrapAsync(getKnownPeers)(request)
     return response
   },
-  getAddress(address) {
+  getAddress(request) {
     this.unblock()
-    check(address, String)
-    const response = Meteor.wrapAsync(getAddressState)(address)
+    check(request, Object)
+    const response = Meteor.wrapAsync(getAddressState)(request)
     return response
   },
   transferCoins(request) {

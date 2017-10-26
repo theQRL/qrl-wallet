@@ -23,8 +23,8 @@ rm -rf ./version.desktop
 
 # Install meteor dependencies
 echo "Installing meteor dependencies"
-meteor npm install
-meteor npm install --save meteor-babel-helpers
+# --unsafe-perm is because of https://github.com/grpc/grpc/issues/6435
+meteor npm install --unsafe-perm
 
 echo "Installing electrify dependencies"
 cd .electrify
