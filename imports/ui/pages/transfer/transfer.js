@@ -233,6 +233,18 @@ function confirmTransaction() {
 
 }
 
+
+
+function cancelTransaction() {
+  LocalStore.set('transactionConfirmation', '')
+  LocalStore.set('transactionConfirmationAmount', '')
+  LocalStore.set('transactionConfirmationResponse', '')
+
+  LocalStore.set('transactionFailed', "User requested cancellation")
+
+  $('#transactionConfirmation').hide()
+  $('#transactionFailed').show()
+}
 Template.appTransfer.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
@@ -249,6 +261,9 @@ Template.appTransfer.events({
     $('#relaying').show()
     $('#relayingmsg').show()
     setTimeout(function () { confirmTransaction() }, 200)
+  },
+  'click #cancelTransaction': function (event) {
+    cancelTransaction()
   },
 })
 
