@@ -33,6 +33,7 @@ const getKnownPeers = (nodeData) => {
 
 // Set session state based on selected network node.
 const updateNode = (selectedNode) => {
+
   // Set node status to connecting
   LocalStore.set('nodeStatus', 'connecting')
   // Update local node connection details
@@ -107,7 +108,23 @@ Template.appBody.helpers({
     return LocalStore.get('nodeExplorerUrl')
   },
   defaultNodes() {
-    return DEFAULT_NODES
+    let visibleNodes = []
+    
+    // Only return nodes specific to this (web/desktop/both).
+    _.each(DEFAULT_NODES, function(node) {
+      // Desktop Electrified Clients
+      if((node.type === 'desktop') && (isElectrified())) {
+        visibleNodes.push(node)
+      // Web Non-Electrified Clients
+      } else if((node.type === 'web') && !isElectrified()) {
+        visibleNodes.push(node)
+      // Everything else
+      } else if(node.type === 'both') {
+        visibleNodes.push(node)
+      }
+    })
+
+    return visibleNodes
   },
   connectionStatus() {
     const status = {}
@@ -122,7 +139,7 @@ Template.appBody.helpers({
       status.colour = 'red'
     }
     return status
-  },
+  }
 })
 
 Template.sidebar.events({
