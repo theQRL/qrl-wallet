@@ -12,6 +12,7 @@ DEFAULT_NODES = [
     disabled: '',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: 'qrl-faucet.folio.ninja:9009',
+    type: 'both',
   },
   {
     id: 'testnet',
@@ -19,6 +20,7 @@ DEFAULT_NODES = [
     disabled: 'disabled',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: '104.251.219.215:9009',
+    type: 'both',
   },
   {
     id: 'mainnet',
@@ -26,13 +28,15 @@ DEFAULT_NODES = [
     disabled: 'disabled',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: '104.251.219.215:9009',
+    type: 'both',
   },
   {
     id: 'localhost',
     name: 'Localhost (Desktop App Only)',
-    disabled: 'disabled',
+    disabled: '',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: 'localhost:9009',
+    type: 'desktop',
   },
 ]
 
