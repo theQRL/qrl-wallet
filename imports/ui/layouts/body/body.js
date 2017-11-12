@@ -60,8 +60,53 @@ const updateNode = (selectedNode) => {
       break
     }
     case 'add':
-      $('.small.modal').modal('show')
+      $('#addNode').modal({
+          onDeny    : function(){
+            $('#networkDropdown').dropdown("set selected", 'testnet-backup')
+            updateNode('testnet-backup')
+          },
+          onApprove : function() {
+            LocalStore.set('nodeId', 'custom')
+            LocalStore.set('nodeName', document.getElementById('customNodeName').value)
+            LocalStore.set('nodeApiUrl', document.getElementById('customNodeGrpc').value)
+            LocalStore.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+
+            LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
+            LocalStore.set('customNodeApiUrl', document.getElementById('customNodeGrpc').value)
+            LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+
+            LocalStore.set('customNodeCreated', true)
+            updateNode('custom')
+          }
+        }).modal('show')
       break
+    case 'custom':
+      $('#networkDropdown').dropdown("set selected", 'custom')
+
+      const nodeData = {
+        id: 'custom',
+        name: LocalStore.get('customNodeName'),
+        disabled: '',
+        explorerUrl: LocalStore.get('customNodeExplorerUrl'),
+        grpc: LocalStore.get('customNodeApiUrl'),
+        type: 'both',
+      }
+
+      LocalStore.set('nodeId', 'custom')
+      LocalStore.set('nodeName', LocalStore.get('customNodeName'))
+      LocalStore.set('nodeApiUrl', LocalStore.get('customNodeGrpc'))
+      LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorer'))
+
+      console.log('connecting to custom remote grpc node')
+      loadGrpcClient(nodeData, (err, res) => {
+        if (err) {
+          console.log(err)
+          LocalStore.set('nodeStatus', 'failed')
+        } else {
+          console.log('gRPC client loaded')
+          LocalStore.set('nodeStatus', 'ok')
+        }
+      })
     default:
       break
   }
@@ -136,7 +181,26 @@ Template.appBody.helpers({
       status.colour = 'red'
     }
     return status
-  }
+  },
+  customNodeCreated() {
+    return LocalStore.get('customNodeCreated')
+  },
+  customNodeName() {
+    return LocalStore.get('customNodeName')
+  },
+})
+
+
+Template.customNode.helpers({
+  customNodeName() {
+    return LocalStore.get('customNodeName')
+  },
+  customNodeGrpc() {
+    return LocalStore.get('customNodeApiUrl')
+  },
+  customNodeExplorer() {
+    return LocalStore.get('customNodeExplorerUrl')
+  },
 })
 
 Template.sidebar.events({

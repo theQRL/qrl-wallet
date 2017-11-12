@@ -37,9 +37,10 @@
                 {{#each defaultNodes}}
                 <div class="{{this.disabled}} item" data-value="{{this.id}}">{{this.name}}</div>
                 {{/each}}
-                <!--
-                <div class="item" data-value="add">Add Node</div>
-                -->
+                {{#if customNodeCreated}}
+                <div class="item" data-value="custom">{{customNodeName}}</div>
+                {{/if}}
+                <div class="item" data-value="add">Add/Edit Custom Node</div>
               </div>
             </div>
           </div>

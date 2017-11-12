@@ -1,24 +1,24 @@
 <template name="customNode">
   <div class="small ui modal" id="addNode">
-    <div class="header">Add Custom QRL Node</div>
+    <div class="header">Custom QRL Node</div>
     <div class="content">
       <form class="ui form">
         <div class="field">
           <label>Name</label>
-          <input type="text" id="name" placeholder="Private Node">
+          <input type="text" id="customNodeName" placeholder="Private Node" value="{{customNodeName}}">
         </div>
         <div class="field">
-          <label>API URL</label>
-          <input type="text" id="apiUrl" placeholder="http://www.private.network/api">
+          <label>gRPC API Endpoint</label>
+          <input type="text" id="customNodeGrpc" placeholder="privatenode.com:9009" value="{{customNodeGrpc}}">
         </div>
         <div class="field">
           <label>Block Explorer URL</label>
-          <input type="text" id="explorerUrl" placeholder="http://www.private.network/explorer">
+          <input type="text" id="customNodeExplorer" placeholder="http://qrlexplorer.info/" value="{{customNodeExplorer}}">
         </div>
       </form>
     </div>
     <div class="actions">
-      <div class="ui approve green button">Add Node</div>
+      <div class="ui approve green button">Save Custom Node</div>
       <div class="ui cancel red button">Cancel</div>
     </div>
   </div>
