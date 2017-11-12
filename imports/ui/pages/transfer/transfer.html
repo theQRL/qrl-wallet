@@ -56,6 +56,7 @@
 <div id="transactionConfirmation" class="ui red segment" style="display: none;">
   <h4>Transaction Confirmation</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
+    Hash: {{transactionConfirmation.hash}}<br />
     From: {{transactionConfirmation.from}}<br />
     To: {{transactionConfirmation.to}}<br />
     Amount: {{transactionConfirmationAmount}}<br />
@@ -80,7 +81,8 @@
   <h4>Transaction Complete</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
     Success! Your transaction has been relayed into the QRL network.<br />
-    Your transaction hash is: {{transactionHash}}
+    Your transaction hash is: {{transactionHash}}<br />
+    Your transaction signature is: {{transactionSignature}}
   </p>
 </div>
 
