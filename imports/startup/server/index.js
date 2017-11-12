@@ -4,8 +4,8 @@ import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
 
-let qrlClient
-
+// An array of grpc connections
+let qrlClient = []
 
 function toBuffer(ab) {
     var buffer = new Buffer(ab.byteLength);
@@ -15,7 +15,6 @@ function toBuffer(ab) {
     }
     return buffer;
 }
-
 
 // Create a temp file to store the qrl.proto file in
 // We'll also use the base directory of this file for other temp storage
@@ -39,9 +38,13 @@ const loadGrpcClient = (request, callback) => {
         if (err) throw err
 
         const grpcObject = grpc.load(qrlProtoFilePath)
-        qrlClient = new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
 
-        console.log('qrlClient loaded')
+        // Create area to store this grpc connection
+        qrlClient.push(request.grpc)
+
+        qrlClient[request.grpc] = new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
+
+        console.log('qrlClient loaded for ',request.grpc)
 
         callback(null, true)
       })
@@ -54,7 +57,7 @@ const loadGrpcClient = (request, callback) => {
 const getKnownPeers = (request, callback) => {
   console.log('getting peers')
 
-  qrlClient.getKnownPeers({}, (err, response) => {
+  qrlClient[request.grpc].getKnownPeers({}, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
       callback(err, null)
@@ -71,12 +74,30 @@ const getAddressState = (request, callback) => {
 
   console.log(request)
 
-  qrlClient.getAddressState({address : request.address}, (err, response) => {
+  qrlClient[request.grpc].getAddressState({address : request.address}, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
       callback(err, null)
     } else {
       console.log("Address: %s        Balance: %d", response.state.address, response.state.balance)
+      callback(null, response)
+    }
+  })
+}
+
+
+// Function to call getObject API and extract a txn Hash..
+const getTxnHash = (request, callback) => {
+  console.log('getting txn hash')
+
+  console.log(request)
+
+  qrlClient[request.grpc].getObject({query: request.query}, (err, response) => {
+    if (err){
+      console.log("Error: ", err.message)
+      callback(err, null)
+    } else {
+      console.log(response)
       callback(null, response)
     }
   })
@@ -99,7 +120,7 @@ const transferCoins = (request, callback) => {
 
   console.log(tx)
 
-  qrlClient.transferCoins(tx, (err, response) => {
+  qrlClient[request.grpc].transferCoins(tx, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
 
@@ -129,7 +150,7 @@ const confirmTransaction = (request, callback) => {
 
   console.log(confirmTxn)
 
-  qrlClient.pushTransaction(confirmTxn, (err, response) => {
+  qrlClient[request.grpc].pushTransaction(confirmTxn, (err, response) => {
     if (err) {
       console.log("confirmTransaction Error: ", err.message)
       callback(null, {error: err.message, response: err.message})
@@ -144,7 +165,6 @@ const confirmTransaction = (request, callback) => {
     }
   })
 }
-
 
 
 // Define Meteor Methods
@@ -165,6 +185,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(getAddressState)(request)
+    return response
+  },
+  getTxnHash(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(getTxnHash)(request)
     return response
   },
   transferCoins(request) {

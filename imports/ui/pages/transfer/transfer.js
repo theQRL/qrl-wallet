@@ -39,8 +39,10 @@ Template.appTransfer.onRendered(() => {
 
 const getBalance = function (address) {
 
+  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    address: address
+    address: address,
+    grpc: grpcEndpoint,
   }
 
   Meteor.call('getAddress', request, (err, res) => {
@@ -141,6 +143,7 @@ function generateTransaction() {
   
 
   // Construct request
+  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     fromAddress: sendFromAddress,
     toAddress: sendToAddress,
@@ -148,6 +151,7 @@ function generateTransaction() {
     fee: txnFee,
     xmssPk: pubKey,
     xmssOtsKey: otsKey,
+    grpc: grpcEndpoint,
   }
 
   console.log('txn request')
@@ -212,7 +216,8 @@ function confirmTransaction() {
 
   console.log('tx after sign')
   console.log(tx)
-
+  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
+  tx.grpc = grpcEndpoint
 
   Meteor.call('confirmTransaction', tx, (err, res) => {
     if (res.error) {

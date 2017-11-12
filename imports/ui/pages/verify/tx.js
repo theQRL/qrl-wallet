@@ -1,17 +1,36 @@
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
 /* global LocalStore */
+/* global QRLLIB */
 
 Template.appVerifyTxid.onRendered(() => {
   LocalStore.set('txhash', {})
   const thisTxId = FlowRouter.getParam('txId')
-  const apiUrl = LocalStore.get('nodeApiUrl')
+
+  console.log(QRLLIB)
+  console.log(thisTxId)
+
+  const thisTxnHashBin = QRLLIB.str2bin(thisTxId)
+  var thisTxnHashBytes = new Uint8Array(thisTxnHashBin.size());
+  for(var i=0; i<thisTxnHashBin.size(); i++) {
+    thisTxnHashBytes[i] = thisTxnHashBin.get(i)
+  }
+
+  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
+  const request = {
+    query: thisTxnHashBytes,
+    grpc: grpcEndpoint
+  }
+
+  console.log(request)
+  
   if (thisTxId) {
-    HTTP.call('GET', `${apiUrl}api/txhash/${thisTxId}`, {}, (err, result) => {
-      if (!err) {
-        LocalStore.set('txhash', result.data)
+    Meteor.call('getTxnHash', request, (err, res) => {
+      if (err) {
+        console.log('error: ' + err)
       } else {
-        LocalStore.set('txhash', { error: err, id: thisTxId })
+        console.log('success')
+        console.log(res)
       }
     })
   }
