@@ -33,7 +33,6 @@ const getKnownPeers = (nodeData) => {
 
 // Set session state based on selected network node.
 const updateNode = (selectedNode) => {
-
   // Set node status to connecting
   LocalStore.set('nodeStatus', 'connecting')
   // Update local node connection details
@@ -72,8 +71,7 @@ Template.appBody.onRendered(() => {
   $('#networkDropdown').dropdown()
   $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
-  const selectedNode = document.getElementById('network').value
-  updateNode(selectedNode)
+  updateNode(selectedNode())
 })
 
 Template.appBody.events({
@@ -82,8 +80,7 @@ Template.appBody.events({
     $('.ui.sidebar').sidebar('toggle')
   },
   'change #network': () => {
-    const selectedNode = document.getElementById('network').value
-    updateNode(selectedNode)
+    updateNode(selectedNode())
   },
 })
 

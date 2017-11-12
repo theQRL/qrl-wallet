@@ -17,7 +17,7 @@ DEFAULT_NODES = [
   {
     id: 'testnet',
     name: 'Testnet (Official QRL Node 2)',
-    disabled: 'disabled',
+    disabled: '',
     explorerUrl: 'http://qrlexplorer.info/',
     grpc: '104.251.219.215:9009',
     type: 'both',

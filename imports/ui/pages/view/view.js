@@ -8,8 +8,10 @@ Template.appView.onRendered(() => {
 
 const getAddressDetail = function (address) {
 
+  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    address: address
+    address: address,
+    grpc: grpcEndpoint
   }
   
   Meteor.call('getAddress', request, (err, res) => {

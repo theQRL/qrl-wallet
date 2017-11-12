@@ -10,3 +10,8 @@ isElectrified = () => {
   }
   return false
 }
+
+selectedNode = () => {
+  const selectedNode = document.getElementById('network').value
+  return selectedNode
+}
