@@ -79,6 +79,7 @@ const getAddressState = (request, callback) => {
       console.log("Error: ", err.message)
       callback(err, null)
     } else {
+      console.log(response.state.transactions)
       console.log("Address: %s        Balance: %d", response.state.address, response.state.balance)
       callback(null, response)
     }
@@ -127,9 +128,15 @@ const transferCoins = (request, callback) => {
       callback(err, null)
     } else {
       console.log('success')
-      console.log(response)
 
-      callback(null, response)
+      let transferResponse = {
+        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
+        response: response
+      }
+
+      console.log(transferResponse)
+
+      callback(null, transferResponse)
     }
   })
 }
@@ -158,7 +165,8 @@ const confirmTransaction = (request, callback) => {
       console.log('confirmTransaction Success')
 
       let hashResponse = {
-        txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex')
+        txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+        signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
       }
 
       callback(null, {error: null, response: hashResponse}) 

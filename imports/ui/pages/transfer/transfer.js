@@ -168,16 +168,17 @@ function generateTransaction() {
       console.log(res)
 
       const confirmation = {
-        from: new TextDecoder("utf-8").decode(res.transaction_unsigned.addr_from),
-        to: new TextDecoder("utf-8").decode(res.transaction_unsigned.transfer.addr_to),
-        amount: res.transaction_unsigned.transfer.amount,
-        fee: res.transaction_unsigned.transfer.fee,
-        otsKey: res.transaction_unsigned.ots_key,
+        hash: res.txnHash,
+        from: new TextDecoder("utf-8").decode(res.response.transaction_unsigned.addr_from),
+        to: new TextDecoder("utf-8").decode(res.response.transaction_unsigned.transfer.addr_to),
+        amount: res.response.transaction_unsigned.transfer.amount,
+        fee: res.response.transaction_unsigned.transfer.fee,
+        otsKey: res.response.transaction_unsigned.ots_key,
       }
 
       LocalStore.set('transactionConfirmation', confirmation)
-      LocalStore.set('transactionConfirmationAmount', res.transaction_unsigned.transfer.amount / 100000000) // Fixme - Magic Number
-      LocalStore.set('transactionConfirmationResponse', res)
+      LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amount / 100000000) // Fixme - Magic Number
+      LocalStore.set('transactionConfirmationResponse', res.response)
 
       $('#transactionConfirmation').show()
       $('#transferForm').hide()
@@ -232,6 +233,7 @@ function confirmTransaction() {
       console.log(res.response)
 
       LocalStore.set('transactionHash', res.response.txnHash)
+      LocalStore.set('transactionSignature', res.response.signature)
 
       $('#transactionConfirmation').hide()
       $('#transactionComplete').show()
@@ -309,6 +311,10 @@ Template.appTransfer.helpers({
   },
   transactionHash() {
     const hash = LocalStore.get('transactionHash')
+    return hash
+  },
+  transactionSignature() {
+    const hash = LocalStore.get('transactionSignature')
     return hash
   }
 })
