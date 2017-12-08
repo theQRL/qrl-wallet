@@ -4,24 +4,24 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-meteor-base@1.2.0-beta.24             # Packages every Meteor app needs to have
-mobile-experience@1.0.4       # Packages for a great mobile UX
-mongo@1.3.0-beta.24                   # The database Meteor supports right now
+meteor-base@1.2.0             # Packages every Meteor app needs to have
+mobile-experience@1.0.5       # Packages for a great mobile UX
+mongo@1.3.0                   # The database Meteor supports right now
 blaze-html-templates    # Compile .html files into Meteor Blaze views
 tracker@1.1.3                 # Meteor's client-side reactive programming library
 
 abernix:standard-minifier-js@2.1.0    # JS minifier run for production mode
 es5-shim@4.6.15                # ECMAScript 5 compatibility for older browsers
-ecmascript@0.9.0-beta.24              # Enable ECMAScript2015+ syntax in app code
+ecmascript@0.9.0              # Enable ECMAScript2015+ syntax in app code
 
 kadira:flow-router      # FlowRouter is a very simple router for Meteor
 kadira:blaze-layout     # Layout manager for blaze (works well with FlowRouter)
-less@2.7.11-beta.24                    # Leaner CSS language
+less@2.7.11                    # Leaner CSS language
 
 
 practicalmeteor:mocha             # A package for writing and running your meteor app and package tests with mocha
 johanbrook:publication-collector  # Test a Meteor publication by collecting its output
-http@1.3.0-beta.24
+http@1.3.0
 session@1.1.7
 semantic:ui
 juliancwirko:postcss
@@ -29,5 +29,5 @@ jquery@1.11.10
 check@1.2.5
 jayuda:flx-qrcode
 momentjs:moment
-audit-argument-checks
+audit-argument-checks@1.0.7
 frozeman:storage
