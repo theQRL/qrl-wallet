@@ -12,7 +12,7 @@ Work in progress.
 	
 	git clone https://github.com/theQRL/qrl-wallet.git
 	cd qrl-wallet
-	meteor npm install --unsafe-perm
+	./clean_and_rebuild.sh
 
 ## Run
 
