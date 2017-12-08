@@ -9,3 +9,4 @@ client/.custom.semantic.json
 client/theme.config.import.less
 version.desktop
 .desktop-installer
+public/web-libjsqrl.wasm
