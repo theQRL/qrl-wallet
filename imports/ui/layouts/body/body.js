@@ -45,15 +45,15 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeId', nodeData.id)
       LocalStore.set('nodeName', nodeData.name)
       LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
-      LocalStore.set('nodeApiUrl', nodeData.apiUrl)
+      LocalStore.set('nodeGrpc', nodeData.grpc)
 
-      console.log('connecting to remote grpc node')
+      console.log('connecting to remote grpc node: ', nodeData.grpc)
       loadGrpcClient(nodeData, (err, res) => {
         if (err) {
           console.log(err)
           LocalStore.set('nodeStatus', 'failed')
         } else {
-          console.log('gRPC client loaded')
+          console.log('gRPC client loaded: ', nodeData.grpc)
           LocalStore.set('nodeStatus', 'ok')
         }
       })
@@ -68,11 +68,11 @@ const updateNode = (selectedNode) => {
           onApprove : function() {
             LocalStore.set('nodeId', 'custom')
             LocalStore.set('nodeName', document.getElementById('customNodeName').value)
-            LocalStore.set('nodeApiUrl', document.getElementById('customNodeGrpc').value)
+            LocalStore.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
             LocalStore.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
             LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
-            LocalStore.set('customNodeApiUrl', document.getElementById('customNodeGrpc').value)
+            LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
             LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
             LocalStore.set('customNodeCreated', true)
@@ -88,13 +88,13 @@ const updateNode = (selectedNode) => {
         name: LocalStore.get('customNodeName'),
         disabled: '',
         explorerUrl: LocalStore.get('customNodeExplorerUrl'),
-        grpc: LocalStore.get('customNodeApiUrl'),
+        grpc: LocalStore.get('customNodeGrpc'),
         type: 'both',
       }
 
       LocalStore.set('nodeId', 'custom')
       LocalStore.set('nodeName', LocalStore.get('customNodeName'))
-      LocalStore.set('nodeApiUrl', LocalStore.get('customNodeGrpc'))
+      LocalStore.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
       LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorer'))
 
       console.log('connecting to custom remote grpc node')

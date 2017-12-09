@@ -7,19 +7,19 @@
 // eslint-disable-next-line no-unused-vars, no-undef
 DEFAULT_NODES = [
   {
-    id: 'testnet-backup',
+    id: 'testnet',
     name: 'Testnet (Official QRL Node 1)',
     disabled: '',
     explorerUrl: 'http://qrlexplorer.info/',
-    grpc: 'qrl-faucet.folio.ninja:9009',
+    grpc: '104.251.219.215:9009',
     type: 'both',
   },
   {
-    id: 'testnet',
+    id: 'testnet-backup',
     name: 'Testnet (Official QRL Node 2)',
     disabled: '',
     explorerUrl: 'http://qrlexplorer.info/',
-    grpc: '104.251.219.215:9009',
+    grpc: 'qrl-faucet.folio.ninja:9009',
     type: 'both',
   },
   {
