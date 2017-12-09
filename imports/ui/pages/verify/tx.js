@@ -18,12 +18,12 @@ Template.appVerifyTxid.onCreated(() => {
   if (thisTxId) {
     Meteor.call('getTxnHash', request, (err, res) => {
       if (err) {
-        LocalStore.set('txhash', { error: err, id: txId })
+        LocalStore.set('txhash', { error: err, id: thisTxId })
       } else {
         LocalStore.set('txhash', res)
       }
     })
-    Meteor.call('status', (err, res) => {
+    Meteor.call('status', grpcEndpoint, (err, res) => {
       if (err) {
         LocalStore.set('status', { error: err })
       } else {

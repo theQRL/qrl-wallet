@@ -21,6 +21,14 @@ function toBuffer(ab) {
 const qrlProtoFilePath = tmp.fileSync({ mode: 0644, prefix: 'qrl-', postfix: '.proto' }).name
 
 
+const errorCallback = (error, message, alert) => {
+  const d = new Date()
+  const getTime = d.toUTCString()
+  console.log(`${alert} [Timestamp: ${getTime}] ${error}`)
+  const meteorError = new Meteor.Error(500, `[${getTime}] ${message} (${error})`)
+  return meteorError
+}
+
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (request, callback) => {
   
@@ -72,7 +80,7 @@ const getStats = (request, callback) => {
   console.log('getting stats')
 
   try {
-    qrlClient[request.grpc].GetStats({}, (err, response) => {
+    qrlClient[request].GetStats({}, (err, response) => {
       if (err) {
         const myError = errorCallback(err, 'Cannot access API/GetStats', '**ERROR/getStats** ')
         callback(myError, null)
@@ -122,32 +130,39 @@ const getTxnHash = (request, callback) => {
       callback(err, null)
     } else {
 
-      response.transaction.tx.addr_from = Buffer.from(response.transaction.tx.addr_from).toString()
-      response.transaction.tx.transaction_hash =
-        Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
-      response.transaction.tx.addr_to = ''
-      response.transaction.tx.amount = ''
-      if (response.transaction.coinbase) {
-        response.transaction.tx.addr_to =
-          Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
-        response.transaction.tx.coinbase.addr_to =
-          Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
-        // FIXME: We need a unified way to format Quanta
-        response.transaction.tx.amount = response.transaction.tx.coinbase.amount * 1e-8
-      }
-      if (response.transaction.tx.transfer) {
-        response.transaction.tx.addr_to =
-          Buffer.from(response.transaction.tx.transfer.addr_to).toString()
-        response.transaction.tx.transfer.addr_to =
-          Buffer.from(response.transaction.tx.transfer.addr_to).toString()
-        // FIXME: We need a unified way to format Quanta
-        response.transaction.tx.amount = response.transaction.tx.transfer.amount * 1e-8
-      }
-      response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
-      response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
-
       console.log(response)
-      callback(null, response)
+
+      if(response.found == true && response.result == "transaction") {
+        response.transaction.tx.addr_from = Buffer.from(response.transaction.tx.addr_from).toString()
+        response.transaction.tx.transaction_hash =
+          Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
+        response.transaction.tx.addr_to = ''
+        response.transaction.tx.amount = ''
+        if (response.transaction.coinbase) {
+          response.transaction.tx.addr_to =
+            Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
+          response.transaction.tx.coinbase.addr_to =
+            Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
+          // FIXME: We need a unified way to format Quanta
+          response.transaction.tx.amount = response.transaction.tx.coinbase.amount * 1e-8
+        }
+        if (response.transaction.tx.transfer) {
+          response.transaction.tx.addr_to =
+            Buffer.from(response.transaction.tx.transfer.addr_to).toString()
+          response.transaction.tx.transfer.addr_to =
+            Buffer.from(response.transaction.tx.transfer.addr_to).toString()
+          // FIXME: We need a unified way to format Quanta
+          response.transaction.tx.amount = response.transaction.tx.transfer.amount * 1e-8
+        }
+        response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
+        response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
+
+        console.log(response)
+        callback(null, response)
+      } else {
+        callback("Unable to locate transaction", null)
+      }
+
     }
   })
 }
