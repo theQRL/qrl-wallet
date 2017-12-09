@@ -1,60 +1,74 @@
 <template name="appVerifyTxid">
 <div class="ui segment">
-  {{#with txhash}}
+  {{#with tx}}
     {{#if error}}
-    <h1>Transaction <div class="ui label"><i class="exchange icon"></i>{{txhash.parameter}}</div></h1>
-    <div class="ui negative message">
-      <i class="close icon"></i>
-      <div class="header">
-        Error reading transaction
-      </div>
-      <p>{{txhash.error}}</p>
-    </div>
-    {{else}}
-    <div class="ui raised fluid card">
-      <div class="content">
-        <div class="header">Transaction <div class="ui label"><i class="exchange icon"></i> {{txhash.txhash}}</div></div>
-        <div class="meta">
-          {{#if txhash.confirmations}} {{txhash.confirmations}} confirmations {{else}}Unconfirmed{{/if}}
+      <h1>Transaction
+        <div class="ui label"><i class="exchange icon"></i>{{tx.parameter}}</div>
+      </h1>
+      <div class="ui negative message">
+        <i class="close icon"></i>
+        <div class="header">
+          Error reading transaction
         </div>
-        <div class="description">
-          <div class="ui basic center aligned segment">
-            <div class="ui statistic">
-              <div class="label">
-                <div class="ui {{txcolor}} label">{{txhash.subtype}}</div>
-              </div>
-              <div class="value" data-html="">
-                {{txhash.amount}}
-              </div>
-              <div class="label">
-                Quanta
+        <p>{{tx.error}}</p>
+      </div>
+    {{else}}
+      <div class="ui raised fluid card">
+        <div class="content">
+          <div class="header">Transaction
+            <div class="ui label"><i class="exchange icon"></i> {{tx.tx.transaction_hash}}</div>
+          </div>
+          <div class="meta">
+            {{#if confirmations}} {{confirmations}} confirmations {{else}}Unconfirmed{{/if}}
+          </div>
+          <div class="description">
+            <div class="ui basic center aligned segment">
+              <div class="ui statistic">
+                <div class="label">
+                  <div class="ui {{color}} label">{{tx.tx.type}}</div>
+                </div>
+                <div class="value">
+                  {{tx.tx.amount}}
+                </div>
+                <div class="label">
+                  Quanta
+                </div>
               </div>
             </div>
+            <table class="ui stackable table">
+              <thead></thead>
+              <tbody>
+              <tr>
+                <td class="single line">
+                  <div class="ui red label"><i class="sign out icon"></i>from</div>
+                </td>
+                <td><a href="/a/{{tx.tx.addr_from}}">{{tx.tx.addr_from}}</a></td>
+                <td><i class="large right arrow icon"></i></td>
+                <td class="single line">
+                  <div class="ui purple label"><i class="sign in icon"></i>to</div>
+                </td>
+                <td><a href="/a/{{tx.tx.addr_to}}">{{tx.tx.addr_to}}</a></td>
+              </tr>
+              </tbody>
+            </table>
+            <div class="ui celled horizontal list">
+              <div class="item"><strong>Block</strong> <a href="/block/{{tx.header.block_number}}">{{tx.header.block_number}}</a></div>
+              <div class="item"><strong>Nonce</strong> {{tx.tx.nonce}}</div>
+              <div class="item"><strong>OTS key</strong> {{tx.tx.ots_key}}</div>
+              <!-- div class="item"><strong>Hexsize</strong> {{tx.hexsize}}</div>
+              <div class="item"><strong>Fee</strong> {{tx.fee}}</div> -->
+            </div>
+            <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
+            <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
           </div>
-          <table class="ui stackable table">
-            <thead></thead>
-            <tbody>
-            <tr><td class="single line"><div class="ui red label"><i class="sign out icon"></i>from</div></td><td><a href="{{nodeExplorerUrl}}a/{{txhash.txfrom}}" target="_blank">{{txhash.txfrom}}</a></td>
-            <td><i class="large right arrow icon"></i></td>
-            <td class="single line"><div class="ui purple label"><i class="sign in icon"></i>to</div></td><td><a href="{{nodeExplorerUrl}}a/{{txhash.txto}}" target="_blank">{{txhash.txto}}</a></td></tr>
-          </tbody>
-          </table>
-          <div class="ui celled horizontal list">
-            <div class="item"><strong>Block</strong> <a href="{{nodeExplorerUrl}}block/{{txhash.block}}" target="_blank">{{txhash.block}}</a></div>
-            <div class="item"><strong>Nonce</strong> {{txhash.nonce}}</div>
-            <div class="item"><strong>OTS key</strong> {{txhash.ots_key}}</div>
-            <div class="item"><strong>Hexsize</strong> {{txhash.hexsize}}</div>
-            <div class="item"><strong>Fee</strong> {{txhash.fee}}</div>
+          <div class="extra content">
+            <div class="right floated author">
+              OK <i class="ui green circle icon"></i> {{ts}}
+            </div>
           </div>
-      </div>
-      <div class="extra content">
-        <div class="right floated author">
-          OK <i class="ui green circle icon"></i> {{ts}}
         </div>
       </div>
-    </div>
-  </div>
-    {{/if}} 
+    {{/if}}
   {{/with}}
 </div>
 </template>

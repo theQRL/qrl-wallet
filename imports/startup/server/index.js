@@ -68,6 +68,24 @@ const getKnownPeers = (request, callback) => {
   })
 }
 
+const getStats = (request, callback) => {
+  console.log('getting stats')
+
+  try {
+    qrlClient[request.grpc].GetStats({}, (err, response) => {
+      if (err) {
+        const myError = errorCallback(err, 'Cannot access API/GetStats', '**ERROR/getStats** ')
+        callback(myError, null)
+      } else {
+        callback(null, response)
+      }
+    })
+  } catch (err) {
+    const myError = errorCallback(err, 'Cannot access API/GetStats', '**ERROR/GetStats**')
+    callback(myError, null)
+  }
+}
+
 // Function to call getAddressState API
 const getAddressState = (request, callback) => {
   console.log('getting address state')
@@ -93,11 +111,41 @@ const getTxnHash = (request, callback) => {
 
   console.log(request)
 
-  qrlClient[request.grpc].getObject({query: request.query}, (err, response) => {
+  console.log('buffered hash')
+  const txnHash = Buffer.from(request.query, 'hex')
+
+  console.log(txnHash)
+
+  qrlClient[request.grpc].getObject({query: txnHash}, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
       callback(err, null)
     } else {
+
+      response.transaction.tx.addr_from = Buffer.from(response.transaction.tx.addr_from).toString()
+      response.transaction.tx.transaction_hash =
+        Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
+      response.transaction.tx.addr_to = ''
+      response.transaction.tx.amount = ''
+      if (response.transaction.coinbase) {
+        response.transaction.tx.addr_to =
+          Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
+        response.transaction.tx.coinbase.addr_to =
+          Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
+        // FIXME: We need a unified way to format Quanta
+        response.transaction.tx.amount = response.transaction.tx.coinbase.amount * 1e-8
+      }
+      if (response.transaction.tx.transfer) {
+        response.transaction.tx.addr_to =
+          Buffer.from(response.transaction.tx.transfer.addr_to).toString()
+        response.transaction.tx.transfer.addr_to =
+          Buffer.from(response.transaction.tx.transfer.addr_to).toString()
+        // FIXME: We need a unified way to format Quanta
+        response.transaction.tx.amount = response.transaction.tx.transfer.amount * 1e-8
+      }
+      response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
+      response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
+
       console.log(response)
       callback(null, response)
     }
@@ -181,6 +229,11 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(loadGrpcClient)(request)
+    return response
+  },
+  status() {
+    this.unblock()
+    const response = Meteor.wrapAsync(getStats)({})
     return response
   },
   getPeers(request) {
