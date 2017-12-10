@@ -4,6 +4,8 @@ import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
 
+const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
+
 // An array of grpc connections
 let qrlClient = []
 
@@ -106,7 +108,14 @@ const getAddressState = (request, callback) => {
       console.log("Error: ", err.message)
       callback(err, null)
     } else {
-      console.log(response.state.transactions)
+
+      response.state.txcount = response.state.transaction_hashes.length
+      response.state.transactions = []
+      response.state.transaction_hashes.forEach((value) => {
+        response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
+      })
+
+      console.log(response)
       console.log("Address: %s        Balance: %d", response.state.address, response.state.balance)
       callback(null, response)
     }
@@ -276,6 +285,43 @@ Meteor.methods({
     check(request, Object)
     const response = Meteor.wrapAsync(transferCoins)(request)
     return response
+  },
+  addressTransactions(request) {
+    console.log('address transactions')
+    console.log(request)
+
+    check(request, Object)
+    const targets = request.tx
+    const result = []
+    targets.forEach((arr) => {
+
+      const thisRequest = {
+        query: arr.txhash,
+        grpc: request.grpc
+      }
+
+      const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
+
+      const thisTxn = {
+        txhash: arr.txhash,
+        amount: thisTxnHashResponse.transaction.tx.amount,
+        from: thisTxnHashResponse.transaction.tx.addr_from,
+        to: thisTxnHashResponse.transaction.tx.addr_to,
+        ots_key: thisTxnHashResponse.transaction.tx.ots_key,
+        fee: thisTxnHashResponse.transaction.header.reward_fee,
+        block: thisTxnHashResponse.transaction.header.block_number,
+        timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+      }
+
+      console.log(thisTxn)
+
+      result.push(thisTxn)
+
+    })
+
+    console.log(result)
+
+    return result
   },
   confirmTransaction(request) {
     this.unblock()

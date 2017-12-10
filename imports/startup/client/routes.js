@@ -28,7 +28,7 @@ FlowRouter.route('/create', {
 FlowRouter.route('/view', {
   name: 'App.view',
   action() {
-    BlazeLayout.render('appBody', { main: 'appView' })
+    BlazeLayout.render('appBody', { main: 'addressView' })
   },
 })
 FlowRouter.route('/transfer', {

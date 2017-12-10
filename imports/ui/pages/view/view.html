@@ -1,4 +1,6 @@
-<template name="appView">
+<template name="addressView">
+
+
 <div class="ui center aligned segment" id="topsection">
   <h2 id="viewWallet" class="ui center aligned icon header">
   <i class="circular unlock icon"></i>
@@ -24,70 +26,99 @@
   </div>
 </div>
 <div class="ui left aligned segment" id="addressDetail" style="display: none;">
-  <div id="warning" class="ui red segment">
-    <h4>Notice</h4>
-    <p>Transactions do not currently appear below, these will be implemented shortly. Please check back later.</p>
-  </div>
-  <div class="ui raised fluid card">
-    <div class="content">
-      <div class="header">
-        <h1>Address <i class="ui refresh red link icon"></i> <a class="ui big yellow label"><i class="qrcode icon"></i>{{walletDetail.addressString}}</a></h1>
+
+
+
+
+  {{#with address}}
+    {{#if error}}
+      <h1>Address <i class="ui refresh red link icon"></i> <a class="ui big label"><i
+              class="qrcode icon"></i>{{address.parameter}}</a></h1>
+      <div class="ui negative message">
+        <i class="close icon"></i>
+        <div class="header">
+          Error reading address
+        </div>
+        <p>{{address.error}}</p>
       </div>
-      <div class="ui hidden divider"></div>
-      <div class="ui stackable grid">
-        <div class="twelve wide column">
-          <div class="ui basic center aligned segment">
-            <div class="ui statistic">
-              <div class="label">
-                <div class="ui label">Balance</div>
+    {{else}}
+      <div class="ui raised fluid card">
+        <div class="content">
+          <div class="header">
+            <h1>Address <i class="ui refresh red link icon"></i> <a class="ui big yellow label"><i
+                    class="qrcode icon"></i>{{address.state.address}}</a></h1>
+          </div>
+          <div class="description">
+            <div class="ui hidden divider"></div>
+            <div class="ui stackable grid">
+              <div class="eight wide column">
+                <div class="ui basic center aligned segment">
+                  <div class="ui statistic">
+                    <div class="label">
+                      <div class="ui label">Balance</div>
+                    </div>
+                    <div class="value">
+                      {{address.state.balance}}
+                    </div>
+                    <div class="label">
+                      Quanta
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="value" data-html="">
-                {{addressDetail.state.balance}}
-              </div>
-              <div class="label">
-                Quanta
+              <div class="four wide column center aligned">
+                {{> QRCode text=QRtext size="128px"}}
               </div>
             </div>
+            <div class="ui celled horizontal list">
+              <div class="item">
+                <button class="ui mini blue button" id="ShowTx"><i class="down arrow icon"></i> Show
+                  transactions
+                </button>
+                <button style="display:none" class="ui mini blue button" id="HideTx"><i
+                        class="up arrow icon"></i> Hide transactions
+                </button>
+              </div>
+              <div class="item"><strong>Transactions</strong> {{state.txcount}}</div>
+              <div class="item"><strong>Nonce</strong> {{state.nonce}}</div>
+            </div>
+            <div style="display:none;" class="ui active centered inline loader"></div>
+            <table style="display:none;" class="ui striped table">
+              <thead>
+              <th>Timestamp</th>
+              <th>Amount</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Txhash</th>
+              <th>Block</th>
+              <th>Fee</th>
+              <th>OTS key</th>
+              </thead>
+              <tbody>
+              {{#each addressTransactions}}
+                <tr>
+                  <td>{{this.timestamp}}</td>
+                  <td>{{this.amount}}</td>
+                  <td><a href="{{nodeExplorerUrl}}/a/{{this.txfrom}}">{{this.from}}</a></td>
+                  <td><a href="{{nodeExplorerUrl}}/a/{{this.txto}}">{{this.to}}</a></td>
+                  <td><a href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">{{this.txhash}}</a></td>
+                  <td><a href="{{nodeExplorerUrl}}/block/{{this.block}}">{{this.block}}</a></td>
+                  <td>{{this.fee}}</td>
+                  <td>{{this.ots_key}}</td>
+                </tr>
+              {{/each}}
+              </tbody>
+            </table>
+
           </div>
         </div>
-        <div class="four wide column center aligned">
-          {{> QRCode text=addressQR size="128px"}}
-        </div>
       </div>
-      <div class="ui celled horizontal list">
-        <div class="item"><button class="ui mini blue button" id="ShowTx"><i class="down arrow icon"></i> Show transactions</button><button style="display:none" class="ui mini blue button" id="HideTx"><i class="up arrow icon"></i> Hide transactions</button></div>
-        <div class="item"><strong>Transactions</strong> {{txcount}}</div>
-        <div class="item"><strong>Nonce</strong> {{addressDetail.state.nonce}}</div>
-      </div>
-      <table style="display:none;" class="ui striped table">
-        <thead>
-          <th>Timestamp</th>
-          <th>Amount</th>
-          <th>From</th>
-          <th>To</th>
-          <th>Txhash</th>
-          <th>Block</th>
-          <th>Fee</th>
-          <th>OTS key</th>
-        </thead>
-        <tbody>
-          {{#each addressDetail.transactions}}
-          <tr>
-            <td>{{ts}}</td>
-            <td>{{this.amount}}</td>
-            <td><a target="_blank" href="{{nodeExplorerUrl}}a/{{this.txfrom}}">{{this.txfrom}}</a></td>
-            <td><a target="_blank" href="{{nodeExplorerUrl}}a/{{this.txto}}">{{this.txto}}</a></td>
-            <td><a target="_blank" href="{{nodeExplorerUrl}}tx/{{this.txhash}}">{{this.txhash}}</a></td>
-            <td><a target="_blank" href="{{nodeExplorerUrl}}block/{{this.block}}">{{this.block}}</a></td>
-            <td>{{this.fee}}</td>
-            <td>{{this.ots_key}}</td>
-          </tr>
-          {{/each}}
-        </tbody>
-      </table>
-    </div>
-  </div>
+    {{/if}}
+  {{/with}}
+
+
 </div>
+
 
 
 </template>
