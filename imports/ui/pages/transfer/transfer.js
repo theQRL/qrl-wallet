@@ -1,6 +1,7 @@
 import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */
+/* global selectedNode */
 
 Template.appTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()

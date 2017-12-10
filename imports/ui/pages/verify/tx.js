@@ -23,7 +23,7 @@ Template.appVerifyTxid.onCreated(() => {
         LocalStore.set('txhash', res)
       }
     })
-    Meteor.call('status', grpcEndpoint, (err, res) => {
+    Meteor.call('status', request, (err, res) => {
       if (err) {
         LocalStore.set('status', { error: err })
       } else {

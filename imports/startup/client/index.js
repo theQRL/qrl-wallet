@@ -17,4 +17,3 @@ selectedNode = () => {
   const selectedNode = document.getElementById('network').value
   return selectedNode
 }
-
