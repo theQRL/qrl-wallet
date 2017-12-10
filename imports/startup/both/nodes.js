@@ -44,14 +44,26 @@ DEFAULT_NODES = [
 // object based on its 'id' value.
 // eslint-disable-next-line no-unused-vars, no-undef
 findNodeData = (array, key) => {
-  const objFound = _.find(array, (obj) => {
-    if (obj.id === key) {
-      return obj
+  if((LocalStore.get('nodeId') == 'custom') && (LocalStore.get('nodeStatus') != 'connecting')) {
+    const nodeData = {
+      id: 'custom',
+      name: LocalStore.get('customNodeName'),
+      disabled: '',
+      explorerUrl: LocalStore.get('customNodeExplorerUrl'),
+      grpc: LocalStore.get('customNodeGrpc'),
+      type: 'both',
+    }
+    return nodeData
+  } else {
+    const objFound = _.find(array, (obj) => {
+      if (obj.id === key) {
+        return obj
+      }
+      return null
+    })
+    if (objFound) {
+      return objFound
     }
     return null
-  })
-  if (objFound) {
-    return objFound
   }
-  return null
 }

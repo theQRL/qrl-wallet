@@ -1,6 +1,10 @@
 import './view.html'
 /* global LocalStore */
 /* global QRLLIB */
+/* global DEFAULT_NODES */
+/* global findNodeData */
+/* global selectedNode */
+
 
 Template.appView.onRendered(() => {
   $('.ui.dropdown').dropdown()
@@ -9,11 +13,12 @@ Template.appView.onRendered(() => {
 const getAddressDetail = function (address) {
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
+
   const request = {
     address: address,
     grpc: grpcEndpoint
   }
-  
+
   Meteor.call('getAddress', request, (err, res) => {
     if (err) {
       console.log('error: ' + err)

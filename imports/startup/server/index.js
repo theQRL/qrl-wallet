@@ -80,11 +80,12 @@ const getStats = (request, callback) => {
   console.log('getting stats')
 
   try {
-    qrlClient[request].GetStats({}, (err, response) => {
+    qrlClient[request.grpc].getStats({}, (err, response) => {
       if (err) {
         const myError = errorCallback(err, 'Cannot access API/GetStats', '**ERROR/getStats** ')
         callback(myError, null)
       } else {
+        console.log(response)
         callback(null, response)
       }
     })
@@ -246,9 +247,10 @@ Meteor.methods({
     const response = Meteor.wrapAsync(loadGrpcClient)(request)
     return response
   },
-  status() {
+  status(request) {
     this.unblock()
-    const response = Meteor.wrapAsync(getStats)({})
+    check(request, Object)
+    const response = Meteor.wrapAsync(getStats)(request)
     return response
   },
   getPeers(request) {

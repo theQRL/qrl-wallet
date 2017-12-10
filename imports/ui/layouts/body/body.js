@@ -95,7 +95,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeId', 'custom')
       LocalStore.set('nodeName', LocalStore.get('customNodeName'))
       LocalStore.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
-      LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorer'))
+      LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('connecting to custom remote grpc node')
       loadGrpcClient(nodeData, (err, res) => {
@@ -196,7 +196,7 @@ Template.customNode.helpers({
     return LocalStore.get('customNodeName')
   },
   customNodeGrpc() {
-    return LocalStore.get('customNodeApiUrl')
+    return LocalStore.get('customNodeGrpc')
   },
   customNodeExplorer() {
     return LocalStore.get('customNodeExplorerUrl')
