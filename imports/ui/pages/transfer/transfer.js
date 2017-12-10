@@ -61,6 +61,10 @@ const getBalance = function (address) {
         LocalStore.set('transferFromBalance', 0)
         LocalStore.set('transferFromAddress', new TextDecoder("utf-8").decode(address))
       }
+
+      // Rudimentary way to set otsKey
+      LocalStore.set('otsKeyEstimate', res.state.txcount)
+
       $('#transferQrl').hide()
       $('#transferForm').show()
     }
@@ -149,7 +153,7 @@ function generateTransaction() {
     fromAddress: sendFromAddress,
     toAddress: sendToAddress,
     amount: sendAmount * 100000000, // Fixme - Magic Number
-    fee: txnFee,
+    fee: txnFee * 100000000, // Fixme - Magic Number
     xmssPk: pubKey,
     xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
@@ -179,6 +183,7 @@ function generateTransaction() {
 
       LocalStore.set('transactionConfirmation', confirmation)
       LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amount / 100000000) // Fixme - Magic Number
+      LocalStore.set('transactionConfirmationFee', res.response.transaction_unsigned.transfer.fee / 100000000) // Fixme - Magic Number
       LocalStore.set('transactionConfirmationResponse', res.response)
 
       $('#transactionConfirmation').show()
@@ -248,6 +253,7 @@ function confirmTransaction() {
 function cancelTransaction() {
   LocalStore.set('transactionConfirmation', '')
   LocalStore.set('transactionConfirmationAmount', '')
+  LocalStore.set('transactionConfirmationFee', '')
   LocalStore.set('transactionConfirmationResponse', '')
 
   LocalStore.set('transactionFailed', "User requested cancellation")
@@ -298,6 +304,10 @@ Template.appTransfer.helpers({
     const confirmationAmount = LocalStore.get('transactionConfirmationAmount')
     return confirmationAmount
   },
+  transactionConfirmationFee() {
+    const transactionConfirmationFee = LocalStore.get('transactionConfirmationFee')
+    return transactionConfirmationFee
+  },
   transactionGenerationError() {
     const error = LocalStore.get('transactionGenerationError')
     return error
@@ -317,5 +327,9 @@ Template.appTransfer.helpers({
   transactionSignature() {
     const hash = LocalStore.get('transactionSignature')
     return hash
-  }
+  },
+  otsKeyEstimate() {
+    const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
+    return otsKeyEstimate
+  },
 })

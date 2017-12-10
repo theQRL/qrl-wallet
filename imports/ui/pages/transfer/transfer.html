@@ -2,7 +2,7 @@
 <div id="transferQrl" class="ui center aligned segment">
   <h2 class="ui center aligned icon header">
   <i class="circular send icon"></i>
-  Transfer QRL
+  Transfer Quanta
   </h2>
   <div class="ui action input"  id="addressFields" style="width: 80%; margin-bottom: 20px;">
     <input type="text" id="walletCode" placeholder="">
@@ -26,23 +26,23 @@
 
 <div class="ui left aligned segment" id="transferForm" style="display: none;">
   <h2 class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
-  <h2 class="unbreakable"><a class="ui yellow label">QRL Balance</a> {{transferFrom.balance}}</h2>
+  <h2 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h2>
   <form id="generateTransactionForm" class="ui form">
     <div class="field">
       <label>Send To</label>
-      <input type="text" id="to" placeholder="Address to send QRL to">
+      <input type="text" id="to" placeholder="Address to send Quanta to">
     </div>
     <div class="field">
-      <label>QRL Amount</label>
-      <input type="text" id="amount" placeholder="0">
+      <label>Quanta Amount</label>
+      <input type="text" id="amount">
     </div>
     <div class="field">
-      <label>Transaction Fee</label>
-      <input type="text" id="fee" placeholder="0">
+      <label>Transaction Fee (In Quanta)</label>
+      <input type="text" id="fee" value="1">
     </div>
     <div class="field">
       <label>OTS Key</label>
-      <input type="text" id="otsKey" placeholder="0">
+      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
     </div>
     <button id="generateTransaction" class="ui huge primary button" style="float: left;">Generate Transaction &raquo;</button>
     <div style="height: 51px;">
@@ -60,7 +60,7 @@
     From: {{transactionConfirmation.from}}<br />
     To: {{transactionConfirmation.to}}<br />
     Amount: {{transactionConfirmationAmount}}<br />
-    Fee: {{transactionConfirmation.fee}}<br />
+    Fee: {{transactionConfirmationFee}}<br />
     OTS Key: {{transactionConfirmation.otsKey}}
   </p>
   <button id="confirmTransaction" class="ui huge primary button" style="float: left;">Confirm Transaction &raquo;</button>
