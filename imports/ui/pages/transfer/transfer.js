@@ -26,11 +26,11 @@ Template.appTransfer.onRendered(() => {
         rules: [
           {
             type: 'empty',
-            prompt: 'You must enter an amount of QRL to send',
+            prompt: 'You must enter an amount of Quanta to send',
           },
           {
             type: 'number',
-            prompt: 'QRL Amount must be a number',
+            prompt: 'Quanta Amount must be a number',
           },
         ],
       },
