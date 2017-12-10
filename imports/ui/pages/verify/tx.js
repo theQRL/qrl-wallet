@@ -17,6 +17,7 @@ Template.appVerifyTxid.onCreated(() => {
 
   if (thisTxId) {
     Meteor.call('getTxnHash', request, (err, res) => {
+      console.log(res)
       if (err) {
         LocalStore.set('txhash', { error: err, id: thisTxId })
       } else {

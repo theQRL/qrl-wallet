@@ -95,12 +95,12 @@
               <th>OTS key</th>
               </thead>
               <tbody>
-              {{#each state.transactions}}
+              {{#each addressTransactions}}
                 <tr>
-                  <td>{{ts}}</td>
+                  <td>{{this.timestamp}}</td>
                   <td>{{this.amount}}</td>
-                  <td><a href="{{nodeExplorerUrl}}/a/{{this.txfrom}}">{{this.txfrom}}</a></td>
-                  <td><a href="{{nodeExplorerUrl}}/a/{{this.txto}}">{{this.txto}}</a></td>
+                  <td><a href="{{nodeExplorerUrl}}/a/{{this.txfrom}}">{{this.from}}</a></td>
+                  <td><a href="{{nodeExplorerUrl}}/a/{{this.txto}}">{{this.to}}</a></td>
                   <td><a href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">{{this.txhash}}</a></td>
                   <td><a href="{{nodeExplorerUrl}}/block/{{this.block}}">{{this.block}}</a></td>
                   <td>{{this.fee}}</td>

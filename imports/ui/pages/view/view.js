@@ -87,20 +87,22 @@ Template.addressView.events({
     setTimeout(function () { viewWallet(walletType) }, 200)
   },
   'click #ShowTx': () => {
-    $('table').show()
-    const x = LocalStore.get('fetchedTx')
-    if (x === false) {
-      const tx = LocalStore.get('address').state.transactions
-      Meteor.call('addressTransactions', tx, (err, res) => {
-        if (err) {
-          LocalStore.set('addressTransactions', { error: err })
-        } else {
-          LocalStore.set('addressTransactions', res)
-          $('.loader').hide()
-          LocalStore.set('fetchedTx', true)
-        }
-      })
-    }
+    const tx = LocalStore.get('address').state.transactions
+
+    const request = {
+      tx: tx,
+      grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc
+    };
+
+    Meteor.call('addressTransactions', request, (err, res) => {
+      if (err) {
+        LocalStore.set('addressTransactions', { error: err })
+      } else {
+        LocalStore.set('addressTransactions', res)
+        $('table').show()
+        $('.loader').hide()
+      }
+    })
     $('#ShowTx').hide()
     $('#HideTx').show()
   },
@@ -120,8 +122,8 @@ Template.addressView.helpers({
   address() {
     return LocalStore.get('address')
   },
-  addressDetail() {
-    return LocalStore.get('addressDetail')
+  addressTransactions() {
+    return LocalStore.get('addressTransactions')
   },
   walletDetail() {
     return LocalStore.get('walletDetail')
@@ -132,15 +134,6 @@ Template.addressView.helpers({
   ts() {
     const x = moment.unix(this.timestamp)
     return moment(x).format('HH:mm D MMM YYYY')
-  },
-  txcount() {
-    const addressDetail = LocalStore.get('addressDetail')
-    try {
-      const y = addressDetail.transactions.length
-      return y
-    } catch (e) {
-      return 0
-    }
   },
   nodeExplorerUrl() {
     return LocalStore.get('nodeExplorerUrl')

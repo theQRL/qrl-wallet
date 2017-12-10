@@ -286,12 +286,41 @@ Meteor.methods({
     const response = Meteor.wrapAsync(transferCoins)(request)
     return response
   },
-  addressTransactions(targets) {
-    check(targets, Array)
+  addressTransactions(request) {
+    console.log('address transactions')
+    console.log(request)
+
+    check(request, Object)
+    const targets = request.tx
     const result = []
     targets.forEach((arr) => {
-      result.push({ txhash: ab2str(arr.txhash) })
+
+      const thisRequest = {
+        query: arr.txhash,
+        grpc: request.grpc
+      }
+
+      const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
+
+      const thisTxn = {
+        txhash: arr.txhash,
+        amount: thisTxnHashResponse.transaction.tx.amount,
+        from: thisTxnHashResponse.transaction.tx.addr_from,
+        to: thisTxnHashResponse.transaction.tx.addr_to,
+        ots_key: thisTxnHashResponse.transaction.tx.ots_key,
+        fee: thisTxnHashResponse.transaction.header.reward_fee,
+        block: thisTxnHashResponse.transaction.header.block_number,
+        timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+      }
+
+      console.log(thisTxn)
+
+      result.push(thisTxn)
+
     })
+
+    console.log(result)
+
     return result
   },
   confirmTransaction(request) {
