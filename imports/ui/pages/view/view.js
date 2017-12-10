@@ -5,8 +5,9 @@ import './view.html'
 /* global findNodeData */
 /* global selectedNode */
 
+const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
-Template.appView.onRendered(() => {
+Template.addressView.onRendered(() => {
   $('.ui.dropdown').dropdown()
 })
 
@@ -25,26 +26,13 @@ const getAddressDetail = function (address) {
       $('#unlocking').hide()
       $('#unlockError').show()
     } else {
-      if (res.state.address !== '') {
-        const successResult = {
-          state: {
-            balance: res.state.balance / 100000000, // FIXME - Magic number
-            nonce: res.state.nonce,
-          },
-          transactions: res.state.transactions,
-        }
-        LocalStore.set('addressDetail', successResult)
-      } else {
-        // Wallet not found, put together an empty response
-        const errorResult = {
-          state: {
-            balance: 0,
-            nonce: 0,
-          },
-          transactions: [],
-        }
-        LocalStore.set('addressDetail', errorResult)
-      }
+      console.log(res)
+
+      res.state.address = ab2str(res.state.address)
+      res.state.balance /= 100000000
+
+      LocalStore.set('address', res)
+
       $('#topsection').hide()
 
       $('#addressDetail').show()
@@ -92,7 +80,7 @@ function viewWallet(walletType) {
   }
 }
 
-Template.appView.events({
+Template.addressView.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
     const walletType = document.getElementById('walletType').value
@@ -100,11 +88,25 @@ Template.appView.events({
   },
   'click #ShowTx': () => {
     $('table').show()
+    const x = LocalStore.get('fetchedTx')
+    if (x === false) {
+      const tx = LocalStore.get('address').state.transactions
+      Meteor.call('addressTransactions', tx, (err, res) => {
+        if (err) {
+          LocalStore.set('addressTransactions', { error: err })
+        } else {
+          LocalStore.set('addressTransactions', res)
+          $('.loader').hide()
+          LocalStore.set('fetchedTx', true)
+        }
+      })
+    }
     $('#ShowTx').hide()
     $('#HideTx').show()
   },
   'click #HideTx': () => {
     $('table').hide()
+    $('.loader').hide()
     $('#ShowTx').show()
     $('#HideTx').hide()
   },
@@ -113,7 +115,11 @@ Template.appView.events({
   },
 })
 
-Template.appView.helpers({
+
+Template.addressView.helpers({
+  address() {
+    return LocalStore.get('address')
+  },
   addressDetail() {
     return LocalStore.get('addressDetail')
   },
@@ -140,3 +146,5 @@ Template.appView.helpers({
     return LocalStore.get('nodeExplorerUrl')
   },
 })
+
+

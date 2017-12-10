@@ -4,6 +4,8 @@ import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
 
+const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
+
 // An array of grpc connections
 let qrlClient = []
 
@@ -106,7 +108,14 @@ const getAddressState = (request, callback) => {
       console.log("Error: ", err.message)
       callback(err, null)
     } else {
-      console.log(response.state.transactions)
+
+      response.state.txcount = response.state.transaction_hashes.length
+      response.state.transactions = []
+      response.state.transaction_hashes.forEach((value) => {
+        response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
+      })
+
+      console.log(response)
       console.log("Address: %s        Balance: %d", response.state.address, response.state.balance)
       callback(null, response)
     }
@@ -276,6 +285,14 @@ Meteor.methods({
     check(request, Object)
     const response = Meteor.wrapAsync(transferCoins)(request)
     return response
+  },
+  addressTransactions(targets) {
+    check(targets, Array)
+    const result = []
+    targets.forEach((arr) => {
+      result.push({ txhash: ab2str(arr.txhash) })
+    })
+    return result
   },
   confirmTransaction(request) {
     this.unblock()
