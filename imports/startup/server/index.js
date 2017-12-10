@@ -31,7 +31,7 @@ const errorCallback = (error, message, alert) => {
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (request, callback) => {
-  
+
   // Load qrlbase.proto and fetch current qrl.proto from node
   const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
   const client = new baseGrpcObject.qrl.Base(request.grpc, grpc.credentials.createInsecure())
@@ -174,7 +174,7 @@ const getTxnHash = (request, callback) => {
 const transferCoins = (request, callback) => {
   console.log('getting transferCoins object')
 
-  const tx = { 
+  const tx = {
     address_from: request.fromAddress,
     address_to: request.toAddress,
     amount: request.amount,
@@ -205,7 +205,20 @@ const transferCoins = (request, callback) => {
   })
 }
 
+// Function to call getStats API.
+const getStats = (request, callback) => {
+  console.log('getting stats')
 
+  qrlClient.getStats({}, (err, response) => {
+    if (err){
+      console.log("Error: ", err.message)
+      callback(err, null)
+    } else {
+      console.log(response)
+      callback(null, response)
+    }
+  })
+}
 
 const confirmTransaction = (request, callback) => {
   console.log('confirming transaction')
@@ -233,7 +246,7 @@ const confirmTransaction = (request, callback) => {
         signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
       }
 
-      callback(null, {error: null, response: hashResponse}) 
+      callback(null, {error: null, response: hashResponse})
     }
   })
 }
@@ -282,5 +295,11 @@ Meteor.methods({
     check(request, Object)
     const response = Meteor.wrapAsync(confirmTransaction)(request)
     return response
+  },
+  getStats(request) {
+  this.unblock()
+  check(request, Object)
+  const response = Meteor.wrapAsync(getStats)(request)
+  return response
   },
 })
