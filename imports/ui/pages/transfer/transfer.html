@@ -41,7 +41,7 @@
       <input type="text" id="fee" value="1">
     </div>
     <div class="field">
-      <label>OTS Key</label>
+      <label>OTS Key Index</label>
       <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
     </div>
     <button id="generateTransaction" class="ui huge primary button" style="float: left;">Generate Transaction &raquo;</button>
@@ -61,7 +61,7 @@
     To: {{transactionConfirmation.to}}<br />
     Amount: {{transactionConfirmationAmount}}<br />
     Fee: {{transactionConfirmationFee}}<br />
-    OTS Key: {{transactionConfirmation.otsKey}}
+    OTS Key Index: {{transactionConfirmation.otsKey}}
   </p>
   <button id="confirmTransaction" class="ui huge primary button" style="float: left;">Confirm Transaction &raquo;</button>
   <button id="cancelTransaction" class="ui huge red button" style="float: left;">Cancel Transaction &raquo;</button>
