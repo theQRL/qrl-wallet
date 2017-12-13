@@ -180,6 +180,9 @@ Template.appBody.helpers({
     }
     return status
   },
+  walletStatus() {
+    return LocalStore.get('walletStatus')
+  },
   customNodeCreated() {
     return LocalStore.get('customNodeCreated')
   },
@@ -187,7 +190,6 @@ Template.appBody.helpers({
     return LocalStore.get('customNodeName')
   },
 })
-
 
 Template.customNode.helpers({
   customNodeName() {

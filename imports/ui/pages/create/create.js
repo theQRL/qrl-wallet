@@ -17,6 +17,14 @@ function generateWallet() {
 
   // If it worked, send the user to the address page.  
   if (newAddress !== '') {
+    const status = {}
+    status.colour = 'green'
+    status.string = newAddress + ' is ready to use.'
+    status.unlocked = true
+    status.address = newAddress
+    LocalStore.set('walletStatus', status)
+
+
     const params = { address: newAddress }
     const path = FlowRouter.path('/create/:address', params)
     FlowRouter.go(path)
