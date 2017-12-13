@@ -1,10 +1,7 @@
 import './view.html'
 /* global LocalStore */
 /* global QRLLIB */
-/* global XMSS_GLOBAL */
-/* global DEFAULT_NODES */
-/* global findNodeData */
-/* global selectedNode */
+/* global XMSS_OBJECT */
 
 Template.addressView.onRendered(() => {
   $('.ui.dropdown').dropdown()
@@ -13,14 +10,14 @@ Template.addressView.onRendered(() => {
   LocalStore.set('addressTransactions', '')
 
   // Route to view address if wallet is already opened
-  if(LocalStore.get('walletStatus').unlocked == true) {
+  if (LocalStore.get('walletStatus').unlocked === true) {
     const params = { address: LocalStore.get('walletStatus').address }
     const path = FlowRouter.path('/view/:address', params)
     FlowRouter.go(path)
   }
 })
 
-function viewWallet(walletType) {  
+function viewWallet(walletType) {
   try {
     const userBinSeed = document.getElementById('walletCode').value
     let thisSeedBin
@@ -35,7 +32,7 @@ function viewWallet(walletType) {
     XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = XMSS_OBJECT.getAddress()
 
-    // If it worked, send the user to the address page.  
+    // If it worked, send the user to the address page.
     if (thisAddress !== '') {
       const params = { address: thisAddress }
       const path = FlowRouter.path('/view/:address', params)

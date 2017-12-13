@@ -3,12 +3,12 @@ import './sidebar.html'
 import './customNode.html'
 import '../../stylesheets/overrides.css'
 /* global LocalStore */
-/* global checkNodeStatus */
 /* global findNodeData */
 /* global DEFAULT_NODES */
+/* global selectedNode */
+/* global isElectrified */
 
 BlazeLayout.setRoot('body')
-
 
 const loadGrpcClient = (nodeData, callback) => {
   Meteor.call('loadGrpcClient', nodeData, (err, res) => {
@@ -16,16 +16,6 @@ const loadGrpcClient = (nodeData, callback) => {
       callback(err, null)
     } else {
       callback(null, res)
-    }
-  })
-}
-
-const getKnownPeers = (nodeData) => {
-  Meteor.call('getPeers', nodeData, (err, res) => {
-    if (err) {
-      console.log('error: ' + err)
-    } else {
-      console.log(res.known_peers.peers)
     }
   })
 }
@@ -58,29 +48,30 @@ const updateNode = (selectedNode) => {
       })
       break
     }
-    case 'add':
+    case 'add': {
       $('#addNode').modal({
-          onDeny    : function(){
-            $('#networkDropdown').dropdown("set selected", 'testnet-backup')
-            updateNode('testnet-backup')
-          },
-          onApprove : function() {
-            LocalStore.set('nodeId', 'custom')
-            LocalStore.set('nodeName', document.getElementById('customNodeName').value)
-            LocalStore.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
-            LocalStore.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+        onDeny : function () {
+          $('#networkDropdown').dropdown('set selected', 'testnet-backup')
+          updateNode('testnet-backup')
+        },
+        onApprove : function () {
+          LocalStore.set('nodeId', 'custom')
+          LocalStore.set('nodeName', document.getElementById('customNodeName').value)
+          LocalStore.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
+          LocalStore.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-            LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
-            LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-            LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
+          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
+          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-            LocalStore.set('customNodeCreated', true)
-            updateNode('custom')
-          }
-        }).modal('show')
+          LocalStore.set('customNodeCreated', true)
+          updateNode('custom')
+        },
+      }).modal('show')
       break
-    case 'custom':
-      $('#networkDropdown').dropdown("set selected", 'custom')
+    }
+    case 'custom': {
+      $('#networkDropdown').dropdown('set selected', 'custom')
 
       const nodeData = {
         id: 'custom',
@@ -106,6 +97,8 @@ const updateNode = (selectedNode) => {
           LocalStore.set('nodeStatus', 'ok')
         }
       })
+      break
+    }
     default:
       break
   }
@@ -148,18 +141,18 @@ Template.appBody.helpers({
     return LocalStore.get('nodeExplorerUrl')
   },
   defaultNodes() {
-    let visibleNodes = []
-    
+    const visibleNodes = []
+
     // Only return nodes specific to this (web/desktop/both).
-    _.each(DEFAULT_NODES, function(node) {
+    _.each(DEFAULT_NODES, function (node) {
       // Desktop Electrified Clients
-      if((node.type === 'desktop') && (isElectrified())) {
+      if ((node.type === 'desktop') && (isElectrified())) {
         visibleNodes.push(node)
       // Web Non-Electrified Clients
-      } else if((node.type === 'web') && !isElectrified()) {
+      } else if ((node.type === 'web') && !isElectrified()) {
         visibleNodes.push(node)
       // Everything else
-      } else if(node.type === 'both') {
+      } else if (node.type === 'both') {
         visibleNodes.push(node)
       }
     })

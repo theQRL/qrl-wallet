@@ -3,9 +3,9 @@
 
 // Client side function to detmine if running within Electron
 isElectrified = () => {
-  var userAgent = navigator.userAgent.toLowerCase();
+  const userAgent = navigator.userAgent.toLowerCase()
   if (userAgent.indexOf(' electron/') > -1) {
-     return true
+    return true
   }
   return false
 }

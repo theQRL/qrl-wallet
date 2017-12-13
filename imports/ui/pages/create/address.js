@@ -1,7 +1,5 @@
 import './address.html'
-/* global QRLLIB */
-/* global XMSS_OBJECT */
-
+/* global getXMSSDetails */
 
 function saveWallet() {
   const walletJson = ['[', JSON.stringify(getXMSSDetails()), ']'].join('')

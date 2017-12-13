@@ -1,7 +1,7 @@
 import './verify.html'
 
 Template.appVerify.events({
-  'click .button': function() {
+  'click .button': function () {
     const verifyTxnPath = '/verify-txid/:txId'
     const transactionId = document.getElementById('transactionId').value
     if (transactionId !== '') {

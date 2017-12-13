@@ -3,17 +3,20 @@ import './transferConfirm.html'
 /* global QRLLIB */
 /* global selectedNode */
 /* global XMSS_OBJECT */
+/* global findNodeData */
+/* global selectedNode */
+/* global DEFAULT_NODES */
 
 function confirmTransaction() {
-  let tx = LocalStore.get('transactionConfirmationResponse')
+  const tx = LocalStore.get('transactionConfirmationResponse')
 
   let hashToSign = tx.transaction_unsigned.transaction_hash
   hashToSign = new QRLLIB.str2bin(hashToSign)
 
   const signedHash = XMSS_OBJECT.sign(hashToSign)
 
-  var signedHashJS = new Uint8Array(signedHash.size());
-  for(var i=0; i<signedHash.size(); i++) {
+  let signedHashJS = new Uint8Array(signedHash.size())
+  for (let i = 0; i < signedHash.size(); i++) {
     signedHashJS[i] = signedHash.get(i)
   }
 
@@ -46,7 +49,7 @@ function cancelTransaction() {
   LocalStore.set('transactionConfirmationFee', '')
   LocalStore.set('transactionConfirmationResponse', '')
 
-  LocalStore.set('transactionFailed', "User requested cancellation")
+  LocalStore.set('transactionFailed', 'User requested cancellation')
 
   $('#transactionConfirmation').hide()
   $('#transactionFailed').show()

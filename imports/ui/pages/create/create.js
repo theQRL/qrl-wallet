@@ -1,6 +1,7 @@
 import './create.html'
 /* global QRLLIB */
-/* XMSS_OBJECT */
+/* global XMSS_OBJECT */
+/* global LocalStore */
 
 function generateWallet() {
   // Generate random bytes to form XMSS seed.
@@ -15,7 +16,7 @@ function generateWallet() {
   XMSS_OBJECT = new QRLLIB.Xmss(randomSeed, 10)
   const newAddress = XMSS_OBJECT.getAddress()
 
-  // If it worked, send the user to the address page.  
+  // If it worked, send the user to the address page.
   if (newAddress !== '') {
     const status = {}
     status.colour = 'green'

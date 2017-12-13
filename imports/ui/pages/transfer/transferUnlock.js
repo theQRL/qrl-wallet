@@ -1,5 +1,7 @@
 import './transferUnlock.html'
 /* global QRLLIB */
+/* global LocalStore */
+/* global XMSS_OBJECT */
 
 function unlockWallet(walletType) {
   try {
@@ -45,7 +47,7 @@ Template.appTransferUnlock.onRendered(() => {
   LocalStore.set('transferFromAddress', '')
 
   // Route to view address if wallet is already opened
-  if(LocalStore.get('walletStatus').unlocked == true) {
+  if (LocalStore.get('walletStatus').unlocked === true) {
     const params = {}
     const path = FlowRouter.path('/transfer/detail', params)
     FlowRouter.go(path)
