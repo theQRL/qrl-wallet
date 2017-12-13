@@ -9,6 +9,9 @@ import './view.html'
 Template.addressView.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
+  LocalStore.set('address', '')
+  LocalStore.set('addressTransactions', '')
+
   // Route to view address if wallet is already opened
   if(LocalStore.get('walletStatus').unlocked == true) {
     const params = { address: LocalStore.get('walletStatus').address }
@@ -17,10 +20,7 @@ Template.addressView.onRendered(() => {
   }
 })
 
-function viewWallet(walletType) {
-  LocalStore.set('address', '')
-  LocalStore.set('addressTransactions', '')
-  
+function viewWallet(walletType) {  
   try {
     const userBinSeed = document.getElementById('walletCode').value
     let thisSeedBin

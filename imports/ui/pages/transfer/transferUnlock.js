@@ -41,6 +41,9 @@ function unlockWallet(walletType) {
 Template.appTransferUnlock.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
+  LocalStore.set('transferFromBalance', '')
+  LocalStore.set('transferFromAddress', '')
+
   // Route to view address if wallet is already opened
   if(LocalStore.get('walletStatus').unlocked == true) {
     const params = {}
