@@ -95,7 +95,18 @@ Template.addressViewing.helpers({
     return LocalStore.get('address')
   },
   addressTransactions() {
-    return LocalStore.get('addressTransactions')
+    const transactions = []
+    _.each(LocalStore.get('addressTransactions'), function (transaction) {
+      // Update timestamp from unix epoch to human readable time/date.
+      const x = moment.unix(transaction.timestamp)
+      transaction.timestamp = moment(x).format('HH:mm D MMM YYYY')
+
+      // Update fee from shor to quanta
+      transaction.fee /= 100000000
+
+      transactions.push(transaction)
+    })
+    return transactions
   },
   QRText() {
     return LocalStore.get('address').state.address
