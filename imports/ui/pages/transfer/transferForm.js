@@ -131,8 +131,13 @@ Template.appTransferForm.onRendered(() => {
     },
   })
 
-  getBalance(XMSS_OBJECT.getAddress())
-
+  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
+  var thisAddressBytes = new Uint8Array(thisAddressBin.size());
+  for(var i=0; i<thisAddressBin.size(); i++) {
+    thisAddressBytes[i] = thisAddressBin.get(i)
+  }
+  
+  getBalance(thisAddressBytes)
 })
 
 Template.appTransferForm.events({

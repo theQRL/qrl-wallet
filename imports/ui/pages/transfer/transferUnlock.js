@@ -15,7 +15,7 @@ function unlockWallet(walletType) {
 
     XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = XMSS_OBJECT.getAddress()
-
+    
     if (thisAddress !== '') {
       const params = { }
       const path = FlowRouter.path('/transfer/detail', params)
