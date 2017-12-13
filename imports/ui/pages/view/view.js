@@ -11,6 +11,9 @@ Template.addressView.onRendered(() => {
 })
 
 function viewWallet(walletType) {
+  LocalStore.set('address', '')
+  LocalStore.set('addressTransactions', '')
+  
   try {
     const userBinSeed = document.getElementById('walletCode').value
     let thisSeedBin
