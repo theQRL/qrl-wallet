@@ -88,8 +88,8 @@ Template.addressViewing.helpers({
   addressTransactions() {
     return LocalStore.get('addressTransactions')
   },
-  addressQR() {
-    return LocalStore.get('address')
+  QRText() {
+    return LocalStore.get('address').state.address
   },
   ts() {
     const x = moment.unix(this.timestamp)
