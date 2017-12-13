@@ -9,6 +9,9 @@ import './viewingAddress.html'
 const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
 const getAddressDetail = function (getAddress) {
+
+  LocalStore.set('address', {})
+
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
 
   const request = {
@@ -85,7 +88,13 @@ Template.addressViewing.events({
     $('#HideTx').hide()
   },
   'click .refresh': () => {
-    getAddressDetail(getXMSSDetails().address)
+    const thisAddressBin = QRLLIB.str2bin(getXMSSDetails().address)
+    let thisAddressBytes = new Uint8Array(thisAddressBin.size())
+    for (let i = 0; i < thisAddressBin.size(); i++) {
+      thisAddressBytes[i] = thisAddressBin.get(i)
+    }
+
+    getAddressDetail(thisAddressBytes)
   },
 })
 
