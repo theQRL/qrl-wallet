@@ -1,44 +1,14 @@
 import './view.html'
 /* global LocalStore */
 /* global QRLLIB */
+/* global XMSS_GLOBAL */
 /* global DEFAULT_NODES */
 /* global findNodeData */
 /* global selectedNode */
 
-const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
-
 Template.addressView.onRendered(() => {
   $('.ui.dropdown').dropdown()
 })
-
-const getAddressDetail = function (address) {
-
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-
-  const request = {
-    address: address,
-    grpc: grpcEndpoint
-  }
-
-  Meteor.call('getAddress', request, (err, res) => {
-    if (err) {
-      console.log('error: ' + err)
-      $('#unlocking').hide()
-      $('#unlockError').show()
-    } else {
-      console.log(res)
-
-      res.state.address = ab2str(res.state.address)
-      res.state.balance /= 100000000
-
-      LocalStore.set('address', res)
-
-      $('#topsection').hide()
-
-      $('#addressDetail').show()
-    }
-  })
-}
 
 function viewWallet(walletType) {
   try {
@@ -52,28 +22,18 @@ function viewWallet(walletType) {
       thisSeedBin = QRLLIB.mnemonic2bin(userBinSeed)
     }
 
-    const thisHexSeed = QRLLIB.bin2hstr(thisSeedBin)
-    const thisMnemonic = QRLLIB.bin2mnemonic(thisSeedBin)
+    XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, 10)
+    const thisAddress = XMSS_OBJECT.getAddress()
 
-    let xmss = new QRLLIB.Xmss(thisSeedBin, 10)
-    const thisAddress = xmss.getAddress()
-
-    const thisAddressBin = QRLLIB.str2bin(thisAddress)
-    var thisAddressBytes = new Uint8Array(thisAddressBin.size());
-    for(var i=0; i<thisAddressBin.size(); i++) {
-      thisAddressBytes[i] = thisAddressBin.get(i)
+    // If it worked, send the user to the address page.  
+    if (thisAddress !== '') {
+      const params = { address: thisAddress }
+      const path = FlowRouter.path('/view/:address', params)
+      FlowRouter.go(path)
+    } else {
+      $('#unlockError').show()
+      $('#unlocking').hide()
     }
-
-    const walletDetail = {
-      address: thisAddressBytes,
-      addressString: thisAddress,
-      hexSeed: thisHexSeed,
-      mnemonicPhrase: thisMnemonic,
-    }
-
-    LocalStore.set('walletDetail', walletDetail)
-
-    getAddressDetail(walletDetail.address)
   } catch (error) {
     $('#unlockError').show()
     $('#unlocking').hide()
@@ -86,58 +46,5 @@ Template.addressView.events({
     const walletType = document.getElementById('walletType').value
     setTimeout(function () { viewWallet(walletType) }, 200)
   },
-  'click #ShowTx': () => {
-    const tx = LocalStore.get('address').state.transactions
-
-    const request = {
-      tx: tx,
-      grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc
-    };
-
-    Meteor.call('addressTransactions', request, (err, res) => {
-      if (err) {
-        LocalStore.set('addressTransactions', { error: err })
-      } else {
-        LocalStore.set('addressTransactions', res)
-        $('table').show()
-        $('.loader').hide()
-      }
-    })
-    $('#ShowTx').hide()
-    $('#HideTx').show()
-  },
-  'click #HideTx': () => {
-    $('table').hide()
-    $('.loader').hide()
-    $('#ShowTx').show()
-    $('#HideTx').hide()
-  },
-  'click .refresh': () => {
-    getAddressDetail(LocalStore.get('walletDetail').address)
-  },
 })
-
-
-Template.addressView.helpers({
-  address() {
-    return LocalStore.get('address')
-  },
-  addressTransactions() {
-    return LocalStore.get('addressTransactions')
-  },
-  walletDetail() {
-    return LocalStore.get('walletDetail')
-  },
-  addressQR() {
-    return LocalStore.get('walletDetail').address
-  },
-  ts() {
-    const x = moment.unix(this.timestamp)
-    return moment(x).format('HH:mm D MMM YYYY')
-  },
-  nodeExplorerUrl() {
-    return LocalStore.get('nodeExplorerUrl')
-  },
-})
-
 

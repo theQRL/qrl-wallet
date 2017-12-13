@@ -1,0 +1,14 @@
+<template name="appCreateAddress">
+
+<div class="ui center aligned segment">
+  <h2 class="unbreakable"><a class="ui purple label">Address</a> {{newAddress.address}}</h2>
+  <div id="warning" class="ui yellow segment left aligned">
+    <h4>Store these details in a secure location, and never share them with anyone!</h4>
+    <p><a class="ui grey label">Mnemonic Phrase</a> {{newAddress.mnemonic}}</p>
+    <p class="unbreakable"><a class="ui grey label">Hexseed</a> {{newAddress.hexseed}}</p>
+    
+  </div>
+  <button id="save" class="ui huge green button">Save Wallet File &raquo;</button>
+</div>
+
+</template>

@@ -6,7 +6,9 @@ import '../../ui/layouts/body/body.js'
 import '../../ui/pages/home/home.js'
 import '../../ui/pages/not-found/not-found.js'
 import '../../ui/pages/create/create.js'
+import '../../ui/pages/create/address.js'
 import '../../ui/pages/view/view.js'
+import '../../ui/pages/view/viewingAddress.js'
 import '../../ui/pages/transfer/transfer.js'
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
@@ -25,10 +27,22 @@ FlowRouter.route('/create', {
     BlazeLayout.render('appBody', { main: 'appCreate' })
   },
 })
+FlowRouter.route('/create/:address', {
+  name: 'App.createAddress',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appCreateAddress' })
+  },
+})
 FlowRouter.route('/view', {
   name: 'App.view',
   action() {
     BlazeLayout.render('appBody', { main: 'addressView' })
+  },
+})
+FlowRouter.route('/view/:address', {
+  name: 'App.view',
+  action() {
+    BlazeLayout.render('appBody', { main: 'addressViewing' })
   },
 })
 FlowRouter.route('/transfer', {

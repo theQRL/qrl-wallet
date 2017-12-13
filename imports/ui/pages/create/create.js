@@ -1,8 +1,9 @@
 import './create.html'
 /* global QRLLIB */
-/* global LocalStore */
+/* XMSS_OBJECT */
 
 function generateWallet() {
+  // Generate random bytes to form XMSS seed.
   let i
   const randomBytes = require('crypto').randomBytes(48)
   const randomSeed = new QRLLIB.VectorUChar()
@@ -10,36 +11,19 @@ function generateWallet() {
     randomSeed.push_back(randomBytes[i])
   }
 
-  const thisSeed = QRLLIB.bin2hstr(randomSeed)
-  const thisMnemonic = QRLLIB.bin2mnemonic(randomSeed)
+  // Generate XMSS object.
+  XMSS_OBJECT = new QRLLIB.Xmss(randomSeed, 10)
+  const newAddress = XMSS_OBJECT.getAddress()
 
-  let xmss = new QRLLIB.Xmss(randomSeed, 10)
-  const thisAddress = xmss.getAddress()
-
-  const newWalletDetail = {
-    address: thisAddress,
-    hexseed: thisSeed,
-    mnemonic: thisMnemonic,
-    index: 0,
+  // If it worked, send the user to the address page.  
+  if (newAddress !== '') {
+    const params = { address: newAddress }
+    const path = FlowRouter.path('/create/:address', params)
+    FlowRouter.go(path)
+  } else {
+    $('#generating').hide()
+    $('#error').show()
   }
-
-  LocalStore.set('newWalletDetail', newWalletDetail)
-
-  $('#generating').hide()
-  $('#warning').hide()
-  $('#createWallet').hide()
-  $('#result').show()
-}
-
-function saveWallet() {
-  const walletJson = ['[', JSON.stringify(LocalStore.get('newWalletDetail')), ']'].join('')
-  const binBlob = new Blob([walletJson])
-  const a = window.document.createElement('a')
-  a.href = window.URL.createObjectURL(binBlob, { type: 'text/plain' })
-  a.download = 'wallet.json'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
 }
 
 Template.appCreate.events({
@@ -48,14 +32,5 @@ Template.appCreate.events({
     $('#generating').show()
     // Delay so we get the generating icon up.
     setTimeout(generateWallet, 200)
-  },
-  'click #save': () => {
-    saveWallet()
-  },
-})
-
-Template.appCreate.helpers({
-  newWalletDetail() {
-    return LocalStore.get('newWalletDetail')
   },
 })

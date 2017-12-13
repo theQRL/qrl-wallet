@@ -1,26 +1,28 @@
 <template name="appCreate">
+
 <div id="warning" class="ui yellow segment">
   <h4>Notice</h4>
   <p>Generating a new wallet can take several minutes - please be patient!</p>
 </div>
+
 <div class="ui center aligned segment">
   <h2 id="createWallet" class="ui center aligned icon header">
   <i class="circular plus icon"></i>
   Create Wallet
   </h2>
   <button id="generate" class="ui huge primary button">Begin &raquo;</button>
+
   <div id="generating" style="display: none;">
     <div class="ui active centered inline loader"></div>
     <p>Generating new wallet...</p>
   </div>
-  <div class="ui padded segment" id="result" style="display: none;">
-    <h2 class="unbreakable"><a class="ui purple label">Address</a> {{newWalletDetail.address}}</h2>
-    <div id="warning" class="ui yellow segment left aligned">
-      <h4>Store these details in a secure location, and never share them with anyone!</h4>
-      <p class="unbreakable"><a class="ui grey label">Hexseed</a> {{newWalletDetail.hexseed}}</p>
-      <p><a class="ui grey label">Mnemonic Phrase</a> {{newWalletDetail.mnemonic}}</p>
+
+  <div id="error" style="display: none;">
+    <div class="ui red segment">
+      <h4>Error!</h4>
+      <p>There was a problem generating your new wallet. Please refresh this page and try again.</p>
     </div>
-    <button id="save" class="ui huge green button">Save Wallet File &raquo;</button>
   </div>
 </div>
+
 </template>
