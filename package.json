@@ -27,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/theQRL/qrl-wallet/issues"
   },
-  "homepage": "https://github.com/theQRL/qrl-wallet#readme"
+  "homepage": "https://github.com/theQRL/qrl-wallet#readme",
+  "devDependencies": {
+    "gulp-chimp": "^2.2.1"
+  }
 }
