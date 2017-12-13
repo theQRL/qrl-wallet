@@ -4,8 +4,6 @@ const electrify = require('qrl-electrify')(__dirname);
 let window;
 let loading;
 
-
-
 app.on('ready', function() {
   
   // Create the loading screen
@@ -16,12 +14,11 @@ app.on('ready', function() {
   });
   loading.loadURL(`file://${__dirname}/loading.html`)
 
-
   // Electrify Start
   electrify.start(function(meteor_root_url) {
 
     // Hide the loading screen
-    loading.hide();
+    // loading.hide();
 
     // Show the main QRL Wallet Window
     window = new BrowserWindow({
@@ -62,24 +59,21 @@ app.on('ready', function() {
   });
 });
 
-app.on('will-quit', function terminate_and_quit(event) {
+app.on('window-all-closed', function terminate_and_quit(event) {
   // if electrify is up, cancel exiting with `preventDefault`,
   // so we can terminate electrify gracefully without leaving child
   // processes hanging in background
   if(electrify.isup() && event) {
-
     // holds electron termination
     event.preventDefault();
 
     // gracefully stops electrify 
     electrify.stop(function(){
-
       // and then finally quit app
       app.quit();
     });
   }
 });
-
 
 // Defining Methods on the Electron side
 //
