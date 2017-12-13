@@ -24,6 +24,14 @@ const getAddressDetail = function (address) {
       res.state.balance /= 100000000
 
       LocalStore.set('address', res)
+
+      const status = {}
+      status.colour = 'green'
+      status.string = res.state.address + ' is ready to use.'
+      status.unlocked = true
+      status.address = res.state.address
+
+      LocalStore.set('walletStatus', status)
     }
   })
 }

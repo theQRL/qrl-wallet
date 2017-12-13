@@ -8,6 +8,13 @@ import './view.html'
 
 Template.addressView.onRendered(() => {
   $('.ui.dropdown').dropdown()
+
+  // Route to view address if wallet is already opened
+  if(LocalStore.get('walletStatus').unlocked == true) {
+    const params = { address: LocalStore.get('walletStatus').address }
+    const path = FlowRouter.path('/view/:address', params)
+    FlowRouter.go(path)
+  }
 })
 
 function viewWallet(walletType) {

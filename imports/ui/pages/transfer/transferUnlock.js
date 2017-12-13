@@ -15,9 +15,17 @@ function unlockWallet(walletType) {
 
     XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = XMSS_OBJECT.getAddress()
-    
+
     if (thisAddress !== '') {
-      const params = { }
+      const status = {}
+      status.colour = 'green'
+      status.string = thisAddress + ' is ready to use.'
+      status.unlocked = true
+      status.address = thisAddress
+      LocalStore.set('walletStatus', status)
+
+
+      const params = {}
       const path = FlowRouter.path('/transfer/detail', params)
       FlowRouter.go(path)
     } else {
@@ -32,6 +40,13 @@ function unlockWallet(walletType) {
 
 Template.appTransferUnlock.onRendered(() => {
   $('.ui.dropdown').dropdown()
+
+  // Route to view address if wallet is already opened
+  if(LocalStore.get('walletStatus').unlocked == true) {
+    const params = {}
+    const path = FlowRouter.path('/transfer/detail', params)
+    FlowRouter.go(path)
+  }
 })
 
 Template.appTransferUnlock.events({
