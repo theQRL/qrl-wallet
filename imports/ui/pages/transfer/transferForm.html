@@ -1,0 +1,37 @@
+<template name="appTransferForm">
+
+<div class="ui left aligned segment" id="transferForm">
+  <h2 class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
+  <h2 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h2>
+  <form id="generateTransactionForm" class="ui form">
+    <div class="field">
+      <label>Send To</label>
+      <input type="text" id="to" placeholder="Address to send Quanta to">
+    </div>
+    <div class="field">
+      <label>Quanta Amount</label>
+      <input type="text" id="amount">
+    </div>
+    <div class="field">
+      <label>Transaction Fee (In Quanta)</label>
+      <input type="text" id="fee" value="1">
+    </div>
+    <div class="field">
+      <label>OTS Key Index</label>
+      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
+    </div>
+    <button id="generateTransaction" class="ui huge primary button" style="float: left;">Generate Transaction &raquo;</button>
+    <div style="height: 51px;">
+      <div id="generating" style="display: none;" class="ui active inline loader"></div>
+    </div>
+    <div class="ui error message"></div>
+  </form>
+</div>
+
+<div id="transactionGenFailed" class="ui red segment" style="display: none;">
+  <h4>Transaction Generation Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
+</div>
+
+
+</template>

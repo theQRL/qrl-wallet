@@ -65,29 +65,22 @@ const loadGrpcClient = (request, callback) => {
 
 // Function to call getKnownPeers API.
 const getKnownPeers = (request, callback) => {
-  console.log('getting peers')
-
   qrlClient[request.grpc].getKnownPeers({}, (err, response) => {
     if (err){
-      console.log("Error: ", err.message)
       callback(err, null)
     } else {
-      console.log(response)
       callback(null, response)
     }
   })
 }
 
 const getStats = (request, callback) => {
-  console.log('getting stats')
-
   try {
     qrlClient[request.grpc].getStats({}, (err, response) => {
       if (err) {
         const myError = errorCallback(err, 'Cannot access API/GetStats', '**ERROR/getStats** ')
         callback(myError, null)
       } else {
-        console.log(response)
         callback(null, response)
       }
     })
@@ -99,10 +92,6 @@ const getStats = (request, callback) => {
 
 // Function to call getAddressState API
 const getAddressState = (request, callback) => {
-  console.log('getting address state')
-
-  console.log(request)
-
   qrlClient[request.grpc].getAddressState({address : request.address}, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
@@ -115,8 +104,6 @@ const getAddressState = (request, callback) => {
         response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
       })
 
-      console.log(response)
-      console.log("Address: %s        Balance: %d", response.state.address, response.state.balance)
       callback(null, response)
     }
   })
@@ -125,22 +112,13 @@ const getAddressState = (request, callback) => {
 
 // Function to call getObject API and extract a txn Hash..
 const getTxnHash = (request, callback) => {
-  console.log('getting txn hash')
-
-  console.log(request)
-
-  console.log('buffered hash')
   const txnHash = Buffer.from(request.query, 'hex')
-
-  console.log(txnHash)
 
   qrlClient[request.grpc].getObject({query: txnHash}, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
       callback(err, null)
     } else {
-
-      console.log(response)
 
       if(response.found == true && response.result == "transaction") {
         response.transaction.tx.addr_from = Buffer.from(response.transaction.tx.addr_from).toString()
@@ -167,7 +145,6 @@ const getTxnHash = (request, callback) => {
         response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
         response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
 
-        console.log(response)
         callback(null, response)
       } else {
         callback("Unable to locate transaction", null)
@@ -181,8 +158,6 @@ const getTxnHash = (request, callback) => {
 
 // Function to call transferCoins API
 const transferCoins = (request, callback) => {
-  console.log('getting transferCoins object')
-
   const tx = { 
     address_from: request.fromAddress,
     address_to: request.toAddress,
@@ -192,22 +167,15 @@ const transferCoins = (request, callback) => {
     xmss_ots_index: request.xmssOtsKey
   }
 
-  console.log(tx)
-
   qrlClient[request.grpc].transferCoins(tx, (err, response) => {
     if (err){
       console.log("Error: ", err.message)
-
       callback(err, null)
     } else {
-      console.log('success')
-
       let transferResponse = {
         txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
         response: response
       }
-
-      console.log(transferResponse)
 
       callback(null, transferResponse)
     }
@@ -217,8 +185,6 @@ const transferCoins = (request, callback) => {
 
 
 const confirmTransaction = (request, callback) => {
-  console.log('confirming transaction')
-
   let confirmTxn = { transaction_signed : request.transaction_unsigned }
 
   // change ArrayBuffer
@@ -228,15 +194,11 @@ const confirmTransaction = (request, callback) => {
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
   confirmTxn.transaction_signed.transfer.addr_to = toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
 
-  console.log(confirmTxn)
-
   qrlClient[request.grpc].pushTransaction(confirmTxn, (err, response) => {
     if (err) {
-      console.log("confirmTransaction Error: ", err.message)
+      console.log("Error: ", err.message)
       callback(null, {error: err.message, response: err.message})
     } else {
-      console.log('confirmTransaction Success')
-
       let hashResponse = {
         txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
         signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
@@ -246,7 +208,6 @@ const confirmTransaction = (request, callback) => {
     }
   })
 }
-
 
 // Define Meteor Methods
 Meteor.methods({
@@ -287,9 +248,6 @@ Meteor.methods({
     return response
   },
   addressTransactions(request) {
-    console.log('address transactions')
-    console.log(request)
-
     check(request, Object)
     const targets = request.tx
     const result = []
@@ -313,13 +271,8 @@ Meteor.methods({
         timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
       }
 
-      console.log(thisTxn)
-
       result.push(thisTxn)
-
     })
-
-    console.log(result)
 
     return result
   },

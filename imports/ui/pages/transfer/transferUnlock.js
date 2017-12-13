@@ -1,16 +1,7 @@
-import './view.html'
-/* global LocalStore */
+import './transferUnlock.html'
 /* global QRLLIB */
-/* global XMSS_GLOBAL */
-/* global DEFAULT_NODES */
-/* global findNodeData */
-/* global selectedNode */
 
-Template.addressView.onRendered(() => {
-  $('.ui.dropdown').dropdown()
-})
-
-function viewWallet(walletType) {
+function unlockWallet(walletType) {
   try {
     const userBinSeed = document.getElementById('walletCode').value
     let thisSeedBin
@@ -24,11 +15,10 @@ function viewWallet(walletType) {
 
     XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = XMSS_OBJECT.getAddress()
-
-    // If it worked, send the user to the address page.  
+    
     if (thisAddress !== '') {
-      const params = { address: thisAddress }
-      const path = FlowRouter.path('/view/:address', params)
+      const params = { }
+      const path = FlowRouter.path('/transfer/detail', params)
       FlowRouter.go(path)
     } else {
       $('#unlockError').show()
@@ -40,11 +30,14 @@ function viewWallet(walletType) {
   }
 }
 
-Template.addressView.events({
+Template.appTransferUnlock.onRendered(() => {
+  $('.ui.dropdown').dropdown()
+})
+
+Template.appTransferUnlock.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
     const walletType = document.getElementById('walletType').value
-    setTimeout(function () { viewWallet(walletType) }, 200)
+    setTimeout(function () { unlockWallet(walletType) }, 200)
   },
 })
-

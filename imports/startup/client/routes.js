@@ -6,8 +6,15 @@ import '../../ui/layouts/body/body.js'
 import '../../ui/pages/home/home.js'
 import '../../ui/pages/not-found/not-found.js'
 import '../../ui/pages/create/create.js'
+import '../../ui/pages/create/address.js'
 import '../../ui/pages/view/view.js'
-import '../../ui/pages/transfer/transfer.js'
+import '../../ui/pages/view/viewingAddress.js'
+
+import '../../ui/pages/transfer/transferUnlock.js'
+import '../../ui/pages/transfer/transferForm.js'
+import '../../ui/pages/transfer/transferConfirm.js'
+import '../../ui/pages/transfer/transferResult.js'
+
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
 
@@ -25,18 +32,49 @@ FlowRouter.route('/create', {
     BlazeLayout.render('appBody', { main: 'appCreate' })
   },
 })
+FlowRouter.route('/create/:address', {
+  name: 'App.createAddress',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appCreateAddress' })
+  },
+})
 FlowRouter.route('/view', {
   name: 'App.view',
   action() {
     BlazeLayout.render('appBody', { main: 'addressView' })
   },
 })
-FlowRouter.route('/transfer', {
-  name: 'App.transfer',
+FlowRouter.route('/view/:address', {
+  name: 'App.view',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTransfer' })
+    BlazeLayout.render('appBody', { main: 'addressViewing' })
   },
 })
+FlowRouter.route('/transfer', {
+  name: 'App.transferUnlock',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferUnlock' })
+  },
+})
+FlowRouter.route('/transfer/detail', {
+  name: 'App.transferForm',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferForm' })
+  },
+})
+FlowRouter.route('/transfer/confirm', {
+  name: 'App.transferConfirm',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferConfirm' })
+  },
+})
+FlowRouter.route('/transfer/result', {
+  name: 'App.transferResult',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferResult' })
+  },
+})
+
 FlowRouter.route('/verify', {
   name: 'App.verify',
   action() {
