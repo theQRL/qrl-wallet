@@ -42,21 +42,19 @@
                 <td class="single line">
                   <div class="ui red label"><i class="sign out icon"></i>from</div>
                 </td>
-                <td><a href="{{nodeExplorerUrl}}/a/{{tx.tx.addr_from}}">{{tx.tx.addr_from}}</a></td>
+                <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{tx.tx.addr_from}}">{{tx.tx.addr_from}}</a></td>
                 <td><i class="large right arrow icon"></i></td>
                 <td class="single line">
                   <div class="ui purple label"><i class="sign in icon"></i>to</div>
                 </td>
-                <td><a href="{{nodeExplorerUrl}}/a/{{tx.tx.addr_to}}">{{tx.tx.addr_to}}</a></td>
+                <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{tx.tx.addr_to}}">{{tx.tx.addr_to}}</a></td>
               </tr>
               </tbody>
             </table>
             <div class="ui celled horizontal list">
-              <div class="item"><strong>Block</strong> <a href="{{nodeExplorerUrl}}/block/{{tx.header.block_number}}">{{tx.header.block_number}}</a></div>
+              <div class="item"><strong>Block</strong> <a target="_blank" href="{{nodeExplorerUrl}}/block/{{tx.header.block_number}}">{{tx.header.block_number}}</a></div>
               <div class="item"><strong>Nonce</strong> {{tx.tx.nonce}}</div>
               <div class="item"><strong>OTS key</strong> {{tx.tx.ots_key}}</div>
-              <!-- div class="item"><strong>Hexsize</strong> {{tx.hexsize}}</div>
-              <div class="item"><strong>Fee</strong> {{tx.fee}}</div> -->
             </div>
             <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
             <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>

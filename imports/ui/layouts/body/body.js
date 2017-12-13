@@ -25,7 +25,6 @@ const getKnownPeers = (nodeData) => {
     if (err) {
       console.log('error: ' + err)
     } else {
-      console.log('success')
       console.log(res.known_peers.peers)
     }
   })
@@ -47,7 +46,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
       LocalStore.set('nodeGrpc', nodeData.grpc)
 
-      console.log('connecting to remote grpc node: ', nodeData.grpc)
+      console.log('Connecting to remote gRPC node: ', nodeData.grpc)
       loadGrpcClient(nodeData, (err, res) => {
         if (err) {
           console.log(err)
@@ -97,13 +96,13 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
       LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
-      console.log('connecting to custom remote grpc node')
+      console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
       loadGrpcClient(nodeData, (err, res) => {
         if (err) {
-          console.log(err)
+          console.log('Error: ', err)
           LocalStore.set('nodeStatus', 'failed')
         } else {
-          console.log('gRPC client loaded')
+          console.log('Custom gRPC client loaded: ', nodeData.grpc)
           LocalStore.set('nodeStatus', 'ok')
         }
       })
@@ -132,7 +131,6 @@ Template.appBody.events({
 Template.appBody.helpers({
   nodeId() {
     if ((LocalStore.get('nodeId') === '') || (LocalStore.get('nodeId') === null)) {
-      console.log(DEFAULT_NODES[0].id)
       return DEFAULT_NODES[0].id
     }
     return LocalStore.get('nodeId')

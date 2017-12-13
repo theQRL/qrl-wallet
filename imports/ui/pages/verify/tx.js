@@ -13,11 +13,8 @@ Template.appVerifyTxid.onCreated(() => {
     grpc: grpcEndpoint
   }
 
-  console.log(request)
-
   if (thisTxId) {
     Meteor.call('getTxnHash', request, (err, res) => {
-      console.log(res)
       if (err) {
         LocalStore.set('txhash', { error: err, id: thisTxId })
       } else {
