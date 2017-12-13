@@ -1,0 +1,29 @@
+<template name="appTransferConfirm">
+
+<div id="transactionConfirmation" class="ui red segment">
+  <h4>Transaction Confirmation</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Hash: {{transactionConfirmation.hash}}<br />
+    From: {{transactionConfirmation.from}}<br />
+    To: {{transactionConfirmation.to}}<br />
+    Amount: {{transactionConfirmationAmount}}<br />
+    Fee: {{transactionConfirmationFee}}<br />
+    OTS Key Index: {{transactionConfirmation.otsKey}}
+  </p>
+  <button id="confirmTransaction" class="ui huge primary button" style="float: left;">Confirm Transaction &raquo;</button>
+  <button id="cancelTransaction" class="ui huge red button" style="float: left;">Cancel Transaction &raquo;</button>
+  <div style="height: 51px;">
+    <div id="relaying" style="display: none;" class="ui active inline loader"></div>
+    <p id="relayingmsg" style="display: none;">Your transaction is being relayed into the QRL network</p>
+  </div>
+</div>
+
+<div id="transactionFailed" class="ui red segment" style="display: none;">
+  <h4>Transaction Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Error! Your transaction has failed to relay into the QRL network.<br />
+    Error message: {{transactionFailed}}
+  </p>
+</div>
+
+</template>

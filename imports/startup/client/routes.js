@@ -9,7 +9,12 @@ import '../../ui/pages/create/create.js'
 import '../../ui/pages/create/address.js'
 import '../../ui/pages/view/view.js'
 import '../../ui/pages/view/viewingAddress.js'
-import '../../ui/pages/transfer/transfer.js'
+
+import '../../ui/pages/transfer/transferUnlock.js'
+import '../../ui/pages/transfer/transferForm.js'
+import '../../ui/pages/transfer/transferConfirm.js'
+import '../../ui/pages/transfer/transferResult.js'
+
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
 
@@ -46,11 +51,30 @@ FlowRouter.route('/view/:address', {
   },
 })
 FlowRouter.route('/transfer', {
-  name: 'App.transfer',
+  name: 'App.transferUnlock',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTransfer' })
+    BlazeLayout.render('appBody', { main: 'appTransferUnlock' })
   },
 })
+FlowRouter.route('/transfer/detail', {
+  name: 'App.transferForm',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferForm' })
+  },
+})
+FlowRouter.route('/transfer/confirm', {
+  name: 'App.transferConfirm',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferConfirm' })
+  },
+})
+FlowRouter.route('/transfer/result', {
+  name: 'App.transferResult',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTransferResult' })
+  },
+})
+
 FlowRouter.route('/verify', {
   name: 'App.verify',
   action() {
