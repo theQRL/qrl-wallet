@@ -3,11 +3,13 @@ import './transferForm.html'
 /* global QRLLIB */
 /* global selectedNode */
 /* global XMSS_OBJECT */
+/* global findNodeData */
+/* global DEFAULT_NODES */
 
-const getBalance = function (address) {
+const getBalance = function (getAddress) {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    address: address,
+    address: getAddress,
     grpc: grpcEndpoint,
   }
 
@@ -17,11 +19,11 @@ const getBalance = function (address) {
     } else {
       if (res.state.address !== '') {
         LocalStore.set('transferFromBalance', res.state.balance / 100000000) // FIXME - Magic Number
-        LocalStore.set('transferFromAddress', new TextDecoder("utf-8").decode(res.state.address))
+        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
       } else {
         // Wallet not found, put together an empty response
         LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', new TextDecoder("utf-8").decode(address))
+        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(getAddress))
       }
 
       // Rudimentary way to set otsKey
@@ -40,20 +42,20 @@ function generateTransaction() {
 
 
   const binaryPublicKey = XMSS_OBJECT.getPK()
-  let pubKey = new Uint8Array(binaryPublicKey.size());
-  for(var i=0; i<binaryPublicKey.size(); i++) {
+  let pubKey = new Uint8Array(binaryPublicKey.size())
+  for (let i = 0; i < binaryPublicKey.size(); i++) {
     pubKey[i] = binaryPublicKey.get(i)
   }
 
   const sendFromBin = QRLLIB.str2bin(sendFrom)
-  var sendFromAddress = new Uint8Array(sendFromBin.size());
-  for(var i=0; i<sendFromBin.size(); i++) {
+  let sendFromAddress = new Uint8Array(sendFromBin.size())
+  for (let i = 0; i < sendFromBin.size(); i++) {
     sendFromAddress[i] = sendFromBin.get(i)
   }
 
   const sendToBin = QRLLIB.str2bin(sendTo)
-  var sendToAddress = new Uint8Array(sendToBin.size());
-  for(var i=0; i<sendToBin.size(); i++) {
+  let sendToAddress = new Uint8Array(sendToBin.size())
+  for (let i = 0; i < sendToBin.size(); i++) {
     sendToAddress[i] = sendToBin.get(i)
   }
 
@@ -77,8 +79,8 @@ function generateTransaction() {
     } else {
       const confirmation = {
         hash: res.txnHash,
-        from: new TextDecoder("utf-8").decode(res.response.transaction_unsigned.addr_from),
-        to: new TextDecoder("utf-8").decode(res.response.transaction_unsigned.transfer.addr_to),
+        from: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.addr_from),
+        to: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.transfer.addr_to),
         amount: res.response.transaction_unsigned.transfer.amount,
         fee: res.response.transaction_unsigned.transfer.fee,
         otsKey: res.response.transaction_unsigned.ots_key,
@@ -132,11 +134,11 @@ Template.appTransferForm.onRendered(() => {
   })
 
   const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  var thisAddressBytes = new Uint8Array(thisAddressBin.size());
-  for(var i=0; i<thisAddressBin.size(); i++) {
+  let thisAddressBytes = new Uint8Array(thisAddressBin.size())
+  for (let i = 0; i < thisAddressBin.size(); i++) {
     thisAddressBytes[i] = thisAddressBin.get(i)
   }
-  
+
   getBalance(thisAddressBytes)
 })
 

@@ -2,6 +2,8 @@
 import { QRLLIB } from 'qrllib/build/web-libjsqrl.js'
 import './routes.js'
 import './functions.js'
+/* global LocalStore */
+
 
 // Global to store XMSS object
 XMSS_OBJECT = null

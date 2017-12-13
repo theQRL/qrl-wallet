@@ -1,5 +1,10 @@
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
+/* global LocalStore */
+/* global findNodeData */
+/* global selectedNode */
+/* global DEFAULT_NODES */
+
 // import '../../stylesheets/overrides.css'
 
 Template.appVerifyTxid.onCreated(() => {
@@ -10,7 +15,7 @@ Template.appVerifyTxid.onCreated(() => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     query: thisTxId,
-    grpc: grpcEndpoint
+    grpc: grpcEndpoint,
   }
 
   if (thisTxId) {

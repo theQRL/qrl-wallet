@@ -4,15 +4,16 @@ import './viewingAddress.html'
 /* global DEFAULT_NODES */
 /* global findNodeData */
 /* global selectedNode */
+/* global getXMSSDetails */
 
 const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
-const getAddressDetail = function (address) {
+const getAddressDetail = function (getAddress) {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
 
   const request = {
-    address: address,
-    grpc: grpcEndpoint
+    address: getAddress,
+    grpc: grpcEndpoint,
   }
 
   Meteor.call('getAddress', request, (err, res) => {
@@ -46,8 +47,8 @@ Template.addressViewing.onCreated(() => {
 
   // Convert string to bytes
   const thisAddressBin = QRLLIB.str2bin(thisAddress)
-  var thisAddressBytes = new Uint8Array(thisAddressBin.size());
-  for(var i=0; i<thisAddressBin.size(); i++) {
+  let thisAddressBytes = new Uint8Array(thisAddressBin.size())
+  for (let i = 0; i < thisAddressBin.size(); i++) {
     thisAddressBytes[i] = thisAddressBin.get(i)
   }
 
@@ -57,12 +58,12 @@ Template.addressViewing.onCreated(() => {
 
 Template.addressViewing.events({
   'click #ShowTx': () => {
-    const tx = LocalStore.get('address').state.transactions
+    const thisTxs = LocalStore.get('address').state.transactions
 
     const request = {
-      tx: tx,
-      grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc
-    };
+      tx: thisTxs,
+      grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc,
+    }
 
     $('.loader').show()
     Meteor.call('addressTransactions', request, (err, res) => {
@@ -107,5 +108,3 @@ Template.addressViewing.helpers({
     return LocalStore.get('nodeExplorerUrl')
   },
 })
-
-
