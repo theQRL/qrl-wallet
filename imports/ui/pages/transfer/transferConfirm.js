@@ -16,8 +16,6 @@ function confirmTransaction() {
   // Set OTS Key Index in XMSS object
   XMSS_OBJECT.setIndex(tx.transaction_unsigned.ots_key)
 
-  console.log('get: ', XMSS_OBJECT.getIndex())
-
   // Sign hash
   const signedHash = XMSS_OBJECT.sign(hashToSign)
 
