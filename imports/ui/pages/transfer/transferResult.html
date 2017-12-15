@@ -2,12 +2,20 @@
 
 
 <div id="transactionComplete" class="ui green segment">
-  <h4>Transaction Complete</h4>
+
+  <h4>Transaction Result</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
-    Success! Your transaction has been relayed into the QRL network.<br />
-    Your transaction hash is: {{transactionHash}}<br />
-    Your transaction signature is: {{transactionSignature}}
+    Success! Your transaction has been relayed into the QRL network and is pending validation.
   </p>
+
+  <div>
+    Your transaction hash is: {{transactionHash}}<br />
+    Transaction Status: {{transactionStatus}}<br /><br />
+    <div class="ui active centered inline loader"></div>
+  </div>
+
+  <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
+  <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
 </div>
 
 </template>
