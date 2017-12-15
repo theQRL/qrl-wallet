@@ -26,28 +26,6 @@ const updateNode = (selectedNode) => {
   LocalStore.set('nodeStatus', 'connecting')
   // Update local node connection details
   switch (selectedNode) {
-    case 'testnet':
-    case 'testnet-backup':
-    case 'mainnet':
-    case 'localhost': {
-      const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
-      LocalStore.set('nodeId', nodeData.id)
-      LocalStore.set('nodeName', nodeData.name)
-      LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
-      LocalStore.set('nodeGrpc', nodeData.grpc)
-
-      console.log('Connecting to remote gRPC node: ', nodeData.grpc)
-      loadGrpcClient(nodeData, (err, res) => {
-        if (err) {
-          console.log(err)
-          LocalStore.set('nodeStatus', 'failed')
-        } else {
-          console.log('gRPC client loaded: ', nodeData.grpc)
-          LocalStore.set('nodeStatus', 'ok')
-        }
-      })
-      break
-    }
     case 'add': {
       $('#addNode').modal({
         onDeny : function () {
@@ -99,8 +77,25 @@ const updateNode = (selectedNode) => {
       })
       break
     }
-    default:
+    default: {
+      const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
+      LocalStore.set('nodeId', nodeData.id)
+      LocalStore.set('nodeName', nodeData.name)
+      LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
+      LocalStore.set('nodeGrpc', nodeData.grpc)
+
+      console.log('Connecting to remote gRPC node: ', nodeData.grpc)
+      loadGrpcClient(nodeData, (err, res) => {
+        if (err) {
+          console.log(err)
+          LocalStore.set('nodeStatus', 'failed')
+        } else {
+          console.log('gRPC client loaded: ', nodeData.grpc)
+          LocalStore.set('nodeStatus', 'ok')
+        }
+      })
       break
+    }
   }
 }
 

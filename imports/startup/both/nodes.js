@@ -7,7 +7,7 @@
 // eslint-disable-next-line no-unused-vars, no-undef
 DEFAULT_NODES = [
   {
-    id: 'testnet',
+    id: 'testnet-1',
     name: 'Testnet (Official QRL Node 1)',
     disabled: '',
     explorerUrl: 'http://qrlexplorer.info',
@@ -15,11 +15,35 @@ DEFAULT_NODES = [
     type: 'both',
   },
   {
-    id: 'testnet-backup',
+    id: 'testnet-2',
     name: 'Testnet (Official QRL Node 2)',
     disabled: '',
     explorerUrl: 'http://qrlexplorer.info',
-    grpc: 'qrl-faucet.folio.ninja:9009',
+    grpc: '104.237.3.185:9009',
+    type: 'both',
+  },
+  {
+    id: 'testnet-3',
+    name: 'Testnet (Official QRL Node 3)',
+    disabled: '',
+    explorerUrl: 'http://qrlexplorer.info',
+    grpc: '104.251.219.145:9009',
+    type: 'both',
+  },
+  {
+    id: 'testnet-4',
+    name: 'Testnet (Official QRL Node 4)',
+    disabled: '',
+    explorerUrl: 'http://qrlexplorer.info',
+    grpc: '104.251.219.40:9009',
+    type: 'both',
+  },
+  {
+    id: 'testnet-5',
+    name: 'Testnet (Official QRL Node 5)',
+    disabled: '',
+    explorerUrl: 'http://qrlexplorer.info',
+    grpc: '52.220.119.253:9009',
     type: 'both',
   },
   {
@@ -65,5 +89,7 @@ findNodeData = (array, key) => {
       return objFound
     }
     return null
+    // return array[0]
   }
 }
+

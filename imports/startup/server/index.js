@@ -118,8 +118,7 @@ const getTxnHash = (request, callback) => {
     if (err){
       console.log("Error: ", err.message)
       callback(err, null)
-    } else {
-
+    } else {      
       if(response.found == true && response.result == "transaction") {
         response.transaction.tx.addr_from = Buffer.from(response.transaction.tx.addr_from).toString()
         response.transaction.tx.transaction_hash =
