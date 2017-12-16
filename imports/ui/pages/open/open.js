@@ -12,7 +12,7 @@ Template.addressOpen.onRendered(() => {
   // Route to view address if wallet is already opened
   if (LocalStore.get('walletStatus').unlocked === true) {
     const params = { address: LocalStore.get('walletStatus').address }
-    const path = FlowRouter.path('/view/:address', params)
+    const path = FlowRouter.path('/open/:address', params)
     FlowRouter.go(path)
   }
 })
