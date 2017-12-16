@@ -1,12 +1,23 @@
 <template name="appBody">
 
+  <div class="small ui container negative message" id="walletWarning">
+    <i class="close icon"></i>
+    <div class="header">
+      Security Notice - Don't get Phished!
+    </div>
+    <p>
+      <strong>Bookmark WALLET.THEQRL.ORG</strong> - The QRL Foundation only hosts services on THEQRL.ORG. No other domains are affiliated with The QRL Foundation.
+    </p>
+  </div>
+
   <div class="ui menu topmenu" id="menu">
     <div class="ui container">
       <a href="/" class="header item">
         <img class="logo" src="/img/Q@2x.png">
       </a>
       <a href="/create" class="item">Create Wallet</a>
-      <a href="/view" class="item">View Wallet</a>
+      <a href="/open" class="item">Open Wallet</a>
+      <a href="/close" class="item" style="{{walletStatus.menuHidden}}">Close Wallet</a>
       <a href="/transfer" class="item">Transfer Quanta</a>
       <a href="/verify" class="item">Verify Transaction</a>
       <a href="{{nodeExplorerUrl}}" class="item">Explorer</a>
@@ -63,9 +74,9 @@
         <p></p>
         <div class="ui center aligned container">
           <div class="ui horizontal small divided link list">
-            <a class="item" href="http://theqrl.org/">theQRL.org</a>
-            <a class="item" href="http://qrlexplorer.info">QRL Explorer</a>
-            <a class="item" href="https://github.com/theQRL">Github</a>
+            <a class="item" target="_blank" href="http://theqrl.org/">theQRL.org</a>
+            <a class="item" target="_blank" href="http://theqrl.org/whitepaper/QRL_whitepaper.pdf">White Paper</a>
+            <a class="item" target="_blank" href="https://github.com/theQRL">Github</a>
           </div>
         </div>
       </div>

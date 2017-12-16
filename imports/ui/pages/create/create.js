@@ -23,6 +23,7 @@ function generateWallet() {
     status.string = newAddress + ' is ready to use.'
     status.unlocked = true
     status.address = newAddress
+    status.menuHidden = ''
     LocalStore.set('walletStatus', status)
 
 

@@ -1,4 +1,4 @@
-Feature: Website showing correct Title
+Feature: Website Title
 	As a visitor to the site,
 	so that I know the site is loading correctly,
 	The title of the page should be QRL Wallet

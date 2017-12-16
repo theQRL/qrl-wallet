@@ -24,6 +24,7 @@ function unlockWallet(walletType) {
       status.string = thisAddress + ' is ready to use.'
       status.unlocked = true
       status.address = thisAddress
+      status.menuHidden = ''
       LocalStore.set('walletStatus', status)
 
 

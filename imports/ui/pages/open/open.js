@@ -1,9 +1,9 @@
-import './view.html'
+import './open.html'
 /* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
-Template.addressView.onRendered(() => {
+Template.addressOpen.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   LocalStore.set('address', '')
@@ -12,12 +12,13 @@ Template.addressView.onRendered(() => {
   // Route to view address if wallet is already opened
   if (LocalStore.get('walletStatus').unlocked === true) {
     const params = { address: LocalStore.get('walletStatus').address }
-    const path = FlowRouter.path('/view/:address', params)
+    const path = FlowRouter.path('/open/:address', params)
     FlowRouter.go(path)
   }
 })
 
-function viewWallet(walletType) {
+
+function openWallet(walletType) {
   try {
     const userBinSeed = document.getElementById('walletCode').value
     let thisSeedBin
@@ -35,7 +36,7 @@ function viewWallet(walletType) {
     // If it worked, send the user to the address page.
     if (thisAddress !== '') {
       const params = { address: thisAddress }
-      const path = FlowRouter.path('/view/:address', params)
+      const path = FlowRouter.path('/open/:address', params)
       FlowRouter.go(path)
     } else {
       $('#unlockError').show()
@@ -47,11 +48,11 @@ function viewWallet(walletType) {
   }
 }
 
-Template.addressView.events({
+Template.addressOpen.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
     const walletType = document.getElementById('walletType').value
-    setTimeout(function () { viewWallet(walletType) }, 200)
+    setTimeout(function () { openWallet(walletType) }, 200)
   },
 })
 

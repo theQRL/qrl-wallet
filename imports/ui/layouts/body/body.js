@@ -1,12 +1,12 @@
-import './body.html'
-import './sidebar.html'
-import './customNode.html'
-import '../../stylesheets/overrides.css'
 /* global LocalStore */
 /* global findNodeData */
 /* global DEFAULT_NODES */
 /* global selectedNode */
 /* global isElectrified */
+import './body.html'
+import './sidebar.html'
+import './customNode.html'
+import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
@@ -104,6 +104,11 @@ Template.appBody.onRendered(() => {
   $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
   updateNode(selectedNode())
+
+  // Hide wallet warning on electrified clients
+  if(isElectrified()) {
+    $('#walletWarning').hide()
+  }
 })
 
 Template.appBody.events({
@@ -113,6 +118,9 @@ Template.appBody.events({
   },
   'change #network': () => {
     updateNode(selectedNode())
+  },
+  'click .close': () => {
+    $('#walletWarning').transition('fade')
   },
 })
 
@@ -191,8 +199,24 @@ Template.customNode.helpers({
   },
 })
 
+Template.sidebar.helpers({
+  walletStatus() {
+    return LocalStore.get('walletStatus')
+  },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
+  },
+})
+
 Template.sidebar.events({
   click: () => {
     $('.ui.sidebar').sidebar('toggle')
   },
 })
+
+
+
+

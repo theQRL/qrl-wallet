@@ -33,3 +33,13 @@ getXMSSDetails = () => {
 
   return xmssDetail
 }
+
+resetWalletStatus = () => {
+  const status = {}
+  status.colour = 'red'
+  status.string = 'No wallet has been opened.'
+  status.address = ''
+  status.unlocked = false
+  status.menuHidden = 'display: none'
+  LocalStore.set('walletStatus', status)
+}

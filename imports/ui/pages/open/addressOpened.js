@@ -1,4 +1,4 @@
-import './viewingAddress.html'
+import './addressOpened.html'
 /* global LocalStore */
 /* global QRLLIB */
 /* global DEFAULT_NODES */
@@ -34,17 +34,18 @@ const getAddressDetail = function (getAddress) {
       status.string = res.state.address + ' is ready to use.'
       status.unlocked = true
       status.address = res.state.address
+      status.menuHidden = ''
 
       LocalStore.set('walletStatus', status)
     }
   })
 }
 
-Template.addressViewing.onRendered(() => {
+Template.addressOpened.onRendered(() => {
   $('.ui.dropdown').dropdown()
 })
 
-Template.addressViewing.onCreated(() => {
+Template.addressOpened.onCreated(() => {
   // Get string address from FlowRouter
   const thisAddress = FlowRouter.getParam('address')
 
@@ -59,7 +60,7 @@ Template.addressViewing.onCreated(() => {
   getAddressDetail(thisAddressBytes)
 })
 
-Template.addressViewing.events({
+Template.addressOpened.events({
   'click #ShowTx': () => {
     const thisTxs = LocalStore.get('address').state.transactions
 
@@ -99,7 +100,7 @@ Template.addressViewing.events({
 })
 
 
-Template.addressViewing.helpers({
+Template.addressOpened.helpers({
   address() {
     return LocalStore.get('address')
   },
