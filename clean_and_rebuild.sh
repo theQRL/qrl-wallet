@@ -28,9 +28,6 @@ echo "Installing meteor dependencies"
 meteor npm install --unsafe-perm
 cp node_modules/qrllib/build/web-libjsqrl.wasm public/
 
-# Fixme: This should be removed when qrllib is updated to include this during travis builds
-echo "QRLLIB=Module;" >> ./node_modules/qrllib/build/web-libjsqrl.js
-
 echo "Installing electrify dependencies"
 cd .electrify
 npm install
