@@ -7,8 +7,8 @@ import '../../ui/pages/home/home.js'
 import '../../ui/pages/not-found/not-found.js'
 import '../../ui/pages/create/create.js'
 import '../../ui/pages/create/address.js'
-import '../../ui/pages/view/view.js'
-import '../../ui/pages/view/viewingAddress.js'
+import '../../ui/pages/open/open.js'
+import '../../ui/pages/open/viewingAddress.js'
 
 import '../../ui/pages/transfer/transferUnlock.js'
 import '../../ui/pages/transfer/transferForm.js'
@@ -38,13 +38,13 @@ FlowRouter.route('/create/:address', {
     BlazeLayout.render('appBody', { main: 'appCreateAddress' })
   },
 })
-FlowRouter.route('/view', {
+FlowRouter.route('/open', {
   name: 'App.view',
   action() {
-    BlazeLayout.render('appBody', { main: 'addressView' })
+    BlazeLayout.render('appBody', { main: 'addressOpen' })
   },
 })
-FlowRouter.route('/view/:address', {
+FlowRouter.route('/open/:address', {
   name: 'App.view',
   action() {
     BlazeLayout.render('appBody', { main: 'addressViewing' })
