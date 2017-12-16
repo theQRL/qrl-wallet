@@ -34,6 +34,7 @@ const getAddressDetail = function (getAddress) {
       status.string = res.state.address + ' is ready to use.'
       status.unlocked = true
       status.address = res.state.address
+      status.menuHidden = ''
 
       LocalStore.set('walletStatus', status)
     }

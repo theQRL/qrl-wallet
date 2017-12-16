@@ -199,6 +199,12 @@ Template.customNode.helpers({
   },
 })
 
+Template.sidebar.helpers({
+  walletStatus() {
+    return LocalStore.get('walletStatus')
+  },
+})
+
 Template.sidebar.events({
   click: () => {
     $('.ui.sidebar').sidebar('toggle')

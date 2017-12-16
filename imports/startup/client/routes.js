@@ -9,6 +9,7 @@ import '../../ui/pages/create/create.js'
 import '../../ui/pages/create/address.js'
 import '../../ui/pages/open/open.js'
 import '../../ui/pages/open/addressOpened.js'
+import '../../ui/pages/close/close.js'
 
 import '../../ui/pages/transfer/transferUnlock.js'
 import '../../ui/pages/transfer/transferForm.js'
@@ -48,6 +49,12 @@ FlowRouter.route('/open/:address', {
   name: 'App.view',
   action() {
     BlazeLayout.render('appBody', { main: 'addressOpened' })
+  },
+})
+FlowRouter.route('/close', {
+  name: 'App.view',
+  action() {
+    BlazeLayout.render('appBody', { main: 'addressClose' })
   },
 })
 FlowRouter.route('/transfer', {
