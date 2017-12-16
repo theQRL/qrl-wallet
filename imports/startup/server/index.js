@@ -4,6 +4,12 @@ import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
 
+// Apply BrowserPolicy
+BrowserPolicy.content.disallowInlineScripts()
+BrowserPolicy.content.allowStyleOrigin("fonts.googleapis.com")
+BrowserPolicy.content.allowFontOrigin("fonts.gstatic.com")
+BrowserPolicy.content.allowFontDataUrl()
+
 const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
 // An array of grpc connections
