@@ -7,8 +7,11 @@
   </h2>
   <div class="ui action input"  id="addressFields" style="width: 80%; margin-bottom: 20px;">
     <input type="text" id="walletCode" placeholder="">
+    <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="display: none;">
+
     <select id="walletType" class="ui compact selection dropdown">
       <option value="mnemonic">Mnemonic Phrase</option>
+      <option value="file">Wallet File</option>
       <option value="hexseed">Hexseed</option>
     </select>
     <div id="unlockButton" class="ui button">Unlock Wallet &raquo;</div>
