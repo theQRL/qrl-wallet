@@ -203,6 +203,12 @@ Template.sidebar.helpers({
   walletStatus() {
     return LocalStore.get('walletStatus')
   },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
+  },
 })
 
 Template.sidebar.events({
