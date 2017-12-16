@@ -70,7 +70,7 @@ Template.addressOpen.events({
       })(walletFile)
       reader.readAsText(walletFile)
     } else {
-    // Open from hexseed of mnemonic directly
+    // Open from hexseed or mnemonic directly
       const walletType = document.getElementById('walletType').value
       setTimeout(function () { openWallet(walletType) }, 200)
     }
