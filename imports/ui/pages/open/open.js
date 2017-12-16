@@ -51,8 +51,39 @@ function openWallet(walletType) {
 Template.addressOpen.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
+
     const walletType = document.getElementById('walletType').value
-    setTimeout(function () { openWallet(walletType) }, 200)
+
+    // Read file locally, extract mnemonic and open wallet
+    if(walletType == "file") {
+      const walletFiles = $('#walletFile').prop("files")
+      const walletFile = walletFiles[0]
+      var reader = new FileReader()
+      reader.onload = (function(theFile) {
+        return function(e) {
+          const walletJson = JSON.parse(e.target.result)
+          const walletMnemonic = walletJson[0].mnemonic
+          $('#walletCode').val(walletMnemonic)
+
+          setTimeout(function () { openWallet('mnemonic') }, 200)
+        }
+      })(walletFile)
+      reader.readAsText(walletFile)
+    } else {
+    // Open from hexseed of mnemonic directly
+      const walletType = document.getElementById('walletType').value
+      setTimeout(function () { openWallet(walletType) }, 200)
+    }
+  },
+  'change #walletType': () => {
+    const walletType = document.getElementById('walletType').value
+    if(walletType == "file") {
+      $('#walletCode').hide()
+      $('#walletFile').show()
+    } else {
+      $('#walletCode').show()
+      $('#walletFile').hide()
+    }
   },
 })
 
