@@ -17,6 +17,7 @@ Template.addressOpen.onRendered(() => {
   }
 })
 
+
 function openWallet(walletType) {
   try {
     const userBinSeed = document.getElementById('walletCode').value
