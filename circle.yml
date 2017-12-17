@@ -19,4 +19,4 @@ test:
     - npm run dev:
         background: true
     - sleep 120
-    - npm run test
+    - chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
