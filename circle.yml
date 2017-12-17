@@ -1,0 +1,22 @@
+machine:
+  node:
+    version: 8.9.3
+dependencies:
+  cache_directories:
+    - "node_modules"
+    - "~/.npm"
+    - "~/.meteor"
+  override:
+    - if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
+    - if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com | sh; fi
+    - npm install -g chimp
+    - npm install -g selenium-standalone
+    - meteor npm install --unsafe-perm
+    - cp node_modules/qrllib/build/web-libjsqrl.wasm public/
+    - cd ../
+test:
+  override:
+    - npm run dev:
+        background: true
+    - sleep 120
+    - npm run test
