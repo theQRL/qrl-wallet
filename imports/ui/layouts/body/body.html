@@ -15,12 +15,12 @@
       <a href="/" class="header item">
         <img class="logo" src="/img/Q@2x.png">
       </a>
-      <a href="/create" class="item">Create Wallet</a>
-      <a href="/open" class="item">Open Wallet</a>
-      <a href="/close" class="item" style="{{walletStatus.menuHidden}}">Close Wallet</a>
-      <a href="/transfer" class="item">Transfer Quanta</a>
-      <a href="/verify" class="item">Verify Transaction</a>
-      <a href="{{nodeExplorerUrl}}" class="item">Explorer</a>
+      <a href="/create" id="createWalletMainMenu" class="item">Create Wallet</a>
+      <a href="/open" id="openWalletMainMenu" class="item">Open Wallet</a>
+      <a href="/close" id="closeWalletMainMenu" class="item" style="{{walletStatus.menuHidden}}">Close Wallet</a>
+      <a href="/transfer" id="transferQuantaMainMenu" class="item">Transfer Quanta</a>
+      <a href="/verify" id="verifyTxnMainMenu" class="item">Verify Transaction</a>
+      <a href="{{nodeExplorerUrl}}" id="explorerMainMenu" class="item">Explorer</a>
     </div>
   </div>
   {{>sidebar}}
