@@ -7,13 +7,6 @@ dependencies:
     - "~/.npm"
     - "~/.meteor"
   override:
-    # Install new chromedriver
-    - wget https://chromedriver.storage.googleapis.com/2.34/chromedriver_linux64.zip
-    - unzip chromedriver_linux64.zip
-    - sudo cp chromedriver /usr/local/bin/chromedriver
-
-
-
     # Update Chrome
     - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     - sudo dpkg -i google-chrome-stable_current_amd64.deb
