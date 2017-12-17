@@ -18,5 +18,5 @@ test:
   override:
     - npm run dev:
         background: true
-    - sleep 120
+    - until curl --max-time 300 http://localhost:3000/; do sleep 1; done
     - chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
