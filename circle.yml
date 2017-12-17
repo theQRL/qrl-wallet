@@ -7,6 +7,11 @@ dependencies:
     - "~/.npm"
     - "~/.meteor"
   override:
+    # Install new chromedriver
+    - wget https://chromedriver.storage.googleapis.com/2.34/chromedriver_linux64.zip
+    - unzip chromedriver_linux64.zip
+    - sudo cp chromedriver /usr/local/bin/chromedriver
+    # Install Meteor and App Deps
     - if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
     - if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com | sh; fi
     - npm install -g chimp
