@@ -1,3 +1,6 @@
+[![Build Status](https://circleci.com/gh/theQRL/qrl-wallet.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/theQRL/qrl-wallet)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/theQRL/qrllib/master/LICENSE)
+
 # qrl-wallet | wallet.theqrl.org
 
 This is the QRL wallet application developed by The QRL team, and hosted on wallet.theqrl.org
