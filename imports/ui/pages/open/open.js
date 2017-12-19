@@ -51,6 +51,7 @@ function openWallet(walletType) {
 Template.addressOpen.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
+    $('#noWalletFileSelected').hide()
 
     const walletType = document.getElementById('walletType').value
 
@@ -61,14 +62,35 @@ Template.addressOpen.events({
       var reader = new FileReader()
       reader.onload = (function(theFile) {
         return function(e) {
-          const walletJson = JSON.parse(e.target.result)
-          const walletMnemonic = walletJson[0].mnemonic
-          $('#walletCode').val(walletMnemonic)
+          try {
+            const walletJson = JSON.parse(e.target.result)
+            const walletMnemonic = walletJson[0].mnemonic
+            $('#walletCode').val(walletMnemonic)
 
-          setTimeout(function () { openWallet('mnemonic') }, 200)
+            // Validate we have a valid mnemonic before attemptint to open file
+            if((walletMnemonic.split(" ").length - 1) != 31) {
+              // Invalid mnemonic in wallet file
+              $('#unlocking').hide()
+              $('#noWalletFileSelected').show()
+            } else {
+              // Open wallet file
+              setTimeout(function () { openWallet('mnemonic') }, 200)
+            }
+          } catch(e) {
+            // Invalid file format
+            $('#unlocking').hide()
+            $('#noWalletFileSelected').show()
+          }
         }
       })(walletFile)
-      reader.readAsText(walletFile)
+
+      // Validate we've got a wallet file
+      if(walletFile === undefined) {
+        $('#unlocking').hide()
+        $('#noWalletFileSelected').show()
+      } else {
+        reader.readAsText(walletFile)
+      }
     } else {
     // Open from hexseed or mnemonic directly
       const walletType = document.getElementById('walletType').value
