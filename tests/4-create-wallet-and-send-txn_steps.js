@@ -91,7 +91,7 @@ module.exports = function () {
       if(thisResult.indexOf(arg1) >=0) {
         return true
       }
-    }, 60000, 'expected transaction confirmation within 60 seconds')
+    }, 120000, 'expected transaction confirmation within 2 minutes')
 
   })
 
