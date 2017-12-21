@@ -4,6 +4,7 @@ import { check } from 'meteor/check'
 import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
+import async from 'async'
 
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
@@ -215,8 +216,6 @@ const getTxnHash = (request, callback) => {
   })
 }
 
-
-
 // Function to call transferCoins API
 const transferCoins = (request, callback) => {
   const tx = { 
@@ -244,7 +243,6 @@ const transferCoins = (request, callback) => {
 }
 
 
-
 const confirmTransaction = (request, callback) => {
   let confirmTxn = { transaction_signed : request.transaction_unsigned }
 
@@ -255,20 +253,60 @@ const confirmTransaction = (request, callback) => {
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
   confirmTxn.transaction_signed.transfer.addr_to = toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
 
-  qrlClient[request.grpc].pushTransaction(confirmTxn, (err, response) => {
-    if (err) {
-      console.log("Error: ", err.message)
-      callback(null, {error: err.message, response: err.message})
-    } else {
-      let hashResponse = {
-        txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
-        signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
-      }
 
-      callback(null, {error: null, response: hashResponse}) 
-    }
-  })
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function(wfcb) {
+      qrlClient[request.grpc].pushTransaction(confirmTxn, (err, response) => {
+        if (err) {
+          console.log("Error: ", err.message)
+          txnResponse = {error: err.message, response: err.message}
+          wfcb()
+        } else {
+          let hashResponse = {
+            txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+            signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+          }
+          txnResponse = {error: null, response: hashResponse}
+          console.log('Transaction sent via user node',request.grpc)
+          wfcb()
+        }
+      })
+    },
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+
+      async.eachSeries(DEFAULT_NODES, function (node, cb) {
+        if((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc != request.grpc)){
+          // Push the transaction - we don't care for its response
+          qrlClient[node.grpc].pushTransaction(confirmTxn, (err, response) => {
+            if(err) {
+              console.log('Error: Failed to send transaction through',node.grpc)
+              cb()
+            } else {
+              console.log('Transaction sent via',node.grpc)
+              cb()
+            }
+          })
+        } else {
+          cb()
+        }
+      }, function (err) {
+        if (err) console.error(err.message);
+        console.log('all txns sent')
+        wfcb()
+      })
+    },
+  ], function (err, result) {
+    // All done, send txn response
+    callback(null, txnResponse)
+  });
 }
+
+
 
 // Define Meteor Methods
 Meteor.methods({
@@ -365,8 +403,5 @@ if (Meteor.isServer) {
         })
       }
     })
-
-
-
   });
 }
