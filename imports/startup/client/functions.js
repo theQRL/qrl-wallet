@@ -43,3 +43,12 @@ resetWalletStatus = () => {
   status.menuHidden = 'display: none'
   LocalStore.set('walletStatus', status)
 }
+
+passwordPolicyValid = (password) => {
+  // If password length >=8, and password contains a digit and password contains a letter
+  if((password.length >= 8) && (/\d/.test(password)) && (/[a-zA-Z]+/.test(password))) {
+    return true
+  }
+  return false
+}
+

@@ -4,42 +4,50 @@ import './create.html'
 /* global LocalStore */
 
 function generateWallet() {
-  // Generate random bytes to form XMSS seed.
-  let i
-  const randomBytes = require('crypto').randomBytes(48)
-  const randomSeed = new QRLLIB.VectorUChar()
-  for (i = 0; i < 48; i++) {
-    randomSeed.push_back(randomBytes[i])
-  }
+  
+  // Check that passphrase matches the password policy
+  if(passwordPolicyValid(document.getElementById('passphrase').value)) {
+    // Generate random bytes to form XMSS seed.
+    let i
+    const randomBytes = require('crypto').randomBytes(48)
+    const randomSeed = new QRLLIB.VectorUChar()
+    for (i = 0; i < 48; i++) {
+      randomSeed.push_back(randomBytes[i])
+    }
 
-  // Generate XMSS object.
-  XMSS_OBJECT = new QRLLIB.Xmss(randomSeed, 10)
-  const newAddress = XMSS_OBJECT.getAddress()
+    // Generate XMSS object.
+    XMSS_OBJECT = new QRLLIB.Xmss(randomSeed, 10)
+    const newAddress = XMSS_OBJECT.getAddress()
 
-  // If it worked, send the user to the address page.
-  if (newAddress !== '') {
-    const status = {}
-    status.colour = 'green'
-    status.string = newAddress + ' is ready to use.'
-    status.unlocked = true
-    status.address = newAddress
-    status.menuHidden = ''
-    LocalStore.set('walletStatus', status)
+    // If it worked, send the user to the address page.
+    if (newAddress !== '') {
+      const status = {}
+      status.colour = 'green'
+      status.string = newAddress + ' is ready to use.'
+      status.unlocked = true
+      status.address = newAddress
+      status.menuHidden = ''
+      LocalStore.set('walletStatus', status)
+      LocalStore.set('passphrase', document.getElementById('passphrase').value)
 
-    LocalStore.set('passphrase', document.getElementById('passphrase').value)
-
-    const params = { address: newAddress }
-    const path = FlowRouter.path('/create/:address', params)
-    FlowRouter.go(path)
+      const params = { address: newAddress }
+      const path = FlowRouter.path('/create/:address', params)
+      FlowRouter.go(path)
+    } else {
+      $('#generating').hide()
+      $('#error').show()
+    }
   } else {
     $('#generating').hide()
-    $('#error').show()
+    $('#passError').show()
+    $('#generate').show()
   }
 }
 
 Template.appCreate.events({
   'click #generate': () => {
     $('#generate').hide()
+    $('#passError').hide()
     $('#generating').show()
     // Delay so we get the generating icon up.
     setTimeout(generateWallet, 200)
