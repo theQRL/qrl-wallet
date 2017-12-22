@@ -26,6 +26,7 @@ function generateWallet() {
     status.menuHidden = ''
     LocalStore.set('walletStatus', status)
 
+    LocalStore.set('passphrase', document.getElementById('passphrase').value)
 
     const params = { address: newAddress }
     const path = FlowRouter.path('/create/:address', params)

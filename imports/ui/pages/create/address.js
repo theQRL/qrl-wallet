@@ -1,8 +1,24 @@
 import './address.html'
+import aes256 from 'aes256'
 /* global getXMSSDetails */
+/* global LocalStore */
 
-function saveWallet() {
-  const walletJson = ['[', JSON.stringify(getXMSSDetails()), ']'].join('')
+let passphrase
+
+function saveWallet(encrypted) {
+  let walletDetail = getXMSSDetails()
+
+  // Encrypt wallet data if secure wallet requested.
+  if(encrypted == true) {
+    walletDetail.encrypted = true
+    walletDetail.address = aes256.encrypt(passphrase, walletDetail.address)
+    walletDetail.mnemonic = aes256.encrypt(passphrase, walletDetail.mnemonic)
+    walletDetail.hexseed = aes256.encrypt(passphrase, walletDetail.hexseed)
+  } else {
+    walletDetail.encrypted = false
+  }
+
+  const walletJson = ['[', JSON.stringify(walletDetail), ']'].join('')
   const binBlob = new Blob([walletJson])
   const a = window.document.createElement('a')
   a.href = window.URL.createObjectURL(binBlob, { type: 'text/plain' })
@@ -12,9 +28,18 @@ function saveWallet() {
   document.body.removeChild(a)
 }
 
+Template.appCreateAddress.onCreated(() => {
+  // Grab passphrase from LocalStore and reset
+  passphrase = LocalStore.get('passphrase')
+  LocalStore.set('passphrase', '')
+})
+
 Template.appCreateAddress.events({
-  'click #save': () => {
-    saveWallet()
+  'click #saveEncrypted': () => {
+    saveWallet(true)
+  },
+  'click #saveUnencrypted': () => {
+    saveWallet(false)
   },
 })
 

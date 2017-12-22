@@ -6,6 +6,15 @@
   <i class="circular unlock icon"></i>
   Open Wallet
   </h2>
+
+  <div id="passphraseArea" class="ui form" style="display: none;">
+    <div class="field">
+      <label>Optional Passphrase for Secure Wallet File</label>
+      <input type="password" id="passphrase" value="" style="max-width: 400px;">
+    </div>
+    <br />
+  </div>
+
   <div class="ui action input"  id="addressFields" style="width: 80%; margin-bottom: 20px;">
     <input type="text" id="walletCode" placeholder="">
     <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="display: none;">
