@@ -28,7 +28,7 @@ getXMSSDetails = () => {
     address: thisAddress,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
-    index: 0,
+    index: 0
   }
 
   return xmssDetail

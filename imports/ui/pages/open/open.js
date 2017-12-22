@@ -1,4 +1,5 @@
 import './open.html'
+import aes256 from 'aes256'
 /* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
@@ -16,6 +17,7 @@ Template.addressOpen.onRendered(() => {
     FlowRouter.go(path)
   }
 })
+
 
 
 function openWallet(walletType) {
@@ -64,6 +66,17 @@ Template.addressOpen.events({
         return function(e) {
           try {
             const walletJson = JSON.parse(e.target.result)
+            const walletEncrypted = walletJson[0].encrypted
+
+            // Decrypt an encrypted wallet file
+            if(walletEncrypted == true) {
+              const passphrase =  document.getElementById('passphrase').value
+              // Decrypt wallet items before proceeding
+              walletJson[0].address = aes256.decrypt(passphrase, walletJson[0].address)
+              walletJson[0].mnemonic = aes256.decrypt(passphrase, walletJson[0].mnemonic)
+              walletJson[0].hexseed = aes256.decrypt(passphrase, walletJson[0].hexseed)
+            }
+
             const walletMnemonic = walletJson[0].mnemonic
             $('#walletCode').val(walletMnemonic)
 
@@ -102,9 +115,11 @@ Template.addressOpen.events({
     if(walletType == "file") {
       $('#walletCode').hide()
       $('#walletFile').show()
+      $('#passphraseArea').show()
     } else {
       $('#walletCode').show()
       $('#walletFile').hide()
+      $('#passphraseArea').hide()
     }
   },
 })

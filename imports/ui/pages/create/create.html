@@ -3,8 +3,16 @@
 <div class="ui center aligned segment">
   <h2 id="createWallet" class="ui center aligned icon header">
   <i class="circular plus icon"></i>
-  Create Wallet
+    Create Wallet
   </h2>
+  <div id="passphraseArea" class="ui form">
+    <div class="field">
+      <label>Passphrase</label>
+      <input type="password" id="passphrase" value="" style="max-width: 400px;">
+    </div>
+    <br />
+  </div>
+
   <button id="generate" class="ui huge primary button">Begin &raquo;</button>
 
   <div id="generating" style="display: none;">
