@@ -10,8 +10,8 @@ import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
-const loadGrpcClient = (nodeData, callback) => {
-  Meteor.call('loadGrpcClient', nodeData, (err, res) => {
+const connectToNode = (nodeData, callback) => {
+  Meteor.call('connectToNode', nodeData, (err, res) => {
     if (err) {
       callback(err, null)
     } else {
@@ -29,8 +29,8 @@ const updateNode = (selectedNode) => {
     case 'add': {
       $('#addNode').modal({
         onDeny : function () {
-          $('#networkDropdown').dropdown('set selected', 'testnet-backup')
-          updateNode('testnet-backup')
+          $('#networkDropdown').dropdown('set selected', 'testnet-1')
+          updateNode('testnet-1')
         },
         onApprove : function () {
           LocalStore.set('nodeId', 'custom')
@@ -66,7 +66,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
-      loadGrpcClient(nodeData, (err, res) => {
+      connectToNode(nodeData, (err, res) => {
         if (err) {
           console.log('Error: ', err)
           LocalStore.set('nodeStatus', 'failed')
@@ -85,7 +85,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeGrpc', nodeData.grpc)
 
       console.log('Connecting to remote gRPC node: ', nodeData.grpc)
-      loadGrpcClient(nodeData, (err, res) => {
+      connectToNode(nodeData, (err, res) => {
         if (err) {
           console.log(err)
           LocalStore.set('nodeStatus', 'failed')
@@ -216,7 +216,4 @@ Template.sidebar.events({
     $('.ui.sidebar').sidebar('toggle')
   },
 })
-
-
-
 
