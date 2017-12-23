@@ -7,7 +7,7 @@ module.exports = function () {
 
   this.When(/^enter my mnemonic phrase "([^"]*)"$/, function (arg1) {
     let _el = '#walletCode'
-    browser.waitForVisible(_el)
+    browser.waitForVisible(_el,20000)
     browser.setValue('#walletCode', arg1)
   })
 
