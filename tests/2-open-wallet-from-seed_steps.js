@@ -5,9 +5,12 @@ module.exports = function () {
     browser.click('#openWalletHome')
   })
 
-  this.When(/^enter my mnemonic phrase "([^"]*)"$/, function (arg1) {
+  this.When(/^wait for the page to open$/, function () {
     let _el = '#walletCode'
-    browser.waitForVisible(_el,20000)
+    browser.waitForVisible(_el, 20000)
+  })
+
+  this.When(/^enter my mnemonic phrase "([^"]*)"$/, function (arg1) {
     browser.setValue('#walletCode', arg1)
   })
 
