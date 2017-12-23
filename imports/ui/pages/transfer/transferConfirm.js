@@ -38,6 +38,7 @@ function confirmTransaction() {
     } else {
       LocalStore.set('transactionHash', res.response.txnHash)
       LocalStore.set('transactionSignature', res.response.signature)
+      LocalStore.set('transactionRelayedThrough', res.relayed)
 
       // Send to result page.
       const params = { }
