@@ -1,12 +1,13 @@
 module.exports = function () {  
   'use strict';
 
-
   this.When(/^I click Open Wallet$/, function () {
     browser.click('#openWalletHome')
   })
 
   this.When(/^enter my mnemonic phrase "([^"]*)"$/, function (arg1) {
+    let _el = '#walletCode'
+    browser.waitForVisible(_el)
     browser.setValue('#walletCode', arg1)
   })
 
