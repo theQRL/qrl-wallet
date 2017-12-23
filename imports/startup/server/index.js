@@ -245,6 +245,7 @@ const transferCoins = (request, callback) => {
 
 const confirmTransaction = (request, callback) => {
   let confirmTxn = { transaction_signed : request.transaction_unsigned }
+  let relayedThrough = []
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
@@ -271,6 +272,7 @@ const confirmTransaction = (request, callback) => {
             signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
           }
           txnResponse = {error: null, response: hashResponse}
+          relayedThrough.push(request.grpc)
           console.log('Transaction sent via user node',request.grpc)
           wfcb()
         }
@@ -278,7 +280,6 @@ const confirmTransaction = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
-
       async.eachSeries(DEFAULT_NODES, function (node, cb) {
         if((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc != request.grpc)){
           // Push the transaction - we don't care for its response
@@ -288,6 +289,7 @@ const confirmTransaction = (request, callback) => {
               cb()
             } else {
               console.log('Transaction sent via',node.grpc)
+              relayedThrough.push(node.grpc)
               cb()
             }
           })
@@ -302,11 +304,10 @@ const confirmTransaction = (request, callback) => {
     },
   ], function (err, result) {
     // All done, send txn response
+    txnResponse.relayed = relayedThrough
     callback(null, txnResponse)
   });
 }
-
-
 
 // Define Meteor Methods
 Meteor.methods({
@@ -382,7 +383,6 @@ Meteor.methods({
     return response
   },
 })
-
 
 // Server Startup commands 
 if (Meteor.isServer) {

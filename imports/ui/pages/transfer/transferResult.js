@@ -92,6 +92,10 @@ Template.appTransferResult.helpers({
   transactionStatus() {
     const status = LocalStore.get('txstatus')
     return status
+  },
+  transactionRelayedThrough() {
+    const status = LocalStore.get('transactionRelayedThrough')
+    return status
   }
 })
 
