@@ -29,8 +29,8 @@ const updateNode = (selectedNode) => {
     case 'add': {
       $('#addNode').modal({
         onDeny : function () {
+          LocalStore.set('modalEventTriggered', true)
           $('#networkDropdown').dropdown('set selected', 'testnet-1')
-          updateNode('testnet-1')
         },
         onApprove : function () {
           LocalStore.set('nodeId', 'custom')
@@ -43,14 +43,28 @@ const updateNode = (selectedNode) => {
           LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
           LocalStore.set('customNodeCreated', true)
-          updateNode('custom')
+          LocalStore.set('modalEventTriggered', true)
+          
+          $('#networkDropdown').dropdown('set selected', 'custom')
+        },
+        onHide : function () {
+          // onHide is triggered even after onApprove and onDeny.
+          // In those events, we set a LocalStorage value which we use inside here
+          // so that we only trigger when the modal is hidden without an approval or denial
+          // eg: pressing esc
+
+          // If the modal is hidden without approval, revert to testnet-1 node.
+          if(LocalStore.get('modalEventTriggered') == false) {
+            $('#networkDropdown').dropdown('set selected', 'testnet-1')
+          }
+
+          // Reset modalEventTriggered
+          LocalStore.set('modalEventTriggered', false)
         },
       }).modal('show')
       break
     }
     case 'custom': {
-      $('#networkDropdown').dropdown('set selected', 'custom')
-
       const nodeData = {
         id: 'custom',
         name: LocalStore.get('customNodeName'),
@@ -100,7 +114,8 @@ const updateNode = (selectedNode) => {
 }
 
 Template.appBody.onRendered(() => {
-  $('#networkDropdown').dropdown()
+  LocalStore.set('modalEventTriggered', false)
+  $('#networkDropdown').dropdown({allowReselection: true})
   $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
   updateNode(selectedNode())
