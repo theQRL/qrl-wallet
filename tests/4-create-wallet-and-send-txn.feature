@@ -9,6 +9,7 @@ Background:
 @watch
 Scenario: Visitor creates a wallet and sends a transaction
     When I click Create Wallet
+    And type a passphrase "password123" in
     And press Begin
     Then I should see Generating New Wallet
     And I should then see my wallet details
@@ -24,6 +25,6 @@ Scenario: Visitor creates a wallet and sends a transaction
     And I should then see a form confirming my transaction
     When I then click confirmation transaction
     Then I should see "Your transaction is being relayed into the QRL network"
-    And I should see shortly after "Success! Your transaction has been relayed into the QRL network and is pending validation."
+    And I should see shortly after "Success! Your transaction has been relayed into the QRL network through the following nodes, and is pending validation."
     And I should "Transaction Status: Pending"
     And shortly after I should see "Transaction Status: Complete - Transaction"
