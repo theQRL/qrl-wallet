@@ -11,6 +11,19 @@ module.exports = function() {
     browser.click('#createWalletHome')
   })
 
+  this.When(/^type a passphrase "([^"]*)" in$/, function (arg1) {
+    // For some reason, having a password type input element on the page breaks
+    // the tests. This is a hack to change the type of the passphrase input
+    // to text such that the walletCode setValue statement works.
+    browser.execute(function() {
+        // browser context
+        passphraseBox = document.getElementById("passphrase");
+        passphraseBox.type = "text";
+    })
+
+    browser.setValue('#passphrase', arg1)
+  })
+  
   this.When(/^press Begin$/, function () {
     browser.click('#generate')
   })

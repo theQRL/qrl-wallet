@@ -7,18 +7,9 @@
   Open Wallet
   </h2>
 
-  <div id="passphraseArea" class="ui form" style="display: none;">
-    <div class="field">
-      <label>Optional Passphrase for Secure Wallet File</label>
-      <input type="password" id="passphrase" value="" style="max-width: 400px;">
-    </div>
-    <p>This passphrase decrypts the sensitive information contained in your wallet file, including your address, hexseed and mnemonic phrase.</p>
-    <br />
-  </div>
-
   <div class="ui action input"  id="addressFields" style="width: 80%; margin-bottom: 20px;">
-    <input type="text" id="walletCode" placeholder="">
-    <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="display: none;">
+    <input type="text" id="walletCode" name="walletCode" />
+    <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="display: none;" />
 
     <select id="walletType" class="ui compact selection dropdown">
       <option value="mnemonic">Mnemonic Phrase</option>
@@ -28,6 +19,17 @@
 
     <div id="unlockButton" class="ui button">Unlock Wallet &raquo;</div>
   </div>
+
+  <div id="passphraseArea" class="ui form" style="display: none;">
+    <div class="field">
+      <label>Optional Passphrase for Secure Wallet File</label>
+      <input id="passphrase" name="passphrase" type="password" />
+    </div>
+
+    <p>This passphrase decrypts the sensitive information contained in your secure wallet file, including your address, hexseed and mnemonic phrase.</p>
+    <br />
+  </div>
+
   <div id="unlocking" style="display: none;">
     <div class="ui active centered inline loader"></div>
     <p>Unlocking wallet...</p>

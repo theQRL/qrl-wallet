@@ -5,12 +5,16 @@ module.exports = function () {
     browser.click('#openWalletHome')
   })
 
-  this.When(/^wait for the page to open$/, function () {
-    let _el = '#walletCode'
-    browser.waitForVisible(_el, 20000)
-  })
-
   this.When(/^enter my mnemonic phrase "([^"]*)"$/, function (arg1) {
+    // For some reason, having a password type input element on the page breaks
+    // the tests. This is a hack to change the type of the passphrase input
+    // to text such that the walletCode setValue statement works.
+    browser.execute(function() {
+        // browser context
+        passphraseBox = document.getElementById("passphrase");
+        passphraseBox.type = "text";
+    })
+
     browser.setValue('#walletCode', arg1)
   })
 

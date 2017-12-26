@@ -8,6 +8,7 @@ Background:
 @watch
 Scenario: Visitor creates a wallet
 	When I click Create Wallet
+	And type a passphrase "password123" in
     And press Begin
     Then I should see Generating New Wallet
     And I should then see my wallet details
