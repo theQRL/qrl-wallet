@@ -19,8 +19,8 @@ function confirmTransaction() {
   // Sign hash
   const signedHash = XMSS_OBJECT.sign(hashToSign)
 
-  let signedHashJS = new Uint8Array(signedHash.size())
-  for (let i = 0; i < signedHash.size(); i++) {
+  const signedHashJS = new Uint8Array(signedHash.size())
+  for (let i = 0; i < signedHash.size(); i += 1) {
     signedHashJS[i] = signedHash.get(i)
   }
 
@@ -66,12 +66,12 @@ Template.appTransferConfirm.onRendered(() => {
 })
 
 Template.appTransferConfirm.events({
-  'click #confirmTransaction': function (event) {
+  'click #confirmTransaction': () => {
     $('#relaying').show()
     $('#relayingmsg').show()
-    setTimeout(function () { confirmTransaction() }, 200)
+    setTimeout(() => { confirmTransaction() }, 200)
   },
-  'click #cancelTransaction': function (event) {
+  'click #cancelTransaction': () => {
     cancelTransaction()
   },
 })

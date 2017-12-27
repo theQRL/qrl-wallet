@@ -6,7 +6,7 @@ import './transferForm.html'
 /* global findNodeData */
 /* global DEFAULT_NODES */
 
-const getBalance = function (getAddress) {
+const getBalance = (getAddress) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     address: getAddress,
@@ -42,20 +42,20 @@ function generateTransaction() {
 
 
   const binaryPublicKey = XMSS_OBJECT.getPK()
-  let pubKey = new Uint8Array(binaryPublicKey.size())
-  for (let i = 0; i < binaryPublicKey.size(); i++) {
+  const pubKey = new Uint8Array(binaryPublicKey.size())
+  for (let i = 0; i < binaryPublicKey.size(); i += 1) {
     pubKey[i] = binaryPublicKey.get(i)
   }
 
   const sendFromBin = QRLLIB.str2bin(sendFrom)
-  let sendFromAddress = new Uint8Array(sendFromBin.size())
-  for (let i = 0; i < sendFromBin.size(); i++) {
+  const sendFromAddress = new Uint8Array(sendFromBin.size())
+  for (let i = 0; i < sendFromBin.size(); i += 1) {
     sendFromAddress[i] = sendFromBin.get(i)
   }
 
   const sendToBin = QRLLIB.str2bin(sendTo)
-  let sendToAddress = new Uint8Array(sendToBin.size())
-  for (let i = 0; i < sendToBin.size(); i++) {
+  const sendToAddress = new Uint8Array(sendToBin.size())
+  for (let i = 0; i < sendToBin.size(); i += 1) {
     sendToAddress[i] = sendToBin.get(i)
   }
 
@@ -134,8 +134,8 @@ Template.appTransferForm.onRendered(() => {
   })
 
   const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  let thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i++) {
+  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
+  for (let i = 0; i < thisAddressBin.size(); i += 1) {
     thisAddressBytes[i] = thisAddressBin.get(i)
   }
 
@@ -143,11 +143,11 @@ Template.appTransferForm.onRendered(() => {
 })
 
 Template.appTransferForm.events({
-  'submit #generateTransactionForm': function (event) {
+  'submit #generateTransactionForm': (event) => {
     event.preventDefault()
     event.stopPropagation()
     $('#generating').show()
-    setTimeout(function () { generateTransaction() }, 200)
+    setTimeout(() => { generateTransaction() }, 200)
   },
 })
 

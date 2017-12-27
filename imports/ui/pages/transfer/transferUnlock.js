@@ -1,4 +1,6 @@
+import aes256 from 'aes256'
 import './transferUnlock.html'
+
 /* global QRLLIB */
 /* global LocalStore */
 /* global XMSS_OBJECT */
@@ -15,13 +17,14 @@ function unlockWallet(walletType) {
       thisSeedBin = QRLLIB.mnemonic2bin(userBinSeed)
     }
 
+    // eslint-disable-next-line no-global-assign
     XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, 10)
     const thisAddress = XMSS_OBJECT.getAddress()
 
     if (thisAddress !== '') {
       const status = {}
       status.colour = 'green'
-      status.string = thisAddress + ' is ready to use.'
+      status.string = `${thisAddress} is ready to use.`
       status.unlocked = true
       status.address = thisAddress
       status.menuHidden = ''
@@ -63,10 +66,10 @@ Template.appTransferUnlock.events({
     const walletType = document.getElementById('walletType').value
 
     // Read file locally, extract mnemonic and open wallet
-    if(walletType == "file") {
-      const walletFiles = $('#walletFile').prop("files")
+    if (walletType === 'file') {
+      const walletFiles = $('#walletFile').prop('files')
       const walletFile = walletFiles[0]
-      var reader = new FileReader()
+      const reader = new FileReader()
       reader.onload = (function(theFile) {
         return function(e) {
           try {
@@ -74,8 +77,8 @@ Template.appTransferUnlock.events({
             const walletEncrypted = walletJson[0].encrypted
 
             // Decrypt an encrypted wallet file
-            if(walletEncrypted == true) {
-              const passphrase =  document.getElementById('passphrase').value
+            if (walletEncrypted === true) {
+              const passphrase = document.getElementById('passphrase').value
               // Decrypt wallet items before proceeding
               walletJson[0].address = aes256.decrypt(passphrase, walletJson[0].address)
               walletJson[0].mnemonic = aes256.decrypt(passphrase, walletJson[0].mnemonic)
@@ -86,15 +89,15 @@ Template.appTransferUnlock.events({
             $('#walletCode').val(walletMnemonic)
 
             // Validate we have a valid mnemonic before attemptint to open file
-            if((walletMnemonic.split(" ").length - 1) != 31) {
+            if ((walletMnemonic.split(' ').length - 1) !== 31) {
               // Invalid mnemonic in wallet file
               $('#unlocking').hide()
               $('#noWalletFileSelected').show()
             } else {
               // Open wallet file
-              setTimeout(function () { unlockWallet('mnemonic') }, 200)
+              setTimeout(() => { unlockWallet('mnemonic') }, 200)
             }
-          } catch(e) {
+          } catch (eDec) {
             // Invalid file format
             $('#unlocking').hide()
             $('#noWalletFileSelected').show()
@@ -103,7 +106,7 @@ Template.appTransferUnlock.events({
       })(walletFile)
 
       // Validate we've got a wallet file
-      if(walletFile === undefined) {
+      if (walletFile === undefined) {
         $('#unlocking').hide()
         $('#noWalletFileSelected').show()
       } else {
@@ -111,13 +114,13 @@ Template.appTransferUnlock.events({
       }
     } else {
     // Open from hexseed of mnemonic directly
-      const walletType = document.getElementById('walletType').value
-      setTimeout(function () { unlockWallet(walletType) }, 200)
+      const walletTypeDir = document.getElementById('walletType').value
+      setTimeout(() => { unlockWallet(walletTypeDir) }, 200)
     }
   },
   'change #walletType': () => {
     const walletType = document.getElementById('walletType').value
-    if(walletType == "file") {
+    if (walletType === 'file') {
       $('#walletCode').hide()
       $('#walletFile').show()
       $('#passphraseArea').show()

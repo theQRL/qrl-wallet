@@ -1,3 +1,4 @@
+/* eslint no-console:0 */
 /* global LocalStore */
 /* global findNodeData */
 /* global DEFAULT_NODES */
@@ -28,11 +29,11 @@ const updateNode = (selectedNode) => {
   switch (selectedNode) {
     case 'add': {
       $('#addNode').modal({
-        onDeny : function () {
+        onDeny: () => {
           LocalStore.set('modalEventTriggered', true)
           $('#networkDropdown').dropdown('set selected', 'testnet-1')
         },
-        onApprove : function () {
+        onApprove: () => {
           LocalStore.set('nodeId', 'custom')
           LocalStore.set('nodeName', document.getElementById('customNodeName').value)
           LocalStore.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
@@ -44,17 +45,17 @@ const updateNode = (selectedNode) => {
 
           LocalStore.set('customNodeCreated', true)
           LocalStore.set('modalEventTriggered', true)
-          
+
           $('#networkDropdown').dropdown('set selected', 'custom')
         },
-        onHide : function () {
+        onHide: () => {
           // onHide is triggered even after onApprove and onDeny.
           // In those events, we set a LocalStorage value which we use inside here
           // so that we only trigger when the modal is hidden without an approval or denial
           // eg: pressing esc
 
           // If the modal is hidden without approval, revert to testnet-1 node.
-          if(LocalStore.get('modalEventTriggered') == false) {
+          if (LocalStore.get('modalEventTriggered') === false) {
             $('#networkDropdown').dropdown('set selected', 'testnet-1')
           }
 
@@ -80,7 +81,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
-      connectToNode(nodeData, (err, res) => {
+      connectToNode(nodeData, (err) => {
         if (err) {
           console.log('Error: ', err)
           LocalStore.set('nodeStatus', 'failed')
@@ -99,7 +100,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeGrpc', nodeData.grpc)
 
       console.log('Connecting to remote gRPC node: ', nodeData.grpc)
-      connectToNode(nodeData, (err, res) => {
+      connectToNode(nodeData, (err) => {
         if (err) {
           console.log(err)
           LocalStore.set('nodeStatus', 'failed')
@@ -115,13 +116,13 @@ const updateNode = (selectedNode) => {
 
 Template.appBody.onRendered(() => {
   LocalStore.set('modalEventTriggered', false)
-  $('#networkDropdown').dropdown({allowReselection: true})
+  $('#networkDropdown').dropdown({ allowReselection: true })
   $('.small.modal').modal()
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
   updateNode(selectedNode())
 
   // Hide wallet warning on electrified clients
-  if(isElectrified()) {
+  if (isElectrified()) {
     $('#walletWarning').hide()
   }
 })
@@ -162,7 +163,7 @@ Template.appBody.helpers({
     const visibleNodes = []
 
     // Only return nodes specific to this (web/desktop/both).
-    _.each(DEFAULT_NODES, function (node) {
+    _.each(DEFAULT_NODES, (node) => {
       // Desktop Electrified Clients
       if ((node.type === 'desktop') && (isElectrified())) {
         visibleNodes.push(node)

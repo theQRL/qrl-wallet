@@ -1,15 +1,15 @@
-import './address.html'
 import aes256 from 'aes256'
+import './address.html'
 /* global getXMSSDetails */
 /* global LocalStore */
 
 let passphrase
 
 function saveWallet(encrypted) {
-  let walletDetail = getXMSSDetails()
+  const walletDetail = getXMSSDetails()
 
   // Encrypt wallet data if secure wallet requested.
-  if(encrypted == true) {
+  if (encrypted === true) {
     walletDetail.encrypted = true
     walletDetail.address = aes256.encrypt(passphrase, walletDetail.address)
     walletDetail.mnemonic = aes256.encrypt(passphrase, walletDetail.mnemonic)

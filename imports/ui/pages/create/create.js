@@ -2,20 +2,21 @@ import './create.html'
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 /* global LocalStore */
+/* global passwordPolicyValid */
 
 function generateWallet() {
-  
   // Check that passphrase matches the password policy
-  if(passwordPolicyValid(document.getElementById('passphrase').value)) {
+  if (passwordPolicyValid(document.getElementById('passphrase').value)) {
     // Generate random bytes to form XMSS seed.
     let i
     const randomBytes = require('crypto').randomBytes(48)
     const randomSeed = new QRLLIB.VectorUChar()
-    for (i = 0; i < 48; i++) {
+    for (i = 0; i < 48; i += 1) {
       randomSeed.push_back(randomBytes[i])
     }
 
     // Generate XMSS object.
+    // eslint-disable-next-line no-global-assign
     XMSS_OBJECT = new QRLLIB.Xmss(randomSeed, 10)
     const newAddress = XMSS_OBJECT.getAddress()
 
@@ -23,7 +24,7 @@ function generateWallet() {
     if (newAddress !== '') {
       const status = {}
       status.colour = 'green'
-      status.string = newAddress + ' is ready to use.'
+      status.string = `${newAddress} is ready to use.`
       status.unlocked = true
       status.address = newAddress
       status.menuHidden = ''
