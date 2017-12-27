@@ -10,4 +10,3 @@ version.desktop
 .desktop-installer
 public/web-libjsqrl.wasm
 .build/
-.deploy/
