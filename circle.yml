@@ -30,5 +30,4 @@ deployment:
   production:
     branch: "master"
     commands:
-      - cd .deploy
-      - mup deploy
+      - cd .deploy && mup deploy
