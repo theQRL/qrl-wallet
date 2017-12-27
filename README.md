@@ -1,4 +1,6 @@
 [![Build Status](https://circleci.com/gh/theQRL/qrl-wallet.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/theQRL/qrl-wallet)
+[![Maintainability](https://api.codeclimate.com/v1/badges/30e006c07f50365faa9a/maintainability)](https://codeclimate.com/github/theQRL/qrl-wallet/maintainability)
+[![Known Vulnerabilities](https://snyk.io/test/github/theqrl/qrl-wallet/badge.svg)](https://snyk.io/test/github/theqrl/qrl-wallet)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/theQRL/qrl-wallet/master/LICENSE)
 
 # qrl-wallet | wallet.theqrl.org
