@@ -8,8 +8,7 @@ import './addressOpened.html'
 
 const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
-const getAddressDetail = function (getAddress) {
-
+const getAddressDetail = (getAddress) => {
   LocalStore.set('address', {})
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -31,7 +30,7 @@ const getAddressDetail = function (getAddress) {
 
       const status = {}
       status.colour = 'green'
-      status.string = res.state.address + ' is ready to use.'
+      status.string = `${res.state.address} is ready to use.`
       status.unlocked = true
       status.address = res.state.address
       status.menuHidden = ''
@@ -51,8 +50,8 @@ Template.addressOpened.onCreated(() => {
 
   // Convert string to bytes
   const thisAddressBin = QRLLIB.str2bin(thisAddress)
-  let thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i++) {
+  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
+  for (let i = 0; i < thisAddressBin.size(); i += 1) {
     thisAddressBytes[i] = thisAddressBin.get(i)
   }
 
@@ -90,8 +89,8 @@ Template.addressOpened.events({
   },
   'click .refresh': () => {
     const thisAddressBin = QRLLIB.str2bin(getXMSSDetails().address)
-    let thisAddressBytes = new Uint8Array(thisAddressBin.size())
-    for (let i = 0; i < thisAddressBin.size(); i++) {
+    const thisAddressBytes = new Uint8Array(thisAddressBin.size())
+    for (let i = 0; i < thisAddressBin.size(); i += 1) {
       thisAddressBytes[i] = thisAddressBin.get(i)
     }
 
@@ -106,15 +105,16 @@ Template.addressOpened.helpers({
   },
   addressTransactions() {
     const transactions = []
-    _.each(LocalStore.get('addressTransactions'), function (transaction) {
+    _.each(LocalStore.get('addressTransactions'), (transaction) => {
       // Update timestamp from unix epoch to human readable time/date.
       const x = moment.unix(transaction.timestamp)
-      transaction.timestamp = moment(x).format('HH:mm D MMM YYYY')
+      const y = transaction
+      y.timestamp = moment(x).format('HH:mm D MMM YYYY')
 
       // Update fee from shor to quanta
-      transaction.fee /= 100000000
+      y.fee /= 100000000
 
-      transactions.push(transaction)
+      transactions.push(y)
     })
     return transactions
   },

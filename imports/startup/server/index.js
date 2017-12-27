@@ -1,6 +1,10 @@
 // server-side startup
+/* eslint no-console:0 */
+/* global DEFAULT_NODES */
+
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
+import { BrowserPolicy } from 'meteor/browser-policy-common'
 import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
@@ -8,22 +12,19 @@ import async from 'async'
 
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
-BrowserPolicy.content.allowStyleOrigin("fonts.googleapis.com")
-BrowserPolicy.content.allowFontOrigin("fonts.gstatic.com")
+BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
+BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
 BrowserPolicy.content.allowFontDataUrl()
 
-const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
+// not used...
+// const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
 // An array of grpc connections and associated proto file paths
-let qrlClient = []
+const qrlClient = []
 
 function toBuffer(ab) {
-    var buffer = new Buffer(ab.byteLength);
-    var view = new Uint8Array(ab);
-    for (var i = 0; i < buffer.length; ++i) {
-        buffer[i] = view[i];
-    }
-    return buffer;
+  const buffer = Buffer.from(ab)
+  return buffer
 }
 
 // Create a temp file to store the qrl.proto file in
@@ -39,37 +40,68 @@ const errorCallback = (error, message, alert) => {
   return meteorError
 }
 
+// Load the qrl.proto gRPC client into qrlClient from a remote node.
+const loadGrpcClient = (request, callback) => {
+  // Load qrlbase.proto and fetch current qrl.proto from node
+  const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
+  const client = new baseGrpcObject.qrl.Base(request.grpc, grpc.credentials.createInsecure())
+
+  client.getNodeInfo({}, (err, res) => {
+    if (err) {
+      console.log(`Error fetching qrl.proto from ${request.grpc}`)
+      callback(err, null)
+    } else {
+      // Write a new temp file for this grpc connection
+      const qrlProtoFilePath = tmp.fileSync({ mode: '0644', prefix: 'qrl-', postfix: '.proto' }).name
+
+      fs.writeFile(qrlProtoFilePath, res.grpcProto, (fsErr) => {
+        if (fsErr) throw fsErr
+
+        const grpcObject = grpc.load(qrlProtoFilePath)
+
+        // Create the gRPC Connection
+        qrlClient[request.grpc] =
+        new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
+
+        console.log(`qrlClient loaded for ${request.grpc}`)
+
+        callback(null, true)
+      })
+    }
+  })
+}
+
 // Client side function to establish a connection with a remote node.
 // If there is no active server side connection for the requested node,
 // this function will call loadGrpcClient to establish one.
-const connectToNode = (request, callback) => {
 
+const connectToNode = (request, callback) => {
   // First check if there is an existing object to store the gRPC connection
-  if(qrlClient.hasOwnProperty(request.grpc) === true) {
-    console.log('Existing connection found for ',request.grpc,' - attempting getNodeState')
+  if (qrlClient.hasOwnProperty(request.grpc) === true) {
+    console.log('Existing connection found for ', request.grpc, ' - attempting getNodeState')
     // There is already a gRPC object for this server stored.
     // Attempt to connect to it.
     try {
       qrlClient[request.grpc].getNodeState({}, (err, response) => {
         if (err) {
-          console.log('Error fetching node state for ',request.grpc)
+          console.log('Error fetching node state for ', request.grpc)
           // If it errors, we're going to remove the object and attempt to connect again.
           delete qrlClient[request.grpc]
 
-          console.log('Attempting re-connection to ',request.grpc)
+          console.log('Attempting re-connection to ', request.grpc)
 
-          loadGrpcClient(request, function(err, response) {
-            if (err) {
-              console.log('Failed to re-connect to node ',request.grpc)
+          loadGrpcClient(request, (loadErr, loadResponse) => {
+            if (loadErr) {
+              console.log(`Failed to re-connect to node ${request.grpc}`)
               const myError = errorCallback(err, 'Cannot connect to remote node', '**ERROR/connection** ')
               callback(myError, null)
             } else {
-              console.log('Connected to ',request.grpc)
-              callback(null, response)
+              console.log(`Connected to ${request.grpc}`)
+              callback(null, loadResponse)
             }
           })
         } else {
-          console.log('Node state for ',request.grpc, ' ok')
+          console.log(`Node state for ${request.grpc} ok`)
           callback(null, response)
         }
       })
@@ -79,57 +111,26 @@ const connectToNode = (request, callback) => {
       callback(myError, null)
     }
   } else {
-    console.log('Establishing new connection to ',request.grpc)
+    console.log(`Establishing new connection to ${request.grpc}`)
     // We've not connected to this node before, let's establish a connection to it.
-    loadGrpcClient(request, function(err, response) {
+    loadGrpcClient(request, (err, response) => {
       if (err) {
-        console.log('Failed to connect to node ',request.grpc)
+        console.log(`Failed to connect to node ${request.grpc}`)
         const myError = errorCallback(err, 'Cannot connect to remote node', '**ERROR/connection** ')
         callback(myError, null)
       } else {
-        console.log('Connected to ',request.grpc)
+        console.log(`Connected to ${request.grpc}`)
         callback(null, response)
       }
     })
   }
 }
 
-// Load the qrl.proto gRPC client into qrlClient from a remote node.
-const loadGrpcClient = (request, callback) => {
-  // Load qrlbase.proto and fetch current qrl.proto from node
-  const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
-  const client = new baseGrpcObject.qrl.Base(request.grpc, grpc.credentials.createInsecure())
-
-  client.getNodeInfo({}, function (err, res) {
-    if (err) {
-      console.log('Error fetching qrl.proto from ' + request.grpc)
-      callback(err, null)
-    } else {
-
-      // Write a new temp file for this grpc connection
-      const qrlProtoFilePath = tmp.fileSync({ mode: 0644, prefix: 'qrl-', postfix: '.proto' }).name
-
-      fs.writeFile(qrlProtoFilePath, res.grpcProto, function (err) {
-        if (err) throw err
-
-        const grpcObject = grpc.load(qrlProtoFilePath)
-        
-        // Create the gRPC Connection
-        qrlClient[request.grpc] = new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
-
-        console.log('qrlClient loaded for ',request.grpc)
-
-        callback(null, true)
-      })
-    }
-  })
-}
-
 
 // Function to call getKnownPeers API.
 const getKnownPeers = (request, callback) => {
   qrlClient[request.grpc].getKnownPeers({}, (err, response) => {
-    if (err){
+    if (err) {
       callback(err, null)
     } else {
       callback(null, response)
@@ -155,12 +156,11 @@ const getStats = (request, callback) => {
 
 // Function to call getAddressState API
 const getAddressState = (request, callback) => {
-  qrlClient[request.grpc].getAddressState({address : request.address}, (err, response) => {
-    if (err){
-      console.log("Error: ", err.message)
+  qrlClient[request.grpc].getAddressState({ address: request.address }, (err, response) => {
+    if (err) {
+      console.log(`Error: ${err.message}`)
       callback(err, null)
     } else {
-
       response.state.txcount = response.state.transaction_hashes.length
       response.state.transactions = []
       response.state.transaction_hashes.forEach((value) => {
@@ -177,13 +177,14 @@ const getAddressState = (request, callback) => {
 const getTxnHash = (request, callback) => {
   const txnHash = Buffer.from(request.query, 'hex')
 
-  qrlClient[request.grpc].getObject({query: txnHash}, (err, response) => {
-    if (err){
-      console.log("Error: ", err.message)
+  qrlClient[request.grpc].getObject({ query: txnHash }, (err, response) => {
+    if (err) {
+      console.log(`Error: ${err.message}`)
       callback(err, null)
-    } else {      
-      if(response.found == true && response.result == "transaction") {
-        response.transaction.tx.addr_from = Buffer.from(response.transaction.tx.addr_from).toString()
+    } else {
+      if (response.found === true && response.result === 'transaction') {
+        response.transaction.tx.addr_from =
+          Buffer.from(response.transaction.tx.addr_from).toString()
         response.transaction.tx.transaction_hash =
           Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
         response.transaction.tx.addr_to = ''
@@ -209,32 +210,31 @@ const getTxnHash = (request, callback) => {
 
         callback(null, response)
       } else {
-        callback("Unable to locate transaction", null)
+        callback('Unable to locate transaction', null)
       }
-
     }
   })
 }
 
 // Function to call transferCoins API
 const transferCoins = (request, callback) => {
-  const tx = { 
+  const tx = {
     address_from: request.fromAddress,
     address_to: request.toAddress,
     amount: request.amount,
     fee: request.fee,
     xmss_pk: request.xmssPk,
-    xmss_ots_index: request.xmssOtsKey
+    xmss_ots_index: request.xmssOtsKey,
   }
 
   qrlClient[request.grpc].transferCoins(tx, (err, response) => {
-    if (err){
-      console.log("Error: ", err.message)
+    if (err) {
+      console.log(`Error:  ${err.message}`)
       callback(err, null)
     } else {
-      let transferResponse = {
+      const transferResponse = {
         txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
-        response: response
+        response,
       }
 
       callback(null, transferResponse)
@@ -244,15 +244,17 @@ const transferCoins = (request, callback) => {
 
 
 const confirmTransaction = (request, callback) => {
-  let confirmTxn = { transaction_signed : request.transaction_unsigned }
-  let relayedThrough = []
+  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const relayedThrough = []
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash = toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
-  confirmTxn.transaction_signed.transfer.addr_to = toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
+  confirmTxn.transaction_signed.transfer.addr_to =
+    toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
 
 
   // Relay transaction through user node, then all default nodes.
@@ -260,35 +262,35 @@ const confirmTransaction = (request, callback) => {
 
   async.waterfall([
     // Relay through user node.
-    function(wfcb) {
-      qrlClient[request.grpc].pushTransaction(confirmTxn, (err, response) => {
+    function (wfcb) {
+      qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
         if (err) {
-          console.log("Error: ", err.message)
-          txnResponse = {error: err.message, response: err.message}
+          console.log(`Error:  ${err.message}`)
+          txnResponse = { error: err.message, response: err.message }
           wfcb()
         } else {
-          let hashResponse = {
+          const hashResponse = {
             txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
             signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
           }
-          txnResponse = {error: null, response: hashResponse}
+          txnResponse = { error: null, response: hashResponse }
           relayedThrough.push(request.grpc)
-          console.log('Transaction sent via user node',request.grpc)
+          console.log(`Transaction sent via user node ${request.grpc}`)
           wfcb()
         }
       })
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
-      async.eachSeries(DEFAULT_NODES, function (node, cb) {
-        if((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc != request.grpc)){
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
-          qrlClient[node.grpc].pushTransaction(confirmTxn, (err, response) => {
-            if(err) {
-              console.log('Error: Failed to send transaction through',node.grpc)
+          qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+            if (err) {
+              console.log(`Error: Failed to send transaction through ${node.grpc}`)
               cb()
             } else {
-              console.log('Transaction sent via',node.grpc)
+              console.log(`Transaction sent via ${node.grpc}`)
               relayedThrough.push(node.grpc)
               cb()
             }
@@ -296,17 +298,17 @@ const confirmTransaction = (request, callback) => {
         } else {
           cb()
         }
-      }, function (err) {
-        if (err) console.error(err.message);
+      }, (err) => {
+        if (err) console.error(err.message)
         console.log('all txns sent')
         wfcb()
       })
     },
-  ], function (err, result) {
+  ], () => {
     // All done, send txn response
     txnResponse.relayed = relayedThrough
     callback(null, txnResponse)
-  });
+  })
 }
 
 // Define Meteor Methods
@@ -352,10 +354,9 @@ Meteor.methods({
     const targets = request.tx
     const result = []
     targets.forEach((arr) => {
-
       const thisRequest = {
         query: arr.txhash,
-        grpc: request.grpc
+        grpc: request.grpc,
       }
 
       const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
@@ -384,24 +385,24 @@ Meteor.methods({
   },
 })
 
-// Server Startup commands 
+// Server Startup commands
 if (Meteor.isServer) {
   Meteor.startup(() => {
     console.log('QRL Wallet Starting')
 
     // Establish gRPC connections with all enabled, non-localhost DEFAULT_NODES
-    DEFAULT_NODES.forEach(function (node) {
-      if((node.disabled == '') && (node.id != 'localhost')) {
-        console.log('Attempting to create gRPC connection to node: ', node.name, ' (', node.grpc,') ...')
+    DEFAULT_NODES.forEach((node) => {
+      if ((node.disabled === '') && (node.id !== 'localhost')) {
+        console.log(`Attempting to create gRPC connection to node: ${node.name} (${node.grpc}) ...`)
 
-        loadGrpcClient(node, function(err, response) {
+        loadGrpcClient(node, (err) => {
           if (err) {
-            console.log('Error connecting to: ', node.name, ' (', node.grpc,') ...')
+            console.log(`Error connecting to: ${node.name} (${node.grpc}) ...`)
           } else {
-            console.log('Connection created successfully for: ', node.name, ' (', node.grpc,') ...')
+            console.log(`Connection created successfully for: ${node.name} (${node.grpc}) ...`)
           }
         })
       }
     })
-  });
+  })
 }

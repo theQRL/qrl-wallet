@@ -1,6 +1,5 @@
 import './close.html'
-/* global LocalStore */
-/* global XMSS_OBJECT */
+/* eslint no-undef:0 */
 
 Template.addressClose.onRendered(() => {
   XMSS_OBJECT = null
