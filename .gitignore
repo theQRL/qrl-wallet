@@ -1,6 +1,5 @@
 node_modules/
 .eslintrc.js
-.deploy/
 client/definitions/
 client/themes/
 client/semantic.less
