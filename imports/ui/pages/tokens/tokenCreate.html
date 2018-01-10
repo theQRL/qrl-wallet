@@ -1,0 +1,100 @@
+<template name="appTokenCreate">
+
+
+<div class="ui left aligned segment" id="tokenCreateForm">
+
+  <form id="generateTokenForm" class="ui form">
+
+    <h4 class="ui dividing header">Token Creator</h4>
+
+    <h2 id="transferFormFromAddress" class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
+    <h2 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h2>
+
+
+    <h4 class="ui dividing header">Token Details</h4>
+
+
+    <div class="field">
+      <label>Owner Address</label>
+      <input type="text" id="owner" >
+    </div>
+    <div class="field">
+      <label>Token Symbol</label>
+      <input type="text" id="symbol" placeholder="eg: TST, QRL, etc">
+    </div>
+    <div class="field">
+      <label>Token Name</label>
+      <input type="text" id="name">
+    </div>
+    <div class="field">
+      <label>Decimals</label>
+      <input type="text" id="decimals" value="10">
+    </div>
+    
+    
+    <h4 class="ui dividing header">Initial Token Holders</h4>
+
+    <div id="tokenHolders">
+
+
+      <div class="field">
+        <label>Holder Balance</label>
+        <div class="three fields">
+          <div class="ten wide field">
+            <input type="text" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address">
+          </div>
+          <div class="five wide field">
+            <input type="text" name="initialBalancesAddressAmount[]" placeholder="Token Balance">
+          </div>
+          <div class="one wide field">
+            <button class="ui red button removeTokenHolder"><i class="remove user icon"></i></button>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <button id="addTokenHolder" class="ui green button">
+      <i class="add user icon"></i>
+      Add Another Holder
+    </button>
+
+
+    <h4 class="ui dividing header">Transaction Details</h4>
+
+    <div class="field">
+      <label>Token Creation Fee (In Quanta)</label>
+      <input type="text" id="fee" value="1">
+    </div>
+
+
+    <div class="field">
+      <label>OTS Key Index</label>
+      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
+    </div>
+    <div id="warning" class="ui red segment">
+      <h4>OTS Key Index Warning</h4>
+      <p>The <b>OTS (One Time Signature)</b> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+    </div>
+
+
+
+    <button id="createToken" class="ui huge primary button" style="float: left;">Create Token &raquo;</button>
+    <div style="height: 51px;">
+      <div id="generating" style="display: none;" class="ui active inline loader"></div>
+    </div>
+    <div class="ui error message"></div>
+
+
+
+  </form>
+</div>
+
+<div id="tokenCreationFailed" class="ui red segment" style="display: none;">
+  <h4>Token Creation Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenCreationError}}</p>
+</div>
+
+
+</template>

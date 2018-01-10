@@ -1,0 +1,51 @@
+<template name="appTokenCreationConfirm">
+
+<div id="tokenCreationConfirmation" class="ui red segment">
+  <h4>Token Creation Confirmation</h4>
+
+  <p id="confirmationBlock" style="word-wrap: break-word; word-break: break-all;">
+    Hash: {{tokenCreationConfirmation.hash}}<br />
+    From: {{tokenCreationConfirmation.from}}<br />
+    Owner: {{tokenCreationConfirmation.owner}}<br />
+    Symbol: {{tokenCreationConfirmation.symbol}}<br />
+    Name: {{tokenCreationConfirmation.name}}<br />
+    
+    Decimals: {{tokenCreationConfirmation.decimals}}<br />
+
+    Fee: {{tokenCreationConfirmation.fee}}<br />
+    OTS Key Index: {{tokenCreationConfirmation.otsKey}}<br /><br />
+
+    Initial Token Holders: <br />
+    <div class="ui relaxed divided list">
+    {{#each tokenHolders}}
+      <div class="item">
+        <i class="large user middle aligned icon"></i>
+        <div class="content">
+          <a class="header">{{this.address}}</a>
+          <div class="description">{{this.amount}}</div>
+        </div>
+      </div>
+    {{/each}}
+    </div>
+    <br />
+
+    
+  </p>
+
+  <button id="confirmToken" class="ui huge primary button" style="float: left;">Confirm Token Creation &raquo;</button>
+  <button id="cancelToken" class="ui huge red button" style="float: left;">Cancel Token Creation &raquo;</button>
+  <div style="height: 51px;">
+    <div id="relaying" style="display: none;" class="ui active inline loader"></div>
+    <p id="relayingmsg" style="display: none;">Your token is being relayed into the QRL network</p>
+  </div>
+</div>
+
+<div id="transactionFailed" class="ui red segment" style="display: none;">
+  <h4>Transaction Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Error! Your token has failed to relay into the QRL network.<br />
+    Error message: {{transactionFailed}}
+  </p>
+</div>
+
+</template>

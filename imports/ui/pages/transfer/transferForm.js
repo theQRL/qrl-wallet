@@ -5,6 +5,7 @@ import './transferForm.html'
 /* global XMSS_OBJECT */
 /* global findNodeData */
 /* global DEFAULT_NODES */
+/* global SHOR_PER_QUANTA */
 
 const getBalance = (getAddress) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -18,7 +19,7 @@ const getBalance = (getAddress) => {
       // TODO - Error handling
     } else {
       if (res.state.address !== '') {
-        LocalStore.set('transferFromBalance', res.state.balance / 100000000) // FIXME - Magic Number
+        LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
         LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
       } else {
         // Wallet not found, put together an empty response
@@ -64,8 +65,8 @@ function generateTransaction() {
   const request = {
     fromAddress: sendFromAddress,
     toAddress: sendToAddress,
-    amount: sendAmount * 100000000, // Fixme - Magic Number
-    fee: txnFee * 100000000, // Fixme - Magic Number
+    amount: sendAmount * SHOR_PER_QUANTA,
+    fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
     xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
@@ -87,8 +88,8 @@ function generateTransaction() {
       }
 
       LocalStore.set('transactionConfirmation', confirmation)
-      LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amount / 100000000) // Fixme - Magic Number
-      LocalStore.set('transactionConfirmationFee', res.response.transaction_unsigned.transfer.fee / 100000000) // Fixme - Magic Number
+      LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amount / SHOR_PER_QUANTA)
+      LocalStore.set('transactionConfirmationFee', res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA)
       LocalStore.set('transactionConfirmationResponse', res.response)
 
       // Send to confirm page.
