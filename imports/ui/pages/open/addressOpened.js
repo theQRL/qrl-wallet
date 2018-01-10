@@ -5,6 +5,7 @@ import './addressOpened.html'
 /* global findNodeData */
 /* global selectedNode */
 /* global getXMSSDetails */
+/* global SHOR_PER_QUANTA */
 
 const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
 
@@ -24,7 +25,7 @@ const getAddressDetail = (getAddress) => {
       $('#unlockError').show()
     } else {
       res.state.address = ab2str(res.state.address)
-      res.state.balance /= 100000000
+      res.state.balance /= SHOR_PER_QUANTA
 
       LocalStore.set('address', res)
 
@@ -40,11 +41,11 @@ const getAddressDetail = (getAddress) => {
   })
 }
 
-Template.addressOpened.onRendered(() => {
+Template.appAddressOpened.onRendered(() => {
   $('.ui.dropdown').dropdown()
 })
 
-Template.addressOpened.onCreated(() => {
+Template.appAddressOpened.onCreated(() => {
   // Get string address from FlowRouter
   const thisAddress = FlowRouter.getParam('address')
 
@@ -59,7 +60,7 @@ Template.addressOpened.onCreated(() => {
   getAddressDetail(thisAddressBytes)
 })
 
-Template.addressOpened.events({
+Template.appAddressOpened.events({
   'click #ShowTx': () => {
     const thisTxs = LocalStore.get('address').state.transactions
 
@@ -99,7 +100,7 @@ Template.addressOpened.events({
 })
 
 
-Template.addressOpened.helpers({
+Template.appAddressOpened.helpers({
   address() {
     return LocalStore.get('address')
   },
@@ -112,7 +113,7 @@ Template.addressOpened.helpers({
       y.timestamp = moment(x).format('HH:mm D MMM YYYY')
 
       // Update fee from shor to quanta
-      y.fee /= 100000000
+      y.fee /= SHOR_PER_QUANTA
 
       transactions.push(y)
     })

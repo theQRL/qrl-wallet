@@ -1,0 +1,82 @@
+<template name="appTokenTransfer">
+
+
+<div class="ui left aligned segment">
+
+  <form id="transferLoadForm" class="ui form">
+
+    <h4 class="ui dividing header">Token Holder Details</h4>
+
+    <h2 id="transferFormFromAddress" class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
+    <h2 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h2>
+
+
+    <h4 class="ui dividing header">Load Token</h4>
+    <div class="field">
+      <label>Token Hash</label>
+      <input type="text" id="tokenHash">
+    </div>
+
+    <button id="loadToken" class="ui huge primary button" style="float: left;">Load Token &raquo;</button>
+    <div style="height: 51px;">
+      <div id="loading" style="display: none;" class="ui active inline loader"></div>
+    </div>
+    <div class="ui error message"></div>
+
+  </form>
+
+  
+
+  <form id="tokenTransferForm" class="ui form" style="display: none;">
+    <br /><br />
+    <h2 class="unbreakable"><a class="ui purple label">Token Name</a>{{tokenDetails.name}}</h2>
+    <h2 class="unbreakable"><a class="ui yellow label">Token Symbol</a> {{tokenDetails.symbol}}</h2>
+    <h2 class="unbreakable"><a class="ui yellow label">Token Balance</a> {{tokenDetails.balance}}</h2>
+
+    <div class="field">
+      <label>Send {{tokenDetails.symbol}} Token To</label>
+      <input type="text" id="to" placeholder="Address to send {{tokenDetails.symbol}} to">
+    </div>
+    <div class="field">
+      <label>Amount of {{tokenDetails.symbol}} to Send</label>
+      <input type="text" id="amount">
+    </div>
+    <div class="field">
+      <label>Transaction Fee (In Quanta)</label>
+      <input type="text" id="fee" value="1">
+    </div>
+    <div class="field">
+      <label>OTS Key Index</label>
+      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
+    </div>
+    <div id="warning" class="ui red segment">
+      <h4>OTS Key Index Warning</h4>
+      <p>The <b>OTS (One Time Signature)</b> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+    </div>
+
+
+    <button id="sendToken" class="ui huge primary button" style="float: left;">Send {{tokenDetails.symbol}}&raquo;</button>
+    <div style="height: 51px;">
+      <div id="generating" style="display: none;" class="ui active inline loader"></div>
+    </div>
+    <div class="ui error message"></div>
+
+  </form>
+
+
+</div>
+
+<div id="tokenLoadFailed" class="ui red segment" style="display: none;">
+  <h4>Token Failed to Load</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenLoadError}}</p>
+</div>
+
+<div id="tokenTransferTxnGenFailed" class="ui red segment" style="display: none;">
+  <h4>Token Transfer Failed to Generate</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenTransferError}}</p>
+</div>
+
+
+
+
+</template>

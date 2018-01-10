@@ -1,6 +1,7 @@
 // server-side startup
 /* eslint no-console:0 */
 /* global DEFAULT_NODES */
+/* global SHOR_PER_QUANTA */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -195,7 +196,7 @@ const getTxnHash = (request, callback) => {
           response.transaction.tx.coinbase.addr_to =
             Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
           // FIXME: We need a unified way to format Quanta
-          response.transaction.tx.amount = response.transaction.tx.coinbase.amount * 1e-8
+          response.transaction.tx.amount = response.transaction.tx.coinbase.amount * SHOR_PER_QUANTA
         }
         if (response.transaction.tx.transfer) {
           response.transaction.tx.addr_to =
@@ -203,7 +204,7 @@ const getTxnHash = (request, callback) => {
           response.transaction.tx.transfer.addr_to =
             Buffer.from(response.transaction.tx.transfer.addr_to).toString()
           // FIXME: We need a unified way to format Quanta
-          response.transaction.tx.amount = response.transaction.tx.transfer.amount * 1e-8
+          response.transaction.tx.amount = response.transaction.tx.transfer.amount * SHOR_PER_QUANTA
         }
         response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
         response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
@@ -311,6 +312,222 @@ const confirmTransaction = (request, callback) => {
   })
 }
 
+
+// Function to call GetTokenTxn API
+const createTokenTxn = (request, callback) => {
+  const tx = {
+    address_from: request.addressFrom,
+    symbol: request.symbol,
+    name: request.name,
+    owner: request.owner,
+    decimals: request.decimals,
+    initial_balances: request.initialBalances,
+    fee: request.fee,
+    owner: request.owner,
+    owner: request.owner,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+  }
+
+  qrlClient[request.grpc].getTokenTxn(tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
+
+const confirmTokenCreation = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  confirmTxn.transaction_signed.token.symbol =
+    toBuffer(confirmTxn.transaction_signed.token.symbol)
+  confirmTxn.transaction_signed.token.name =
+    toBuffer(confirmTxn.transaction_signed.token.name)
+  confirmTxn.transaction_signed.token.owner =
+    toBuffer(confirmTxn.transaction_signed.token.owner)
+
+  const initialBalances = confirmTxn.transaction_signed.token.initial_balances
+  initialBalancesFormatted = []
+  initialBalances.forEach (function (item) {
+    item.address = toBuffer(item.address)
+    initialBalancesFormatted.push(item)
+  })
+  // Overwrite inital_balances with our updated one
+  confirmTxn.transaction_signed.token.initial_balances = initialBalancesFormatted
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
+        if (err) {
+          console.log(`Error:  ${err.message}`)
+          txnResponse = { error: err.message, response: err.message }
+          wfcb()
+        } else {
+          const hashResponse = {
+            txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+            signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+          }
+          txnResponse = { error: null, response: hashResponse }
+          relayedThrough.push(request.grpc)
+          console.log(`Transaction sent via user node ${request.grpc}`)
+          wfcb()
+        }
+      })
+    },
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          // Push the transaction - we don't care for its response
+          qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+            if (err) {
+              console.log(`Error: Failed to send transaction through ${node.grpc}`)
+              cb()
+            } else {
+              console.log(`Transaction sent via ${node.grpc}`)
+              relayedThrough.push(node.grpc)
+              cb()
+            }
+          })
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('all txns sent')
+        wfcb()
+      })
+    },
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+// Function to call GetTransferTokenTxn API
+const createTokenTransferTxn = (request, callback) => {
+  const tx = {
+    address_from: request.addressFrom,
+    address_to: request.addressTo,
+    token_txhash: request.tokenHash,
+    amount: request.amount,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey
+  }
+
+  qrlClient[request.grpc].getTransferTokenTxn(tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
+
+
+
+const confirmTokenTransfer = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  
+  confirmTxn.transaction_signed.transfer_token.token_txhash = 
+    toBuffer(confirmTxn.transaction_signed.transfer_token.token_txhash)
+  confirmTxn.transaction_signed.transfer_token.addr_to = 
+    toBuffer(confirmTxn.transaction_signed.transfer_token.addr_to)
+  
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
+        if (err) {
+          console.log(`Error:  ${err.message}`)
+          txnResponse = { error: err.message, response: err.message }
+          wfcb()
+        } else {
+          const hashResponse = {
+            txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+            signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+          }
+          txnResponse = { error: null, response: hashResponse }
+          relayedThrough.push(request.grpc)
+          console.log(`Transaction sent via user node ${request.grpc}`)
+          wfcb()
+        }
+      })
+    },
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          // Push the transaction - we don't care for its response
+          qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+            if (err) {
+              console.log(`Error: Failed to send transaction through ${node.grpc}`)
+              cb()
+            } else {
+              console.log(`Transaction sent via ${node.grpc}`)
+              relayedThrough.push(node.grpc)
+              cb()
+            }
+          })
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('all txns sent')
+        wfcb()
+      })
+    },
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+
 // Define Meteor Methods
 Meteor.methods({
   connectToNode(request) {
@@ -383,6 +600,31 @@ Meteor.methods({
     const response = Meteor.wrapAsync(confirmTransaction)(request)
     return response
   },
+  createTokenTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createTokenTxn)(request)
+    return response
+  },
+  confirmTokenCreation(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmTokenCreation)(request)
+    return response
+  },
+  createTokenTransferTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createTokenTransferTxn)(request)
+    return response
+  },
+  confirmTokenTransfer(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmTokenTransfer)(request)
+    return response
+  },
+
 })
 
 // Server Startup commands

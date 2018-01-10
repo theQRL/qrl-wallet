@@ -5,7 +5,7 @@ import './open.html'
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
-Template.addressOpen.onRendered(() => {
+Template.appAddressOpen.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   LocalStore.set('address', '')
@@ -50,7 +50,7 @@ function openWallet(walletType) {
   }
 }
 
-Template.addressOpen.events({
+Template.appAddressOpen.events({
   'click #unlockButton': () => {
     $('#unlocking').show()
     $('#noWalletFileSelected').hide()

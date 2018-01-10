@@ -1,5 +1,5 @@
 import JSONFormatter from 'json-formatter-js'
-import './transferResult.html'
+import './tokenCreateResult.html'
 /* global LocalStore */
 /* eslint no-console:0 */
 
@@ -64,14 +64,14 @@ function pollTransaction(thisTxId, firstPoll = false) {
 }
 
 
-Template.appTransferResult.onRendered(() => {
+Template.appTokenCreationResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   // Start polling this transcation
   pollTransaction(LocalStore.get('transactionHash'), true)
 })
 
-Template.appTransferResult.helpers({
+Template.appTokenCreationResult.helpers({
   transactionHash() {
     const hash = LocalStore.get('transactionHash')
     return hash
@@ -88,9 +88,30 @@ Template.appTransferResult.helpers({
     const status = LocalStore.get('transactionRelayedThrough')
     return status
   },
+  tokenDetails() {
+    let details = LocalStore.get('txhash').transaction.tx.token
+    details.owner = new TextDecoder('utf-8').decode(details.owner)
+    details.symbol = new TextDecoder('utf-8').decode(details.symbol)
+    details.name = new TextDecoder('utf-8').decode(details.name)
+    return details
+  },
+  tokenHolders() {
+    const tokenHoldersRaw = LocalStore.get('txhash').transaction.tx.token.initial_balances
+    let tokenHolders = []
+
+    for (var i = 0; i < tokenHoldersRaw.length; i++) {
+      const thisHolder = {
+        address: new TextDecoder('utf-8').decode(tokenHoldersRaw[i].address),
+        amount: tokenHoldersRaw[i].amount / SHOR_PER_QUANTA
+      }
+      tokenHolders.push(thisHolder)
+    }
+
+    return tokenHolders
+  }
 })
 
-Template.appTransferResult.events({
+Template.appTokenCreationResult.events({
   'click .jsonclick': () => {
     if (!($('.json').html())) {
       setRawDetail()

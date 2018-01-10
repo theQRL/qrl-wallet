@@ -1,5 +1,5 @@
 import JSONFormatter from 'json-formatter-js'
-import './transferResult.html'
+import './tokenTransferResult.html'
 /* global LocalStore */
 /* eslint no-console:0 */
 
@@ -64,21 +64,17 @@ function pollTransaction(thisTxId, firstPoll = false) {
 }
 
 
-Template.appTransferResult.onRendered(() => {
+Template.appTokenTransferResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   // Start polling this transcation
   pollTransaction(LocalStore.get('transactionHash'), true)
 })
 
-Template.appTransferResult.helpers({
+Template.appTokenTransferResult.helpers({
   transactionHash() {
     const hash = LocalStore.get('transactionHash')
     return hash
-  },
-  transactionSignature() {
-    const signature = LocalStore.get('transactionSignature')
-    return signature
   },
   transactionStatus() {
     const status = LocalStore.get('txstatus')
@@ -88,9 +84,23 @@ Template.appTransferResult.helpers({
     const status = LocalStore.get('transactionRelayedThrough')
     return status
   },
+  tokenDetails() {
+    const details = LocalStore.get('tokenTransferConfirmationDetails')
+    return details
+  },
+  tokenTransferConfirmation() {
+    const confirmation = LocalStore.get('tokenTransferConfirmation')
+    confirmation.amount /= SHOR_PER_QUANTA
+    confirmation.fee /= SHOR_PER_QUANTA
+    return confirmation
+  },
+  tokenTransferTokenHash() {
+    const token_txhash = LocalStore.get('tokenTransferTokenHash')
+    return token_txhash
+  },
 })
 
-Template.appTransferResult.events({
+Template.appTokenTransferResult.events({
   'click .jsonclick': () => {
     if (!($('.json').html())) {
       setRawDetail()

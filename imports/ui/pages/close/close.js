@@ -1,7 +1,7 @@
 import './close.html'
 /* eslint no-undef:0 */
 
-Template.addressClose.onRendered(() => {
+Template.appAddressClose.onRendered(() => {
   XMSS_OBJECT = null
   resetWalletStatus()
 })
