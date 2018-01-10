@@ -38,6 +38,14 @@ function loadToken() {
   const sendFrom = LocalStore.get('transferFromAddress')
   const tokenHash = document.getElementById('tokenHash').value
 
+  // Update address balance in case the token state has changed.
+  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
+  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
+  for (let i = 0; i < thisAddressBin.size(); i += 1) {
+    thisAddressBytes[i] = thisAddressBin.get(i)
+  }
+  getBalance(thisAddressBytes)
+
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
