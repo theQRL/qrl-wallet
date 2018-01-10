@@ -54,9 +54,6 @@ function loadToken() {
   }
 
   Meteor.call('getTxnHash', request, (err, res) => {
-
-    console.log(res)
-
     $('#loading').hide()
 
     if (err) {

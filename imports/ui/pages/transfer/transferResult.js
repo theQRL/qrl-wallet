@@ -8,7 +8,6 @@ function sleep(ms) {
 }
 
 function setRawDetail() {
-  console.log('setting raw details')
   const myJSON = LocalStore.get('txhash').transaction
   const formatter = new JSONFormatter(myJSON)
   $('.json').html(formatter.render())
@@ -16,9 +15,6 @@ function setRawDetail() {
 
 // Checks the result of a stored txhash object, and polls again if not completed or failed.
 function checkResult(thisTxId) {
-  console.log('dumping txhash')
-  console.log(LocalStore.get('txhash'))
-
   if (LocalStore.get('txhash').transaction.header != null) {
     // Complete
     const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.'`
@@ -32,7 +28,6 @@ function checkResult(thisTxId) {
     $('.loader').hide()
   } else {
     // Poll again
-    console.log('try again in 1 seconds')
     setTimeout(() => { pollTransaction(thisTxId) }, 1000)
   }
 }
@@ -41,7 +36,6 @@ function checkResult(thisTxId) {
 function pollTransaction(thisTxId, firstPoll = false) {
   // Reset txhash on first poll.
   if (firstPoll === true) {
-    console.log('setting txhash to {}')
     LocalStore.set('txhash', {})
   }
 
