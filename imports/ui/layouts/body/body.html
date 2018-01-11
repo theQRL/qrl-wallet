@@ -1,13 +1,10 @@
 <template name="appBody">
 
-  <div class="small ui container negative message" id="walletWarning">
-    <i class="close icon"></i>
-    <div class="header">
-      Security Notice - Don't get Phished!
-    </div>
-    <p>
+  <div id="walletWarning" class="ui sticky inline red fixed segment nag cookie" style="display: block;">
+    <span class="title">
+      <strong>Notice: </strong>This wallet provides functionality for the QRL Testnet, and in future the QRL Mainnet. <strong>Do not send QRL ERC20 Tokens to a wallet created by this service!</strong><br />
       <strong>Bookmark WALLET.THEQRL.ORG</strong> - The QRL Foundation only hosts services on THEQRL.ORG. No other domains are affiliated with The QRL Foundation.
-    </p>
+    </span>
   </div>
 
   <div class="ui menu topmenu" id="menu">
@@ -25,7 +22,7 @@
     </div>
   </div>
   {{>sidebar}}
-  <div class="ui fixed menu" id="m_menu">
+  <div class="ui menu topmenu" id="m_menu">
     <div class="ui container" id="m_btn">
       <div class="icon item">
         <a id="hamburger"><i class="content icon"></i> Menu</a>
@@ -60,7 +57,6 @@
           </div>
         </div>
       </div>
-
       {{> Template.dynamic template=main}}
     </div>
     <div class="ui hidden divider"></div>

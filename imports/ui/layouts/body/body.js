@@ -125,7 +125,13 @@ Template.appBody.onRendered(() => {
   if (isElectrified()) {
     $('#walletWarning').hide()
   }
+
+  // Show walletWarning at top. This needs to be here twice or it doesn't work onload
+  $('#walletWarning').sticky({context: '#walletWarning'})
+  $('#walletWarning').sticky({context: '#walletWarning'})
 })
+
+
 
 Template.appBody.events({
   'click #hamburger': (event) => {
@@ -134,9 +140,6 @@ Template.appBody.events({
   },
   'change #network': () => {
     updateNode(selectedNode())
-  },
-  'click .close': () => {
-    $('#walletWarning').transition('fade')
   },
 })
 
