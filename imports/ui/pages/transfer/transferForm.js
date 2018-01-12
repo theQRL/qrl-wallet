@@ -82,8 +82,8 @@ function generateTransaction() {
         hash: res.txnHash,
         from: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.addr_from),
         to: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.transfer.addr_to),
-        amount: res.response.transaction_unsigned.transfer.amount,
-        fee: res.response.transaction_unsigned.transfer.fee,
+        amount: res.response.transaction_unsigned.transfer.amount / SHOR_PER_QUANTA,
+        fee: res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA,
         otsKey: res.response.transaction_unsigned.ots_key,
       }
 

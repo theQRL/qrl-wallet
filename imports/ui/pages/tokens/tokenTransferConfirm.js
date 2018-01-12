@@ -78,8 +78,6 @@ Template.appTokenTransferConfirm.events({
 Template.appTokenTransferConfirm.helpers({
   tokenTransferConfirmation() {
     const confirmation = LocalStore.get('tokenTransferConfirmation')
-    confirmation.amount /= SHOR_PER_QUANTA
-    confirmation.fee /= SHOR_PER_QUANTA
     return confirmation
   },
   tokenDetails() {

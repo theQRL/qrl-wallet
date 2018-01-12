@@ -126,7 +126,7 @@ function createTokenTxn() {
         name: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.name),
         owner: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.owner),
         decimals: res.response.transaction_unsigned.token.decimals,
-        fee: res.response.transaction_unsigned.token.fee,
+        fee: res.response.transaction_unsigned.token.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.transaction_unsigned.token.initial_balances,
         otsKey: res.response.transaction_unsigned.ots_key,
       }
