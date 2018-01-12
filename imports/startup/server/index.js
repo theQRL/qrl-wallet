@@ -17,9 +17,6 @@ BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
 BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
 BrowserPolicy.content.allowFontDataUrl()
 
-// not used...
-// const ab2str = buf => String.fromCharCode.apply(null, new Uint16Array(buf))
-
 // An array of grpc connections and associated proto file paths
 const qrlClient = []
 
@@ -31,7 +28,6 @@ function toBuffer(ab) {
 // Create a temp file to store the qrl.proto file in
 // We'll also use the base directory of this file for other temp storage
 // const qrlProtoFilePath = tmp.fileSync({ mode: 0644, prefix: 'qrl-', postfix: '.proto' }).name
-
 
 const errorCallback = (error, message, alert) => {
   const d = new Date()
@@ -196,7 +192,7 @@ const getTxnHash = (request, callback) => {
           response.transaction.tx.coinbase.addr_to =
             Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
           // FIXME: We need a unified way to format Quanta
-          response.transaction.tx.amount = response.transaction.tx.coinbase.amount * SHOR_PER_QUANTA
+          response.transaction.tx.amount = response.transaction.tx.coinbase.amount / SHOR_PER_QUANTA
         }
         if (response.transaction.tx.transfer) {
           response.transaction.tx.addr_to =
@@ -204,7 +200,7 @@ const getTxnHash = (request, callback) => {
           response.transaction.tx.transfer.addr_to =
             Buffer.from(response.transaction.tx.transfer.addr_to).toString()
           // FIXME: We need a unified way to format Quanta
-          response.transaction.tx.amount = response.transaction.tx.transfer.amount * SHOR_PER_QUANTA
+          response.transaction.tx.amount = response.transaction.tx.transfer.amount / SHOR_PER_QUANTA
         }
         response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
         response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')

@@ -1,6 +1,7 @@
 import JSONFormatter from 'json-formatter-js'
 import './transferResult.html'
 /* global LocalStore */
+/* global SHOR_PER_QUANTA */
 /* eslint no-console:0 */
 
 function sleep(ms) {
@@ -20,12 +21,12 @@ function checkResult(thisTxId) {
     const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.'`
 
     LocalStore.set('txstatus', userMessage)
-    $('.loader').hide()
+    $('.loading').hide()
   } else if (LocalStore.get('txhash').error != null) {
     // Transaction error
     const errorMessage = `Error - ${LocalStore.get('txhash').error}`
     LocalStore.set('txstatus', errorMessage)
-    $('.loader').hide()
+    $('.loading').hide()
   } else {
     // Poll again
     setTimeout(() => { pollTransaction(thisTxId) }, 1000)
@@ -87,6 +88,22 @@ Template.appTransferResult.helpers({
   transactionRelayedThrough() {
     const status = LocalStore.get('transactionRelayedThrough')
     return status
+  },
+  transactionConfirmation() {
+    const confirmation = LocalStore.get('transactionConfirmation')
+    return confirmation
+  },
+  txDetail() {
+    let txDetail = LocalStore.get('txhash').transaction.tx.transfer
+    txDetail.amount /= SHOR_PER_QUANTA
+    txDetail.fee /= SHOR_PER_QUANTA
+    return txDetail
+  },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
   },
 })
 

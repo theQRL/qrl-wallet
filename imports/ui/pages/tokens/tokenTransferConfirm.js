@@ -68,7 +68,6 @@ Template.appTokenTransferConfirm.onRendered(() => {
 Template.appTokenTransferConfirm.events({
   'click #confirmToken': () => {
     $('#relaying').show()
-    $('#relayingmsg').show()
     setTimeout(() => { confirmTokenTransfer() }, 200)
   },
   'click #cancelToken': () => {
@@ -91,5 +90,10 @@ Template.appTokenTransferConfirm.helpers({
     const failed = LocalStore.get('transactionFailed')
     return failed
   },
-
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
+  },
 })

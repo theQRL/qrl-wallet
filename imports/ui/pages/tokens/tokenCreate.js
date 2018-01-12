@@ -222,4 +222,10 @@ Template.appTokenCreate.helpers({
     const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
     return otsKeyEstimate
   },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
+  },
 })

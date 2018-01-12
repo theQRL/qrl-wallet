@@ -3,16 +3,24 @@
 
 <div class="ui left aligned segment" id="tokenCreateForm">
 
+  <h2 class="ui header">
+    <i class="tiny ticket icon"></i>
+    <div class="content">
+      Create Token
+    </div>
+  </h2>
+
   <form id="generateTokenForm" class="ui form">
 
     <h4 class="ui dividing header">Token Creator</h4>
 
-    <h2 id="transferFormFromAddress" class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h2>
+    <h4 id="transferFormFromAddress" class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
+    <h4 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
-
-    <h4 class="ui dividing header">Token Details</h4>
-
+    <h4 class="ui horizontal divider header">
+      <i class="sidebar icon"></i>
+      Token Details
+    </h4>
 
     <div class="field">
       <label>Owner Address</label>
@@ -32,11 +40,12 @@
     </div>
     
     
-    <h4 class="ui dividing header">Initial Token Holders</h4>
+    <h4 class="ui horizontal divider header">
+      <i class="users icon"></i>
+      Initial Token Holders
+    </h4>
 
     <div id="tokenHolders">
-
-
       <div class="field">
         <label>Holder Balance</label>
         <div class="three fields">
@@ -51,8 +60,6 @@
           </div>
         </div>
       </div>
-
-
     </div>
 
     <button id="addTokenHolder" class="ui green button">
@@ -60,33 +67,50 @@
       Add Another Holder
     </button>
 
-
-    <h4 class="ui dividing header">Transaction Details</h4>
+    <h4 class="ui horizontal divider header">
+      <i class="file text outline icon"></i>
+      Transaction Details
+    </h4>
 
     <div class="field">
       <label>Token Creation Fee (In Quanta)</label>
       <input type="text" id="fee" value="1">
     </div>
 
-
     <div class="field">
       <label>OTS Key Index</label>
       <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
     </div>
-    <div id="warning" class="ui red segment">
-      <h4>OTS Key Index Warning</h4>
-      <p>The <b>OTS (One Time Signature)</b> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+
+    <div class="field">
+      <div class="ui warning icon message" style="display: inline-flex;">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            OTS Key Index Warning
+          </div>
+          <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+        </div>
+      </div>
     </div>
 
-
-
-    <button id="createToken" class="ui huge primary button" style="float: left;">Create Token &raquo;</button>
-    <div style="height: 51px;">
-      <div id="generating" style="display: none;" class="ui active inline loader"></div>
+    <div class="field">
+      <button id="createToken" class="ui huge primary button" style="float: left;">Create Token &raquo;</button>
+      <br />
     </div>
-    <div class="ui error message"></div>
 
-
+    <div class="field">
+      <br />
+      <div id="generating" style="display: none;" class="ui icon message">
+        <i class="notched circle loading icon"></i>
+        <div class="content">
+          <div class="header">
+            Just one moment
+          </div>
+          <p>Generating your new token transaction...</p>
+        </div>
+      </div>
+    </div>   
 
   </form>
 </div>

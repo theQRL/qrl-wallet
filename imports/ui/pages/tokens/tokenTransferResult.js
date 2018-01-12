@@ -20,12 +20,12 @@ function checkResult(thisTxId) {
     const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.'`
 
     LocalStore.set('txstatus', userMessage)
-    $('.loader').hide()
+    $('.loading').hide()
   } else if (LocalStore.get('txhash').error != null) {
     // Transaction error
     const errorMessage = `Error - ${LocalStore.get('txhash').error}`
     LocalStore.set('txstatus', errorMessage)
-    $('.loader').hide()
+    $('.loading').hide()
   } else {
     // Poll again
     setTimeout(() => { pollTransaction(thisTxId) }, 1000)
@@ -97,6 +97,12 @@ Template.appTokenTransferResult.helpers({
   tokenTransferTokenHash() {
     const token_txhash = LocalStore.get('tokenTransferTokenHash')
     return token_txhash
+  },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
   },
 })
 

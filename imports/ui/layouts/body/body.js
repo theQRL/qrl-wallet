@@ -121,14 +121,15 @@ Template.appBody.onRendered(() => {
   $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
   updateNode(selectedNode())
 
+
   // Hide wallet warning on electrified clients
   if (isElectrified()) {
     $('#walletWarning').hide()
+  } else {
+    // Show walletWarning at top. This needs to be here twice or it doesn't work onload
+    $('#walletWarning').sticky({context: '#walletWarning'})
+    $('#walletWarning').sticky({context: '#walletWarning'})
   }
-
-  // Show walletWarning at top. This needs to be here twice or it doesn't work onload
-  $('#walletWarning').sticky({context: '#walletWarning'})
-  $('#walletWarning').sticky({context: '#walletWarning'})
 })
 
 

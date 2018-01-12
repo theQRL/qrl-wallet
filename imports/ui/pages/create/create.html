@@ -1,24 +1,109 @@
 <template name="appCreate">
 
-<div class="ui center aligned segment">
-  <h2 id="createWallet" class="ui center aligned icon header">
-  <i class="circular plus icon"></i>
-    Create Wallet
-  </h2>
-  <div id="passphraseArea" class="ui form">
-    <div class="field">
-      <label>Passphrase</label>
-      <input type="password" id="passphrase" value="" style="max-width: 400px;">
+<div class="ui segment">
+  <h2 id="createWallet" class="ui header">
+    <i class="tiny plus icon"></i>
+    <div class="content">
+      Create Wallet
     </div>
-    <p>This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase. You will need this passphrase, and wallet file to unlock your wallet file in future.</p>
+  </h2>
+
+  <div id="createWalletTabs" class="ui top attached tabular menu">
+    <a class="item active" data-tab="basic">Basic Wallet</a>
+    <a class="item" data-tab="advanced">Advanced Wallet</a>
+  </div>
+  <div class="ui bottom attached tab segment active" data-tab="basic">
+    <div id="passphraseArea" class="ui form">
+      <div class="field">
+        <label>Passphrase</label>
+        <div class="ui left icon input">
+          <input type="password" id="basicPassphrase" >
+          <i class="lock icon"></i>
+        </div>
+      </div>
+      <p>This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase. You will need this passphrase, and wallet file to unlock your wallet file in future.</p>
+    </div>
+
     <br />
+    <button id="generateBasic" class="ui huge primary button">Create Basic Wallet &raquo;</button>
   </div>
 
-  <button id="generate" class="ui huge primary button">Begin &raquo;</button>
+  <div class="ui bottom attached tab segment" data-tab="advanced">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Advanced Wallet Notice
+        </div>
+        <p>Advanced wallets allow you to set the XMSS Tree height of your wallet. By default an XMSS Tree height of 10 provides 1024 One Time Signatures. When you open this wallet in future, <strong>you must specifiy this XMSS Tree height</strong>. The easiest way to go about this is to download and save the secure wallet file, as it contains this information. Larger XMSS Tree heights will take longer to generate, please be patient.</p>
+      </div>
+    </div>
+
+    <div id="passphraseArea" class="ui form">
+      <div class="field">
+        <label>Passphrase</label>
+        <div class="ui left icon input">
+          <input type="password" id="advancedPassphrase" >
+          <i class="lock icon"></i>
+        </div>
+      </div>
+      <p>This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase. You will need this passphrase, and wallet file to unlock your wallet file in future.</p>
+    </div>
+
+    <div id="xmssHeightDropdown" class="ui fluid selection dropdown">
+      <input type="hidden" id="xmssHeight" value="10">
+      <i class="dropdown icon"></i>
+      <div class="default text">XMSS Tree Height</div>
+      <div class="menu">
+        <div class="item" data-value="4">
+          <i class="tree icon"></i>
+          Tree Height: 4, Signatures: 16
+        </div>
+        <div class="item" data-value="6">
+          <i class="tree icon"></i>
+          Tree Height: 6, Signatures: 64
+        </div>
+        <div class="item" data-value="8">
+          <i class="tree icon"></i>
+          Tree Height: 8, Signatures: 256
+        </div>
+        <div class="item" data-value="10">
+          <i class="tree icon"></i>
+          Tree Height: 10, Signatures: 1,024
+        </div>
+        <div class="item" data-value="12">
+          <i class="tree icon"></i>
+          Tree Height: 12, Signatures: 4,096
+        </div>
+        <div class="item" data-value="14">
+          <i class="tree icon"></i>
+          Tree Height: 14, Signatures: 16,384
+        </div>
+        <div class="item" data-value="16">
+          <i class="tree icon"></i>
+          Tree Height: 16, Signatures: 65,536
+        </div>
+        <div class="item" data-value="18">
+          <i class="tree icon"></i>
+          Tree Height: 18, Signatures: 262,144
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <button id="generateAdvanced" class="ui huge primary button">Create Advanced Wallet &raquo;</button>
+  </div>
 
   <div id="generating" style="display: none;">
-    <div class="ui active centered inline loader"></div>
-    <p>Generating new wallet...</p>
+    <div class="ui icon message">
+      <i class="notched circle loading icon"></i>
+      <div class="content">
+        <div class="header">
+          Just a moment
+        </div>
+        <p>Generating new wallet...</p>
+      </div>
+    </div>
   </div>
 
   <div id="error" style="display: none;">
@@ -27,13 +112,14 @@
       <p>There was a problem generating your new wallet. Please refresh this page and try again.</p>
     </div>
   </div>
+
   <div id="passError" style="display: none;">
-    <br />
     <div class="ui red segment">
       <h4>Error!</h4>
       <p>Please enter a passphrase that is at least 8 characters in length, and contains at least 1 number and 1 letter.</p>
     </div>
   </div>
+
 </div>
 
 </template>

@@ -120,7 +120,7 @@ Template.appAddressOpened.helpers({
     return transactions
   },
   QRText() {
-    return LocalStore.get('address').state.address
+    return getXMSSDetails().address
   },
   ts() {
     const x = moment.unix(this.timestamp)

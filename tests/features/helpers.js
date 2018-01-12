@@ -17,15 +17,15 @@ module.exports = function() {
     // to text such that the walletCode setValue statement works.
     browser.execute(function() {
         // browser context
-        passphraseBox = document.getElementById("passphrase");
+        passphraseBox = document.getElementById("basicPassphrase");
         passphraseBox.type = "text";
     })
 
-    browser.setValue('#passphrase', arg1)
+    browser.setValue('#basicPassphrase', arg1)
   })
   
   this.When(/^press Begin$/, function () {
-    browser.click('#generate')
+    browser.click('#generateBasic')
   })
 
   this.Then(/^I should see Generating New Wallet$/, function () {
@@ -35,14 +35,20 @@ module.exports = function() {
   })
 
   this.Then(/^I should then see my wallet details$/, function () {
-    let _el = '#walletDetails h2 a'
+    let _el = 'h2.ui.header .sub.header'
     browser.waitForVisible(_el, 30000) // Max 30 seconds wallet generation time.
-    expect(browser.getText(_el)).toEqual('Address')
+    expect(browser.getText(_el)).toEqual('Your new wallet details are below')
   })
 
 
   this.Then(/^I should see a loader icon$/, function () {
     let _el = '.loader'
+    browser.waitForVisible(_el, 30000)
+  })
+
+
+  this.Then(/^I should see a loading icon$/, function () {
+    let _el = '.loading'
     browser.waitForVisible(_el, 30000)
   })
 

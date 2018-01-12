@@ -1,43 +1,118 @@
 <template name="appTokenCreationConfirm">
 
+
 <div id="tokenCreationConfirmation" class="ui red segment">
-  <h4>Token Creation Confirmation</h4>
+  <h2 class="ui header">
+    <i class="tiny ticket icon"></i>
+    <div class="content">
+      Token Creation Confirmation
+    </div>
+  </h2>
 
-  <p id="confirmationBlock" style="word-wrap: break-word; word-break: break-all;">
-    Hash: {{tokenCreationConfirmation.hash}}<br />
-    From: {{tokenCreationConfirmation.from}}<br />
-    Owner: {{tokenCreationConfirmation.owner}}<br />
-    Symbol: {{tokenCreationConfirmation.symbol}}<br />
-    Name: {{tokenCreationConfirmation.name}}<br />
-    
-    Decimals: {{tokenCreationConfirmation.decimals}}<br />
+  <h4 class="ui horizontal divider header">
+    <i class="ticket icon"></i>
+    New Token Details
+  </h4>
 
-    Fee: {{tokenCreationConfirmation.fee}}<br />
-    OTS Key Index: {{tokenCreationConfirmation.otsKey}}<br /><br />
-
-    Initial Token Holders: <br />
-    <div class="ui relaxed divided list">
-    {{#each tokenHolders}}
-      <div class="item">
-        <i class="large user middle aligned icon"></i>
-        <div class="content">
-          <a class="header">{{this.address}}</a>
-          <div class="description">{{this.amount}}</div>
+  <div class="ui items">
+    <div class="item">
+      <div class="image">
+        {{> QRCode text=tokenCreationConfirmation.hash size="128px"}}
+      </div>
+      <div class="content">
+        <a class="header">{{tokenCreationConfirmation.name}} ({{tokenCreationConfirmation.symbol}})</a>
+        <div class="meta">
+          <span>Token Hash <a class="ui purple label">{{tokenCreationConfirmation.hash}}</a></span>
+        </div>
+        <div class="description">
+          <p></p>
+        </div>
+        <div class="extra">
+          Owner: {{tokenCreationConfirmation.owner}}<br />
+          Decimals: {{tokenCreationConfirmation.decimals}}
         </div>
       </div>
-    {{/each}}
     </div>
-    <br />
-
-    
-  </p>
-
-  <button id="confirmToken" class="ui huge primary button" style="float: left;">Confirm Token Creation &raquo;</button>
-  <button id="cancelToken" class="ui huge red button" style="float: left;">Cancel Token Creation &raquo;</button>
-  <div style="height: 51px;">
-    <div id="relaying" style="display: none;" class="ui active inline loader"></div>
-    <p id="relayingmsg" style="display: none;">Your token is being relayed into the QRL network</p>
   </div>
+
+
+  <h4 class="ui horizontal divider header">
+    <i class="users icon"></i>
+    Initial Token Holders
+  </h4>
+
+  <div class="ui relaxed divided list">
+  {{#each tokenHolders}}
+    <div class="item">
+      <i class="large user middle aligned icon"></i>
+      <div class="content">
+        <a class="header">{{this.address}}</a>
+        <div class="description">{{tokenCreationConfirmation.symbol}}: {{this.amount}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+
+
+  <h4 class="ui horizontal divider header">
+    <i class="file text outline icon"></i>
+    Transaction Details
+  </h4>
+
+  <div class="ui stackable two column grid">
+    <div class="column fourteen wide">
+      <div class="header">
+        <h1>From <a class="ui yellow label"><i class="qrcode icon"></i>{{tokenCreationConfirmation.from}}</a></h1>
+      </div>
+    </div>
+    <div class="column two wide right aligned">
+      {{> QRCode text=tokenCreationConfirmation.from size="64px"}}
+    </div>
+  </div>
+
+  <div class="ui statistics">
+    <div class="statistic">
+      <div class="value">
+        {{tokenCreationConfirmation.fee}}
+      </div>
+      <div class="label">
+        Fee
+      </div>
+    </div>
+    <div class="statistic">
+      <div class="value">
+        <i class="tree icon"></i> {{tokenCreationConfirmation.otsKey}}
+      </div>
+      <div class="label">
+        OTS Key Index
+      </div>
+    </div>
+  </div>
+
+
+  <div class="ui stackable two column grid">
+    <div class="column center aligned">
+      <button id="confirmToken" class="ui huge primary button">Confirm Token Creation &raquo;</button>
+    </div>
+    <div class="column center aligned">
+      <button id="cancelToken" class="ui huge red button">Cancel Token Creation &raquo;</button>
+    </div>
+  </div>
+
+
+  <div id="relaying" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Just a moment
+      </div>
+      <p>Your token is being relayed into the QRL network...</p>
+    </div>
+  </div>
+
+
 </div>
 
 <div id="transactionFailed" class="ui red segment" style="display: none;">

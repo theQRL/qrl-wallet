@@ -20,6 +20,7 @@ selectedNode = () => {
 getXMSSDetails = () => {
   const thisAddress = XMSS_OBJECT.getAddress()
   const thisRandomSeed = XMSS_OBJECT.getSeed()
+  const thisHeight = XMSS_OBJECT.getHeight()
 
   const thisHexSeed = QRLLIB.bin2hstr(thisRandomSeed)
   const thisMnemonic = QRLLIB.bin2mnemonic(thisRandomSeed)
@@ -28,6 +29,7 @@ getXMSSDetails = () => {
     address: thisAddress,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
+    height: thisHeight,
     index: 0
   }
 
