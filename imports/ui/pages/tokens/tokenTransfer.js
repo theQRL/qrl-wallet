@@ -161,7 +161,6 @@ function sendTokensTxnCreate() {
 Template.appTokenTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
-
   const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
   const thisAddressBytes = new Uint8Array(thisAddressBin.size())
   for (let i = 0; i < thisAddressBin.size(); i += 1) {
@@ -173,7 +172,9 @@ Template.appTokenTransfer.onRendered(() => {
 
   // Preload Token Hash
   const presetTokenHash = LocalStore.get('preLoadTokenHash')
-  if (presetTokenHash !== '') {
+  var regTest = /[0-9A-Fa-f]{64}/g;
+  if(regTest.test(presetTokenHash)) {
+
     $('#tokenLoadFailed').hide()
     $('#loading').show()
     LocalStore.set('preLoadTokenHash', '')
