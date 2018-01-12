@@ -17,11 +17,14 @@ import '../../ui/pages/transfer/transferConfirm.js'
 import '../../ui/pages/transfer/transferResult.js'
 
 import '../../ui/pages/tokens/tokens.js'
+import '../../ui/pages/tokens/tokensView.js'
+
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
 import '../../ui/pages/tokens/tokenCreateResult.js'
 
 import '../../ui/pages/tokens/tokenTransfer.js'
+import '../../ui/pages/tokens/tokenTransferLoad.js'
 import '../../ui/pages/tokens/tokenTransferConfirm.js'
 import '../../ui/pages/tokens/tokenTransferResult.js'
 
@@ -100,6 +103,13 @@ FlowRouter.route('/tokens', {
     BlazeLayout.render('appBody', { main: 'appTokensHome' })
   },
 })
+FlowRouter.route('/tokens/view', {
+  name: 'App.tokens',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTokensView' })
+  },
+})
+
 FlowRouter.route('/tokens/create', {
   name: 'App.tokensCreate',
   action() {
@@ -122,6 +132,12 @@ FlowRouter.route('/tokens/transfer', {
   name: 'App.tokensTransfer',
   action() {
     BlazeLayout.render('appBody', { main: 'appTokenTransfer' })
+  },
+})
+FlowRouter.route('/tokens/transferload/:tokenHash', {
+  name: 'App.tokensTransfer',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTokenTransferLoad' })
   },
 })
 FlowRouter.route('/tokens/transfer/confirm', {

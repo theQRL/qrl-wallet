@@ -47,4 +47,7 @@ Template.appCreateAddress.helpers({
   newAddress() {
     return getXMSSDetails()
   },
+  QRText() {
+    return getXMSSDetails().address
+  },
 })

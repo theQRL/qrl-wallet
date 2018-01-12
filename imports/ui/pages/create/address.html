@@ -1,15 +1,57 @@
 <template name="appCreateAddress">
 
-<div id="walletDetails" class="ui center aligned segment">
-  <h2 class="unbreakable"><a class="ui purple label">Address</a> {{newAddress.address}}</h2>
-  <div id="warning" class="ui yellow segment left aligned">
-    <h4>Store these details in a secure location, and never share them with anyone!</h4>
-    <p><a class="ui grey label">Mnemonic Phrase</a> {{newAddress.mnemonic}}</p>
-    <p class="unbreakable"><a class="ui grey label">Hexseed</a> {{newAddress.hexseed}}</p>
-    
-  </div>
-  <button id="saveUnencrypted" class="ui huge red button">Save Plain Text Wallet File &raquo;</button>
-  <button id="saveEncrypted" class="ui huge green button">Save Secure Encrypted Wallet File &raquo;</button>
-</div>
+<div class="ui segment">
+  <h2 id="createWallet" class="ui header">
+    <i class="tiny plus icon"></i>
+    <div class="content">
+      Create Wallet
+      <div class="sub header">Your new wallet details are below</div>
+    </div>
+  </h2>
 
+  <div class="ui warning icon message">
+    <i class="warning icon"></i>
+    <div class="content">
+      <div class="header">
+        Security Notice
+      </div>
+      <p>The details shown below are private, and should never be shared with anyone! You should write these details down, and store them in a secure location to ensure no losses are incurred.</p>
+    </div>
+  </div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="unlock alternate icon"></i>
+    New Wallet Details
+  </h4>
+
+  <div class="ui stackable two column grid">
+    <div class="column fourteen wide">
+      <div class="header">
+        <h1>Address <a class="ui big yellow label"><i class="qrcode icon"></i>{{newAddress.address}}</a></h1>
+      </div>
+    </div>
+    <div class="column two wide right aligned">
+      {{> QRCode text=QRText size="64px"}}
+    </div>
+  </div>
+
+  <div class="ui inverted segment">
+    <h4 class="ui header">Mnemonic Phrase</h4>
+    <p>{{newAddress.mnemonic}}</p>
+  </div>
+
+  <div class="ui inverted segment">
+    <h4 class="ui header">Hexseed</h4>
+    <p style="word-wrap: break-word;">{{newAddress.hexseed}}</p>
+  </div>
+
+  <div class="ui stackable two column grid">
+    <div class="column center aligned">
+      <button id="saveUnencrypted" class="ui huge red button">Save Plain Text Wallet File &raquo;</button>
+    </div>
+    <div class="column center aligned">
+      <button id="saveEncrypted" class="ui huge green button">Save Secure Encrypted Wallet File &raquo;</button>
+    </div>
+  </div>
+</div>
 </template>

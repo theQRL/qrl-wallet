@@ -2,13 +2,26 @@
 
 
 <div class="ui left aligned segment">
+  <h2 class="ui header">
+    <i class="tiny ticket icon"></i>
+    <div class="content">
+      Transfer Tokens
+    </div>
+  </h2>
+
 
   <form id="transferLoadForm" class="ui form">
 
+    <h4 class="ui horizontal divider header">
+      <i class="ticket icon"></i>
+      Load Token
+    </h4>
+
+
     <h4 class="ui dividing header">Token Holder Details</h4>
 
-    <h2 id="transferFormFromAddress" class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h2>
+    <h4 id="transferFormFromAddress" class="unbreakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
+    <h4 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
 
     <h4 class="ui dividing header">Load Token</h4>
@@ -17,21 +30,46 @@
       <input type="text" id="tokenHash">
     </div>
 
-    <button id="loadToken" class="ui huge primary button" style="float: left;">Load Token &raquo;</button>
-    <div style="height: 51px;">
-      <div id="loading" style="display: none;" class="ui active inline loader"></div>
+    <div class="ui stackable one column grid">
+      <div class="column center aligned">
+        <button id="loadToken" class="ui huge primary button" style="float: left;">Load Token &raquo;</button>
+      </div>
     </div>
-    <div class="ui error message"></div>
+
+    <div id="loading" class="ui icon message" style="display: none;">
+      <br /><br />
+      <i class="notched circle loading icon"></i>
+      <div class="content">
+        <div class="header">
+          Just a moment
+        </div>
+        <p>Loading token hash details...</p>
+      </div>
+    </div>
 
   </form>
 
-  
-
   <form id="tokenTransferForm" class="ui form" style="display: none;">
-    <br /><br />
-    <h2 class="unbreakable"><a class="ui purple label">Token Name</a>{{tokenDetails.name}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Token Symbol</a> {{tokenDetails.symbol}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Token Balance</a> {{tokenDetails.balance}}</h2>
+    <br />
+
+    <div class="ui items">
+      <div class="item">
+        <div class="image">
+          {{> QRCode text=tokenDetails.token_txhash size="128px"}}
+        </div>
+        <div class="content">
+          <a class="header">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
+          <div class="meta">
+            <span>Token Hash <a class="ui purple label">{{tokenDetails.token_txhash}}</a></span>
+            <br /><br />
+            <span>My Balance <a class="ui greeb label">{{tokenDetails.balance}}</a></span>
+          </div>
+          <div class="description">
+            <p></p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="field">
       <label>Send {{tokenDetails.symbol}} Token To</label>
@@ -49,17 +87,35 @@
       <label>OTS Key Index</label>
       <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
     </div>
-    <div id="warning" class="ui red segment">
-      <h4>OTS Key Index Warning</h4>
-      <p>The <b>OTS (One Time Signature)</b> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+
+    <div class="field">
+      <div class="ui warning icon message" style="display: inline-flex;">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            OTS Key Index Warning
+          </div>
+          <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+        </div>
+      </div>
     </div>
 
-
-    <button id="sendToken" class="ui huge primary button" style="float: left;">Send {{tokenDetails.symbol}}&raquo;</button>
-    <div style="height: 51px;">
-      <div id="generating" style="display: none;" class="ui active inline loader"></div>
+    <div class="ui stackable one column grid">
+      <div class="column center aligned">
+        <button id="sendToken" class="ui huge primary button" style="float: left;">Send {{tokenDetails.symbol}}&raquo;</button>
+      </div>
     </div>
-    <div class="ui error message"></div>
+
+    <div id="generating" class="ui icon message" style="display: none;">
+      <br /><br />
+      <i class="notched circle loading icon"></i>
+      <div class="content">
+        <div class="header">
+          Just a moment
+        </div>
+        <p>Generating token transfer transaction...</p>
+      </div>
+    </div>
 
   </form>
 

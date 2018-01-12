@@ -71,6 +71,9 @@ function loadToken() {
 
         // Show transfer form
         $('#tokenTransferForm').show()
+
+        // Hide load form
+        $('#transferLoadForm').hide()
       }      
     }
   })
@@ -158,6 +161,7 @@ function sendTokensTxnCreate() {
 Template.appTokenTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
+
   const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
   const thisAddressBytes = new Uint8Array(thisAddressBin.size())
   for (let i = 0; i < thisAddressBin.size(); i += 1) {
@@ -166,6 +170,18 @@ Template.appTokenTransfer.onRendered(() => {
 
   LocalStore.set('transferFromTokenState', '')
   getBalance(thisAddressBytes)
+
+  // Preload Token Hash
+  const presetTokenHash = LocalStore.get('preLoadTokenHash')
+  if (presetTokenHash !== '') {
+    $('#tokenLoadFailed').hide()
+    $('#loading').show()
+    LocalStore.set('preLoadTokenHash', '')
+
+    $('#tokenHash').val(presetTokenHash)
+    setTimeout(() => { loadToken() }, 200)
+  }
+
 })
 
 Template.appTokenTransfer.events({
@@ -210,6 +226,8 @@ Template.appTokenTransfer.helpers({
       tokenDetails.balance = 0
     }
 
+    tokenDetails.token_txhash = tokenHash
+
     return tokenDetails
   },
   tokenLoadError() {
@@ -223,5 +241,11 @@ Template.appTokenTransfer.helpers({
   otsKeyEstimate() {
     const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
     return otsKeyEstimate
+  },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
   },
 })

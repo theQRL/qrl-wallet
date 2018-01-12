@@ -52,7 +52,7 @@ module.exports = function () {
   })
 
   this.Then(/^I should then see a form confirming my transaction$/, function () {
-    let _el = '#confirmationBlock'
+    let _el = '#transactionConfirmation'
     browser.waitForVisible(_el, 20000)
   })
 
@@ -61,7 +61,7 @@ module.exports = function () {
   })
 
   this.Then(/^I should see "([^"]*)"$/, function (arg1) {
-    let _el = '#relayingmsg'
+    let _el = '#relayingMsg'
     browser.waitForVisible(_el)
     expect(browser.getText(_el)).toEqual(arg1)
   })

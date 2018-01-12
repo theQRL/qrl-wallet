@@ -11,15 +11,15 @@ module.exports = function () {
     // to text such that the walletCode setValue statement works.
     browser.execute(function() {
         // browser context
-        passphraseBox = document.getElementById("passphrase");
+        passphraseBox = document.getElementById("basicPassphrase");
         passphraseBox.type = "text";
     })
 
-    browser.setValue('#walletCode', arg1)
+    browser.setValue('#walletCodeBasic', arg1)
   })
 
   this.When(/^click Unlock Wallet$/, function () {
-    browser.click('#unlockButton')
+    browser.click('#unlockButtonBasic')
   })
 
   this.Then(/^I should see "([^"]*)" on the page$/, function (arg1) {

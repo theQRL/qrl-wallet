@@ -1,52 +1,126 @@
 <template name="appTokenTransferResult">
 
 <div id="transactionComplete" class="ui green segment">
-  <h4>Token Transfer Result</h4>
-  <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
-    Success! Your token transfer has been relayed into the QRL network through the following nodes, and is pending validation.
-  </p>
-  
-  {{#each transactionRelayedThrough}}
-  <div class="ui list">
-    <div class="item">
-      <i class="checkmark icon green"></i>
-      <div class="content">
-        {{this}}
-      </div>
+
+
+  <h2 class="ui header">
+    <i class="tiny ticket icon"></i>
+    <div class="content">
+      Token Transfer Result
     </div>
-  </div>
-  {{/each}}
+  </h2>
 
-  <div id="transactionResultFields">
+  <h4 class="ui horizontal divider header">
+    <i class="ticket icon"></i>
+    Token
+  </h4>
 
-    <h2 class="unbreakable"><a class="ui purple label">Token Name</a>{{tokenDetails.name}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Token Symbol</a> {{tokenDetails.symbol}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Token Hash</a> {{tokenDetails.token_txhash}}</h2>
-
-
-    Transaction Hash: {{transactionHash}}<br />
-    From: {{tokenTransferConfirmation.from}}<br />
-    Fee: {{tokenTransferConfirmation.fee}}<br />
-    OTS Key Index: {{tokenTransferConfirmation.otsKey}}<br /><br />
-
-    Send Tokens To: <br />
-    <div class="ui relaxed divided list">
-      <div class="item">
-        <i class="large user middle aligned icon"></i>
-        <div class="content">
-          <a class="header">{{tokenTransferConfirmation.to}}</a>
-          <div class="description">{{tokenTransferConfirmation.amount}}</div>
+  <div class="ui items">
+    <div class="item">
+      <div class="image">
+        {{> QRCode text=tokenDetails.token_txhash size="128px"}}
+      </div>
+      <div class="content">
+        <a class="header">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
+        <div class="meta">
+          <span>Token Hash <a class="ui purple label">{{tokenDetails.token_txhash}}</a></span>
         </div>
       </div>
     </div>
-
-    <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
-    <br />
-    <div class="ui active centered inline loader"></div>
   </div>
 
-  <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
-  <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="send icon"></i>
+    Transfer Details
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <div class="ui basic center aligned segment">
+        <div class="ui statistic">
+          <div class="value">
+            {{tokenTransferConfirmation.amount}}
+          </div>
+          <div class="label">
+            {{tokenDetails.symbol}}
+          </div>
+        </div>
+      </div>
+      <table class="ui stackable table">
+        <thead></thead>
+        <tbody>
+        <tr>
+          <td class="single line">
+            <div class="ui red label"><i class="sign out icon"></i>from</div>
+          </td>
+          <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{tokenTransferConfirmation.from}}">{{tokenTransferConfirmation.from}}</a></td>
+          <td><i class="large right arrow icon"></i></td>
+          <td class="single line">
+            <div class="ui purple label"><i class="sign in icon"></i>to</div>
+          </td>
+          <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{tokenTransferConfirmation.to}}">{{tokenTransferConfirmation.to}}</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+
+  <h4 class="ui horizontal divider header">
+    <i class="signal icon"></i>
+    Transaction Status
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <span>Transaction Hash <a class="ui">{{transactionHash}}</a></span>
+      <br />
+      <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a></span>
+      <br />
+      <span>OTS Key Index <a class="ui">{{tokenTransferConfirmation.otsKey}}</a></span>
+    </div>
+  </div>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
+        Success! Your token transfer has been relayed into the QRL network through the following nodes, and is pending validation.
+      </p>
+    </div>
+  </div>
+
+  <div class="ui mini horizontal divided list">
+  {{#each transactionRelayedThrough}}
+    <div class="item">
+      <i class="checkmark icon green"></i>
+      <div class="content">
+        <div class="header">{{this}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+
+  <div id="relaying" class="ui icon message">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Just a moment
+      </div>
+      <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
+    </div>
+  </div>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
+      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+    </div>
+  </div>
+
 </div>
 
 </template>

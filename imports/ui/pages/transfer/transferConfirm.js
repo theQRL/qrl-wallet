@@ -68,7 +68,6 @@ Template.appTransferConfirm.onRendered(() => {
 Template.appTransferConfirm.events({
   'click #confirmTransaction': () => {
     $('#relaying').show()
-    $('#relayingmsg').show()
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #cancelTransaction': () => {
@@ -104,5 +103,11 @@ Template.appTransferConfirm.helpers({
   transactionSignature() {
     const hash = LocalStore.get('transactionSignature')
     return hash
+  },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
   },
 })

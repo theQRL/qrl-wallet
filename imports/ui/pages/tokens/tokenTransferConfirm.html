@@ -1,38 +1,104 @@
 <template name="appTokenTransferConfirm">
 
 <div id="tokenTransferConfirmation" class="ui red segment">
-  <h4>Token Transfer Confirmation</h4>
+  <h2 class="ui header">
+    <i class="tiny ticket icon"></i>
+    <div class="content">
+      Token Transfer Confirmation
+    </div>
+  </h2>
 
-  <p id="confirmationBlock" style="word-wrap: break-word; word-break: break-all;">
+  <h4 class="ui horizontal divider header">
+    <i class="ticket icon"></i>
+    Token
+  </h4>
 
-    <h2 class="unbreakable"><a class="ui purple label">Token Name</a>{{tokenDetails.name}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Token Symbol</a> {{tokenDetails.symbol}}</h2>
-    <h2 class="unbreakable"><a class="ui yellow label">Token Hash</a> {{tokenDetails.token_txhash}}</h2>
-
-
-    Transaction Hash: {{tokenTransferConfirmation.hash}}<br />
-    From: {{tokenTransferConfirmation.from}}<br />
-    Fee: {{tokenTransferConfirmation.fee}}<br />
-    OTS Key Index: {{tokenTransferConfirmation.otsKey}}<br /><br />
-
-    Send Tokens To: <br />
-    <div class="ui relaxed divided list">
-      <div class="item">
-        <i class="large user middle aligned icon"></i>
-        <div class="content">
-          <a class="header">{{tokenTransferConfirmation.to}}</a>
-          <div class="description">{{tokenTransferConfirmation.amount}}</div>
+  <div class="ui items">
+    <div class="item">
+      <div class="image">
+        {{> QRCode text=tokenDetails.token_txhash size="128px"}}
+      </div>
+      <div class="content">
+        <a class="header">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
+        <div class="meta">
+          <span>Token Hash <a class="ui purple label">{{tokenDetails.token_txhash}}</a></span>
         </div>
       </div>
     </div>
+  </div>
 
-  </p>
 
-  <button id="confirmToken" class="ui huge primary button" style="float: left;">Confirm Token Transfer &raquo;</button>
-  <button id="cancelToken" class="ui huge red button" style="float: left;">Cancel Token Transfer &raquo;</button>
-  <div style="height: 51px;">
-    <div id="relaying" style="display: none;" class="ui active inline loader"></div>
-    <p id="relayingmsg" style="display: none;">Your token transfer request is being relayed into the QRL network</p>
+  <h4 class="ui horizontal divider header">
+    <i class="send icon"></i>
+    Transfer Details
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <div class="ui basic center aligned segment">
+        <div class="ui statistic">
+          <div class="value">
+            {{tokenTransferConfirmation.amount}}
+          </div>
+          <div class="label">
+            {{tokenDetails.symbol}}
+          </div>
+        </div>
+      </div>
+      <table class="ui stackable table">
+        <thead></thead>
+        <tbody>
+        <tr>
+          <td class="single line">
+            <div class="ui red label"><i class="sign out icon"></i>from</div>
+          </td>
+          <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{tokenTransferConfirmation.from}}">{{tokenTransferConfirmation.from}}</a></td>
+          <td><i class="large right arrow icon"></i></td>
+          <td class="single line">
+            <div class="ui purple label"><i class="sign in icon"></i>to</div>
+          </td>
+          <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{tokenTransferConfirmation.to}}">{{tokenTransferConfirmation.to}}</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="file text outline icon"></i>
+    Transaction Details
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <span>Transaction Hash <a class="ui">{{tokenTransferConfirmation.hash}}</a></span>
+      <br />
+      <span>From <a class="ui">{{tokenTransferConfirmation.from}}</a></span>
+      <br />
+      <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a></span>
+      <br />
+      <span>OTS Key Index <a class="ui">{{tokenTransferConfirmation.otsKey}}</a></span>
+    </div>
+  </div>
+
+  <div class="ui stackable two column grid">
+    <div class="column center aligned">
+      <button id="confirmToken" class="ui huge primary button">Confirm Token Transfer &raquo;</button>
+    </div>
+    <div class="column center aligned">
+      <button id="cancelToken" class="ui huge red button">Cancel Token Transfer &raquo;</button>
+    </div>
+  </div>
+  
+  <div id="relaying" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Just a moment
+      </div>
+      <p>Your token transfer request is being relayed into the QRL network...</p>
+    </div>
   </div>
 </div>
 

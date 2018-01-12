@@ -4,8 +4,7 @@ import './tx.html'
 /* global findNodeData */
 /* global selectedNode */
 /* global DEFAULT_NODES */
-
-// import '../../stylesheets/overrides.css'
+/* global SHOR_PER_QUANTA */
 
 Template.appVerifyTxid.onCreated(() => {
   LocalStore.set('txhash', {})

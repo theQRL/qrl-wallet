@@ -1,52 +1,100 @@
 <template name="appTokenCreationResult">
 
-<div id="transactionComplete" class="ui green segment">
-  <h4>Token Creation Result</h4>
-  <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
-    Success! Your token has been relayed into the QRL network through the following nodes, and is pending validation.
-  </p>
-  
-  {{#each transactionRelayedThrough}}
-  <div class="ui list">
+
+<div id="transactionComplete" class="ui red segment">
+  <h2 class="ui header">
+    <i class="tiny ticket icon"></i>
+    <div class="content">
+      Token Creation Result
+    </div>
+  </h2>
+
+
+  <h4 class="ui horizontal divider header">
+    <i class="ticket icon"></i>
+    Token Details
+  </h4>
+
+  <div class="ui items">
     <div class="item">
-      <i class="checkmark icon green"></i>
+      <div class="image">
+        {{> QRCode text=transactionHash size="128px"}}
+      </div>
       <div class="content">
-        {{this}}
+        <a class="header">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
+        <div class="meta">
+          <span>Token Hash <a class="ui purple label">{{transactionHash}}</a></span>
+        </div>
+        <div class="description">
+          <p></p>
+        </div>
+        <div class="extra">
+          Owner: {{tokenDetails.owner}}<br />
+          Decimals: {{tokenDetails.decimals}}
+        </div>
       </div>
     </div>
   </div>
-  {{/each}}
 
-  <div id="transactionResultFields">
-    <p>
-      Token Hash: {{transactionHash}}<br />
-      Token Owner: {{tokenDetails.owner}}<br />
-      Symbol: {{tokenDetails.symbol}}<br />
-      Name: {{tokenDetails.name}}<br />
-      Decimals: {{tokenDetails.decimals}}<br /><br />
-      
-      Token Holders: <br />
-      <div class="ui relaxed divided list">
-      {{#each tokenHolders}}
-        <div class="item">
-          <i class="large user middle aligned icon"></i>
-          <div class="content">
-            <a class="header">{{this.address}}</a>
-            <div class="description">{{this.amount}}</div>
-          </div>
-        </div>
-      {{/each}}
+  <h4 class="ui horizontal divider header">
+    <i class="users icon"></i>
+    Initial Token Holders
+  </h4>
+
+  <div class="ui relaxed divided list">
+  {{#each tokenHolders}}
+    <div class="item">
+      <i class="large user middle aligned icon"></i>
+      <div class="content">
+        <a class="header">{{this.address}}</a>
+        <div class="description">{{tokenDetails.symbol}}: {{this.amount}}</div>
       </div>
-
-    </p>
-
-    <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
-    <br />
-    <div class="ui active centered inline loader"></div>
+    </div>
+  {{/each}}
   </div>
 
-  <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
-  <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
-</div>
 
+  <h4 class="ui horizontal divider header">
+    <i class="signal icon"></i>
+    Transaction Status
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
+        Success! Your token has been relayed into the QRL network through the following nodes, and is pending validation.
+      </p>
+    </div>
+  </div>
+
+  <div class="ui mini horizontal divided list">
+  {{#each transactionRelayedThrough}}
+    <div class="item">
+      <i class="checkmark icon green"></i>
+      <div class="content">
+        <div class="header">{{this}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+  <div id="relaying" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Just a moment
+      </div>
+      <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
+    </div>
+  </div>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
+      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+    </div>
+  </div>
+  
+</div>
 </template>

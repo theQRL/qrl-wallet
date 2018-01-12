@@ -67,7 +67,6 @@ Template.appTokenCreationConfirm.onRendered(() => {
 Template.appTokenCreationConfirm.events({
   'click #confirmToken': () => {
     $('#relaying').show()
-    $('#relayingmsg').show()
     setTimeout(() => { confirmTokenCreation() }, 200)
   },
   'click #cancelToken': () => {
@@ -97,6 +96,11 @@ Template.appTokenCreationConfirm.helpers({
     }
 
     return tokenHolders
-  }
-
+  },
+  nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NODES[0].explorerUrl
+    }
+    return LocalStore.get('nodeExplorerUrl')
+  },
 })
