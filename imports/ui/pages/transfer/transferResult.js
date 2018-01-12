@@ -18,7 +18,7 @@ function setRawDetail() {
 function checkResult(thisTxId) {
   if (LocalStore.get('txhash').transaction.header != null) {
     // Complete
-    const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.'`
+    const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.`
 
     LocalStore.set('txstatus', userMessage)
     $('.loading').hide()
