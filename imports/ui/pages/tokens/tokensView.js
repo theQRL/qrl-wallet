@@ -73,7 +73,14 @@ Template.appTokensView.helpers({
 
 
 Template.appTokensView.onRendered(() => {
-  LocalStore.set('tokensHeld', [])
+  LocalStore.set('tokensHeld', '')
+
+  // If there is no wallet currently opened, send back to home.
+  if (LocalStore.get('walletStatus').unlocked == false) {
+    const params = {}
+    const path = FlowRouter.path('/', params)
+    FlowRouter.go(path)
+  }
 
   const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
   const thisAddressBytes = new Uint8Array(thisAddressBin.size())
@@ -81,15 +88,5 @@ Template.appTokensView.onRendered(() => {
     thisAddressBytes[i] = thisAddressBin.get(i)
   }
 
-  LocalStore.set('transferFromTokenState', '')
   getTokenBalances(thisAddressBytes)
-
-  /*
-  // If there is no wallet currently opened, send back to home.
-  if (LocalStore.get('walletStatus').unlocked == false) {
-    const params = {}
-    const path = FlowRouter.path('/', params)
-    FlowRouter.go(path)
-  }
-  */
 })
