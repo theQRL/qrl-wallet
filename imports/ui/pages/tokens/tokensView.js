@@ -73,7 +73,8 @@ Template.appTokensView.helpers({
 
 
 Template.appTokensView.onRendered(() => {
-  LocalStore.set('tokensHeld', '')
+  tokensHeld = []
+  LocalStore.set('tokensHeld', [])
 
   // If there is no wallet currently opened, send back to home.
   if (LocalStore.get('walletStatus').unlocked == false) {
