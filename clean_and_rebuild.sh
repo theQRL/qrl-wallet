@@ -21,6 +21,7 @@ rm -rf ./client/.custom.semantic.json
 rm -rf ./client/theme.config.import.less
 rm -rf ./version.desktop
 rm -rf ./public/web-libjsqrl.wasm
+rm -rf ./.meteor/local
 
 # Install meteor dependencies
 echo "Installing meteor dependencies"

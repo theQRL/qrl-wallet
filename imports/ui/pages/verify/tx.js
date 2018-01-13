@@ -6,7 +6,9 @@ import './tx.html'
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
 
-Template.appVerifyTxid.onCreated(() => {
+Template.appVerifyTxid.onRendered(() => {
+  this.$('.value').popup()
+
   LocalStore.set('txhash', {})
   LocalStore.set('status', {})
 
@@ -83,8 +85,4 @@ Template.appVerifyTxid.events({
     }
     $('.jsonbox').toggle()
   },
-})
-
-Template.appVerifyTxid.onRendered(() => {
-  this.$('.value').popup()
 })
