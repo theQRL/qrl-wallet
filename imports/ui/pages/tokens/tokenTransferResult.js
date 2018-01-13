@@ -21,11 +21,13 @@ function checkResult(thisTxId) {
 
     LocalStore.set('txstatus', userMessage)
     $('.loading').hide()
+    $('#loadingHeader').hide()
   } else if (LocalStore.get('txhash').error != null) {
     // Transaction error
     const errorMessage = `Error - ${LocalStore.get('txhash').error}`
     LocalStore.set('txstatus', errorMessage)
     $('.loading').hide()
+    $('#loadingHeader').hide()
   } else {
     // Poll again
     setTimeout(() => { pollTransaction(thisTxId) }, 1000)
@@ -90,8 +92,6 @@ Template.appTokenTransferResult.helpers({
   },
   tokenTransferConfirmation() {
     const confirmation = LocalStore.get('tokenTransferConfirmation')
-    confirmation.amount /= SHOR_PER_QUANTA
-    confirmation.fee /= SHOR_PER_QUANTA
     return confirmation
   },
   tokenTransferTokenHash() {

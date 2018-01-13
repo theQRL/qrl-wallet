@@ -1,14 +1,13 @@
 <template name="appTokenCreationResult">
 
-
 <div id="transactionComplete" class="ui red segment">
+
   <h2 class="ui header">
     <i class="tiny ticket icon"></i>
     <div class="content">
       Token Creation Result
     </div>
   </h2>
-
 
   <h4 class="ui horizontal divider header">
     <i class="ticket icon"></i>
@@ -23,7 +22,7 @@
       <div class="content">
         <a class="header">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
         <div class="meta">
-          <span>Token Hash <a class="ui purple label">{{transactionHash}}</a></span>
+          <span>Token Hash <a class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
         <div class="description">
           <p></p>
@@ -53,7 +52,6 @@
   {{/each}}
   </div>
 
-
   <h4 class="ui horizontal divider header">
     <i class="signal icon"></i>
     Transaction Status
@@ -82,7 +80,7 @@
     <br /><br />
     <i class="notched circle loading icon"></i>
     <div class="content">
-      <div class="header">
+      <div id="loadingHeader" class="header">
         Just a moment
       </div>
       <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
@@ -97,4 +95,5 @@
   </div>
   
 </div>
+
 </template>

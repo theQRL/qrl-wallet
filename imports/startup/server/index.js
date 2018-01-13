@@ -573,16 +573,53 @@ Meteor.methods({
       }
 
       const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
+      let thisTxn = {}
 
-      const thisTxn = {
-        txhash: arr.txhash,
-        amount: thisTxnHashResponse.transaction.tx.amount,
-        from: thisTxnHashResponse.transaction.tx.addr_from,
-        to: thisTxnHashResponse.transaction.tx.addr_to,
-        ots_key: thisTxnHashResponse.transaction.tx.ots_key,
-        fee: thisTxnHashResponse.transaction.header.reward_fee,
-        block: thisTxnHashResponse.transaction.header.block_number,
-        timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+      if (thisTxnHashResponse.transaction.tx.type == "TRANSFER") {
+        thisTxn = {
+          type: thisTxnHashResponse.transaction.tx.type,
+          txhash: arr.txhash,
+          amount: thisTxnHashResponse.transaction.tx.amount,
+          from: thisTxnHashResponse.transaction.tx.addr_from,
+          to: thisTxnHashResponse.transaction.tx.addr_to,
+          ots_key: thisTxnHashResponse.transaction.tx.ots_key,
+          fee: thisTxnHashResponse.transaction.tx.transfer.fee / SHOR_PER_QUANTA,
+          block: thisTxnHashResponse.transaction.header.block_number,
+          timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+        }
+      } else if (thisTxnHashResponse.transaction.tx.type == "TOKEN") {
+        thisTxn = {
+          type: thisTxnHashResponse.transaction.tx.type,
+          txhash: arr.txhash,
+          from: thisTxnHashResponse.transaction.tx.addr_from,
+          symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
+          name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
+          ots_key: thisTxnHashResponse.transaction.tx.ots_key,
+          fee: thisTxnHashResponse.transaction.tx.token.fee / SHOR_PER_QUANTA,
+          block: thisTxnHashResponse.transaction.header.block_number,
+          timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+        }
+      } else if (thisTxnHashResponse.transaction.tx.type == "TRANSFERTOKEN") {
+        // Request Token Symbol
+        const symbolRequest = {
+          query: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'),
+          grpc: request.grpc,
+        }
+        const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
+        const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
+
+        thisTxn = {
+          type: thisTxnHashResponse.transaction.tx.type,
+          txhash: arr.txhash,
+          symbol: thisSymbol,
+          amount: thisTxnHashResponse.transaction.tx.transfer_token.amount / SHOR_PER_QUANTA,
+          from: thisTxnHashResponse.transaction.tx.addr_from,
+          to: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.addr_to).toString(),
+          ots_key: thisTxnHashResponse.transaction.tx.ots_key,
+          fee: thisTxnHashResponse.transaction.tx.transfer_token.fee / SHOR_PER_QUANTA, 
+          block: thisTxnHashResponse.transaction.header.block_number,
+          timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+        }
       }
 
       result.push(thisTxn)

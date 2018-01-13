@@ -16,20 +16,22 @@ module.exports = function() {
     // the tests. This is a hack to change the type of the passphrase input
     // to text such that the walletCode setValue statement works.
     browser.execute(function() {
-        // browser context
-        passphraseBox = document.getElementById("basicPassphrase");
-        passphraseBox.type = "text";
+      // browser context
+      passphraseBox = document.getElementById("basicPassphrase");
+      passphraseBox.type = "text";
     })
 
     browser.setValue('#basicPassphrase', arg1)
   })
   
-  this.When(/^press Begin$/, function () {
+  this.When(/^press Create Basic Wallet$/, function () {
+    client.moveToObject('#generateBasic')
     browser.click('#generateBasic')
   })
 
   this.Then(/^I should see Generating New Wallet$/, function () {
-    let _el = '#generating p'
+    let _el = '#generating .ui .content p'
+    client.moveToObject(_el)
     browser.waitForVisible(_el)
     expect(browser.getText(_el)).toEqual('Generating new wallet...')
   })
@@ -45,7 +47,6 @@ module.exports = function() {
     let _el = '.loader'
     browser.waitForVisible(_el, 30000)
   })
-
 
   this.Then(/^I should see a loading icon$/, function () {
     let _el = '.loading'

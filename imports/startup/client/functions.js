@@ -54,3 +54,15 @@ passwordPolicyValid = (password) => {
   return false
 }
 
+// Wait for QRLLIB to load before running specified callback function
+waitForQRLLIB = (callBack) => {
+  setTimeout(() => {
+    // Test the QRLLIB object has the str2bin function.
+    // This is sufficient to tell us QRLLIB has loaded.
+    if(typeof QRLLIB.str2bin === "function") {
+      callBack()
+    } else {
+      return waitForQRLLIB(callBack)
+    }
+  }, 50)
+}
