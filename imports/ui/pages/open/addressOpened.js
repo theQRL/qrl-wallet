@@ -74,14 +74,14 @@ Template.appAddressOpened.events({
       grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc,
     }
 
-    $('.loader').show()
+    $('#loading').show()
     Meteor.call('addressTransactions', request, (err, res) => {
       if (err) {
         LocalStore.set('addressTransactions', { error: err })
       } else {
         LocalStore.set('addressTransactions', res)
         $('table').show()
-        $('.loader').hide()
+        $('#loading').hide()
       }
     })
     $('#ShowTx').hide()
@@ -89,7 +89,7 @@ Template.appAddressOpened.events({
   },
   'click #HideTx': () => {
     $('table').hide()
-    $('.loader').hide()
+    $('#loading').hide()
     $('#ShowTx').show()
     $('#HideTx').hide()
   },

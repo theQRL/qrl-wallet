@@ -54,7 +54,17 @@
               <div class="item"><strong>Nonce</strong> {{state.nonce}}</div>
             </div>
 
-            <div style="display:none;" class="ui active centered inline loader"></div>
+            <div id="loading" style="display: none;">
+              <div class="ui icon message">
+                <i class="notched circle loading icon"></i>
+                <div class="content">
+                  <div class="header">
+                    Just a moment
+                  </div>
+                  <p>Loading transactions...</p>
+                </div>
+              </div>
+            </div>
 
             <table style="display:none;" class="ui striped table">
               <thead class="mobile hidden">
