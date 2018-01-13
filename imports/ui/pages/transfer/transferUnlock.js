@@ -132,11 +132,13 @@ Template.appTransferUnlock.onRendered(() => {
 Template.appTransferUnlock.events({
   'click #unlockButtonBasic': () => {
     $('#unlocking').show()
+    $('#unlockError').hide()
     $('#noWalletFileSelected').hide()
     setTimeout(() => { unlockWallet('basic') }, 50)
   },
   'click #unlockButtonAdvanced': () => {
     $('#unlocking').show()
+    $('#unlockError').hide()
     $('#noWalletFileSelected').hide()
     setTimeout(() => { unlockWallet('advanced') }, 50)
   },

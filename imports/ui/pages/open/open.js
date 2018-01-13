@@ -124,11 +124,13 @@ function unlockWallet(basicOrAdvanced) {
 Template.appAddressOpen.events({
   'click #unlockButtonBasic': () => {
     $('#unlocking').show()
+    $('#unlockError').hide()
     $('#noWalletFileSelected').hide()
     setTimeout(() => { unlockWallet('basic') }, 50)
   },
   'click #unlockButtonAdvanced': () => {
     $('#unlocking').show()
+    $('#unlockError').hide()
     $('#noWalletFileSelected').hide()
     setTimeout(() => { unlockWallet('advanced') }, 50)
   },
