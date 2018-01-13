@@ -32,7 +32,7 @@ module.exports = function() {
   this.Then(/^I should see Generating New Wallet$/, function () {
     let _el = '#generating .ui .content p'
     client.moveToObject(_el)
-    browser.waitForVisible(_el)
+    browser.waitForVisible(_el, 30000)
     expect(browser.getText(_el)).toEqual('Generating new wallet...')
   })
 
