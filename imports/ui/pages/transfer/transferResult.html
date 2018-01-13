@@ -1,8 +1,6 @@
 <template name="appTransferResult">
 
-
 <div id="transactionComplete" class="ui green segment">
-
 
   <h2 class="ui header">
     <i class="tiny send icon"></i>
@@ -87,7 +85,7 @@
     <br /><br />
     <i class="notched circle loading icon"></i>
     <div class="content">
-      <div class="header">
+      <div id="loadingHeader" class="header">
         Just a moment
       </div>
       <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>

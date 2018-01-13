@@ -1,4 +1,5 @@
 import './addressOpened.html'
+import '../../stylesheets/overrides.css'
 /* global LocalStore */
 /* global QRLLIB */
 /* global DEFAULT_NODES */
@@ -46,18 +47,22 @@ Template.appAddressOpened.onRendered(() => {
 })
 
 Template.appAddressOpened.onCreated(() => {
-  // Get string address from FlowRouter
-  const thisAddress = FlowRouter.getParam('address')
 
-  // Convert string to bytes
-  const thisAddressBin = QRLLIB.str2bin(thisAddress)
-  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i += 1) {
-    thisAddressBytes[i] = thisAddressBin.get(i)
-  }
+  waitForQRLLIB(function () {
+    // Get string address from FlowRouter
+    const thisAddress = FlowRouter.getParam('address')
 
-  // Request address detail
-  getAddressDetail(thisAddressBytes)
+    // Convert string to bytes
+    const thisAddressBin = QRLLIB.str2bin(thisAddress)
+    const thisAddressBytes = new Uint8Array(thisAddressBin.size())
+    for (let i = 0; i < thisAddressBin.size(); i += 1) {
+      thisAddressBytes[i] = thisAddressBin.get(i)
+    }
+
+    // Request address detail
+    getAddressDetail(thisAddressBytes)
+  })
+
 })
 
 Template.appAddressOpened.events({
@@ -112,12 +117,27 @@ Template.appAddressOpened.helpers({
       const y = transaction
       y.timestamp = moment(x).format('HH:mm D MMM YYYY')
 
-      // Update fee from shor to quanta
-      y.fee /= SHOR_PER_QUANTA
-
       transactions.push(y)
     })
     return transactions
+  },
+  isTransfer(txType) {
+    if(txType == "TRANSFER") {
+      return true
+    }
+    return false
+  },
+  isTokenCreation(txType) {
+    if(txType == "TOKEN") {
+      return true
+    }
+    return false
+  },
+  isTokenTransfer(txType) {
+    if(txType == "TRANSFERTOKEN") {
+      return true
+    }
+    return false
   },
   QRText() {
     return getXMSSDetails().address

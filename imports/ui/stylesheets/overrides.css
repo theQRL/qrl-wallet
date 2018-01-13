@@ -79,3 +79,65 @@ td .unbreakable {
   bottom: 0;
   width: 100%;
 }
+
+
+
+
+
+
+/* Mobile */
+@media only screen and (max-width: 767px) {
+    .mobile.hidden,
+    .tablet.only,
+    .computer.only,
+    .large.monitor.only,
+    .widescreen.monitor.only {
+        display: none !important;
+    }
+}
+
+/* Tablet / iPad Portrait */
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .mobile.only,
+    .tablet.hidden,
+    .computer.only,
+    .large.monitor.only,
+    .widescreen.monitor.only {
+        display: none !important;
+    }
+}
+
+/* Computer / Desktop / iPad Landscape */
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .mobile.only,
+    .tablet.only,
+    .computer.hidden,
+    .large.monitor.only,
+    .widescreen.monitor.only {
+        display: none !important;
+    }
+}
+
+/* Large Monitor */
+@media only screen and (min-width: 1200px) and (max-width: 1919px) {
+    .mobile.only,
+    .tablet.only,
+    .computer.only,
+    .large.monitor.hidden,
+    .widescreen.monitor.only {
+        display: none !important;
+    }
+}
+
+/* Widescreen Monitor */
+@media only screen and (min-width: 1920px) {
+    .mobile.only,
+    .tablet.only,
+    .computer.only,
+    .large.monitor.only,
+    .widescreen.monitor.hidden  {
+        display: none !important;
+    }
+}
+
+

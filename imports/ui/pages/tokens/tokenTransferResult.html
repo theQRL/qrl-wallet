@@ -2,7 +2,6 @@
 
 <div id="transactionComplete" class="ui green segment">
 
-
   <h2 class="ui header">
     <i class="tiny ticket icon"></i>
     <div class="content">
@@ -28,7 +27,6 @@
       </div>
     </div>
   </div>
-
 
   <h4 class="ui horizontal divider header">
     <i class="send icon"></i>
@@ -66,8 +64,6 @@
     </div>
   </div>
 
-
-
   <h4 class="ui horizontal divider header">
     <i class="signal icon"></i>
     Transaction Status
@@ -75,7 +71,7 @@
 
   <div class="ui stackable one column grid">
     <div class="column">
-      <span>Transaction Hash <a class="ui">{{transactionHash}}</a></span>
+      <span>Transaction Hash <a class="ui" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
       <br />
       <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a></span>
       <br />
@@ -102,12 +98,11 @@
   {{/each}}
   </div>
 
-
   <div id="relaying" class="ui icon message">
     <br /><br />
     <i class="notched circle loading icon"></i>
     <div class="content">
-      <div class="header">
+      <div id="loadingHeader" class="header">
         Just a moment
       </div>
       <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>

@@ -22,11 +22,13 @@ function checkResult(thisTxId) {
 
     LocalStore.set('txstatus', userMessage)
     $('.loading').hide()
+    $('#loadingHeader').hide()
   } else if (LocalStore.get('txhash').error != null) {
     // Transaction error
     const errorMessage = `Error - ${LocalStore.get('txhash').error}`
     LocalStore.set('txstatus', errorMessage)
     $('.loading').hide()
+    $('#loadingHeader').hide()
   } else {
     // Poll again
     setTimeout(() => { pollTransaction(thisTxId) }, 1000)

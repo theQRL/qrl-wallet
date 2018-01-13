@@ -53,30 +53,68 @@
               <div class="item"><strong>Transactions</strong> {{state.txcount}}</div>
               <div class="item"><strong>Nonce</strong> {{state.nonce}}</div>
             </div>
+
             <div style="display:none;" class="ui active centered inline loader"></div>
+
             <table style="display:none;" class="ui striped table">
-              <thead>
-              <th>Timestamp</th>
-              <th>Amount</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Txhash</th>
-              <th>Block</th>
-              <th>Fee</th>
-              <th>OTS key</th>
+              <thead class="mobile hidden">
+                <tr>
+                  <th>Type</th>
+                  <th>Timestamp</th>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Txhash</th>
+                  <th>Amount</th>
+                  <th>Fee</th>
+                  <th>OTS Key</th>
+                  <th>Block</th>
+                </tr>
               </thead>
               <tbody>
               {{#each addressTransactions}}
+
+                {{#if isTransfer this.type}}
                 <tr>
-                  <td>{{this.timestamp}}</td>
-                  <td>{{this.amount}}</td>
-                  <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.from}}">{{this.from}}</a></td>
-                  <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.to}}">{{this.to}}</a></td>
-                  <td><a target="_blank" href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">{{this.txhash}}</a></td>
-                  <td><a target="_blank" href="{{nodeExplorerUrl}}/block/{{this.block}}">{{this.block}}</a></td>
-                  <td>{{this.fee}}</td>
-                  <td>{{this.ots_key}}</td>
+                  <td><b class="mobile only">Type: </b><div class="ui label yellow">transfer</div></td>
+                  <td><b class="mobile only">Time: </b>{{this.timestamp}}</td>
+                  <td><b class="mobile only">From: </b><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.from}}">{{this.from}}</a></td>
+                  <td><b class="mobile only">To: </b><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.to}}">{{this.to}}</a></td>
+                  <td><b class="mobile only">Hash: </b><a target="_blank" href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">{{this.txhash}}</a></td>
+                  <td><b class="mobile only">Amount: </b>{{this.amount}} Quanta</td>
+                  <td><b class="mobile only">Fee: </b>{{this.fee}}</td>
+                  <td><b class="mobile only">OTS Key: </b>{{this.ots_key}}</td>
+                  <td><b class="mobile only">Block: </b><a target="_blank" href="{{nodeExplorerUrl}}/block/{{this.block}}">{{this.block}}</a></td>
                 </tr>
+                {{/if}}
+
+                {{#if isTokenCreation this.type}}
+                <tr>
+                  <td><b class="mobile only">Type: </b><div class="ui label">token create</div></td>
+                  <td><b class="mobile only">Time: </b>{{this.timestamp}}</td>
+                  <td><b class="mobile only">From: </b><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.from}}">{{this.from}}</a></td>
+                  <td><b class="mobile only">To: </b><a target="_blank" href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">Token Creation - {{this.name}} ({{this.symbol}})</a></td>
+                  <td><b class="mobile only">Hash: </b><a target="_blank" href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">{{this.txhash}}</a></td>
+                  <td><b class="mobile only">Amount: </b>N/A</td>
+                  <td><b class="mobile only">Fee: </b>{{this.fee}}</td>
+                  <td><b class="mobile only">OTS Key: </b>{{this.ots_key}}</td>
+                  <td><b class="mobile only">Block: </b><a target="_blank" href="{{nodeExplorerUrl}}/block/{{this.block}}">{{this.block}}</a></td>
+                </tr>
+                {{/if}}
+
+                {{#if isTokenTransfer this.type}}
+                <tr>
+                  <td><b class="mobile only">Type: </b><div class="ui label purple">token transfer</div></td>
+                  <td><b class="mobile only">Time: </b>{{this.timestamp}}</td>
+                  <td><b class="mobile only">From: </b><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.from}}">{{this.from}}</a></td>
+                  <td><b class="mobile only">To: </b><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.to}}">{{this.to}}</a></td>
+                  <td><b class="mobile only">Hash: </b><a target="_blank" href="{{nodeExplorerUrl}}/tx/{{this.txhash}}">{{this.txhash}}</a></td>
+                  <td><b class="mobile only">Amount: </b>{{this.amount}} {{this.symbol}}</td>
+                  <td><b class="mobile only">Fee: </b>{{this.fee}}</td>
+                  <td><b class="mobile only">OTS Key: </b>{{this.ots_key}}</td>
+                  <td><b class="mobile only">Block: </b><a target="_blank" href="{{nodeExplorerUrl}}/block/{{this.block}}">{{this.block}}</a></td>
+                </tr>
+                {{/if}}
+
               {{/each}}
               </tbody>
             </table>
