@@ -2,6 +2,7 @@ module.exports = function () {
   'use strict';
 
   this.When(/^I click Open Wallet$/, function () {
+    client.moveToObject('#openWalletHome')
     browser.click('#openWalletHome')
   })
 
@@ -19,6 +20,7 @@ module.exports = function () {
   })
 
   this.When(/^click Unlock Wallet$/, function () {
+    client.moveToObject('#unlockButtonBasic')
     browser.click('#unlockButtonBasic')
   })
 
@@ -30,7 +32,6 @@ module.exports = function () {
 
   this.Then(/^I should then see my wallet address "([^"]*)" on the page$/, function (arg1) {
     let _el = '.header h1 a'
-
     // All time for gRPC call to be made and reply with data for view state.
     browser.waitForText(_el, 30000)
     expect(browser.getText(_el)).toEqual(arg1)

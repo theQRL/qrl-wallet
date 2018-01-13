@@ -7,7 +7,15 @@ module.exports = function () {
 
   let newAddress
 
-  this.When(/^I then click Transfer Quanta$/, function () {
+  this.When(/^I then click Transfer Quanta$/, function () {4
+    // Webdriver is not that good at scrolling with this here.
+    // Had to remove it to hit the top menu in small window selenium
+    // tests
+    browser.execute(function() {
+      document.getElementById("walletWarning").style.display = "none"
+    })
+
+    client.moveToObject('#transferQuantaMainMenu')
     browser.click('#transferQuantaMainMenu')
   })
 
@@ -27,6 +35,7 @@ module.exports = function () {
 
   this.Then(/^I should see a precalculated OTS Key Index as "([^"]*)"$/, function (arg1) {
     let _el = '#otsKey'
+    client.moveToObject('#otsKey')
     browser.waitForValue(_el, 30000);
     expect(browser.getValue(_el)).toEqual(arg1)
   })
