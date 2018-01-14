@@ -8,12 +8,7 @@ module.exports = function () {
   let newAddress
 
   this.When(/^I then click Transfer Quanta$/, function () {4
-    // Webdriver is not that good at scrolling with this here.
-    // Had to remove it to hit the top menu in small window selenium
-    // tests
-    browser.execute(function() {
-      document.getElementById("walletWarning").style.display = "none"
-    })
+
 
     client.moveToObject('#transferQuantaMainMenu')
     browser.click('#transferQuantaMainMenu')
