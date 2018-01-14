@@ -12,7 +12,6 @@ module.exports = function() {
     browser.execute(function() {
       document.getElementById("walletWarning").style.display = "none"
     })
-
   })
 
   this.When(/^I click Create Wallet$/, function () {
@@ -38,22 +37,16 @@ module.exports = function() {
   })
 
   this.Then(/^I should see Generating New Wallet$/, function () {
-    let _el = '#generating .ui .content p'
+    let _el = '#generating'
     client.moveToObject(_el)
     browser.waitForVisible(_el, 30000)
-    expect(browser.getText(_el)).toEqual('Generating new wallet...')
   })
-
-
-
-
 
   this.Then(/^I should then see my wallet details$/, function () {
     let _el = 'h2.ui.header .sub.header'
     browser.waitForVisible(_el, 30000) // Max 30 seconds wallet generation time.
     expect(browser.getText(_el)).toEqual('Your new wallet details are below')
   })
-
 
   this.Then(/^I should see a loader icon$/, function () {
     let _el = '.loader'
