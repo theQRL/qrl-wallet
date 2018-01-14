@@ -5,6 +5,14 @@ module.exports = function() {
 
   this.Given(/^I am on the site$/, function () {
     browser.url('http://localhost:3000')
+
+    // Webdriver is not that good at scrolling with this here.
+    // Had to remove it to hit the top menu in small window selenium
+    // tests
+    browser.execute(function() {
+      document.getElementById("walletWarning").style.display = "none"
+    })
+
   })
 
   this.When(/^I click Create Wallet$/, function () {
@@ -35,6 +43,10 @@ module.exports = function() {
     browser.waitForVisible(_el, 30000)
     expect(browser.getText(_el)).toEqual('Generating new wallet...')
   })
+
+
+
+
 
   this.Then(/^I should then see my wallet details$/, function () {
     let _el = 'h2.ui.header .sub.header'
