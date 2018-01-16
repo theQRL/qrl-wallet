@@ -254,6 +254,8 @@ const confirmTransaction = (request, callback) => {
     toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
 
 
+    console.log(confirmTxn)
+
   // Relay transaction through user node, then all default nodes.
   let txnResponse
 
@@ -279,6 +281,7 @@ const confirmTransaction = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
+      /*
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
@@ -300,6 +303,8 @@ const confirmTransaction = (request, callback) => {
         console.log('all txns sent')
         wfcb()
       })
+      */
+      wfcb()
     },
   ], () => {
     // All done, send txn response
