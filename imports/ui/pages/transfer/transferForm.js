@@ -68,11 +68,12 @@ function generateTransaction() {
     amount: sendAmount * SHOR_PER_QUANTA,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 
   Meteor.call('transferCoins', request, (err, res) => {
+    console.log(res.response)
+
     if (err) {
       LocalStore.set('transactionGenerationError', err)
       $('#transactionGenFailed').show()
@@ -84,7 +85,7 @@ function generateTransaction() {
         to: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.transfer.addr_to),
         amount: res.response.transaction_unsigned.transfer.amount / SHOR_PER_QUANTA,
         fee: res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA,
-        otsKey: res.response.transaction_unsigned.ots_key,
+        otsKey: otsKey
       }
 
       LocalStore.set('transactionConfirmation', confirmation)

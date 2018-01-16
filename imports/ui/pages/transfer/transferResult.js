@@ -92,7 +92,7 @@ Template.appTransferResult.helpers({
     return status
   },
   transactionConfirmation() {
-    const confirmation = LocalStore.get('transactionConfirmation')
+    let confirmation = LocalStore.get('transactionConfirmation')
     return confirmation
   },
   txDetail() {
@@ -100,6 +100,11 @@ Template.appTransferResult.helpers({
     txDetail.amount /= SHOR_PER_QUANTA
     txDetail.fee /= SHOR_PER_QUANTA
     return txDetail
+  },
+  otsKey() {
+    let otsKey = LocalStore.get('txhash').transaction.tx.signature
+    otsKey = parseInt(otsKey.substring(0,8), 16)
+    return otsKey
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {

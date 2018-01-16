@@ -6,6 +6,7 @@ import './transferConfirm.html'
 /* global findNodeData */
 /* global selectedNode */
 /* global DEFAULT_NODES */
+/* global SHOR_PER_QUANTA */
 
 function confirmTransaction() {
   const tx = LocalStore.get('transactionConfirmationResponse')
@@ -13,8 +14,10 @@ function confirmTransaction() {
   let hashToSign = tx.transaction_unsigned.transaction_hash
   hashToSign = new QRLLIB.str2bin(hashToSign)
 
-  // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(tx.transaction_unsigned.ots_key)
+  console.log(tx)
+
+  // Set OTS Key Index
+  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
 
   // Sign hash
   const signedHash = XMSS_OBJECT.sign(hashToSign)
@@ -85,7 +88,8 @@ Template.appTransferConfirm.helpers({
     return confirmationAmount
   },
   transactionConfirmationFee() {
-    const transactionConfirmationFee = LocalStore.get('transactionConfirmationFee')
+    const transactionConfirmationFee = 
+      LocalStore.get('transactionConfirmationResponse').transaction_unsigned.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
   transactionGenerationError() {

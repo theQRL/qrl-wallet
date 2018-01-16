@@ -494,6 +494,7 @@ const confirmTokenTransfer = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
+      /*
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
@@ -510,11 +511,14 @@ const confirmTokenTransfer = (request, callback) => {
         } else {
           cb()
         }
+
       }, (err) => {
         if (err) console.error(err.message)
         console.log('all txns sent')
         wfcb()
       })
+      */
+      wfcb()
     },
   ], () => {
     // All done, send txn response
