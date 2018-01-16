@@ -17,6 +17,8 @@ function confirmTransaction() {
   console.log(tx)
 
   // Set OTS Key Index
+  console.log('ots key is ...')
+  console.log(parseInt(LocalStore.get('transactionConfirmation').otsKey))
   XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
 
   // Sign hash
@@ -28,6 +30,9 @@ function confirmTransaction() {
   }
 
   tx.transaction_unsigned.signature = signedHashJS
+
+  console.log('signed txn')
+  console.log(tx)
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   tx.grpc = grpcEndpoint
