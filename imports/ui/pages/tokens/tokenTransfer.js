@@ -120,7 +120,6 @@ function sendTokensTxnCreate() {
     amount: amount * SHOR_PER_QUANTA,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 
@@ -136,8 +135,8 @@ function sendTokensTxnCreate() {
         from: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.addr_from),
         to: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.transfer_token.addr_to),
         amount: res.response.transaction_unsigned.transfer_token.amount / SHOR_PER_QUANTA,
-        fee: res.response.transaction_unsigned.transfer_token.fee / SHOR_PER_QUANTA,
-        otsKey: res.response.transaction_unsigned.ots_key,
+        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
+        otsKey: otsKey,
       }
 
       const tokenDetails = {

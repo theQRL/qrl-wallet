@@ -98,7 +98,7 @@ function createTokenTxn() {
   }
 
   // Store which ots key index is being used for this transaction
-  LocalStore.set('otsKeyIndex', otsKeyIndex)
+  LocalStore.set('otsKeyIndex', otsKey)
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -111,7 +111,6 @@ function createTokenTxn() {
     initialBalances: tokenHolders,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 
@@ -128,9 +127,9 @@ function createTokenTxn() {
         name: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.name),
         owner: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.owner),
         decimals: res.response.transaction_unsigned.token.decimals,
-        fee: res.response.transaction_unsigned.token.fee / SHOR_PER_QUANTA,
+        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.transaction_unsigned.token.initial_balances,
-        otsKey: res.response.transaction_unsigned.ots_key,
+        otsKey: otsKey,
       }
 
       LocalStore.set('tokenCreationConfirmation', confirmation)

@@ -65,7 +65,6 @@ function pollTransaction(thisTxId, firstPoll = false) {
   }
 }
 
-
 Template.appTokenTransferResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
 

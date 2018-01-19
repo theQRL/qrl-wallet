@@ -72,8 +72,6 @@ function generateTransaction() {
   }
 
   Meteor.call('transferCoins', request, (err, res) => {
-    console.log(res.response)
-
     if (err) {
       LocalStore.set('transactionGenerationError', err)
       $('#transactionGenFailed').show()

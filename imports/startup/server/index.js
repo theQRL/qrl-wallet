@@ -180,12 +180,15 @@ const getTxnHash = (request, callback) => {
       callback(err, null)
     } else {
       if (response.found === true && response.result === 'transaction') {
+
         response.transaction.tx.addr_from =
           Buffer.from(response.transaction.tx.addr_from).toString()
         response.transaction.tx.transaction_hash =
           Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
         response.transaction.tx.addr_to = ''
         response.transaction.tx.amount = ''
+
+
         if (response.transaction.coinbase) {
           response.transaction.tx.addr_to =
             Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
@@ -202,6 +205,8 @@ const getTxnHash = (request, callback) => {
           // FIXME: We need a unified way to format Quanta
           response.transaction.tx.amount = response.transaction.tx.transfer.amount / SHOR_PER_QUANTA
         }
+
+
         response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
         response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
 
@@ -252,9 +257,6 @@ const confirmTransaction = (request, callback) => {
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
   confirmTxn.transaction_signed.transfer.addr_to =
     toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
-
-
-    console.log(confirmTxn)
 
   // Relay transaction through user node, then all default nodes.
   let txnResponse
@@ -327,7 +329,6 @@ const createTokenTxn = (request, callback) => {
     owner: request.owner,
     owner: request.owner,
     xmss_pk: request.xmssPk,
-    xmss_ots_index: request.xmssOtsKey,
   }
 
   qrlClient[request.grpc].getTokenTxn(tx, (err, response) => {
@@ -398,6 +399,7 @@ const confirmTokenCreation = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
+      /*
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
@@ -419,6 +421,8 @@ const confirmTokenCreation = (request, callback) => {
         console.log('all txns sent')
         wfcb()
       })
+      */
+      wfcb()
     },
   ], () => {
     // All done, send txn response
@@ -453,8 +457,6 @@ const createTokenTransferTxn = (request, callback) => {
     }
   })
 }
-
-
 
 
 const confirmTokenTransfer = (request, callback) => {
@@ -591,8 +593,8 @@ Meteor.methods({
           amount: thisTxnHashResponse.transaction.tx.amount,
           from: thisTxnHashResponse.transaction.tx.addr_from,
           to: thisTxnHashResponse.transaction.tx.addr_to,
-          ots_key: thisTxnHashResponse.transaction.tx.ots_key,
-          fee: thisTxnHashResponse.transaction.tx.transfer.fee / SHOR_PER_QUANTA,
+          ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+          fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
           block: thisTxnHashResponse.transaction.header.block_number,
           timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
         }
@@ -603,8 +605,8 @@ Meteor.methods({
           from: thisTxnHashResponse.transaction.tx.addr_from,
           symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
           name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
-          ots_key: thisTxnHashResponse.transaction.tx.ots_key,
-          fee: thisTxnHashResponse.transaction.tx.token.fee / SHOR_PER_QUANTA,
+          ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+          fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
           block: thisTxnHashResponse.transaction.header.block_number,
           timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
         }
@@ -624,8 +626,8 @@ Meteor.methods({
           amount: thisTxnHashResponse.transaction.tx.transfer_token.amount / SHOR_PER_QUANTA,
           from: thisTxnHashResponse.transaction.tx.addr_from,
           to: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.addr_to).toString(),
-          ots_key: thisTxnHashResponse.transaction.tx.ots_key,
-          fee: thisTxnHashResponse.transaction.tx.transfer_token.fee / SHOR_PER_QUANTA, 
+          ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+          fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA, 
           block: thisTxnHashResponse.transaction.header.block_number,
           timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
         }

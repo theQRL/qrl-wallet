@@ -4,10 +4,6 @@ import './transferResult.html'
 /* global SHOR_PER_QUANTA */
 /* eslint no-console:0 */
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 function setRawDetail() {
   const myJSON = LocalStore.get('txhash').transaction
   const formatter = new JSONFormatter(myJSON)
@@ -31,7 +27,7 @@ function checkResult(thisTxId) {
     $('#loadingHeader').hide()
   } else {
     // Poll again
-    setTimeout(() => { pollTransaction(thisTxId) }, 1000)
+    setTimeout(() => { pollTransaction(thisTxId) }, 5000)
   }
 }
 
@@ -94,6 +90,10 @@ Template.appTransferResult.helpers({
   transactionConfirmation() {
     let confirmation = LocalStore.get('transactionConfirmation')
     return confirmation
+  },
+  transactionConfirmationFee() {
+    let transactionConfirmationFee = LocalStore.get('txhash').transaction.tx.fee /= SHOR_PER_QUANTA
+    return transactionConfirmationFee
   },
   txDetail() {
     let txDetail = LocalStore.get('txhash').transaction.tx.transfer
