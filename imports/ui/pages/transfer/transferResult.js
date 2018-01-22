@@ -2,6 +2,7 @@ import JSONFormatter from 'json-formatter-js'
 import './transferResult.html'
 /* global LocalStore */
 /* global SHOR_PER_QUANTA */
+/* global POLL_TXN_RATE */
 /* eslint no-console:0 */
 
 function setRawDetail() {
@@ -27,7 +28,7 @@ function checkResult(thisTxId) {
     $('#loadingHeader').hide()
   } else {
     // Poll again
-    setTimeout(() => { pollTransaction(thisTxId) }, 5000)
+    setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
   }
 }
 

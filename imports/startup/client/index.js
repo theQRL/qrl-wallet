@@ -8,5 +8,8 @@ import './functions.js'
 // Global to store XMSS object
 XMSS_OBJECT = null
 
+// Rate in ms to check transaction status
+POLL_TXN_RATE = 5000
+
 // Reset wallet status
 resetWalletStatus()
