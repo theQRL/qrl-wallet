@@ -120,6 +120,7 @@ function sendTokensTxnCreate() {
     amount: amount * SHOR_PER_QUANTA,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
+    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 

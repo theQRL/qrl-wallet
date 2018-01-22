@@ -97,9 +97,6 @@ function createTokenTxn() {
     tokenHolders.push(thisHolder)
   }
 
-  // Store which ots key index is being used for this transaction
-  LocalStore.set('otsKeyIndex', otsKey)
-
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
@@ -111,6 +108,7 @@ function createTokenTxn() {
     initialBalances: tokenHolders,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
+    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 

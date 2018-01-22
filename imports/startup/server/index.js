@@ -329,6 +329,7 @@ const createTokenTxn = (request, callback) => {
     owner: request.owner,
     owner: request.owner,
     xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
   }
 
   qrlClient[request.grpc].getTokenTxn(tx, (err, response) => {
