@@ -16,7 +16,7 @@ const getAddressDetail = (getAddress) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
 
   const request = {
-    address: getAddress,
+    address: stringToBytes(getAddress),
     grpc: grpcEndpoint,
   }
 
@@ -52,15 +52,8 @@ Template.appAddressOpened.onCreated(() => {
     // Get string address from FlowRouter
     const thisAddress = FlowRouter.getParam('address')
 
-    // Convert string to bytes
-    const thisAddressBin = QRLLIB.str2bin(thisAddress)
-    const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-    for (let i = 0; i < thisAddressBin.size(); i += 1) {
-      thisAddressBytes[i] = thisAddressBin.get(i)
-    }
-
     // Request address detail
-    getAddressDetail(thisAddressBytes)
+    getAddressDetail(thisAddress)
   })
 
 })

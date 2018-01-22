@@ -261,6 +261,10 @@ const confirmTransaction = (request, callback) => {
   // Relay transaction through user node, then all default nodes.
   let txnResponse
 
+
+  console.log(txnResponse)
+  
+
   async.waterfall([
     // Relay through user node.
     function (wfcb) {

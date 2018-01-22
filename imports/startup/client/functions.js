@@ -66,3 +66,50 @@ waitForQRLLIB = (callBack) => {
     }
   }, 50)
 }
+
+// Convert a string to bytes
+stringToBytes = (convertMe) => {
+  // Convert String to Binary First
+  const thisBinary = QRLLIB.str2bin(convertMe)
+  // Now convert to Bytes
+  return binaryToBytes(thisBinary)
+}
+
+// Convert Binary object to Bytes
+binaryToBytes = (convertMe) => {
+  // Convert Binary to Bytes
+  const thisBytes = new Uint8Array(convertMe.size())
+  for (let i = 0; i < convertMe.size(); i += 1) {
+    thisBytes[i] = convertMe.get(i)
+  }
+  return thisBytes
+}
+
+// Get wallet address state details
+getBalance = (getAddress) => {
+  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
+  const request = {
+    address: stringToBytes(getAddress),
+    grpc: grpcEndpoint,
+  }
+
+  Meteor.call('getAddress', request, (err, res) => {
+    if (err) {
+      // TODO - Error handling
+    } else {
+      if (res.state.address !== '') {
+        LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
+        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
+        LocalStore.set('transferFromTokenState', res.state.tokens)
+      } else {
+        // Wallet not found, put together an empty response
+        LocalStore.set('transferFromBalance', 0)
+        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(getAddress))
+      }
+
+      // Rudimentary way to set otsKey
+      LocalStore.set('otsKeyEstimate', res.state.txcount)
+    }
+  })
+}
+

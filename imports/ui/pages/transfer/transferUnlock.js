@@ -27,7 +27,6 @@ function openWallet(walletType, walletCode, xmssHeight) {
       status.menuHidden = ''
       LocalStore.set('walletStatus', status)
 
-
       const params = {}
       const path = FlowRouter.path('/transfer/detail', params)
       FlowRouter.go(path)

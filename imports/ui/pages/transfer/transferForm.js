@@ -7,32 +7,6 @@ import './transferForm.html'
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
 
-const getBalance = (getAddress) => {
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  const request = {
-    address: getAddress,
-    grpc: grpcEndpoint,
-  }
-
-  Meteor.call('getAddress', request, (err, res) => {
-    if (err) {
-      // TODO - Error handling
-    } else {
-      if (res.state.address !== '') {
-        LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
-      } else {
-        // Wallet not found, put together an empty response
-        LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(getAddress))
-      }
-
-      // Rudimentary way to set otsKey
-      LocalStore.set('otsKeyEstimate', res.state.txcount)
-    }
-  })
-}
-
 function generateTransaction() {
   // Get to/amount details
   const sendFrom = LocalStore.get('transferFromAddress')
@@ -41,24 +15,9 @@ function generateTransaction() {
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
 
-
-  const binaryPublicKey = XMSS_OBJECT.getPK()
-  const pubKey = new Uint8Array(binaryPublicKey.size())
-  for (let i = 0; i < binaryPublicKey.size(); i += 1) {
-    pubKey[i] = binaryPublicKey.get(i)
-  }
-
-  const sendFromBin = QRLLIB.str2bin(sendFrom)
-  const sendFromAddress = new Uint8Array(sendFromBin.size())
-  for (let i = 0; i < sendFromBin.size(); i += 1) {
-    sendFromAddress[i] = sendFromBin.get(i)
-  }
-
-  const sendToBin = QRLLIB.str2bin(sendTo)
-  const sendToAddress = new Uint8Array(sendToBin.size())
-  for (let i = 0; i < sendToBin.size(); i += 1) {
-    sendToAddress[i] = sendToBin.get(i)
-  }
+  const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  const sendFromAddress = stringToBytes(sendFrom)
+  const sendToAddress = stringToBytes(sendTo)
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -134,13 +93,7 @@ Template.appTransferForm.onRendered(() => {
     },
   })
 
-  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i += 1) {
-    thisAddressBytes[i] = thisAddressBin.get(i)
-  }
-
-  getBalance(thisAddressBytes)
+  getBalance(XMSS_OBJECT.getAddress())
 })
 
 Template.appTransferForm.events({

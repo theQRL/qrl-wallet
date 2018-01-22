@@ -7,44 +7,12 @@ import './tokenTransfer.html'
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
 
-const getBalance = (getAddress) => {
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  const request = {
-    address: getAddress,
-    grpc: grpcEndpoint,
-  }
-
-  Meteor.call('getAddress', request, (err, res) => {
-    if (err) {
-      // TODO - Error handling
-    } else {
-      if (res.state.address !== '') {
-        LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
-        LocalStore.set('transferFromTokenState', res.state.tokens)
-      } else {
-        // Wallet not found, put together an empty response
-        LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(getAddress))
-      }
-
-      // Rudimentary way to set otsKey
-      LocalStore.set('otsKeyEstimate', res.state.txcount)
-    }
-  })
-}
-
 function loadToken() {
   const sendFrom = LocalStore.get('transferFromAddress')
   const tokenHash = document.getElementById('tokenHash').value
 
   // Update address balance in case the token state has changed.
-  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i += 1) {
-    thisAddressBytes[i] = thisAddressBin.get(i)
-  }
-  getBalance(thisAddressBytes)
+  getBalance(XMSS_OBJECT.getAddress())
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -90,26 +58,10 @@ function sendTokensTxnCreate() {
   const otsKey = document.getElementById('otsKey').value
 
   // Convert strings to bytes
-  const binaryPublicKey = XMSS_OBJECT.getPK()
-  const pubKey = new Uint8Array(binaryPublicKey.size())
-  for (let i = 0; i < binaryPublicKey.size(); i += 1) {
-    pubKey[i] = binaryPublicKey.get(i)
-  }
-  const sendFromBin = QRLLIB.str2bin(sendFrom)
-  const sendFromAddress = new Uint8Array(sendFromBin.size())
-  for (let i = 0; i < sendFromBin.size(); i += 1) {
-    sendFromAddress[i] = sendFromBin.get(i)
-  }
-  const sendToBin = QRLLIB.str2bin(to)
-  const sendToAddress = new Uint8Array(sendToBin.size())
-  for (let i = 0; i < sendToBin.size(); i += 1) {
-    sendToAddress[i] = sendToBin.get(i)
-  }
-  const tokenHashBin = QRLLIB.str2bin(tokenHash)
-  const tokenHashBytes = new Uint8Array(tokenHashBin.size())
-  for (let i = 0; i < tokenHashBin.size(); i += 1) {
-    tokenHashBytes[i] = tokenHashBin.get(i)
-  }
+  const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  const sendFromAddress = stringToBytes(sendFrom)
+  const sendToAddress = stringToBytes(to)
+  const tokenHashBytes = stringToBytes(tokenHash)
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -123,7 +75,6 @@ function sendTokensTxnCreate() {
     xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
-
 
   Meteor.call('createTokenTransferTxn', request, (err, res) => {
     if (err) {
@@ -161,14 +112,8 @@ function sendTokensTxnCreate() {
 Template.appTokenTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
-  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i += 1) {
-    thisAddressBytes[i] = thisAddressBin.get(i)
-  }
-
   LocalStore.set('transferFromTokenState', '')
-  getBalance(thisAddressBytes)
+  getBalance(XMSS_OBJECT.getAddress())
 
   // Preload Token Hash
   const presetTokenHash = LocalStore.get('preLoadTokenHash')
