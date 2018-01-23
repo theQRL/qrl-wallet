@@ -46,7 +46,12 @@ const updateNode = (selectedNode) => {
           LocalStore.set('customNodeCreated', true)
           LocalStore.set('modalEventTriggered', true)
 
-          $('#networkDropdown').dropdown('set selected', 'custom')
+          $('#networkDropdown').dropdown('refresh')
+
+          // Hacky workaround to https://github.com/Semantic-Org/Semantic-UI/issues/2247
+          setTimeout(() => {
+            $('#networkDropdown').dropdown('set selected', 'custom')
+          }, 100)
         },
         onHide: () => {
           // onHide is triggered even after onApprove and onDeny.
