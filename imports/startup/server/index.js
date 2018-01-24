@@ -287,7 +287,6 @@ const confirmTransaction = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
-      /*
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
@@ -296,7 +295,7 @@ const confirmTransaction = (request, callback) => {
               console.log(`Error: Failed to send transaction through ${node.grpc}`)
               cb()
             } else {
-              console.log(`Transaction sent via ${node.grpc}`)
+              console.log(`Transfer Transaction sent via ${node.grpc}`)
               relayedThrough.push(node.grpc)
               cb()
             }
@@ -306,11 +305,9 @@ const confirmTransaction = (request, callback) => {
         }
       }, (err) => {
         if (err) console.error(err.message)
-        console.log('all txns sent')
+        console.log('All transfer txns sent')
         wfcb()
       })
-      */
-      wfcb()
     },
   ], () => {
     // All done, send txn response
@@ -404,7 +401,6 @@ const confirmTokenCreation = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
-      /*
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
@@ -413,7 +409,7 @@ const confirmTokenCreation = (request, callback) => {
               console.log(`Error: Failed to send transaction through ${node.grpc}`)
               cb()
             } else {
-              console.log(`Transaction sent via ${node.grpc}`)
+              console.log(`Token Creation Transaction sent via ${node.grpc}`)
               relayedThrough.push(node.grpc)
               cb()
             }
@@ -423,11 +419,9 @@ const confirmTokenCreation = (request, callback) => {
         }
       }, (err) => {
         if (err) console.error(err.message)
-        console.log('all txns sent')
+        console.log('All token creation txns sent')
         wfcb()
       })
-      */
-      wfcb()
     },
   ], () => {
     // All done, send txn response
@@ -506,7 +500,6 @@ const confirmTokenTransfer = (request, callback) => {
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
-      /*
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
           // Push the transaction - we don't care for its response
@@ -515,7 +508,7 @@ const confirmTokenTransfer = (request, callback) => {
               console.log(`Error: Failed to send transaction through ${node.grpc}`)
               cb()
             } else {
-              console.log(`Transaction sent via ${node.grpc}`)
+              console.log(`Token Xfer Transaction sent via ${node.grpc}`)
               relayedThrough.push(node.grpc)
               cb()
             }
@@ -526,11 +519,9 @@ const confirmTokenTransfer = (request, callback) => {
 
       }, (err) => {
         if (err) console.error(err.message)
-        console.log('all txns sent')
+        console.log('All token transfer txns sent')
         wfcb()
       })
-      */
-      wfcb()
     },
   ], () => {
     // All done, send txn response

@@ -55,14 +55,6 @@ DEFAULT_NODES = [
     type: 'both',
   },
   {
-    id: 'devnet',
-    name: 'Devnet (Official QRL Node 1)',
-    disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '35.177.60.137:9009',
-    type: 'both',
-  },
-  {
     id: 'mainnet',
     name: 'Mainnet (Official QRL Node)',
     disabled: 'disabled',
