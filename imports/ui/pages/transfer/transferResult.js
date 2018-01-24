@@ -2,11 +2,8 @@ import JSONFormatter from 'json-formatter-js'
 import './transferResult.html'
 /* global LocalStore */
 /* global SHOR_PER_QUANTA */
+/* global POLL_TXN_RATE */
 /* eslint no-console:0 */
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
 
 function setRawDetail() {
   const myJSON = LocalStore.get('txhash').transaction
@@ -31,7 +28,7 @@ function checkResult(thisTxId) {
     $('#loadingHeader').hide()
   } else {
     // Poll again
-    setTimeout(() => { pollTransaction(thisTxId) }, 1000)
+    setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
   }
 }
 
@@ -92,14 +89,23 @@ Template.appTransferResult.helpers({
     return status
   },
   transactionConfirmation() {
-    const confirmation = LocalStore.get('transactionConfirmation')
+    let confirmation = LocalStore.get('transactionConfirmation')
     return confirmation
+  },
+  transactionConfirmationFee() {
+    let transactionConfirmationFee = LocalStore.get('txhash').transaction.tx.fee /= SHOR_PER_QUANTA
+    return transactionConfirmationFee
   },
   txDetail() {
     let txDetail = LocalStore.get('txhash').transaction.tx.transfer
     txDetail.amount /= SHOR_PER_QUANTA
     txDetail.fee /= SHOR_PER_QUANTA
     return txDetail
+  },
+  otsKey() {
+    let otsKey = LocalStore.get('txhash').transaction.tx.signature
+    otsKey = parseInt(otsKey.substring(0,8), 16)
+    return otsKey
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {

@@ -15,17 +15,10 @@ function confirmTokenCreation() {
   hashToSign = new QRLLIB.str2bin(hashToSign)
 
   // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(tx.transaction_unsigned.ots_key)
+  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
 
-  // Sign hash
-  const signedHash = XMSS_OBJECT.sign(hashToSign)
-
-  const signedHashJS = new Uint8Array(signedHash.size())
-  for (let i = 0; i < signedHash.size(); i += 1) {
-    signedHashJS[i] = signedHash.get(i)
-  }
-
-  tx.transaction_unsigned.signature = signedHashJS
+  // Sign hash and convert to bytes
+  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(hashToSign))
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   tx.grpc = grpcEndpoint

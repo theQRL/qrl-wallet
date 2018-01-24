@@ -6,7 +6,7 @@ let tokensHeld = []
 const getTokenBalances = (getAddress) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    address: getAddress,
+    address: stringToBytes(getAddress),
     grpc: grpcEndpoint,
   }
 
@@ -61,7 +61,6 @@ const getTokenBalances = (getAddress) => {
   })
 }
 
-
 Template.appTokensView.helpers({
   walletStatus() {
     return LocalStore.get('walletStatus')
@@ -70,7 +69,6 @@ Template.appTokensView.helpers({
     return LocalStore.get('tokensHeld')
   },
 })
-
 
 Template.appTokensView.onRendered(() => {
   tokensHeld = []
@@ -83,11 +81,6 @@ Template.appTokensView.onRendered(() => {
     FlowRouter.go(path)
   }
 
-  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i += 1) {
-    thisAddressBytes[i] = thisAddressBin.get(i)
-  }
-
-  getTokenBalances(thisAddressBytes)
+  getTokenBalances(XMSS_OBJECT.getAddress())
 })
+

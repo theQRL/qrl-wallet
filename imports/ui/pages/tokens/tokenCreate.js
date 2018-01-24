@@ -7,32 +7,6 @@ import './tokenCreate.html'
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
 
-const getBalance = (getAddress) => {
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  const request = {
-    address: getAddress,
-    grpc: grpcEndpoint,
-  }
-
-  Meteor.call('getAddress', request, (err, res) => {
-    if (err) {
-      // TODO - Error handling
-    } else {
-      if (res.state.address !== '') {
-        LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
-      } else {
-        // Wallet not found, put together an empty response
-        LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(getAddress))
-      }
-
-      // Rudimentary way to set otsKey
-      LocalStore.set('otsKeyEstimate', res.state.txcount)
-    }
-  })
-}
-
 function createTokenTxn() {
   // Get to/amount details
   const sendFrom = LocalStore.get('transferFromAddress')
@@ -47,56 +21,26 @@ function createTokenTxn() {
   let tokenHolders = []
 
   // Convert strings to bytes
-  const binaryPublicKey = XMSS_OBJECT.getPK()
-  const pubKey = new Uint8Array(binaryPublicKey.size())
-  for (let i = 0; i < binaryPublicKey.size(); i += 1) {
-    pubKey[i] = binaryPublicKey.get(i)
-  }
-
-  const sendFromBin = QRLLIB.str2bin(sendFrom)
-  const sendFromAddress = new Uint8Array(sendFromBin.size())
-  for (let i = 0; i < sendFromBin.size(); i += 1) {
-    sendFromAddress[i] = sendFromBin.get(i)
-  }
-
-  const symbolBin = QRLLIB.str2bin(symbol)
-  const symbolBytes = new Uint8Array(symbolBin.size())
-  for (let i = 0; i < symbolBin.size(); i += 1) {
-    symbolBytes[i] = symbolBin.get(i)
-  }
-  const nameBin = QRLLIB.str2bin(name)
-  const nameBytes = new Uint8Array(nameBin.size())
-  for (let i = 0; i < nameBin.size(); i += 1) {
-    nameBytes[i] = nameBin.get(i)
-  }
-  const ownerBin = QRLLIB.str2bin(owner)
-  const ownerAddress = new Uint8Array(ownerBin.size())
-  for (let i = 0; i < ownerBin.size(); i += 1) {
-    ownerAddress[i] = ownerBin.get(i)
-  }
-
-
+  const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  const sendFromAddress = stringToBytes(sendFrom)
+  const symbolBytes = stringToBytes(symbol)
+  const nameBytes = stringToBytes(name)
+  const ownerAddress = stringToBytes(owner)
 
   // Collect Token Holders and create payload
   var initialBalancesAddress = document.getElementsByName("initialBalancesAddress[]")
   var initialBalancesAddressAmount = document.getElementsByName("initialBalancesAddressAmount[]")
   
   for (var i = 0; i < initialBalancesAddress.length; i++) {
-    const holderAddressBin = QRLLIB.str2bin(initialBalancesAddress[i].value)
-    const holderAddressBytes = new Uint8Array(holderAddressBin.size())
-    for (let i = 0; i < holderAddressBin.size(); i += 1) {
-      holderAddressBytes[i] = holderAddressBin.get(i)
-    }
+    const holderAddressBytes = stringToBytes(initialBalancesAddress[i].value)
 
     const thisHolder = {
       address: holderAddressBytes,
       amount: initialBalancesAddressAmount[i].value * SHOR_PER_QUANTA
     }
      
-    console.log(thisHolder)
     tokenHolders.push(thisHolder)
   }
-
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -126,9 +70,9 @@ function createTokenTxn() {
         name: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.name),
         owner: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.owner),
         decimals: res.response.transaction_unsigned.token.decimals,
-        fee: res.response.transaction_unsigned.token.fee / SHOR_PER_QUANTA,
+        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.transaction_unsigned.token.initial_balances,
-        otsKey: res.response.transaction_unsigned.ots_key,
+        otsKey: otsKey,
       }
 
       LocalStore.set('tokenCreationConfirmation', confirmation)
@@ -144,13 +88,8 @@ function createTokenTxn() {
 
 Template.appTokenCreate.onRendered(() => {
   $('.ui.dropdown').dropdown()
-  const thisAddressBin = QRLLIB.str2bin(XMSS_OBJECT.getAddress())
-  const thisAddressBytes = new Uint8Array(thisAddressBin.size())
-  for (let i = 0; i < thisAddressBin.size(); i += 1) {
-    thisAddressBytes[i] = thisAddressBin.get(i)
-  }
 
-  getBalance(thisAddressBytes)
+  getBalance(XMSS_OBJECT.getAddress())
 })
 
 Template.appTokenCreate.events({

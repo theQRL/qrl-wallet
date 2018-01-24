@@ -1,6 +1,7 @@
 import JSONFormatter from 'json-formatter-js'
 import './tokenTransferResult.html'
 /* global LocalStore */
+/* global POLL_TXN_RATE */
 /* eslint no-console:0 */
 
 function sleep(ms) {
@@ -30,7 +31,7 @@ function checkResult(thisTxId) {
     $('#loadingHeader').hide()
   } else {
     // Poll again
-    setTimeout(() => { pollTransaction(thisTxId) }, 1000)
+    setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
   }
 }
 
@@ -64,7 +65,6 @@ function pollTransaction(thisTxId, firstPoll = false) {
     })
   }
 }
-
 
 Template.appTokenTransferResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
