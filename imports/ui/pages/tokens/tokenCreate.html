@@ -1,14 +1,16 @@
 <template name="appTokenCreate">
 
 
-<div class="ui left aligned segment" id="tokenCreateForm">
+<h2 class="ui header pageHeader">
+  <i class="tiny ticket icon"></i>
+  <div class="content">
+    Create Token
+  </div>
+</h2>
 
-  <h2 class="ui header">
-    <i class="tiny ticket icon"></i>
-    <div class="content">
-      Create Token
-    </div>
-  </h2>
+<div class="ui left aligned segment pageSegment" id="tokenCreateForm">
+
+
 
   <form id="generateTokenForm" class="ui form">
 
@@ -18,7 +20,7 @@
     <h4 class="unbreakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
     <h4 class="ui horizontal divider header">
-      <i class="sidebar icon"></i>
+      <i class="ticket icon"></i>
       Token Details
     </h4>
 
@@ -95,7 +97,7 @@
     </div>
 
     <div class="field">
-      <button id="createToken" class="ui huge primary button" style="float: left;">Create Token &raquo;</button>
+      <button id="createToken" class="ui huge primary button red" style="float: left;">Create Token</button>
       <br />
     </div>
 
@@ -115,7 +117,7 @@
   </form>
 </div>
 
-<div id="tokenCreationFailed" class="ui red segment" style="display: none;">
+<div id="tokenCreationFailed" class="ui red segment pageSegment" style="display: none;">
   <h4>Token Creation Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenCreationError}}</p>
 </div>

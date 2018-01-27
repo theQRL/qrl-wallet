@@ -285,6 +285,7 @@ const confirmTransaction = (request, callback) => {
         }
       })
     },
+    /*
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
@@ -309,6 +310,7 @@ const confirmTransaction = (request, callback) => {
         wfcb()
       })
     },
+    */
   ], () => {
     // All done, send txn response
     txnResponse.relayed = relayedThrough
@@ -399,6 +401,7 @@ const confirmTokenCreation = (request, callback) => {
         }
       })
     },
+    /*
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
@@ -423,6 +426,7 @@ const confirmTokenCreation = (request, callback) => {
         wfcb()
       })
     },
+    */
   ], () => {
     // All done, send txn response
     txnResponse.relayed = relayedThrough
@@ -498,6 +502,7 @@ const confirmTokenTransfer = (request, callback) => {
         }
       })
     },
+    /*
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
@@ -523,6 +528,7 @@ const confirmTokenTransfer = (request, callback) => {
         wfcb()
       })
     },
+    */
   ], () => {
     // All done, send txn response
     txnResponse.relayed = relayedThrough

@@ -43,6 +43,7 @@ resetWalletStatus = () => {
   status.address = ''
   status.unlocked = false
   status.menuHidden = 'display: none'
+  status.menuHiddenInverse = ''
   LocalStore.set('walletStatus', status)
 }
 
@@ -86,7 +87,7 @@ binaryToBytes = (convertMe) => {
 }
 
 // Get wallet address state details
-getBalance = (getAddress) => {
+getBalance = (getAddress, callBack) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     address: stringToBytes(getAddress),
@@ -101,6 +102,7 @@ getBalance = (getAddress) => {
         LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
         LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
         LocalStore.set('transferFromTokenState', res.state.tokens)
+        LocalStore.set('address', res)
       } else {
         // Wallet not found, put together an empty response
         LocalStore.set('transferFromBalance', 0)
@@ -109,6 +111,9 @@ getBalance = (getAddress) => {
 
       // Rudimentary way to set otsKey
       LocalStore.set('otsKeyEstimate', res.state.txcount)
+
+      // Callback if set
+      callBack()
     }
   })
 }

@@ -1,13 +1,35 @@
 <template name="appCreateAddress">
 
-<div class="ui segment">
-  <h2 id="createWallet" class="ui header">
-    <i class="tiny plus icon"></i>
-    <div class="content">
-      Create Wallet
-      <div class="sub header">Your new wallet details are below</div>
+<div class="small ui modal" id="insecureModal">
+  <div class="header">Whoa there buddy!!</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Security Notice
+        </div>
+        <p>You have opted to save an insecure wallet file. This means your Mnemonic Phrase and Hexseed will be saved in plain text. If anyone ever gets this file, they will have full access to all Quanta and Tokens associated with this wallet. It is strongly recommended to save a secure wallet file unless you are absolutely sure you know what you're doing.</p>
+      </div>
     </div>
-  </h2>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button red">I understand the risks, save the insecure file!</div>
+    <div class="ui cancel red button plain">Cancel</div>
+  </div>
+</div>
+
+
+
+
+<h2 id="createWallet" class="ui pageHeader header">
+  <i class="tiny plus icon"></i>
+  <div class="content">
+    Your new wallet details
+  </div>
+</h2>
+
+<div class="ui segment pageSegment">
 
   <div class="ui warning icon message">
     <i class="warning icon"></i>
@@ -19,38 +41,40 @@
     </div>
   </div>
 
-  <h4 class="ui horizontal divider header">
-    <i class="unlock alternate icon"></i>
-    New Wallet Details
-  </h4>
 
   <div class="ui stackable two column grid">
+
     <div class="column fourteen wide">
-      <div class="header">
-        <h1>Address <a class="ui big yellow label"><i class="qrcode icon"></i>{{newAddress.address}}</a></h1>
+      <h4 class="ui header">QRL Address</h4>
+      <div class="ui inverted segment">
+        <p style="word-wrap: break-word;">{{newAddress.address}}</p>
       </div>
     </div>
+
     <div class="column two wide right aligned">
-      {{> QRCode text=QRText size="64px"}}
+      {{> QRCode text=QRText size="88px"}}
     </div>
   </div>
 
+  <h4 class="ui header">Mnemonic Phrase</h4>
   <div class="ui inverted segment">
-    <h4 class="ui header">Mnemonic Phrase</h4>
     <p>{{newAddress.mnemonic}}</p>
   </div>
 
+  <h4 class="ui header">Hexseed</h4>
   <div class="ui inverted segment">
-    <h4 class="ui header">Hexseed</h4>
     <p style="word-wrap: break-word;">{{newAddress.hexseed}}</p>
   </div>
 
-  <div class="ui stackable two column grid">
+  <div class="ui stackable three column grid">
     <div class="column center aligned">
-      <button id="saveUnencrypted" class="ui huge red button">Save Plain Text Wallet File &raquo;</button>
+      <button id="openWalletButton" class="ui huge red button red">Open Wallet</button>
     </div>
     <div class="column center aligned">
-      <button id="saveEncrypted" class="ui huge green button">Save Secure Encrypted Wallet File &raquo;</button>
+      <button id="saveUnencrypted" class="ui huge green button plain">Save Unencrypted Wallet File</button>
+    </div>
+    <div class="column center aligned">
+      <button id="saveEncrypted" class="ui huge green button plain">Save Secure Wallet File</button>
     </div>
   </div>
 </div>

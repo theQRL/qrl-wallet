@@ -8,7 +8,7 @@ app.on('ready', function() {
   
   // Create the loading screen
   loading = new BrowserWindow({
-    width: 820, height: 300,
+    width: 830, height: 310,
     nodeIntegration: false,
     icon: __dirname + '/assets/qrl.png'
   });
@@ -17,12 +17,9 @@ app.on('ready', function() {
   // Electrify Start
   electrify.start(function(meteor_root_url) {
 
-    // Hide the loading screen
-    // loading.hide();
-
     // Show the main QRL Wallet Window
     window = new BrowserWindow({
-      width: 1000, height: 550,
+      width: 1300, height: 720,
       nodeIntegration: false,
       icon: __dirname + '/assets/qrl.png'
     });
