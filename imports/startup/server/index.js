@@ -174,48 +174,52 @@ const getAddressState = (request, callback) => {
 const getTxnHash = (request, callback) => {
   const txnHash = Buffer.from(request.query, 'hex')
 
-  qrlClient[request.grpc].getObject({ query: txnHash }, (err, response) => {
-    if (err) {
-      console.log(`Error: ${err.message}`)
-      callback(err, null)
-    } else {
-      if (response.found === true && response.result === 'transaction') {
-
-        response.transaction.tx.addr_from =
-          Buffer.from(response.transaction.tx.addr_from).toString()
-        response.transaction.tx.transaction_hash =
-          Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
-        response.transaction.tx.addr_to = ''
-        response.transaction.tx.amount = ''
-
-
-        if (response.transaction.coinbase) {
-          response.transaction.tx.addr_to =
-            Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
-          response.transaction.tx.coinbase.addr_to =
-            Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
-          // FIXME: We need a unified way to format Quanta
-          response.transaction.tx.amount = response.transaction.tx.coinbase.amount / SHOR_PER_QUANTA
-        }
-        if (response.transaction.tx.transfer) {
-          response.transaction.tx.addr_to =
-            Buffer.from(response.transaction.tx.transfer.addr_to).toString()
-          response.transaction.tx.transfer.addr_to =
-            Buffer.from(response.transaction.tx.transfer.addr_to).toString()
-          // FIXME: We need a unified way to format Quanta
-          response.transaction.tx.amount = response.transaction.tx.transfer.amount / SHOR_PER_QUANTA
-        }
-
-
-        response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
-        response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
-
-        callback(null, response)
+  try {
+    qrlClient[request.grpc].getObject({ query: txnHash }, (err, response) => {
+      if (err) {
+        console.log(`Error: ${err.message}`)
+        callback(err, null)
       } else {
-        callback('Unable to locate transaction', null)
+        if (response.found === true && response.result === 'transaction') {
+
+          response.transaction.tx.addr_from =
+            Buffer.from(response.transaction.tx.addr_from).toString()
+          response.transaction.tx.transaction_hash =
+            Buffer.from(response.transaction.tx.transaction_hash).toString('hex')
+          response.transaction.tx.addr_to = ''
+          response.transaction.tx.amount = ''
+
+
+          if (response.transaction.coinbase) {
+            response.transaction.tx.addr_to =
+              Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
+            response.transaction.tx.coinbase.addr_to =
+              Buffer.from(response.transaction.tx.coinbase.addr_to).toString()
+            // FIXME: We need a unified way to format Quanta
+            response.transaction.tx.amount = response.transaction.tx.coinbase.amount / SHOR_PER_QUANTA
+          }
+          if (response.transaction.tx.transfer) {
+            response.transaction.tx.addr_to =
+              Buffer.from(response.transaction.tx.transfer.addr_to).toString()
+            response.transaction.tx.transfer.addr_to =
+              Buffer.from(response.transaction.tx.transfer.addr_to).toString()
+            // FIXME: We need a unified way to format Quanta
+            response.transaction.tx.amount = response.transaction.tx.transfer.amount / SHOR_PER_QUANTA
+          }
+
+
+          response.transaction.tx.public_key = Buffer.from(response.transaction.tx.public_key).toString('hex')
+          response.transaction.tx.signature = Buffer.from(response.transaction.tx.signature).toString('hex')
+
+          callback(null, response)
+        } else {
+          callback('Unable to locate transaction', null)
+        }
       }
-    }
-  })
+    })
+  } catch (err) {
+    callback(`Caught Error: ${err}`, null)
+  }
 }
 
 // Function to call transferCoins API
@@ -268,38 +272,50 @@ const confirmTransaction = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
-        if (err) {
-          console.log(`Error:  ${err.message}`)
-          txnResponse = { error: err.message, response: err.message }
-          wfcb()
-        } else {
-          const hashResponse = {
-            txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
-            signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+      try {
+        qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
+          if (err) {
+            console.log(`Error:  ${err.message}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(request.grpc)
+            console.log(`Transaction sent via user node ${request.grpc}`)
+            wfcb()
           }
-          txnResponse = { error: null, response: hashResponse }
-          relayedThrough.push(request.grpc)
-          console.log(`Transaction sent via user node ${request.grpc}`)
-          wfcb()
-        }
-      })
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
-          // Push the transaction - we don't care for its response
-          qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
-            if (err) {
-              console.log(`Error: Failed to send transaction through ${node.grpc}`)
-              cb()
-            } else {
-              console.log(`Transfer Transaction sent via ${node.grpc}`)
-              relayedThrough.push(node.grpc)
-              cb()
-            }
-          })
+          try {
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc}`)
+                cb()
+              } else {
+                console.log(`Transfer Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch(err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc}`)
+            console.log(`Error:  ${err}`)
+            cb()
+          }
         } else {
           cb()
         }
@@ -382,38 +398,50 @@ const confirmTokenCreation = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
-        if (err) {
-          console.log(`Error:  ${err.message}`)
-          txnResponse = { error: err.message, response: err.message }
-          wfcb()
-        } else {
-          const hashResponse = {
-            txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
-            signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+      try{
+        qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
+          if (err) {
+            console.log(`Error:  ${err.message}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(request.grpc)
+            console.log(`Transaction sent via user node ${request.grpc}`)
+            wfcb()
           }
-          txnResponse = { error: null, response: hashResponse }
-          relayedThrough.push(request.grpc)
-          console.log(`Transaction sent via user node ${request.grpc}`)
-          wfcb()
-        }
-      })
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
-          // Push the transaction - we don't care for its response
-          qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
-            if (err) {
-              console.log(`Error: Failed to send transaction through ${node.grpc}`)
-              cb()
-            } else {
-              console.log(`Token Creation Transaction sent via ${node.grpc}`)
-              relayedThrough.push(node.grpc)
-              cb()
-            }
-          })
+          try{
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc}`)
+                cb()
+              } else {
+                console.log(`Token Creation Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch (err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc}`)
+            console.log(`Error:  ${err}`)
+            cb()
+          }
         } else {
           cb()
         }
@@ -481,42 +509,53 @@ const confirmTokenTransfer = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
-        if (err) {
-          console.log(`Error:  ${err.message}`)
-          txnResponse = { error: err.message, response: err.message }
-          wfcb()
-        } else {
-          const hashResponse = {
-            txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
-            signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+      try {
+        qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
+          if (err) {
+            console.log(`Error:  ${err.message}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(request.grpc)
+            console.log(`Transaction sent via user node ${request.grpc}`)
+            wfcb()
           }
-          txnResponse = { error: null, response: hashResponse }
-          relayedThrough.push(request.grpc)
-          console.log(`Transaction sent via user node ${request.grpc}`)
-          wfcb()
-        }
-      })
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
     },
     // Now relay through all default nodes that we have a connection too
     function(wfcb) {
       async.eachSeries(DEFAULT_NODES, (node, cb) => {
         if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
-          // Push the transaction - we don't care for its response
-          qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
-            if (err) {
-              console.log(`Error: Failed to send transaction through ${node.grpc}`)
-              cb()
-            } else {
-              console.log(`Token Xfer Transaction sent via ${node.grpc}`)
-              relayedThrough.push(node.grpc)
-              cb()
-            }
-          })
+          try{
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc}`)
+                cb()
+              } else {
+                console.log(`Token Xfer Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch (err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc}`)
+            console.log(`Error:  ${err}`)
+            cb()
+          }
         } else {
           cb()
         }
-
       }, (err) => {
         if (err) console.error(err.message)
         console.log('All token transfer txns sent')
