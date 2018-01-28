@@ -226,28 +226,50 @@ function setRawDetail() {
 
 
 // Checks the result of a stored txhash object, and polls again if not completed or failed.
-function checkResult(thisTxId) {
-  if (LocalStore.get('txhash').transaction.header != null) {
-    // Complete
-    const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.`
+function checkResult(thisTxId, failureCount) {
+  try {
+    if (LocalStore.get('txhash').transaction.header != null) {
+      // Complete
+      const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.`
+      LocalStore.set('txstatus', userMessage)
+      $('.loading').hide()
+      $('#loadingHeader').hide()
+    } else if (LocalStore.get('txhash').error != null) {
+      // We attempt to find the transaction 5 times below absolutely failing.
+      if(failureCount < 5) {
+        failureCount += 1
+        setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
+      } else {
+        // Transaction error - Give up
+        const errorMessage = `Error - ${LocalStore.get('txhash').error}`
+        LocalStore.set('txstatus', errorMessage)
+        $('.loading').hide()
+        $('#loadingHeader').hide()
+      }
+    } else {
+      // Poll again
+      setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
+    }
+  } catch (err) {
+    // Most likely is that the mempool is not replying the transaction. We attempt to find it ongoing
+    // For a while
+    console.log(`Caught Error: ${err}`)
 
-    LocalStore.set('txstatus', userMessage)
-    $('.loading').hide()
-    $('#loadingHeader').hide()
-  } else if (LocalStore.get('txhash').error != null) {
-    // Transaction error
-    const errorMessage = `Error - ${LocalStore.get('txhash').error}`
-    LocalStore.set('txstatus', errorMessage)
-    $('.loading').hide()
-    $('#loadingHeader').hide()
-  } else {
-    // Poll again
-    setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
+    // We attempt to find the transaction 5 times below absolutely failing.
+    if(failureCount < 60) {
+      failureCount += 1
+      setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
+    } else {
+      // Transaction error - Give up
+      LocalStore.set('txstatus', 'Pending')
+      $('.loading').hide()
+      $('#loadingHeader').hide()
+    }
   }
 }
 
 // Poll a transaction for its status after relaying into network.
-function pollTransaction(thisTxId, firstPoll = false) {
+function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   // Reset txhash on first poll.
   if (firstPoll === true) {
     LocalStore.set('txhash', {})
@@ -264,14 +286,19 @@ function pollTransaction(thisTxId, firstPoll = false) {
   if (thisTxId) {
     Meteor.call('getTxnHash', request, (err, res) => {
       if (err) {
-        LocalStore.set('txhash', { error: err, id: thisTxId })
-        LocalStore.set('txstatus', 'Error')
-        checkResult(thisTxId)
+        if(failureCount < 60) {
+          LocalStore.set('txhash', { })
+          LocalStore.set('txstatus', 'Pending')
+        } else {
+          LocalStore.set('txhash', { error: err, id: thisTxId })
+          LocalStore.set('txstatus', 'Error')
+        }
+        checkResult(thisTxId, failureCount)
       } else {
         res.error = null
         LocalStore.set('txhash', res)
         setRawDetail()
-        checkResult(thisTxId)
+        checkResult(thisTxId, failureCount)
       }
     })
   }
