@@ -3,7 +3,6 @@ import { BlazeLayout } from 'meteor/kadira:blaze-layout'
 
 // Import needed templates
 import '../../ui/layouts/body/body.js'
-import '../../ui/pages/home/home.js'
 import '../../ui/pages/not-found/not-found.js'
 import '../../ui/pages/create/create.js'
 import '../../ui/pages/create/address.js'
@@ -31,12 +30,11 @@ import '../../ui/pages/tokens/tokenTransferResult.js'
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
 
-
 // Set up all routes in the app
 FlowRouter.route('/', {
   name: 'App.home',
   action() {
-    BlazeLayout.render('appBody', { main: 'appHome' })
+    BlazeLayout.render('appBody', { main: 'appCreate' })
   },
 })
 FlowRouter.route('/create', {
@@ -53,19 +51,19 @@ FlowRouter.route('/create/:address', {
 })
 
 FlowRouter.route('/open', {
-  name: 'App.view',
+  name: 'App.open',
   action() {
     BlazeLayout.render('appBody', { main: 'appAddressOpen' })
   },
 })
 FlowRouter.route('/open/:address', {
-  name: 'App.view',
+  name: 'App.opened',
   action() {
     BlazeLayout.render('appBody', { main: 'appAddressOpened' })
   },
 })
 FlowRouter.route('/close', {
-  name: 'App.view',
+  name: 'App.close',
   action() {
     BlazeLayout.render('appBody', { main: 'appAddressClose' })
   },
@@ -104,7 +102,7 @@ FlowRouter.route('/tokens', {
   },
 })
 FlowRouter.route('/tokens/view', {
-  name: 'App.tokens',
+  name: 'App.tokensView',
   action() {
     BlazeLayout.render('appBody', { main: 'appTokensView' })
   },
@@ -135,7 +133,7 @@ FlowRouter.route('/tokens/transfer', {
   },
 })
 FlowRouter.route('/tokens/transferload/:tokenHash', {
-  name: 'App.tokensTransfer',
+  name: 'App.tokensTransferLoad',
   action() {
     BlazeLayout.render('appBody', { main: 'appTokenTransferLoad' })
   },

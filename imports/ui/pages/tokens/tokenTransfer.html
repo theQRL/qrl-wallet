@@ -1,13 +1,15 @@
 <template name="appTokenTransfer">
 
 
-<div class="ui left aligned segment">
-  <h2 class="ui header">
-    <i class="tiny ticket icon"></i>
-    <div class="content">
-      Transfer Tokens
-    </div>
-  </h2>
+<h2 class="ui header pageHeader">
+  <i class="tiny ticket icon"></i>
+  <div class="content">
+    Transfer Tokens
+  </div>
+</h2>
+
+<div class="ui left aligned segment pageSegment">
+
 
 
   <form id="transferLoadForm" class="ui form">
@@ -32,7 +34,7 @@
 
     <div class="ui stackable one column grid">
       <div class="column center aligned">
-        <button id="loadToken" class="ui huge primary button" style="float: left;">Load Token &raquo;</button>
+        <button id="loadToken" class="ui huge primary button red" style="float: left;">Load Token</button>
       </div>
     </div>
 
@@ -102,7 +104,7 @@
 
     <div class="ui stackable one column grid">
       <div class="column center aligned">
-        <button id="sendToken" class="ui huge primary button" style="float: left;">Send {{tokenDetails.symbol}}&raquo;</button>
+        <button id="sendToken" class="ui huge primary button red" style="float: left;">Send {{tokenDetails.symbol}}</button>
       </div>
     </div>
 
@@ -122,12 +124,12 @@
 
 </div>
 
-<div id="tokenLoadFailed" class="ui red segment" style="display: none;">
+<div id="tokenLoadFailed" class="ui red segment pageSegment" style="display: none;">
   <h4>Token Failed to Load</h4>
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenLoadError}}</p>
 </div>
 
-<div id="tokenTransferTxnGenFailed" class="ui red segment" style="display: none;">
+<div id="tokenTransferTxnGenFailed" class="ui red segment pageSegment" style="display: none;">
   <h4>Token Transfer Failed to Generate</h4>
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenTransferError}}</p>
 </div>

@@ -34,12 +34,26 @@ Template.appCreateAddress.onCreated(() => {
   LocalStore.set('passphrase', '')
 })
 
+
+Template.appCreateAddress.onRendered(() => {
+  $('.small.modal').modal()
+})
+
 Template.appCreateAddress.events({
+  'click #openWalletButton': () => {
+    const params = {}
+    const path = FlowRouter.path('/open', params)
+    FlowRouter.go(path)
+  },
   'click #saveEncrypted': () => {
     saveWallet(true)
   },
   'click #saveUnencrypted': () => {
-    saveWallet(false)
+    $('#insecureModal').modal({
+      onApprove: () => {
+        saveWallet(false)
+      },
+    }).modal('show')
   },
 })
 

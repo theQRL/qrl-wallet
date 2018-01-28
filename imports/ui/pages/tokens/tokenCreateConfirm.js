@@ -15,7 +15,7 @@ function confirmTokenCreation() {
   hashToSign = new QRLLIB.str2bin(hashToSign)
 
   // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
+  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenCreationConfirmation').otsKey))
 
   // Sign hash and convert to bytes
   tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(hashToSign))

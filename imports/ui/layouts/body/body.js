@@ -5,7 +5,6 @@
 /* global selectedNode */
 /* global isElectrified */
 import './body.html'
-import './sidebar.html'
 import './customNode.html'
 import '../../stylesheets/overrides.css'
 
@@ -121,9 +120,10 @@ const updateNode = (selectedNode) => {
 
 Template.appBody.onRendered(() => {
   LocalStore.set('modalEventTriggered', false)
+  
   $('#networkDropdown').dropdown({ allowReselection: true })
   $('.small.modal').modal()
-  $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
+
   updateNode(selectedNode())
 
 
@@ -135,6 +135,44 @@ Template.appBody.onRendered(() => {
     $('#walletWarning').sticky({context: '#walletWarning'})
     $('#walletWarning').sticky({context: '#walletWarning'})
   }
+
+  /*
+   * Replace all SVG images with inline SVG
+   */
+  jQuery('img.svg').each(function(){
+    var $img = jQuery(this)
+    var imgID = $img.attr('id')
+    var imgClass = $img.attr('class')
+    var imgURL = $img.attr('src')
+
+    jQuery.get(imgURL, function(data) {
+        // Get the SVG tag, ignore the rest
+        var $svg = jQuery(data).find('svg')
+
+        // Add replaced image's ID to the new SVG
+        if(typeof imgID !== 'undefined') {
+            $svg = $svg.attr('id', imgID)
+        }
+        // Add replaced image's classes to the new SVG
+        if(typeof imgClass !== 'undefined') {
+            $svg = $svg.attr('class', imgClass+' replaced-svg')
+        }
+
+        // Remove any invalid XML tags as per http://validator.w3.org
+        $svg = $svg.removeAttr('xmlns:a')
+
+        // Check if the viewport is set, if the viewport is not set the SVG wont't scale.
+        if(!$svg.attr('viewBox') && $svg.attr('height') && $svg.attr('width')) {
+            $svg.attr('viewBox', '0 0 ' + $svg.attr('height') + ' ' + $svg.attr('width'))
+        }
+
+        // Replace image with new SVG
+        $img.replaceWith($svg)
+
+    }, 'xml')
+  })
+
+
 })
 
 
@@ -210,6 +248,61 @@ Template.appBody.helpers({
   customNodeName() {
     return LocalStore.get('customNodeName')
   },
+
+  /* Active Menu Item Helpers */
+  menuNewWalletActive() {
+    if(
+      (FlowRouter.getRouteName() == "App.home") ||
+      (FlowRouter.getRouteName() == "App.create") || 
+      (FlowRouter.getRouteName() == "App.createAddress")
+      ) {
+      return 'active'
+    }
+  },
+  menuOpenWalletActive() {
+    if(
+      (FlowRouter.getRouteName() == "App.open") ||
+      (FlowRouter.getRouteName() == "App.opened")
+      ) {
+      return 'active'
+    }
+  },
+  menuTransferActive() {
+    if(
+      (FlowRouter.getRouteName() == "App.transferUnlock") ||
+      (FlowRouter.getRouteName() == "App.transferForm") ||
+      (FlowRouter.getRouteName() == "App.transferConfirm") ||
+      (FlowRouter.getRouteName() == "App.transferResult")
+      
+      ) {
+      return 'active'
+    }
+  },
+  menuTokensActive() {
+    if(
+      (FlowRouter.getRouteName() == "App.tokens") ||
+      (FlowRouter.getRouteName() == "App.tokensView") ||
+      (FlowRouter.getRouteName() == "App.tokensCreate") ||
+      (FlowRouter.getRouteName() == "App.tokenCreationConfirm") ||
+      (FlowRouter.getRouteName() == "App.tokenCreationResult") ||
+      (FlowRouter.getRouteName() == "App.tokensTransfer") ||
+      (FlowRouter.getRouteName() == "App.tokensTransferLoad") ||
+      (FlowRouter.getRouteName() == "App.tokensTransferConfirm") ||
+      (FlowRouter.getRouteName() == "App.tokensTransferResult")
+      ) {
+      return 'active'
+    }
+  },
+  menuVerifyActive() {
+    if(
+      (FlowRouter.getRouteName() == "App.verify") ||
+      (FlowRouter.getRouteName() == "App.verifytxid")
+      
+      ) {
+      return 'active'
+    }
+  },
+
 })
 
 Template.customNode.helpers({
@@ -223,22 +316,3 @@ Template.customNode.helpers({
     return LocalStore.get('customNodeExplorerUrl')
   },
 })
-
-Template.sidebar.helpers({
-  walletStatus() {
-    return LocalStore.get('walletStatus')
-  },
-  nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
-      return DEFAULT_NODES[0].explorerUrl
-    }
-    return LocalStore.get('nodeExplorerUrl')
-  },
-})
-
-Template.sidebar.events({
-  click: () => {
-    $('.ui.sidebar').sidebar('toggle')
-  },
-})
-

@@ -25,6 +25,7 @@ function openWallet(walletType, walletCode, xmssHeight) {
       status.unlocked = true
       status.address = thisAddress
       status.menuHidden = ''
+      status.menuHiddenInverse = 'display: none'
       LocalStore.set('walletStatus', status)
 
       const params = {}

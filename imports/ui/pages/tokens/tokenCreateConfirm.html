@@ -1,13 +1,14 @@
 <template name="appTokenCreationConfirm">
 
+<h2 class="ui header pageHeader">
+  <i class="tiny ticket icon"></i>
+  <div class="content">
+    Token Creation Confirmation
+  </div>
+</h2>
 
-<div id="tokenCreationConfirmation" class="ui red segment">
-  <h2 class="ui header">
-    <i class="tiny ticket icon"></i>
-    <div class="content">
-      Token Creation Confirmation
-    </div>
-  </h2>
+<div id="tokenCreationConfirmation" class="ui red segment pageSegment">
+
 
   <h4 class="ui horizontal divider header">
     <i class="ticket icon"></i>
@@ -75,10 +76,10 @@
 
   <div class="ui stackable two column grid">
     <div class="column center aligned">
-      <button id="confirmToken" class="ui huge primary button">Confirm Token Creation &raquo;</button>
+      <button id="confirmToken" class="ui huge primary button red">Confirm Token Creation</button>
     </div>
     <div class="column center aligned">
-      <button id="cancelToken" class="ui huge red button">Cancel Token Creation &raquo;</button>
+      <button id="cancelToken" class="ui huge red button plain">Cancel Token Creation</button>
     </div>
   </div>
 
@@ -97,7 +98,7 @@
 
 </div>
 
-<div id="transactionFailed" class="ui red segment" style="display: none;">
+<div id="transactionFailed" class="ui red segment pageSegment" style="display: none;">
   <h4>Transaction Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
     Error! Your token has failed to relay into the QRL network.<br />

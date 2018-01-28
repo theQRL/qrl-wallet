@@ -1,13 +1,16 @@
 <template name="appTransferConfirm">
 
-<div id="transactionConfirmation" class="ui red segment">
 
-  <h2 class="ui header">
-    <i class="tiny send icon"></i>
-    <div class="content">
-      Transaction Confirmation
-    </div>
-  </h2>
+<h2 class="ui header pageHeader">
+  <i class="tiny send icon"></i>
+  <div class="content">
+    Transaction Confirmation
+  </div>
+</h2>
+
+
+<div id="transactionConfirmation" class="ui red segment pageSegment">
+
 
 
   <h4 class="ui horizontal divider header">
@@ -63,10 +66,10 @@
 
   <div class="ui stackable two column grid">
     <div class="column center aligned">
-      <button id="confirmTransaction" class="ui huge primary button">Confirm Transaction &raquo;</button>
+      <button id="confirmTransaction" class="ui huge primary button red">Confirm Transaction</button>
     </div>
     <div class="column center aligned">
-      <button id="cancelTransaction" class="ui huge red button">Cancel Transaction &raquo;</button>
+      <button id="cancelTransaction" class="ui huge red button plain">Cancel Transaction</button>
     </div>
   </div>
   
@@ -83,7 +86,7 @@
 
 </div>
 
-<div id="transactionFailed" class="ui red segment" style="display: none;">
+<div id="transactionFailed" class="ui red segment pageSegment" style="display: none;">
   <h4>Transaction Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
     Error! Your transaction has failed to relay into the QRL network.<br />

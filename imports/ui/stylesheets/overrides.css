@@ -1,9 +1,12 @@
+@import url('https://fonts.googleapis.com/css?family=Quicksand');
+
+
 body {
-  background: #fff;
+  background: #f3f3f3;
 }
 
 .pushable {
-  background: #fff !important;
+  background: #f3f3f3 !important;
 }
 
 .ui .label {
@@ -15,7 +18,7 @@ body {
 }
 
 body.pushable {
-  background: #fff !important;
+  background: #f3f3f3 !important;
 }
 
 @media (max-width: 519px) {
@@ -82,6 +85,25 @@ td .unbreakable {
 
 
 
+.sidebar {
+  background-color: #160527 !important;
+}
+
+.sidebarConnectionStatus {
+  position: fixed !important;
+  bottom: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
+}
+
+
+
+.fullHeight {
+  height: 100% !important;
+}
+
+
 
 
 
@@ -141,3 +163,249 @@ td .unbreakable {
 }
 
 
+
+
+
+.main-menu-logo {
+  margin-top: 10px;
+  margin-bottom: 0px;
+  padding-bottom: 5px;
+  max-width: 70px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 50px !important; 
+  
+}
+
+.logoArea {
+  background-color: #dc255d !important;
+  color: #fff !important;
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: bold;
+  text-align: center;
+  font-size: 24px;
+  min-width: 1em !important;
+}
+
+.logoArea img {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block !important;
+  margin-bottom: 5px !important;
+}
+
+.main-menu-btn {
+  font-weight: bold;
+  color: #dc255d !important;
+  font-family: 'Quicksand', sans-serif !important;
+}
+.main-menu-btn .icon {
+  font-weight: bold;
+  color: #fff !important;
+  fill: #fff !important;
+  width: 40px !important; 
+  height: 40px !important; 
+}
+
+.icon.svg.red {
+  fill: red !important;
+}
+.icon.svg.yellow {
+  fill: yellow !important;
+}
+.icon.svg.green {
+  fill: #7ED321 !important;
+}
+
+
+/* Hover style for menu items */
+.main-menu-btn:hover {
+  font-weight: bold;
+  background-color: #fff !important;
+  color: #000 !important;
+  font-family: 'Quicksand', sans-serif !important;
+}
+.ui.inverted.menu .active.item:hover {
+  color: #000 !important;
+}
+
+.main-menu-btn:hover .icon {
+  color: #000 !important;
+  fill: #000 !important;
+}
+/* Exclude Logo Area :hover */
+.logoArea:hover {
+  background-color: #dc255d !important;
+}
+
+
+/* Wrapper for all content area */
+.main-content-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    padding-top: 70px;
+    padding-left: 120px;
+}
+.main-content-wrapper .main-content-warning.ui.fixed.secondary.menu {
+    padding-left: 110px;
+    /*border-bottom: 1px solid rgba(34,36,38,.15);*/
+    background: #fff;
+    box-shadow: 0 3px 5px 0 rgba(34,36,38,.15);
+}
+
+/* Main content area */
+.main-content {
+  height: 100%;
+  min-height: 100%;
+  padding: 20px;
+  /*
+  background-image: url(/img/bg/left-top.png), url(/img/bg/right-top.png) , url(/img/bg/left-bottom.png), url(/img/bg/right-bottom-key.png) !important;
+  background-position: left top, right top, left bottom, right bottom !important;
+  */
+  background-image: url(/img/bg/left-top.png), url(/img/bg/right-bottom-key.png) !important;
+  background-position: left top, right bottom !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Sub page wrapper in body */
+.subPageContent { 
+  padding-top: 60px;
+}
+
+
+
+/* Main content wrapper for inside a subpage */
+.pageSegment {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
+  border-radius: 0px !important;
+  border: 0px !important;
+  margin-top: 0px !important;
+}
+
+/* Header for a Sub Page */
+.ui .pageHeader {
+  background-color: #160527;
+  color: #fff;
+  margin: 0px !important;
+  font-family: 'Quicksand', sans-serif;
+  padding: 10px;
+}
+.ui .pageHeader .icon {
+  float: right;
+  padding-top: 0px !important;
+}
+.ui .pageHeader  .content .sub.header {
+  color: #fff !important;
+  font-family: 'Quicksand', sans-serif !important;
+}
+
+
+/* Footer links */
+.footer {
+  display: block;
+  position: fixed;
+  left: 50%;
+  bottom: 0px;
+  transform: translate(-50%, -50%);
+  margin: 0 auto;
+  z-index: -10;
+}
+
+.footerLogo {
+  width: 50px;
+}
+
+
+/* Page Tab Styles */
+.tab {
+  border-radius: 0px !important;
+}
+
+.ui.tabular.menu .active.item {
+  border-radius: 0px !important;
+  background-color: #fff !important;
+  color: #0A0724 !important;
+}
+
+.ui.tabular.menu .item {
+  background-color: #160527 !important;
+  color: #fff !important;
+}
+
+
+
+/* Form Styles */
+input {
+  background-color: #E3E1E3 !important;
+  color: #0A0724 !important;
+  border-radius: 0px !important;
+}
+
+.ui.button.red {
+  background-color: #dc255d !important;
+  box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
+  color: #fff !important;
+  border-radius: 0px !important;
+  font-family: Quicksand !important;
+  font-size: 14px;
+}
+.ui.button.plain  {
+  background-color: #f3f3f3 !important;
+  box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
+  border: solid 1px #160527 !important;
+  color: #0A0724 !important;
+  border-radius: 0px !important;
+  font-family: Quicksand !important;
+  font-size: 14px;
+}
+
+.ui.selection.dropdown {
+  background-color: #E3E1E3 !important;
+  color: #0A0724 !important;
+  box-shadow: 0 !important;
+  border: solid 1px #160527 !important;
+  border-radius: 0px !important;
+}
+
+
+/* Wallet Created Segments */
+.ui.inverted.segment, .ui.primary.inverted.segment {
+  background-color: #E3E1E3 !important;
+  box-shadow: 0 !important;
+  border-radius: 0px !important;
+  color: #0A0724 !important;
+}
+
+
+
+/* Transactions */
+.transactionRecord {
+  background-color: #fff !important;
+  border-radius: 0px !important;
+  padding-left: 1em !important;
+}
+.transactionRecordInternal {
+  background-color: #fff !important;
+  border-radius: 0px !important;
+  padding-left: 0 !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0) !important;
+  margin: 0 !important;
+}
+.transactionTypeImage {
+  padding-right: 1em !important;
+}
+
+.transactionAddress {
+  font-size: 9px;
+}
+
+
+.wordBreak {
+  word-wrap: break-word;
+  word-break: break-all;
+}

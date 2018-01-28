@@ -37,8 +37,17 @@ function openWallet(walletType, walletCode, xmssHeight) {
 
     // If it worked, send the user to the address page.
     if (thisAddress !== '') {
-      const params = { address: thisAddress }
-      const path = FlowRouter.path('/open/:address', params)
+      const status = {}
+      status.colour = 'green'
+      status.string = `${thisAddress} is ready to use.`
+      status.unlocked = true
+      status.address = thisAddress
+      status.menuHidden = ''
+      status.menuHiddenInverse = 'display: none'
+      LocalStore.set('walletStatus', status)
+
+      const params = {}
+      const path = FlowRouter.path('/transfer/detail', params)
       FlowRouter.go(path)
     } else {
       $('#unlockError').show()
