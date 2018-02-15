@@ -1,11 +1,5 @@
 node_modules/
 .eslintrc.js
-client/definitions/
-client/themes/
-client/semantic.less
-client/theme.import.less
-client/.custom.semantic.json
-client/theme.config.import.less
 version.desktop
 .desktop-installer
 public/web-libjsqrl.wasm
