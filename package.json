@@ -35,6 +35,7 @@
   },
   "scripts": {
     "dev": "meteor",
-    "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests"
+    "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
+    "postinstall": "cp node_modules/qrllib/build/web-libjsqrl.wasm public/"
   }
 }
