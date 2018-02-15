@@ -27,7 +27,7 @@ rm -rf ./.meteor/local
 echo "Installing meteor dependencies"
 # --unsafe-perm is because of https://github.com/grpc/grpc/issues/6435
 meteor npm install --unsafe-perm
-cp node_modules/qrllib/build/web-libjsqrl.wasm public/
+# cp node_modules/qrllib/build/web-libjsqrl.wasm public/
 
 echo "Installing electrify dependencies"
 cd .electrify
