@@ -32,3 +32,4 @@ momentjs:moment
 audit-argument-checks@1.0.7
 frozeman:storage
 browser-policy
+force-ssl
