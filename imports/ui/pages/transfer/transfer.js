@@ -144,8 +144,6 @@ function sendTokensTxnCreate(tokenHash) {
   console.log(request)
 
   Meteor.call('createTokenTransferTxn', request, (err, res) => {
-    console.log(res)
-
     if (err) {
       LocalStore.set('tokenTransferError', err)
       $('#transactionGenFailed').show()
@@ -213,17 +211,22 @@ function confirmTokenTransfer() {
       $('#generateTransactionArea').hide()
       $('#confirmTokenTransactionArea').hide()
       $('#tokenTransactionResultArea').show()
+
+      // Start polling this transcation
+      pollTransaction(LocalStore.get('transactionHash'), true)
     }
   })
 }
 
-
 function setRawDetail() {
-  const myJSON = LocalStore.get('txhash').transaction
-  const formatter = new JSONFormatter(myJSON)
-  $('.json').html(formatter.render())
+  try {
+    const myJSON = LocalStore.get('txhash').transaction
+    const formatter = new JSONFormatter(myJSON)
+    $('.json').html(formatter.render())
+  } catch (err) {
+    console.log('Error adding transaction to raw detail.')
+  }
 }
-
 
 // Checks the result of a stored txhash object, and polls again if not completed or failed.
 function checkResult(thisTxId, failureCount) {
@@ -473,9 +476,6 @@ Template.appTransfer.onRendered(() => {
     })
   })
 })
-
-
-
 
 Template.appTransfer.events({
   'submit #generateTransactionForm': (event) => {
