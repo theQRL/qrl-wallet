@@ -42,8 +42,6 @@ Windows Only - [node-gyp](https://github.com/nodejs/node-gyp)
 	git clone https://github.com/theQRL/qrl-wallet.git
 	cd qrl-wallet
 	meteor npm install --unsafe-perm
-	Linux/OSX: cp node_modules/qrllib/build/web-libjsqrl.wasm public/
-	Windows: copy node_modules\qrllib\build\web-libjsqrl.wasm public\
 	cd .electify
 	npm install
 	cd ..
@@ -66,5 +64,4 @@ Note: meteor must already be running for this to work!
 
 	mkdir .electrify/.dist
 	electrify package -o .electrify/.dist/
-
 
