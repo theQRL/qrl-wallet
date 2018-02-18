@@ -1,5 +1,5 @@
 import JSONFormatter from 'json-formatter-js'
-import './transferForm.html'
+import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */
 /* global selectedNode */
@@ -144,8 +144,6 @@ function sendTokensTxnCreate(tokenHash) {
   console.log(request)
 
   Meteor.call('createTokenTransferTxn', request, (err, res) => {
-    console.log(res)
-
     if (err) {
       LocalStore.set('tokenTransferError', err)
       $('#transactionGenFailed').show()
@@ -213,17 +211,22 @@ function confirmTokenTransfer() {
       $('#generateTransactionArea').hide()
       $('#confirmTokenTransactionArea').hide()
       $('#tokenTransactionResultArea').show()
+
+      // Start polling this transcation
+      pollTransaction(LocalStore.get('transactionHash'), true)
     }
   })
 }
 
-
 function setRawDetail() {
-  const myJSON = LocalStore.get('txhash').transaction
-  const formatter = new JSONFormatter(myJSON)
-  $('.json').html(formatter.render())
+  try {
+    const myJSON = LocalStore.get('txhash').transaction
+    const formatter = new JSONFormatter(myJSON)
+    $('.json').html(formatter.render())
+  } catch (err) {
+    console.log('Error adding transaction to raw detail.')
+  }
 }
-
 
 // Checks the result of a stored txhash object, and polls again if not completed or failed.
 function checkResult(thisTxId, failureCount) {
@@ -386,10 +389,38 @@ const getTokenBalances = (getAddress, callback) => {
   })
 }
 
+function updateBalanceField() {
+  const selectedType = document.getElementById('amountType').value
 
-Template.appTransferForm.onRendered(() => {
+  // Quanta Balances
+  if(selectedType == 'quanta') {
+    LocalStore.set('balanceAmount', LocalStore.get('transferFromBalance'))
+    LocalStore.set('balanceSymbol', 'Quanta')
+  } else {
+    // First extract the token Hash
+    tokenHash = selectedType.split('-')[1]
+
+    // Now calculate the token balance.
+    _.each(LocalStore.get('tokensHeld'), (token) => {
+      if(token.hash == tokenHash) {
+        LocalStore.set('balanceAmount', token.balance)
+        LocalStore.set('balanceSymbol', token.symbol)
+      }
+    })
+  }
+}
+
+
+Template.appTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
   
+  // Route to open wallet is already opened
+  if (LocalStore.get('walletStatus').unlocked === false) {
+    const params = {}
+    const path = FlowRouter.path('/open', params)
+    FlowRouter.go(path)
+  }
+
   // Transfer validation
   $('.ui.form').form({
     fields: {
@@ -433,8 +464,6 @@ Template.appTransferForm.onRendered(() => {
     getBalance(XMSS_OBJECT.getAddress(), function() {
       // Load Wallet Transactions
       loadAddressTransactions()
-
-
     })
 
     // Get Tokens and Balances
@@ -448,29 +477,7 @@ Template.appTransferForm.onRendered(() => {
   })
 })
 
-function updateBalanceField() {
-  const selectedType = document.getElementById('amountType').value
-
-  // Quanta Balances
-  if(selectedType == 'quanta') {
-    LocalStore.set('balanceAmount', LocalStore.get('transferFromBalance'))
-    LocalStore.set('balanceSymbol', 'Quanta')
-  } else {
-    // First extract the token Hash
-    tokenHash = selectedType.split('-')[1]
-
-    // Now calculate the token balance.
-    _.each(LocalStore.get('tokensHeld'), (token) => {
-      if(token.hash == tokenHash) {
-        LocalStore.set('balanceAmount', token.balance)
-        LocalStore.set('balanceSymbol', token.symbol)
-      }
-    })
-  }
-}
-
-
-Template.appTransferForm.events({
+Template.appTransfer.events({
   'submit #generateTransactionForm': (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -510,7 +517,7 @@ Template.appTransferForm.events({
   },
 })
 
-Template.appTransferForm.helpers({
+Template.appTransfer.helpers({
   transferFrom() {
     const transferFrom = {}
     transferFrom.balance = LocalStore.get('transferFromBalance')
@@ -619,6 +626,12 @@ Template.appTransferForm.helpers({
     }
     return false
   },
+  isCoinbaseTxn(txType) {
+    if(txType == "COINBASE") {
+      return true
+    }
+    return false
+  },
   ts() {
     const x = moment.unix(this.timestamp)
     return moment(x).format('HH:mm D MMM YYYY')
@@ -636,8 +649,5 @@ Template.appTransferForm.helpers({
     return LocalStore.get('balanceSymbol')
   },
 })
-
-
-
 
 

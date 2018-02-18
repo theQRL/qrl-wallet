@@ -31,11 +31,15 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
-    "gulp-chimp": "^2.2.1"
+    "gulp-chimp": "^2.2.1",
+    "run-script-os": "^1.0.3"
   },
   "scripts": {
     "dev": "meteor",
     "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
-    "postinstall": "cp node_modules/qrllib/build/web-libjsqrl.wasm public/"
+    "postinstall": "run-script-os",
+    "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\",
+    "install:darwin": "cp node_modules/qrllib/build/web-libjsqrl.wasm public/",
+    "install:linux": "cp node_modules/qrllib/build/web-libjsqrl.wasm public/"
   }
 }

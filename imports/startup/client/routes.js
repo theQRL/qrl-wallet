@@ -7,36 +7,26 @@ import '../../ui/pages/not-found/not-found.js'
 import '../../ui/pages/create/create.js'
 import '../../ui/pages/create/address.js'
 import '../../ui/pages/open/open.js'
-import '../../ui/pages/open/addressOpened.js'
 import '../../ui/pages/close/close.js'
 
-import '../../ui/pages/transfer/transferUnlock.js'
-import '../../ui/pages/transfer/transferForm.js'
-import '../../ui/pages/transfer/transferConfirm.js'
-import '../../ui/pages/transfer/transferResult.js'
-
-import '../../ui/pages/tokens/tokens.js'
-import '../../ui/pages/tokens/tokensView.js'
+import '../../ui/pages/transfer/transfer.js'
 
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
 import '../../ui/pages/tokens/tokenCreateResult.js'
 
-import '../../ui/pages/tokens/tokenTransfer.js'
-import '../../ui/pages/tokens/tokenTransferLoad.js'
-import '../../ui/pages/tokens/tokenTransferConfirm.js'
-import '../../ui/pages/tokens/tokenTransferResult.js'
-
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
 
-// Set up all routes in the app
+// Home route (create wallet)
 FlowRouter.route('/', {
   name: 'App.home',
   action() {
     BlazeLayout.render('appBody', { main: 'appCreate' })
   },
 })
+
+// Wallet creation
 FlowRouter.route('/create', {
   name: 'App.create',
   action() {
@@ -50,16 +40,11 @@ FlowRouter.route('/create/:address', {
   },
 })
 
+// Wallet Open/Close
 FlowRouter.route('/open', {
   name: 'App.open',
   action() {
     BlazeLayout.render('appBody', { main: 'appAddressOpen' })
-  },
-})
-FlowRouter.route('/open/:address', {
-  name: 'App.opened',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appAddressOpened' })
   },
 })
 FlowRouter.route('/close', {
@@ -69,45 +54,15 @@ FlowRouter.route('/close', {
   },
 })
 
+// Transfers (Quanta and Tokens)
 FlowRouter.route('/transfer', {
   name: 'App.transferUnlock',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTransferUnlock' })
-  },
-})
-FlowRouter.route('/transfer/detail', {
-  name: 'App.transferForm',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTransferForm' })
-  },
-})
-FlowRouter.route('/transfer/confirm', {
-  name: 'App.transferConfirm',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTransferConfirm' })
-  },
-})
-FlowRouter.route('/transfer/result', {
-  name: 'App.transferResult',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTransferResult' })
+    BlazeLayout.render('appBody', { main: 'appTransfer' })
   },
 })
 
-
-FlowRouter.route('/tokens', {
-  name: 'App.tokens',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTokensHome' })
-  },
-})
-FlowRouter.route('/tokens/view', {
-  name: 'App.tokensView',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTokensView' })
-  },
-})
-
+// Token Creation
 FlowRouter.route('/tokens/create', {
   name: 'App.tokensCreate',
   action() {
@@ -126,33 +81,8 @@ FlowRouter.route('/tokens/create/result', {
     BlazeLayout.render('appBody', { main: 'appTokenCreationResult' })
   },
 })
-FlowRouter.route('/tokens/transfer', {
-  name: 'App.tokensTransfer',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTokenTransfer' })
-  },
-})
-FlowRouter.route('/tokens/transferload/:tokenHash', {
-  name: 'App.tokensTransferLoad',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTokenTransferLoad' })
-  },
-})
-FlowRouter.route('/tokens/transfer/confirm', {
-  name: 'App.tokensTransferConfirm',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTokenTransferConfirm' })
-  },
-})
-FlowRouter.route('/tokens/transfer/result', {
-  name: 'App.tokensTransferResult',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTokenTransferResult' })
-  },
-})
 
-
-
+// Transaction Verififation
 FlowRouter.route('/verify', {
   name: 'App.verify',
   action() {
@@ -165,6 +95,8 @@ FlowRouter.route('/verify-txid/:txId', {
     BlazeLayout.render('appBody', { main: 'appVerifyTxid' })
   },
 })
+
+// Not found
 FlowRouter.notFound = {
   action() {
     BlazeLayout.render('appBody', { main: 'appNotFound' })

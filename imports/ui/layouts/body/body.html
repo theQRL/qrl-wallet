@@ -45,18 +45,17 @@
       </a>
   </div>
   
+
   <!-- Content Wrapper -->
   <div class="main-content-wrapper">
       <!-- Top Message Bar -->
       <div class="main-content-warning ui fixed secondary menu">
           <div class="center menu">
               <div class="ui item">
-
-                <span class="title">
+                <span class="title breakable">
                   <strong>Notice: </strong>This wallet provides functionality for the QRL Testnet, and in future the QRL Mainnet. <strong>Do not send QRL ERC20 Tokens to a wallet created by this service!</strong><br />
                   <strong>Bookmark WALLET.THEQRL.ORG</strong> - The QRL Foundation only hosts services on THEQRL.ORG. No other domains are affiliated with The QRL Foundation.
                 </span>
-
               </div>
           </div>
       </div>
@@ -84,27 +83,30 @@
         <div class="subPageContent">
           <div class="ui container">
             {{> Template.dynamic template=main}}
-          </div>
-        </div>
 
-        <!-- Footer -->
-        <div class="footer">
-          <div class="ui center aligned container">
-            <a href="/">
-              <img class="footerLogo" src="/img/Q@2x.png">
-
-            </a>
-            <br />
-            <div class="ui horizontal small divided link list">
-              <a class="item" target="_blank" href="http://theqrl.org/">theQRL.org</a>
-              <a class="item" target="_blank" href="http://theqrl.org/whitepaper/QRL_whitepaper.pdf">White Paper</a>
-              <a class="item" target="_blank" href="https://github.com/theQRL">Github</a>
-              <a class="item" target="_blank" href="https://github.com/theQRL/qrl-wallet/issues">Found a Problem?</a>
+            <!-- Footer -->
+            <div class="footer">
+              <div class="ui center aligned container">
+                <a href="/">
+                  <img class="footerLogo" src="/img/Q@2x.png">
+                </a>
+                <br />
+                <div class="ui horizontal small divided link list">
+                  <a class="item" target="_blank" href="http://theqrl.org/">theQRL.org</a>
+                  <a class="item" target="_blank" href="http://theqrl.org/whitepaper/QRL_whitepaper.pdf">White Paper</a>
+                  <a class="item" target="_blank" href="https://github.com/theQRL">Github</a>
+                  <a class="item" target="_blank" href="https://github.com/theQRL/qrl-wallet/issues">Found a Problem?</a>
+                  <a class="item">qrl-wallet v{{qrlWalletVersion}}</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
       </div>
+
   </div>
+
+
+
 
 </template>
