@@ -4,6 +4,8 @@
 /* global DEFAULT_NODES */
 /* global selectedNode */
 /* global isElectrified */
+/* global WALLET_VERSION */
+
 import './body.html'
 import './customNode.html'
 import '../../stylesheets/overrides.css'
@@ -121,6 +123,8 @@ const updateNode = (selectedNode) => {
 Template.appBody.onRendered(() => {
   LocalStore.set('modalEventTriggered', false)
   
+  // $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
+
   $('#networkDropdown').dropdown({ allowReselection: true })
   $('.small.modal').modal()
 
@@ -180,12 +184,13 @@ Template.appBody.onRendered(() => {
 Template.appBody.events({
   'click #hamburger': (event) => {
     event.preventDefault()
-    $('.ui.sidebar').sidebar('toggle')
+    $('.sidebar').sidebar('show')
   },
   'change #network': () => {
     updateNode(selectedNode())
   },
 })
+
 
 Template.appBody.helpers({
   nodeId() {
@@ -302,7 +307,9 @@ Template.appBody.helpers({
       return 'active'
     }
   },
-
+  qrlWalletVersion() {
+    return WALLET_VERSION
+  }
 })
 
 Template.customNode.helpers({
@@ -314,5 +321,5 @@ Template.customNode.helpers({
   },
   customNodeExplorer() {
     return LocalStore.get('customNodeExplorerUrl')
-  },
+  }
 })

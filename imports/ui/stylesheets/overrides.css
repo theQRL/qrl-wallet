@@ -17,6 +17,11 @@ body {
   margin-bottom: 0;
 }
 
+.ui.menu .item {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 body.pushable {
   background: #f3f3f3 !important;
 }
@@ -66,8 +71,9 @@ td .unbreakable {
   overflow: visible;
 }
 
-.unbreakable {
+.breakable {
   overflow: hidden;
+  word-wrap: break-word;
   word-break: break-all;
 }
 
@@ -248,11 +254,12 @@ td .unbreakable {
     padding-top: 70px;
     padding-left: 120px;
 }
+
 .main-content-wrapper .main-content-warning.ui.fixed.secondary.menu {
-    padding-left: 110px;
-    /*border-bottom: 1px solid rgba(34,36,38,.15);*/
-    background: #fff;
-    box-shadow: 0 3px 5px 0 rgba(34,36,38,.15);
+  padding-left: 110px;
+  /*border-bottom: 1px solid rgba(34,36,38,.15);*/
+  background: #fff;
+  box-shadow: 0 3px 5px 0 rgba(34,36,38,.15);
 }
 
 /* Main content area */
@@ -264,8 +271,14 @@ td .unbreakable {
   background-image: url(/img/bg/left-top.png), url(/img/bg/right-top.png) , url(/img/bg/left-bottom.png), url(/img/bg/right-bottom-key.png) !important;
   background-position: left top, right top, left bottom, right bottom !important;
   */
+
+  /*
   background-image: url(/img/bg/left-top.png), url(/img/bg/right-bottom-key.png) !important;
   background-position: left top, right bottom !important;
+  */
+
+  background-image: url(/img/bg/right-bottom-key.png) !important;
+  background-position: right bottom !important;
   background-repeat: no-repeat !important;
 }
 
@@ -306,14 +319,14 @@ td .unbreakable {
 /* Footer links */
 .footer {
   display: block;
-  position: fixed;
+  position: relative;
   left: 50%;
   bottom: 0px;
   transform: translate(-50%, -50%);
   margin: 0 auto;
-  z-index: -10;
+  margin-top: 70px;
+  z-index: 10;
 }
-
 .footerLogo {
   width: 50px;
 }

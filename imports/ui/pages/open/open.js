@@ -14,10 +14,10 @@ Template.appAddressOpen.onRendered(() => {
   LocalStore.set('address', '')
   LocalStore.set('addressTransactions', '')
 
-  // Route to view address if wallet is already opened
+  // Route to transfer if wallet is already opened
   if (LocalStore.get('walletStatus').unlocked === true) {
-    const params = { address: LocalStore.get('walletStatus').address }
-    const path = FlowRouter.path('/open/:address', params)
+    const params = {}
+    const path = FlowRouter.path('/transfer', params)
     FlowRouter.go(path)
   }
 })
@@ -47,7 +47,7 @@ function openWallet(walletType, walletCode, xmssHeight) {
       LocalStore.set('walletStatus', status)
 
       const params = {}
-      const path = FlowRouter.path('/transfer/detail', params)
+      const path = FlowRouter.path('/transfer', params)
       FlowRouter.go(path)
     } else {
       $('#unlockError').show()

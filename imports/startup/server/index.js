@@ -2,6 +2,7 @@
 /* eslint no-console:0 */
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
+/* global WALLET_VERSION */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -24,10 +25,6 @@ function toBuffer(ab) {
   const buffer = Buffer.from(ab)
   return buffer
 }
-
-// Create a temp file to store the qrl.proto file in
-// We'll also use the base directory of this file for other temp storage
-// const qrlProtoFilePath = tmp.fileSync({ mode: 0644, prefix: 'qrl-', postfix: '.proto' }).name
 
 const errorCallback = (error, message, alert) => {
   const d = new Date()
@@ -58,7 +55,7 @@ const loadGrpcClient = (request, callback) => {
 
         // Create the gRPC Connection
         qrlClient[request.grpc] =
-        new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
+          new grpcObject.qrl.PublicAPI(request.grpc, grpc.credentials.createInsecure())
 
         console.log(`qrlClient loaded for ${request.grpc}`)
 
@@ -163,7 +160,6 @@ const getAddressState = (request, callback) => {
       response.state.transaction_hashes.forEach((value) => {
         response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
       })
-
       callback(null, response)
     }
   })
@@ -290,7 +286,7 @@ const confirmTransaction = (request, callback) => {
           }
         })
       } catch(err) {
-        console.log(`Caught Error:  ${err}`)
+        console.log(`Error: Failed to send transaction through ${request.grpc} - ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
       }
@@ -303,7 +299,7 @@ const confirmTransaction = (request, callback) => {
             // Push the transaction - we don't care for its response
             qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
               if (err) {
-                console.log(`Error: Failed to send transaction through ${node.grpc}`)
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
                 cb()
               } else {
                 console.log(`Transfer Transaction sent via ${node.grpc}`)
@@ -312,8 +308,7 @@ const confirmTransaction = (request, callback) => {
               }
             })
           } catch(err) {
-            console.log(`Error: Failed to send transaction through ${node.grpc}`)
-            console.log(`Error:  ${err}`)
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
             cb()
           }
         } else {
@@ -401,7 +396,7 @@ const confirmTokenCreation = (request, callback) => {
       try{
         qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
           if (err) {
-            console.log(`Error:  ${err.message}`)
+            console.log(`Error: Failed to send transaction through ${request.grpc} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -429,7 +424,7 @@ const confirmTokenCreation = (request, callback) => {
             // Push the transaction - we don't care for its response
             qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
               if (err) {
-                console.log(`Error: Failed to send transaction through ${node.grpc}`)
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
                 cb()
               } else {
                 console.log(`Token Creation Transaction sent via ${node.grpc}`)
@@ -438,8 +433,7 @@ const confirmTokenCreation = (request, callback) => {
               }
             })
           } catch (err) {
-            console.log(`Error: Failed to send transaction through ${node.grpc}`)
-            console.log(`Error:  ${err}`)
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
             cb()
           }
         } else {
@@ -512,7 +506,7 @@ const confirmTokenTransfer = (request, callback) => {
       try {
         qrlClient[request.grpc].pushTransaction(confirmTxn, (err) => {
           if (err) {
-            console.log(`Error:  ${err.message}`)
+            console.log(`Error: Failed to send transaction through ${request.grpc} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -540,7 +534,7 @@ const confirmTokenTransfer = (request, callback) => {
             // Push the transaction - we don't care for its response
             qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
               if (err) {
-                console.log(`Error: Failed to send transaction through ${node.grpc}`)
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
                 cb()
               } else {
                 console.log(`Token Xfer Transaction sent via ${node.grpc}`)
@@ -549,8 +543,7 @@ const confirmTokenTransfer = (request, callback) => {
               }
             })
           } catch (err) {
-            console.log(`Error: Failed to send transaction through ${node.grpc}`)
-            console.log(`Error:  ${err}`)
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
             cb()
           }
         } else {
@@ -611,64 +604,86 @@ Meteor.methods({
   addressTransactions(request) {
     check(request, Object)
     const targets = request.tx
-    const result = []
+    let result = []
     targets.forEach((arr) => {
       const thisRequest = {
         query: arr.txhash,
         grpc: request.grpc,
       }
 
-      const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
-      let thisTxn = {}
+      try {
+        const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)      
+        let thisTxn = {}
 
-      if (thisTxnHashResponse.transaction.tx.type == "TRANSFER") {
-        thisTxn = {
-          type: thisTxnHashResponse.transaction.tx.type,
-          txhash: arr.txhash,
-          amount: thisTxnHashResponse.transaction.tx.amount,
-          from: thisTxnHashResponse.transaction.tx.addr_from,
-          to: thisTxnHashResponse.transaction.tx.addr_to,
-          ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-          fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-          block: thisTxnHashResponse.transaction.header.block_number,
-          timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
-        }
-      } else if (thisTxnHashResponse.transaction.tx.type == "TOKEN") {
-        thisTxn = {
-          type: thisTxnHashResponse.transaction.tx.type,
-          txhash: arr.txhash,
-          from: thisTxnHashResponse.transaction.tx.addr_from,
-          symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
-          name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
-          ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-          fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-          block: thisTxnHashResponse.transaction.header.block_number,
-          timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
-        }
-      } else if (thisTxnHashResponse.transaction.tx.type == "TRANSFERTOKEN") {
-        // Request Token Symbol
-        const symbolRequest = {
-          query: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'),
-          grpc: request.grpc,
-        }
-        const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
-        const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
+        if (thisTxnHashResponse.transaction.tx.type == "TRANSFER") {
+          thisTxn = {
+            type: thisTxnHashResponse.transaction.tx.type,
+            txhash: arr.txhash,
+            amount: thisTxnHashResponse.transaction.tx.amount,
+            from: thisTxnHashResponse.transaction.tx.addr_from,
+            to: thisTxnHashResponse.transaction.tx.addr_to,
+            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: thisTxnHashResponse.transaction.header.block_number,
+            timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+          }
 
-        thisTxn = {
-          type: thisTxnHashResponse.transaction.tx.type,
-          txhash: arr.txhash,
-          symbol: thisSymbol,
-          amount: thisTxnHashResponse.transaction.tx.transfer_token.amount / SHOR_PER_QUANTA,
-          from: thisTxnHashResponse.transaction.tx.addr_from,
-          to: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.addr_to).toString(),
-          ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-          fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA, 
-          block: thisTxnHashResponse.transaction.header.block_number,
-          timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+          result.push(thisTxn)
+        } else if (thisTxnHashResponse.transaction.tx.type == "TOKEN") {
+          thisTxn = {
+            type: thisTxnHashResponse.transaction.tx.type,
+            txhash: arr.txhash,
+            from: thisTxnHashResponse.transaction.tx.addr_from,
+            symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
+            name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
+            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: thisTxnHashResponse.transaction.header.block_number,
+            timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+          }
+
+          result.push(thisTxn)
+        } else if (thisTxnHashResponse.transaction.tx.type == "TRANSFERTOKEN") {
+          // Request Token Symbol
+          const symbolRequest = {
+            query: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'),
+            grpc: request.grpc,
+          }
+          const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
+          const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
+
+          thisTxn = {
+            type: thisTxnHashResponse.transaction.tx.type,
+            txhash: arr.txhash,
+            symbol: thisSymbol,
+            amount: thisTxnHashResponse.transaction.tx.transfer_token.amount / SHOR_PER_QUANTA,
+            from: thisTxnHashResponse.transaction.tx.addr_from,
+            to: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.addr_to).toString(),
+            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: thisTxnHashResponse.transaction.header.block_number,
+            timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+          }
+
+          result.push(thisTxn)
+        } else if (thisTxnHashResponse.transaction.tx.type == "COINBASE") {
+          thisTxn = {
+            type: thisTxnHashResponse.transaction.tx.type,
+            txhash: arr.txhash,
+            amount: thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,
+            from: thisTxnHashResponse.transaction.tx.addr_from,
+            to: thisTxnHashResponse.transaction.tx.coinbase.addr_to,
+            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: thisTxnHashResponse.transaction.header.block_number,
+            timestamp: thisTxnHashResponse.transaction.header.timestamp.seconds,
+          }
+
+          result.push(thisTxn)
         }
+      } catch (err) {
+        console.log(`Error fetching transaction hash in addressTransactions '${arr.txhash}' - ${err}`)
       }
-
-      result.push(thisTxn)
     })
 
     return result
@@ -703,13 +718,12 @@ Meteor.methods({
     const response = Meteor.wrapAsync(confirmTokenTransfer)(request)
     return response
   },
-
 })
 
 // Server Startup commands
 if (Meteor.isServer) {
   Meteor.startup(() => {
-    console.log('QRL Wallet Starting')
+    console.log(`QRL Wallet Starting - Version: ${WALLET_VERSION}`)
 
     // Establish gRPC connections with all enabled, non-localhost DEFAULT_NODES
     DEFAULT_NODES.forEach((node) => {
@@ -727,3 +741,4 @@ if (Meteor.isServer) {
     })
   })
 }
+

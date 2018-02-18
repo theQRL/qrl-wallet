@@ -10,16 +10,14 @@
 
 <div class="ui segment pageSegment">
 
-  <div id="createWalletTabs" class="ui top attached tabular menu">
+  <div id="createWalletTabs" class="ui top attached tabular menu stackable">
     <a class="item active" data-tab="basic">Basic Wallet</a>
     <a class="item" data-tab="advanced">Advanced Wallet</a>
   </div>
+
   <div class="ui bottom attached tab segment active" data-tab="basic">
-
-
-    <div class="ui grid">
+    <div class="ui grid stackable">
       <div class="eight wide column">
-  
         <div id="passphraseArea" class="ui form">
           <div class="field">
             <label>Passphrase</label>
@@ -32,14 +30,12 @@
         </div>
       </div>
       <div class="eight wide column">
-
         <div class="ui warning icon message">
           <i class="warning icon"></i>
           <div class="content">
             <p>This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase. You will need this passphrase, and wallet file to unlock your wallet file in future.</p>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -49,12 +45,8 @@
 
 
   <div class="ui bottom attached tab segment" data-tab="advanced">
-
-
-    <div class="ui grid">
+    <div class="ui grid stackable">
       <div class="eight wide column">
-
-
         <div id="passphraseArea" class="ui form">
           <div class="field">
             <label>Passphrase</label>
@@ -65,7 +57,6 @@
           </div>
           <p>This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase. You will need this passphrase, and wallet file to unlock your wallet file in future.</p>
         </div>
-
         <div id="xmssHeightDropdown" class="ui fluid selection dropdown">
           <input type="hidden" id="xmssHeight" value="10">
           <i class="dropdown icon"></i>
@@ -106,9 +97,7 @@
           </div>
         </div>
       </div>
-
       <div class="eight wide column">
-
         <div class="ui warning icon message">
           <i class="warning icon"></i>
           <div class="content">
@@ -118,11 +107,8 @@
             <p>Advanced wallets allow you to set the XMSS Tree height of your wallet. By default an XMSS Tree height of 10 provides 1024 One Time Signatures. When you open this wallet in future, <strong>you must specifiy this XMSS Tree height</strong>. The easiest way to go about this is to download and save the secure wallet file, as it contains this information. Larger XMSS Tree heights will take longer to generate, please be patient.</p>
           </div>
         </div>
-        
       </div>
     </div>
-
-
 
     <br />
     <button id="generateAdvanced" class="ui huge primary button red">Create Advanced Wallet</button>

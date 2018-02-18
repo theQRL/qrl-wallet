@@ -1,5 +1,5 @@
 import JSONFormatter from 'json-formatter-js'
-import './transferForm.html'
+import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */
 /* global selectedNode */
@@ -386,10 +386,38 @@ const getTokenBalances = (getAddress, callback) => {
   })
 }
 
+function updateBalanceField() {
+  const selectedType = document.getElementById('amountType').value
 
-Template.appTransferForm.onRendered(() => {
+  // Quanta Balances
+  if(selectedType == 'quanta') {
+    LocalStore.set('balanceAmount', LocalStore.get('transferFromBalance'))
+    LocalStore.set('balanceSymbol', 'Quanta')
+  } else {
+    // First extract the token Hash
+    tokenHash = selectedType.split('-')[1]
+
+    // Now calculate the token balance.
+    _.each(LocalStore.get('tokensHeld'), (token) => {
+      if(token.hash == tokenHash) {
+        LocalStore.set('balanceAmount', token.balance)
+        LocalStore.set('balanceSymbol', token.symbol)
+      }
+    })
+  }
+}
+
+
+Template.appTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
   
+  // Route to open wallet is already opened
+  if (LocalStore.get('walletStatus').unlocked === false) {
+    const params = {}
+    const path = FlowRouter.path('/open', params)
+    FlowRouter.go(path)
+  }
+
   // Transfer validation
   $('.ui.form').form({
     fields: {
@@ -433,8 +461,6 @@ Template.appTransferForm.onRendered(() => {
     getBalance(XMSS_OBJECT.getAddress(), function() {
       // Load Wallet Transactions
       loadAddressTransactions()
-
-
     })
 
     // Get Tokens and Balances
@@ -448,29 +474,10 @@ Template.appTransferForm.onRendered(() => {
   })
 })
 
-function updateBalanceField() {
-  const selectedType = document.getElementById('amountType').value
-
-  // Quanta Balances
-  if(selectedType == 'quanta') {
-    LocalStore.set('balanceAmount', LocalStore.get('transferFromBalance'))
-    LocalStore.set('balanceSymbol', 'Quanta')
-  } else {
-    // First extract the token Hash
-    tokenHash = selectedType.split('-')[1]
-
-    // Now calculate the token balance.
-    _.each(LocalStore.get('tokensHeld'), (token) => {
-      if(token.hash == tokenHash) {
-        LocalStore.set('balanceAmount', token.balance)
-        LocalStore.set('balanceSymbol', token.symbol)
-      }
-    })
-  }
-}
 
 
-Template.appTransferForm.events({
+
+Template.appTransfer.events({
   'submit #generateTransactionForm': (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -510,7 +517,7 @@ Template.appTransferForm.events({
   },
 })
 
-Template.appTransferForm.helpers({
+Template.appTransfer.helpers({
   transferFrom() {
     const transferFrom = {}
     transferFrom.balance = LocalStore.get('transferFromBalance')
@@ -619,6 +626,12 @@ Template.appTransferForm.helpers({
     }
     return false
   },
+  isCoinbaseTxn(txType) {
+    if(txType == "COINBASE") {
+      return true
+    }
+    return false
+  },
   ts() {
     const x = moment.unix(this.timestamp)
     return moment(x).format('HH:mm D MMM YYYY')
@@ -636,8 +649,5 @@ Template.appTransferForm.helpers({
     return LocalStore.get('balanceSymbol')
   },
 })
-
-
-
 
 
