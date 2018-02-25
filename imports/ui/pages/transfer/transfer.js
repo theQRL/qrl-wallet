@@ -13,25 +13,21 @@ let tokensHeld = []
 
 function generateTransaction() {
   // Get to/amount details
-  const sendFrom = LocalStore.get('transferFromAddress')
-  const sendTo = document.getElementById('to').value
+  const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
+  const sendTo = addressForAPI(document.getElementById('to').value)
   const sendAmount = document.getElementById('amount').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
-
   const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
-  const sendFromAddress = stringToBytes(sendFrom)
-  const sendToAddress = stringToBytes(sendTo)
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    fromAddress: sendFromAddress,
-    toAddress: sendToAddress,
+    fromAddress: sendFrom,
+    toAddress: sendTo,
     amount: sendAmount * SHOR_PER_QUANTA,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 
@@ -42,9 +38,8 @@ function generateTransaction() {
       $('#transferForm').hide()
     } else {
       const confirmation = {
-        hash: res.txnHash,
-        from: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.addr_from),
-        to: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.transfer.addr_to),
+        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
+        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer.addr_to),
         amount: res.response.transaction_unsigned.transfer.amount / SHOR_PER_QUANTA,
         fee: res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA,
         otsKey: otsKey
@@ -65,15 +60,46 @@ function generateTransaction() {
 function confirmTransaction() {
   const tx = LocalStore.get('transactionConfirmationResponse')
 
-  let hashToSign = tx.transaction_unsigned.transaction_hash
-  hashToSign = new QRLLIB.str2bin(hashToSign)
-
   // Set OTS Key Index
   XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
 
-  // Sign hash and convert to bytes
-  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(hashToSign))
+  // Concatenate Uint8Arrays
+  let concatenatedArrays = concatenateTypedArrays(
+    Uint8Array,
+      tx.transaction_unsigned.addr_from,
+      stringToBytes(tx.transaction_unsigned.fee),
+      tx.transaction_unsigned.transfer.addr_to,
+      stringToBytes(tx.transaction_unsigned.transfer.amount)
+  )
 
+  // Convert Uint8Array to VectorUChar
+  const hashableBytes = new QRLLIB.VectorUChar()
+  for (i = 0; i < concatenatedArrays.length; i += 1) {
+    hashableBytes.push_back(concatenatedArrays[i])
+  }
+
+  // Create sha256 sum of concatenatedarray
+  let shaSum = QRLLIB.sha2_256(hashableBytes)
+
+  // Sign the sha sum
+  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+
+  // Calculate transaction hash
+  let txnHashConcat = concatenateTypedArrays(
+    Uint8Array,
+      binaryToBytes(shaSum),
+      tx.transaction_unsigned.signature,
+      binaryToBytes(XMSS_OBJECT.getPK())
+  )
+
+  const txnHashableBytes = new QRLLIB.VectorUChar()
+  for (i = 0; i < txnHashConcat.length; i += 1) {
+    txnHashableBytes.push_back(txnHashConcat[i])
+  }
+
+  let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+  // Prepare gRPC call
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   tx.grpc = grpcEndpoint
 
@@ -84,7 +110,7 @@ function confirmTransaction() {
 
       LocalStore.set('transactionFailed', res.error)
     } else {
-      LocalStore.set('transactionHash', res.response.txnHash)
+      LocalStore.set('transactionHash', txnHash)
       LocalStore.set('transactionSignature', res.response.signature)
       LocalStore.set('transactionRelayedThrough', res.relayed)
 
@@ -112,8 +138,6 @@ function cancelTransaction() {
   $('#transactionResultArea').hide()
 }
 
-
-
 function sendTokensTxnCreate(tokenHash) {
   // Get to/amount details
   const sendFrom = LocalStore.get('transferFromAddress')
@@ -124,10 +148,10 @@ function sendTokensTxnCreate(tokenHash) {
 
   // Convert strings to bytes
   const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
-  const sendFromAddress = stringToBytes(sendFrom)
-  const sendToAddress = stringToBytes(to)
   const tokenHashBytes = stringToBytes(tokenHash)
-
+  const sendFromAddress = addressForAPI(sendFrom)
+  const sendToAddress = addressForAPI(to)
+  
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
@@ -137,11 +161,8 @@ function sendTokensTxnCreate(tokenHash) {
     amount: amount * SHOR_PER_QUANTA,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
-
-  console.log(request)
 
   Meteor.call('createTokenTransferTxn', request, (err, res) => {
     if (err) {
@@ -151,8 +172,8 @@ function sendTokensTxnCreate(tokenHash) {
     } else {
       const confirmation = {
         hash: res.txnHash,
-        from: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.addr_from),
-        to: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.transfer_token.addr_to),
+        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
+        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer_token.addr_to),
         amount: res.response.transaction_unsigned.transfer_token.amount / SHOR_PER_QUANTA,
         fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
         otsKey: otsKey,
@@ -168,7 +189,6 @@ function sendTokensTxnCreate(tokenHash) {
       })
 
       LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
-
       LocalStore.set('tokenTransferConfirmation', confirmation)
       LocalStore.set('tokenTransferConfirmationResponse', res.response)
 
@@ -179,19 +199,48 @@ function sendTokensTxnCreate(tokenHash) {
   })
 }
 
-
-
 function confirmTokenTransfer() {
   const tx = LocalStore.get('tokenTransferConfirmationResponse')
-
-  let hashToSign = tx.transaction_unsigned.transaction_hash
-  hashToSign = new QRLLIB.str2bin(hashToSign)
 
   // Set OTS Key Index in XMSS object
   XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenTransferConfirmation').otsKey))
 
-  // Sign hash and convert to bytes
-  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(hashToSign))
+  // Concatenate Uint8Arrays
+  let concatenatedArrays = concatenateTypedArrays(
+    Uint8Array,
+      tx.transaction_unsigned.addr_from,
+      stringToBytes(tx.transaction_unsigned.fee),
+      tx.transaction_unsigned.transfer_token.token_txhash,
+      tx.transaction_unsigned.transfer_token.addr_to,
+      stringToBytes(tx.transaction_unsigned.transfer_token.amount)
+  )
+
+  // Convert Uint8Array to VectorUChar
+  const hashableBytes = new QRLLIB.VectorUChar()
+  for (i = 0; i < concatenatedArrays.length; i += 1) {
+    hashableBytes.push_back(concatenatedArrays[i])
+  }
+
+  // Create sha256 sum of concatenatedarray
+  let shaSum = QRLLIB.sha2_256(hashableBytes)
+
+  // Sign the sha sum
+  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+
+  // Calculate transaction hash
+  let txnHashConcat = concatenateTypedArrays(
+    Uint8Array,
+      binaryToBytes(shaSum),
+      tx.transaction_unsigned.signature,
+      binaryToBytes(XMSS_OBJECT.getPK())
+  )
+
+  const txnHashableBytes = new QRLLIB.VectorUChar()
+  for (i = 0; i < txnHashConcat.length; i += 1) {
+    txnHashableBytes.push_back(txnHashConcat[i])
+  }
+
+  let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   tx.grpc = grpcEndpoint
@@ -203,7 +252,7 @@ function confirmTokenTransfer() {
 
       LocalStore.set('transactionFailed', res.error)
     } else {
-      LocalStore.set('transactionHash', res.response.txnHash)
+      LocalStore.set('transactionHash', txnHash)
       LocalStore.set('transactionSignature', res.response.signature)
       LocalStore.set('transactionRelayedThrough', res.relayed)
 
@@ -308,7 +357,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 }
 
 function loadAddressTransactions() {
-  const thisTxs = LocalStore.get('address').state.transactions
+  const thisTxs = LocalStore.get('address').state.transactions.reverse()
 
   const request = {
     tx: thisTxs,
@@ -328,12 +377,10 @@ function loadAddressTransactions() {
   })
 }
 
-
-
 const getTokenBalances = (getAddress, callback) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    address: stringToBytes(getAddress),
+    address: addressForAPI(getAddress),
     grpc: grpcEndpoint,
   }
 
@@ -346,6 +393,7 @@ const getTokenBalances = (getAddress, callback) => {
         for (let i in res.state.tokens) {
           const tokenHash = i
           const tokenBalance = res.state.tokens[i]
+
           let thisToken = {}
 
           const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -357,16 +405,17 @@ const getTokenBalances = (getAddress, callback) => {
           Meteor.call('getTxnHash', request, (err, res) => {
             if (err) {
               // TODO - Error handling here
+              console.log('err:',err)
             } else {
               // Check if this is a token hash.
-              if (res.transaction.tx.type !== "TOKEN") {
+              if (res.transaction.tx.transactionType !== "token") {
                 // TODO - Error handling here
               } else {
                 let tokenDetails = res.transaction.tx.token
 
                 thisToken.hash = tokenHash
-                thisToken.name = new TextDecoder('utf-8').decode(tokenDetails.name)
-                thisToken.symbol = new TextDecoder('utf-8').decode(tokenDetails.symbol)
+                thisToken.name = bytesToString(tokenDetails.name)
+                thisToken.symbol = bytesToString(tokenDetails.symbol)
                 thisToken.balance = tokenBalance / SHOR_PER_QUANTA
 
                 tokensHeld.push(thisToken)
@@ -432,8 +481,8 @@ Template.appTransfer.onRendered(() => {
             prompt: 'Please enter the QRL address you wish to send to',
           },
           {
-            type: 'exactLength[73]',
-            prompt: 'QRL address must be exactly 73 characters',
+            type: 'exactLength[79]',
+            prompt: 'QRL address must be exactly 79 characters',
           },
         ],
       },
@@ -461,15 +510,17 @@ Template.appTransfer.onRendered(() => {
   // Wait for QRLLIB to load
   waitForQRLLIB(function () {
     // Get address balance
-    getBalance(XMSS_OBJECT.getAddress(), function() {
+    getBalance(getXMSSDetails().address, function() {
       // Load Wallet Transactions
       loadAddressTransactions()
     })
 
     // Get Tokens and Balances
-    getTokenBalances(XMSS_OBJECT.getAddress(), function() {
+    getTokenBalances(getXMSSDetails().address, function() {
       // Update balance field
       updateBalanceField()
+      
+      $('#tokenBalancesLoading').hide()
       
       // Render dropdown
       $('.ui.dropdown').dropdown()
@@ -609,25 +660,25 @@ Template.appTransfer.helpers({
     return false
   },
   isTransfer(txType) {
-    if(txType == "TRANSFER") {
+    if(txType == "transfer") {
       return true
     }
     return false
   },
   isTokenCreation(txType) {
-    if(txType == "TOKEN") {
+    if(txType == "token") {
       return true
     }
     return false
   },
   isTokenTransfer(txType) {
-    if(txType == "TRANSFERTOKEN") {
+    if(txType == "transfer_token") {
       return true
     }
     return false
   },
   isCoinbaseTxn(txType) {
-    if(txType == "COINBASE") {
+    if(txType == "coinbase") {
       return true
     }
     return false
@@ -649,5 +700,3 @@ Template.appTransfer.helpers({
     return LocalStore.get('balanceSymbol')
   },
 })
-
-

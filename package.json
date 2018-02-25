@@ -12,7 +12,7 @@
     "json-formatter-js": "^2.2.0",
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
-    "qrllib": "0.4.2",
+    "qrllib": "0.8.9",
     "tmp": "0.0.33"
   },
   "private": true,

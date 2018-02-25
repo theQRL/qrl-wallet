@@ -22,18 +22,29 @@ Template.appAddressOpen.onRendered(() => {
   }
 })
 
-function openWallet(walletType, walletCode, xmssHeight) {
+function openWallet(walletType, walletCode) {
   try {
     // Generate binary seed
+    let thisSeedBin
+    let thisHeight
     if (walletType === 'hexseed') {
       thisSeedBin = QRLLIB.hstr2bin(walletCode)
+      thisHeight = parseInt(QRLLIB.getHeight(thisSeedBin))
     } else if (walletType === 'mnemonic') {
       thisSeedBin = QRLLIB.mnemonic2bin(walletCode)
+      thisHeight = parseInt(QRLLIB.getHeight(thisSeedBin))
     }
 
+    // Now remove first six ascii chars from hex seed (descriptors)
+    let hexSeed = QRLLIB.bin2hstr(thisSeedBin).substring(6)
+    // Save the seed back as binary format
+    thisSeedBin = QRLLIB.hstr2bin(hexSeed)
+
     // eslint-disable-next-line no-global-assign
-    XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, xmssHeight)
-    const thisAddress = XMSS_OBJECT.getAddress()
+    XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, thisHeight)
+    const thisAddressBytes = XMSS_OBJECT.getAddress()
+    const thisAddress = 'Q' + QRLLIB.bin2hstr(thisAddressBytes)
+
 
     // If it worked, send the user to the address page.
     if (thisAddress !== '') {
@@ -54,31 +65,17 @@ function openWallet(walletType, walletCode, xmssHeight) {
       $('#unlocking').hide()
     }
   } catch (error) {
+    console.log(error)
     $('#unlockError').show()
     $('#unlocking').hide()
   }
 }
 
 function unlockWallet(basicOrAdvanced) {
-  let xmssHeight
-  let walletType
-  let walletCode
-  let walletFiles
-  let passphrase
-
-  if (basicOrAdvanced === 'basic') {
-    xmssHeight = 10
-    walletType = document.getElementById('walletTypeBasic').value
-    walletCode = document.getElementById('walletCodeBasic').value
-    walletFiles = $('#walletFileBasic').prop('files')
-    passphrase = document.getElementById('basicPassphrase').value
-  } else {
-    xmssHeight = parseInt(document.getElementById('xmssHeight').value)
-    walletType = document.getElementById('walletTypeAdvanced').value
-    walletCode = document.getElementById('walletCodeAdvanced').value
-    walletFiles = $('#walletFileAdvanced').prop('files')
-    passphrase = document.getElementById('advancedPassphrase').value
-  }
+  let walletType = document.getElementById('walletType').value
+  let walletCode = document.getElementById('walletCode').value
+  let walletFiles = $('#walletFile').prop('files')
+  let passphrase = document.getElementById('passphrase').value
 
   // Read file locally, extract mnemonic and open wallet
   if (walletType === 'file') {
@@ -101,13 +98,13 @@ function unlockWallet(basicOrAdvanced) {
           const walletMnemonic = walletJson[0].mnemonic
 
           // Validate we have a valid mnemonic before attemptint to open file
-          if ((walletMnemonic.split(' ').length - 1) !== 31) {
+          if ((walletMnemonic.split(' ').length - 1) !== 33) {
             // Invalid mnemonic in wallet file
             $('#unlocking').hide()
             $('#noWalletFileSelected').show()
           } else {
             // Open wallet file
-            setTimeout(() => { openWallet('mnemonic', walletMnemonic, walletJson[0].height) }, 200)
+            setTimeout(() => { openWallet('mnemonic', walletMnemonic) }, 200)
           }
         } catch (err) {
           // Invalid file format
@@ -126,47 +123,27 @@ function unlockWallet(basicOrAdvanced) {
     }
   } else {
     // Open from hexseed or mnemonic directly
-    setTimeout(() => { openWallet(walletType, walletCode, xmssHeight) }, 200)
+    setTimeout(() => { openWallet(walletType, walletCode) }, 200)
   }
 }
 
 Template.appAddressOpen.events({
-  'click #unlockButtonBasic': () => {
+  'click #unlockButton': () => {
     $('#unlocking').show()
     $('#unlockError').hide()
     $('#noWalletFileSelected').hide()
-    setTimeout(() => { unlockWallet('basic') }, 50)
+    setTimeout(() => { unlockWallet() }, 50)
   },
-  'click #unlockButtonAdvanced': () => {
-    $('#unlocking').show()
-    $('#unlockError').hide()
-    $('#noWalletFileSelected').hide()
-    setTimeout(() => { unlockWallet('advanced') }, 50)
-  },
-  'change #walletTypeBasic': () => {
-    const walletType = document.getElementById('walletTypeBasic').value
+  'change #walletType': () => {
+    const walletType = document.getElementById('walletType').value
     if (walletType === 'file') {
-      $('#walletCodeBasic').hide()
-      $('#walletFileBasic').show()
-      $('#passphraseAreaBasic').show()
+      $('#walletCode').hide()
+      $('#walletFile').show()
+      $('#passphraseArea').show()
     } else {
       $('#walletCode').show()
       $('#walletFile').hide()
-      $('#passphraseAreaBasic').hide()
-    }
-  },
-  'change #walletTypeAdvanced': () => {
-    const walletType = document.getElementById('walletTypeAdvanced').value
-    if (walletType === 'file') {
-      $('#walletCodeAdvanced').hide()
-      $('#walletFileAdvanced').show()
-      $('#passphraseAreaAdvanced').show()
-      $('#xmssHeightDropdown').hide()
-    } else {
-      $('#walletCodeAdvanced').show()
-      $('#walletFileAdvanced').hide()
-      $('#passphraseAreaAdvanced').hide()
-      $('#xmssHeightDropdown').show()
+      $('#passphraseArea').hide()
     }
   },
 })
