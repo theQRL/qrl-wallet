@@ -84,7 +84,7 @@ function createTokenTxn() {
 Template.appTokenCreate.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
-  getBalance(getXMSSDetails().address)
+  getBalance(getXMSSDetails().address, function() {})
 })
 
 Template.appTokenCreate.events({
