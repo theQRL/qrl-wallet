@@ -17,14 +17,8 @@
 
   <div class="ui items">
     <div class="item">
-      <div class="image">
-        {{> QRCode text=tokenCreationConfirmation.hash size="128px"}}
-      </div>
       <div class="content">
         <a class="header">{{tokenCreationConfirmation.name}} ({{tokenCreationConfirmation.symbol}})</a>
-        <div class="meta">
-          <span>Token Hash <a class="ui purple label">{{tokenCreationConfirmation.hash}}</a></span>
-        </div>
         <div class="description">
           <p></p>
         </div>
@@ -63,8 +57,6 @@
 
   <div class="ui stackable one column grid">
     <div class="column">
-      <span>Transaction Hash <a class="ui">{{tokenCreationConfirmation.hash}}</a></span>
-      <br />
       <span>From <a class="ui">{{tokenCreationConfirmation.from}}</a></span>
       <br />
       <span>Fee <a class="ui">{{tokenCreationConfirmation.fee}}</a></span>

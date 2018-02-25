@@ -9,9 +9,9 @@ import './tokenCreate.html'
 
 function createTokenTxn() {
   // Get to/amount details
-  const sendFrom = LocalStore.get('transferFromAddress')
+  const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
 
-  const owner = document.getElementById('owner').value
+  const owner = addressForAPI(document.getElementById('owner').value)
   const symbol = document.getElementById('symbol').value
   const name = document.getElementById('name').value
   const decimals = document.getElementById('decimals').value
@@ -22,20 +22,16 @@ function createTokenTxn() {
 
   // Convert strings to bytes
   const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
-  const sendFromAddress = stringToBytes(sendFrom)
   const symbolBytes = stringToBytes(symbol)
   const nameBytes = stringToBytes(name)
-  const ownerAddress = stringToBytes(owner)
 
   // Collect Token Holders and create payload
   var initialBalancesAddress = document.getElementsByName("initialBalancesAddress[]")
   var initialBalancesAddressAmount = document.getElementsByName("initialBalancesAddressAmount[]")
   
   for (var i = 0; i < initialBalancesAddress.length; i++) {
-    const holderAddressBytes = stringToBytes(initialBalancesAddress[i].value)
-
     const thisHolder = {
-      address: holderAddressBytes,
+      address: addressForAPI(initialBalancesAddress[i].value),
       amount: initialBalancesAddressAmount[i].value * SHOR_PER_QUANTA
     }
      
@@ -45,15 +41,14 @@ function createTokenTxn() {
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    addressFrom: sendFromAddress,
-    owner: ownerAddress,
+    addressFrom: sendFrom,
+    owner: owner,
     symbol: symbolBytes,
     name: nameBytes,
     decimals: decimals,
     initialBalances: tokenHolders,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    xmssOtsKey: otsKey,
     grpc: grpcEndpoint,
   }
 
@@ -65,10 +60,10 @@ function createTokenTxn() {
     } else {
       const confirmation = {
         hash: res.txnHash,
-        from: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.addr_from),
-        symbol: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.symbol),
-        name: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.name),
-        owner: new TextDecoder('utf-8').decode(res.response.transaction_unsigned.token.owner),
+        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
+        symbol: bytesToString(res.response.transaction_unsigned.token.symbol),
+        name: bytesToString(res.response.transaction_unsigned.token.name),
+        owner: binaryToQrlAddress(res.response.transaction_unsigned.token.owner),
         decimals: res.response.transaction_unsigned.token.decimals,
         fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.transaction_unsigned.token.initial_balances,
@@ -89,7 +84,7 @@ function createTokenTxn() {
 Template.appTokenCreate.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
-  getBalance(XMSS_OBJECT.getAddress())
+  getBalance(getXMSSDetails().address)
 })
 
 Template.appTokenCreate.events({

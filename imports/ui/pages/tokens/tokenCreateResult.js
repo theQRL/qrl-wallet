@@ -93,23 +93,21 @@ Template.appTokenCreationResult.helpers({
   },
   tokenDetails() {
     let details = LocalStore.get('txhash').transaction.tx.token
-    details.owner = new TextDecoder('utf-8').decode(details.owner)
-    details.symbol = new TextDecoder('utf-8').decode(details.symbol)
-    details.name = new TextDecoder('utf-8').decode(details.name)
+    details.owner = binaryToQrlAddress(details.owner)
+    details.symbol = bytesToString(details.symbol)
+    details.name = bytesToString(details.name)
     return details
   },
   tokenHolders() {
     const tokenHoldersRaw = LocalStore.get('txhash').transaction.tx.token.initial_balances
     let tokenHolders = []
-
     for (var i = 0; i < tokenHoldersRaw.length; i++) {
       const thisHolder = {
-        address: new TextDecoder('utf-8').decode(tokenHoldersRaw[i].address),
+        address: binaryToQrlAddress(tokenHoldersRaw[i].address),
         amount: tokenHoldersRaw[i].amount / SHOR_PER_QUANTA
       }
       tokenHolders.push(thisHolder)
     }
-
     return tokenHolders
   },
   nodeExplorerUrl() {

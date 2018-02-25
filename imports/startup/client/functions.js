@@ -18,18 +18,27 @@ selectedNode = () => {
 
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
-  const thisAddress = XMSS_OBJECT.getAddress()
-  const thisRandomSeed = XMSS_OBJECT.getSeed()
-  const thisHeight = XMSS_OBJECT.getHeight()
+  const thisAddressBytes = XMSS_OBJECT.getAddress()
+  const thisAddress = QRLLIB.bin2hstr(thisAddressBytes)
+  const thisPk = XMSS_OBJECT.getPK()
+  
+  const thisHashFunction = QRLLIB.getHashFunction(thisAddressBytes)
+  const thisSignatureType = QRLLIB.getSignatureType(thisAddressBytes)
+  const thisHeight = QRLLIB.getHeight(thisAddressBytes)
+
+  const thisRandomSeed = XMSS_OBJECT.getExtendedSeed()
 
   const thisHexSeed = QRLLIB.bin2hstr(thisRandomSeed)
   const thisMnemonic = QRLLIB.bin2mnemonic(thisRandomSeed)
 
   const xmssDetail = {
-    address: thisAddress,
+    address: 'Q' + thisAddress,
+    pk: thisPk,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
     height: thisHeight,
+    hashFunction: thisHashFunction,
+    signatureType: thisSignatureType,
     index: 0
   }
 
@@ -78,7 +87,6 @@ stringToBytes = (convertMe) => {
 
 // Convert Binary object to Bytes
 binaryToBytes = (convertMe) => {
-  // Convert Binary to Bytes
   const thisBytes = new Uint8Array(convertMe.size())
   for (let i = 0; i < convertMe.size(); i += 1) {
     thisBytes[i] = convertMe.get(i)
@@ -86,11 +94,52 @@ binaryToBytes = (convertMe) => {
   return thisBytes
 }
 
+// Convert bytes to string
+bytesToString = (buf) => {
+  return String.fromCharCode.apply(null, new Uint8Array(buf))
+}
+
+// Convert bytes to hex
+bytesToHex = (byteArray) => {
+  return Array.from(byteArray, function(byte) {
+    return ('00' + (byte & 0xFF).toString(16)).slice(-2)
+  }).join('')
+}
+
+// Returns an address ready to send to gRPC API
+addressForAPI = (address) => {
+  return Buffer.from(address.substring(1), 'hex')
+}
+
+// Create human readable QRL Address from API Binary response
+binaryToQrlAddress = (binary) => {
+  if(binary === null) {
+    return null
+  } else {
+    return 'Q' + Buffer.from(binary).toString('hex')
+  }
+}
+
+// Concatenates multiple typed arrays into one.
+concatenateTypedArrays = (resultConstructor, ...arrays) => {
+    let totalLength = 0
+    for (let arr of arrays) {
+      totalLength += arr.length
+    }
+    let result = new resultConstructor(totalLength)
+    let offset = 0
+    for (let arr of arrays) {
+      result.set(arr, offset)
+      offset += arr.length
+    }
+    return result
+}
+
 // Get wallet address state details
 getBalance = (getAddress, callBack) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
-    address: stringToBytes(getAddress),
+    address: addressForAPI(getAddress),
     grpc: grpcEndpoint,
   }
 
@@ -100,13 +149,13 @@ getBalance = (getAddress, callBack) => {
     } else {
       if (res.state.address !== '') {
         LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(res.state.address))
+        LocalStore.set('transferFromAddress', binaryToQrlAddress(res.state.address))
         LocalStore.set('transferFromTokenState', res.state.tokens)
         LocalStore.set('address', res)
       } else {
         // Wallet not found, put together an empty response
         LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', new TextDecoder('utf-8').decode(getAddress))
+        LocalStore.set('transferFromAddress', binaryToQrlAddress(getAddress))
       }
 
       // Rudimentary way to set otsKey

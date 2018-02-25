@@ -16,6 +16,7 @@
       <div id="sendReceiveTabs" class="ui top attached tabular menu">
         <a class="item active" data-tab="send">Send</a>
         <a class="item" data-tab="receive">Receive</a>
+        <a class="item" data-tab="tokenBalances">Token Balances</a>
       </div>
       <div class="ui bottom attached tab segment active" data-tab="send">
 
@@ -39,7 +40,8 @@
                 </select>
               </div>
               <br />
-              Balance: {{balanceAmount}} {{balanceSymbol}}
+              <div class="ui teal label">Balance: {{balanceAmount}} {{balanceSymbol}}</div>
+               
             </div>
             <div class="field">
               <label>Fee (In Quanta)</label>
@@ -115,8 +117,6 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <span>Transaction Hash <a class="ui wordBreak">{{transactionConfirmation.hash}}</a></span>
-              <br />
               <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
               <br />
               <span>OTS Key Index <a class="ui">{{transactionConfirmation.otsKey}}</a></span>
@@ -174,8 +174,6 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <span>Transaction Hash <a class="ui wordBreak">{{tokenTransferConfirmation.hash}}</a></span>
-              <br />
               <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a> Quanta</span>
               <br />
               <span>OTS Key Index <a class="ui">{{tokenTransferConfirmation.otsKey}}</a></span>
@@ -236,7 +234,7 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <span>Transaction Hash <a class="ui wordBreak">{{transactionConfirmation.hash}}</a></span>
+              <span>Transaction Hash <a class="ui wordBreak">{{transactionHash}}</a></span>
               <br />
               <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
               <br />
@@ -319,7 +317,7 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <span>Transaction Hash <a class="ui wordBreak">{{tokenTransferConfirmation.hash}}</a></span>
+              <span>Transaction Hash <a class="ui wordBreak">{{transactionHash}}</a></span>
               <br />
               <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a> Quanta</span>
               <br />
@@ -387,6 +385,39 @@
               {{> QRCode text=openedAddress size="142px"}}
             </div>
           </div>
+      </div>
+
+
+      <!-- Token Balances -->
+      <div class="ui bottom attached tab segment" data-tab="tokenBalances">
+        <h2 class="ui header">
+          <div class="content">
+            Token Balances
+          </div>
+        </h2>
+
+        <div id="tokenBalancesLoading" class="ui icon message">
+          <br /><br />
+          <i class="notched circle loading icon"></i>
+          <div class="content">
+            <div class="header">
+              Just a moment
+            </div>
+            <p>Token balances are loading...</p>
+          </div>
+        </div>
+
+        <div class="ui middle aligned divided list">
+          {{#each tokensHeld}}
+          <div class="item">
+            <i class="large ticket middle aligned icon"></i>
+            <div class="content">
+              <p class="header">{{this.name}} ({{this.symbol}})</p>
+              <div class="description">{{this.balance}}</div>
+            </div>
+          </div>
+          {{/each}}
+        </div>
       </div>
 
     </div>
