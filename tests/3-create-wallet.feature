@@ -7,8 +7,8 @@ Background:
 
 @watch
 Scenario: Visitor creates a wallet
-	When I click Create Wallet
+	When I click New Wallet
 	And type a passphrase "password123" in
-    And press Create Basic Wallet
-    Then I should see Generating New Wallet
+    And press Create Wallet
+    Then I should see Generating new wallet
     And I should then see my wallet details

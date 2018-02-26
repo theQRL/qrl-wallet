@@ -4,6 +4,7 @@ import './open.html'
 /* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
+/* global resetLocalStorageState */
 
 Template.appAddressOpen.onRendered(() => {
   $('.ui.dropdown').dropdown()
@@ -11,8 +12,8 @@ Template.appAddressOpen.onRendered(() => {
   $('#openWalletTabs .item').tab()
   $('#xmssHeightDropdown').dropdown({direction: 'upward' })
 
-  LocalStore.set('address', '')
-  LocalStore.set('addressTransactions', '')
+  // Restore local storage state
+  resetLocalStorageState()
 
   // Route to transfer if wallet is already opened
   if (LocalStore.get('walletStatus').unlocked === true) {

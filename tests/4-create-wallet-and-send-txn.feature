@@ -8,19 +8,22 @@ Background:
 
 @watch
 Scenario: Visitor creates a wallet and sends a transaction
-    When I click Create Wallet
+    When I click New Wallet
     And type a passphrase "password123" in
-    And press Create Basic Wallet
-    Then I should see Generating New Wallet
-    And I should then see my wallet details
-    When I then click Transfer Quanta
-    Then I should see my new address
+    And press Create Wallet
+    Then I should see Generating new wallet
+    And I should then see my wallet details for test 4
+    Then I click Open Wallet
+    Then I enter my new mnemonic phrase
+    And click Unlock Wallet
+    Then I should see "Unlocking wallet..." on the page
+    And I should then see my new address on the page
     And I should see a precalculated OTS Key Index as "0"
-    When I then fill in the to address as "Q25c2928dc208d562b73396c9142e00c93af5ee841dba5da528f85608ed7eb184a035a8f4"
+    When I then fill in the to address as "Q010500cc037dec6d74a9479ec66391d3f0bb46fef62e2d8b2bca3a25d2aaf1310f63315bfb4c1d"
     And enter the amount as "42"
     And enter the fee as "10"
     And change the OTS Key Index to "20"
-    And click generate transaction
+    And click confirm
     Then I should see a loading icon
     And I should then see a form confirming my transaction
     When I then click confirmation transaction

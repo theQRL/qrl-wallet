@@ -167,3 +167,16 @@ getBalance = (getAddress, callBack) => {
   })
 }
 
+// Reset wallet localstorage state
+resetLocalStorageState = () => {
+  LocalStore.set('address', '')
+  LocalStore.set('addressTransactions', '')
+  LocalStore.set('transferFromAddress', '')
+  LocalStore.set('transferFromBalance', '')
+  LocalStore.set('transferFromTokenState', '')
+  LocalStore.set('xmssHeight', '')
+  LocalStore.set('tokensHeld', '')
+  LocalStore.set('otsKeyEstimate', '')
+  LocalStore.set('balanceAmount', '')
+  LocalStore.set('balanceSymbol', '')
+}

@@ -2,8 +2,8 @@
 
 
 <h3 class="ui header pageHeader">
-  <div class="content wordBreak">
-    Wallet: {{transferFrom.address}}
+  <div id="walletAddress" class="content wordBreak">
+    {{transferFrom.address}}
   </div>
 </h3>
 <br /><br />
@@ -136,7 +136,7 @@
               <div class="header">
                 Just a moment
               </div>
-              <p id="relayingMsg">Your transaction is being relayed into the QRL network...</p>
+              <p id="transferRelayingMsg">Your transaction is being relayed into the QRL network...</p>
             </div>
           </div>
 
@@ -245,7 +245,7 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
+              <p id="transferSuccessMessage" style="word-wrap: break-word; word-break: break-all;">
                 Success! Your transaction has been relayed into the QRL network through the following nodes, and is pending validation.
               </p>
             </div>
@@ -270,7 +270,7 @@
               <div id="loadingHeader" class="header">
                 Just a moment
               </div>
-              <p id="finalTxnStatus wordBreak" style="word-wrap: break-word; word-break: break-all;">Transaction Status: {{transactionStatus}}</p>
+              <p id="transferFinalTxnStatus" class="wordBreak" style="word-wrap: break-word; word-break: break-all;">Transaction Status: {{transactionStatus}}</p>
             </div>
           </div>
 

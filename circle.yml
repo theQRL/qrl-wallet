@@ -15,10 +15,8 @@ dependencies:
     - if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com | sh; fi
     - npm install -g chimp
     - npm install -g selenium-standalone
-    - npm install -g mup
+    - npm install -g qrl-electrify
     - meteor npm install --unsafe-perm
-    - cp node_modules/qrllib/build/web-libjsqrl.wasm public/
-    - cd ../
 test:
   override:
     - npm run dev:
@@ -30,4 +28,4 @@ deployment:
   production:
     branch: "master"
     commands:
-      - cd .deploy && mup deploy
+      - ./package.sh

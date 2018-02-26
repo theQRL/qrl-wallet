@@ -8,25 +8,25 @@
         <img class="main-menu-logo" src="/img/qrl-logo-white.png" />
         QRL
       </a>
-      <a href="/create" class="item main-menu-btn {{menuNewWalletActive}}">
+      <a id="newWalletButton" href="/create" class="item main-menu-btn {{menuNewWalletActive}}">
         <img class="icon svg" src="/img/icons/new-wallet.svg" />
         New Wallet
       </a>
-      <a href="/open" class="item main-menu-btn {{menuOpenWalletActive}}" style="{{walletStatus.menuHiddenInverse}}">
+      <a id="openWalletButton" href="/open" class="item main-menu-btn {{menuOpenWalletActive}}" style="{{walletStatus.menuHiddenInverse}}">
         <img class="icon svg" src="/img/icons/open-wallet.svg" />
         Open Wallet
       </a>
-      <a href="/close" class="item main-menu-btn" style="{{walletStatus.menuHidden}}">
+      <a id="closeWalletButton" href="/close" class="item main-menu-btn" style="{{walletStatus.menuHidden}}">
         <img class="icon svg" src="/img/icons/lock.svg" />
         Close Wallet
       </a>
 
-      <a href="/transfer" class="item main-menu-btn {{menuTransferActive}}" style="{{walletStatus.menuHidden}}">
+      <a id="sendAndReceiveButton" href="/transfer" class="item main-menu-btn {{menuTransferActive}}" style="{{walletStatus.menuHidden}}">
         <img class="icon svg" src="/img/icons/transfer.svg" />
         Send &amp;<br />Receive
       </a>
 
-      <a href="/tokens/create" class="item main-menu-btn {{menuTokensActive}}" style="{{walletStatus.menuHidden}}">
+      <a id="createTokenButton" href="/tokens/create" class="item main-menu-btn {{menuTokensActive}}" style="{{walletStatus.menuHidden}}">
         <img class="icon svg" src="/img/icons/transfer.svg" />
         Create<br />Token
       </a>
@@ -35,6 +35,7 @@
         <img class="icon svg" src="/img/icons/tick.svg" />
         Verify<br />Transaction
       </a>
+      
       <a href="{{nodeExplorerUrl}}" target="_blank" class="item main-menu-btn">
         <i class="search icon"></i>
         Explorer
