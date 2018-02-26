@@ -13,9 +13,6 @@ module.exports = function () {
     // Store new address and mnemonic phrase
     newAddress = browser.getText('#newAddress')
     newMnemonic = browser.getText('#newAddressMnemonic')
-
-    console.log(newAddress)
-    console.log(newMnemonic)
   })
 
   this.When(/^I enter my new mnemonic phrase$/, function () {4
