@@ -1,6 +1,11 @@
+general:
+  artifacts:
+    - ".electrify/.dist/"
+
 machine:
   node:
     version: 8.9.3
+
 dependencies:
   cache_directories:
     - "node_modules"
@@ -17,6 +22,7 @@ dependencies:
     - npm install -g selenium-standalone
     - npm install -g qrl-electrify
     - meteor npm install --unsafe-perm
+
 test:
   override:
     - npm run dev:
