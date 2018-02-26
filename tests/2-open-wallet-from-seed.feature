@@ -8,7 +8,7 @@ Background:
 @watch
 Scenario: Visitor opens wallet from seed
 	When I click Open Wallet
-    And enter my mnemonic phrase "body human immune manor herd offend inter saga softly bright soil look stroll below robot lobe beta update texas won clap hire end rarity frenzy floral stud virus eerily thin grab drew"
+    And enter my mnemonic phrase "absorb filled perch retain tattoo likely snake photo rabbit editor shirt france exact angola style farce feels least zurich added gale risk hereby comedy yield pile mane signal camel stool depth throne torque orient"
     And click Unlock Wallet
     Then I should see "Unlocking wallet..." on the page
-    And I should then see my wallet address "Q879962c1af94b69864af2d9f40d5e5b224dbd159b86d1e1d2c0fb17d24cc9397f7037583" on the page
+    And I should then see my wallet address "Q01050095b99edcc2eb80153f30475bdbff8737723f9c9072be60c74c82983548e4a5bcbaab216f" on the page

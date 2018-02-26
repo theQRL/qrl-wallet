@@ -2,8 +2,8 @@ module.exports = function () {
   'use strict';
 
   this.When(/^I click Open Wallet$/, function () {
-    client.moveToObject('#openWalletHome')
-    browser.click('#openWalletHome')
+    client.moveToObject('#openWalletButton')
+    browser.click('#openWalletButton')
   })
 
   this.When(/^enter my mnemonic phrase "([^"]*)"$/, function (arg1) {
@@ -12,16 +12,16 @@ module.exports = function () {
     // to text such that the walletCode setValue statement works.
     browser.execute(function() {
         // browser context
-        passphraseBox = document.getElementById("basicPassphrase");
+        passphraseBox = document.getElementById("passphrase");
         passphraseBox.type = "text";
     })
 
-    browser.setValue('#walletCodeBasic', arg1)
+    browser.setValue('#walletCode', arg1)
   })
 
   this.When(/^click Unlock Wallet$/, function () {
-    client.moveToObject('#unlockButtonBasic')
-    browser.click('#unlockButtonBasic')
+    client.moveToObject('#unlockButton')
+    browser.click('#unlockButton')
   })
 
   this.Then(/^I should see "([^"]*)" on the page$/, function (arg1) {
@@ -31,10 +31,9 @@ module.exports = function () {
   })
 
   this.Then(/^I should then see my wallet address "([^"]*)" on the page$/, function (arg1) {
-    let _el = '.header h1 a'
+    let _el = '#walletAddress'
     // All time for gRPC call to be made and reply with data for view state.
     browser.waitForText(_el, 30000)
     expect(browser.getText(_el)).toEqual(arg1)
   })
-
 };

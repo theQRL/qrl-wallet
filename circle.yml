@@ -30,4 +30,4 @@ deployment:
   production:
     branch: "master"
     commands:
-      - cd .deploy && mup deploy
+      - ./package.sh
