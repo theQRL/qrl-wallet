@@ -1,5 +1,42 @@
 <template name="appTransfer">
 
+<div class="small ui modal" id="cancelTransactionGenerationWarning">
+  <div class="header">Whoa there buddy!!</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Are you sure?
+        </div>
+        <p>Please confirm you wish to cancel generating this transaction.</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button red">Yes, cancel this transaction!</div>
+    <div class="ui cancel red button plain">Cancel</div>
+  </div>
+</div>
+
+<div class="small ui modal" id="cancelWaitingForTransactionWarning">
+  <div class="header">Whoa there buddy!!</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Are you sure?
+        </div>
+        <p>This transaction has not been confirmed on the network just yet! Leaving this page now may show incorrect balances on other pages. It is advised that you wait for the transaction to confirm before leaving this page.</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button red">I understand, leave now anyway.</div>
+    <div class="ui cancel red button plain">Cancel</div>
+  </div>
+</div>
 
 <h3 class="ui header pageHeader">
   <div id="walletAddress" class="content wordBreak">
@@ -370,7 +407,7 @@
 
       </div>
       <!-- Receive Section -->
-      <div class="ui bottom attached tab segment" data-tab="receive">
+      <div class="ui bottom attached tab segment" id="receiveTab" data-tab="receive">
           <form>
             <div class="field">
               <label>Your Public QRL Address</label>
@@ -389,7 +426,7 @@
 
 
       <!-- Token Balances -->
-      <div class="ui bottom attached tab segment" data-tab="tokenBalances">
+      <div class="ui bottom attached tab segment" id="tokenBalancesTab" data-tab="tokenBalances">
         <h2 class="ui header">
           <div class="content">
             Token Balances

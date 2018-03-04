@@ -38,6 +38,8 @@ function createTokenTxn() {
     tokenHolders.push(thisHolder)
   }
 
+
+
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
