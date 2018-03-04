@@ -175,8 +175,6 @@ Template.appBody.onRendered(() => {
 
     }, 'xml')
   })
-
-
 })
 
 
@@ -189,6 +187,51 @@ Template.appBody.events({
   'change #network': () => {
     updateNode(selectedNode())
   },
+  'click #sendAndReceiveButton': () => {
+    // Three primary sections
+    const transactionGenerateFieldVisible = $('#generateTransactionArea').is(':visible')
+    const tokenBalancesTabVisible = $('#tokenBalancesTab').is(':visible')
+    const receiveTabVisible = $('#receiveTab').is(':visible')
+
+    // Completed transaction sections
+    const tokenTransactionResultAreaVisible = $('#tokenTransactionResultArea').is(':visible')
+    const transactionResultAreaVisible = $('#transactionResultArea').is(':visible')
+    
+    const reloadPath = FlowRouter.path('/reloadTransfer', {})
+
+    if(
+      (transactionGenerateFieldVisible == false) &&
+      (tokenBalancesTabVisible == false) && 
+      (receiveTabVisible == false)) {
+      // If the user has completed the transaction, go back to send form.
+      if(
+        (tokenTransactionResultAreaVisible == true) ||
+        (transactionResultAreaVisible == true)
+        ) {
+        // Check if the trasaction is confirmed on the network.
+        const transactionConfirmed = LocalStore.get('transactionConfirmed')
+        if(transactionConfirmed == true) {
+          FlowRouter.go(reloadPath)
+        } else {
+          
+          $('#cancelWaitingForTransactionWarning').modal({
+            onApprove: () => {
+              $('#cancelWaitingForTransactionWarning').modal('hide')
+              FlowRouter.go(reloadPath)
+            },
+          }).modal('show')
+        }
+      } else {
+        // Confirm with user they will loose progress of this transaction if they proceeed.
+        $('#cancelTransactionGenerationWarning').modal({
+          onApprove: () => {
+            $('#cancelTransactionGenerationWarning').modal('hide')
+            FlowRouter.go(reloadPath)
+          },
+        }).modal('show')
+      }
+    }
+  }
 })
 
 

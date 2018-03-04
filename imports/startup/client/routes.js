@@ -10,6 +10,7 @@ import '../../ui/pages/open/open.js'
 import '../../ui/pages/close/close.js'
 
 import '../../ui/pages/transfer/transfer.js'
+import '../../ui/pages/transfer/reload.js'
 
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
@@ -59,6 +60,12 @@ FlowRouter.route('/transfer', {
   name: 'App.transferUnlock',
   action() {
     BlazeLayout.render('appBody', { main: 'appTransfer' })
+  },
+})
+FlowRouter.route('/reloadTransfer', {
+  name: 'App.reloadTransfer',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appReloadTransfer' })
   },
 })
 

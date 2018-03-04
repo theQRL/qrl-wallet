@@ -284,6 +284,7 @@ function checkResult(thisTxId, failureCount) {
       // Complete
       const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.`
       LocalStore.set('txstatus', userMessage)
+      LocalStore.set('transactionConfirmed', "true")
       $('.loading').hide()
       $('#loadingHeader').hide()
     } else if (LocalStore.get('txhash').error != null) {
@@ -295,6 +296,7 @@ function checkResult(thisTxId, failureCount) {
         // Transaction error - Give up
         const errorMessage = `Error - ${LocalStore.get('txhash').error}`
         LocalStore.set('txstatus', errorMessage)
+        LocalStore.set('transactionConfirmed', "false")
         $('.loading').hide()
         $('#loadingHeader').hide()
       }
@@ -314,6 +316,7 @@ function checkResult(thisTxId, failureCount) {
     } else {
       // Transaction error - Give up
       LocalStore.set('txstatus', 'Pending')
+      LocalStore.set('transactionConfirmed', "false")
       $('.loading').hide()
       $('#loadingHeader').hide()
     }
@@ -328,6 +331,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   }
 
   LocalStore.set('txstatus', 'Pending')
+  LocalStore.set('transactionConfirmed', "false")
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
@@ -356,108 +360,6 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   }
 }
 
-function loadAddressTransactions() {
-  const thisTxs = LocalStore.get('address').state.transactions.reverse()
-
-  const request = {
-    tx: thisTxs,
-    grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc,
-  }
-
-  LocalStore.set('addressTransactions', [])
-  $('#loadingTransactions').show()
-  
-  Meteor.call('addressTransactions', request, (err, res) => {
-    if (err) {
-      LocalStore.set('addressTransactions', { error: err })
-    } else {
-      LocalStore.set('addressTransactions', res)
-      $('#loadingTransactions').hide()
-    }
-  })
-}
-
-const getTokenBalances = (getAddress, callback) => {
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  const request = {
-    address: addressForAPI(getAddress),
-    grpc: grpcEndpoint,
-  }
-
-  Meteor.call('getAddress', request, (err, res) => {
-    if (err) {
-      // TODO - Error handling
-    } else {
-      if (res.state.address !== '') {
-        // Now for each res.state.token we find, go discover token name and symbol
-        for (let i in res.state.tokens) {
-          const tokenHash = i
-          const tokenBalance = res.state.tokens[i]
-
-          let thisToken = {}
-
-          const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-          const request = {
-            query: tokenHash,
-            grpc: grpcEndpoint,
-          }
-
-          Meteor.call('getTxnHash', request, (err, res) => {
-            if (err) {
-              // TODO - Error handling here
-              console.log('err:',err)
-            } else {
-              // Check if this is a token hash.
-              if (res.transaction.tx.transactionType !== "token") {
-                // TODO - Error handling here
-              } else {
-                let tokenDetails = res.transaction.tx.token
-
-                thisToken.hash = tokenHash
-                thisToken.name = bytesToString(tokenDetails.name)
-                thisToken.symbol = bytesToString(tokenDetails.symbol)
-                thisToken.balance = tokenBalance / SHOR_PER_QUANTA
-
-                tokensHeld.push(thisToken)
-
-                LocalStore.set('tokensHeld', tokensHeld)
-              }
-            }
-          })
-        }
-
-        callback()
-
-        // When done hide loading section
-        $('#loading').hide()
-      } else {
-        // Wallet not found, put together an empty response
-        callback()
-      }
-    }
-  })
-}
-
-function updateBalanceField() {
-  const selectedType = document.getElementById('amountType').value
-
-  // Quanta Balances
-  if(selectedType == 'quanta') {
-    LocalStore.set('balanceAmount', LocalStore.get('transferFromBalance'))
-    LocalStore.set('balanceSymbol', 'Quanta')
-  } else {
-    // First extract the token Hash
-    tokenHash = selectedType.split('-')[1]
-
-    // Now calculate the token balance.
-    _.each(LocalStore.get('tokensHeld'), (token) => {
-      if(token.hash == tokenHash) {
-        LocalStore.set('balanceAmount', token.balance)
-        LocalStore.set('balanceSymbol', token.symbol)
-      }
-    })
-  }
-}
 
 
 Template.appTransfer.onRendered(() => {
@@ -504,28 +406,7 @@ Template.appTransfer.onRendered(() => {
 
   $('#sendReceiveTabs .item').tab()
 
-  tokensHeld = []
-  LocalStore.set('tokensHeld', [])
-
-  // Wait for QRLLIB to load
-  waitForQRLLIB(function () {
-    // Get address balance
-    getBalance(getXMSSDetails().address, function() {
-      // Load Wallet Transactions
-      loadAddressTransactions()
-    })
-
-    // Get Tokens and Balances
-    getTokenBalances(getXMSSDetails().address, function() {
-      // Update balance field
-      updateBalanceField()
-      
-      $('#tokenBalancesLoading').hide()
-      
-      // Render dropdown
-      $('.ui.dropdown').dropdown()
-    })
-  })
+  refreshTransferPage()
 })
 
 Template.appTransfer.events({
@@ -565,7 +446,7 @@ Template.appTransfer.events({
   },
   'change #amountType': () => {
     updateBalanceField()
-  },
+  }
 })
 
 Template.appTransfer.helpers({
