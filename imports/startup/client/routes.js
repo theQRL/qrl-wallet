@@ -57,7 +57,7 @@ FlowRouter.route('/close', {
 
 // Transfers (Quanta and Tokens)
 FlowRouter.route('/transfer', {
-  name: 'App.transferUnlock',
+  name: 'App.transfer',
   action() {
     BlazeLayout.render('appBody', { main: 'appTransfer' })
   },

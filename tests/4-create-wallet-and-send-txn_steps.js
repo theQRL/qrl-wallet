@@ -1,7 +1,7 @@
 module.exports = function () {
   'use strict';
 
-  this.setDefaultTimeout(120000); // 2 minute default timeout
+  this.setDefaultTimeout(300000); // 5 minute default timeout
 
   let newAddress
   let newMnemonic
@@ -105,7 +105,7 @@ module.exports = function () {
       if(thisResult.indexOf(arg1) >=0) {
         return true
       }
-    }, 120000, 'expected transaction to be in pending state')
+    }, 300000, 'expected transaction to be in pending state')
   })
 
   this.Then(/^shortly after I should see "([^"]*)"$/, function (arg1) {
@@ -116,7 +116,7 @@ module.exports = function () {
       if(thisResult.indexOf(arg1) >=0) {
         return true
       }
-    }, 120000, 'expected transaction confirmation within 2 minutes')
+    }, 300000, 'expected transaction confirmation within 5 minutes')
 
   })
 
