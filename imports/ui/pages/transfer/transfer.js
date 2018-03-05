@@ -362,15 +362,19 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
 
 
-Template.appTransfer.onRendered(() => {
-  $('.ui.dropdown').dropdown()
-  
+Template.appTransfer.onCreated(() => {
   // Route to open wallet is already opened
   if (LocalStore.get('walletStatus').unlocked === false) {
     const params = {}
     const path = FlowRouter.path('/open', params)
     FlowRouter.go(path)
   }
+})
+
+Template.appTransfer.onRendered(() => {
+  $('.ui.dropdown').dropdown()
+  
+
 
   // Transfer validation
   $('.ui.form').form({

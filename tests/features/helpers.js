@@ -2,7 +2,7 @@
 
 
 module.exports = function() {  
-  this.setDefaultTimeout(120000); // 2 minute default timeout
+  this.setDefaultTimeout(300000); // 5 minute default timeout
   'use strict';
 
   this.Given(/^I am on the site$/, function () {
