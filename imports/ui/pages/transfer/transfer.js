@@ -271,7 +271,8 @@ function setRawDetail() {
   try {
     const myJSON = LocalStore.get('txhash').transaction
     const formatter = new JSONFormatter(myJSON)
-    $('.json').html(formatter.render())
+    $('#quantaJsonbox').html(formatter.render())
+    $('#tokenJsonbox').html(formatter.render())
   } catch (err) {
     console.log('Error adding transaction to raw detail.')
   }
@@ -374,8 +375,6 @@ Template.appTransfer.onCreated(() => {
 Template.appTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
   
-
-
   // Transfer validation
   $('.ui.form').form({
     fields: {
@@ -442,11 +441,17 @@ Template.appTransfer.events({
   'click #cancelTransaction': () => {
     cancelTransaction()
   },
-  'click .jsonclick': () => {
-    if (!($('.json').html())) {
+  'click #quantaJsonClick': () => {
+    if (!($('#quantaJsonbox').html())) {
       setRawDetail()
     }
-    $('.jsonbox').toggle()
+    $('#quantaJsonbox').toggle()
+  },
+  'click #tokenJsonClick': () => {
+    if (!($('#tokenJsonbox').html())) {
+      setRawDetail()
+    }
+    $('#tokenJsonbox').toggle()
   },
   'change #amountType': () => {
     updateBalanceField()
