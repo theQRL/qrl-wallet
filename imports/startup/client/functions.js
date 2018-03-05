@@ -200,6 +200,8 @@ getTokenBalances = (getAddress, callback) => {
       // TODO - Error handling
     } else {
       if (res.state.address !== '') {
+        let tokensHeld = []
+        
         // Now for each res.state.token we find, go discover token name and symbol
         for (let i in res.state.tokens) {
           const tokenHash = i
