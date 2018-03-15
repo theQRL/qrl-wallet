@@ -66,7 +66,7 @@ const txResultsRefactor = (res) => {
     output.transaction.tx.token.initial_balances.forEach((value) => {
       const edit = value
       edit.address = 'Q' + Buffer.from(edit.address).toString('hex'),
-      edit.amount = edit.amount / SHOR_PER_QUANTA
+      edit.amount = edit.amount / Math.pow(10, output.transaction.tx.token.decimals)
       balances.push(edit)
     })
 

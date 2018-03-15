@@ -120,6 +120,26 @@ binaryToQrlAddress = (binary) => {
   }
 }
 
+// Take input and convert to unsigned uint64 bigendian bytes
+toBigendianUint64BytesUnsigned = (input) => {
+  if(!Number.isInteger(input)) {
+    input = parseInt(input)
+  }
+
+  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
+
+  for ( let index = 0; index < byteArray.length; index ++ ) {
+    const byte = input & 0xff
+    byteArray[index] = byte
+    input = (input - byte) / 256
+  }
+
+  byteArray.reverse()
+
+  const result = new Uint8Array(byteArray)
+  return result
+}
+
 // Concatenates multiple typed arrays into one.
 concatenateTypedArrays = (resultConstructor, ...arrays) => {
     let totalLength = 0
@@ -229,7 +249,8 @@ getTokenBalances = (getAddress, callback) => {
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
                 thisToken.symbol = bytesToString(tokenDetails.symbol)
-                thisToken.balance = tokenBalance / SHOR_PER_QUANTA
+                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals)
+                thisToken.decimals = tokenDetails.decimals
 
                 tokensHeld.push(thisToken)
 
@@ -238,7 +259,6 @@ getTokenBalances = (getAddress, callback) => {
             }
           })
         }
-
         callback()
 
         // When done hide loading section

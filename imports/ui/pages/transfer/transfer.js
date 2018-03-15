@@ -39,14 +39,14 @@ function generateTransaction() {
     } else {
       const confirmation = {
         from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
-        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer.addr_to),
-        amount: res.response.transaction_unsigned.transfer.amount / SHOR_PER_QUANTA,
+        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer.addrs_to[0]),
+        amount: res.response.transaction_unsigned.transfer.amounts[0] / SHOR_PER_QUANTA,
         fee: res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA,
         otsKey: otsKey
       }
 
       LocalStore.set('transactionConfirmation', confirmation)
-      LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amount / SHOR_PER_QUANTA)
+      LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amounts[0] / SHOR_PER_QUANTA)
       LocalStore.set('transactionConfirmationFee', res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA)
       LocalStore.set('transactionConfirmationResponse', res.response)
 
@@ -67,9 +67,9 @@ function confirmTransaction() {
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
       tx.transaction_unsigned.addr_from,
-      stringToBytes(tx.transaction_unsigned.fee),
-      tx.transaction_unsigned.transfer.addr_to,
-      stringToBytes(tx.transaction_unsigned.transfer.amount)
+      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee),
+      tx.transaction_unsigned.transfer.addrs_to[0],
+      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.transfer.amounts[0])
   )
 
   // Convert Uint8Array to VectorUChar
@@ -98,6 +98,8 @@ function confirmTransaction() {
   }
 
   let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+  console.log('Txn Hash: ', txnHash)
 
   // Prepare gRPC call
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -138,7 +140,7 @@ function cancelTransaction() {
   $('#transactionResultArea').hide()
 }
 
-function sendTokensTxnCreate(tokenHash) {
+function sendTokensTxnCreate(tokenHash, decimals) {
   // Get to/amount details
   const sendFrom = LocalStore.get('transferFromAddress')
   const to = document.getElementById('to').value
@@ -158,7 +160,7 @@ function sendTokensTxnCreate(tokenHash) {
     addressFrom: sendFromAddress,
     addressTo: sendToAddress,
     tokenHash: tokenHashBytes,
-    amount: amount * SHOR_PER_QUANTA,
+    amount: amount * Math.pow(10, decimals),
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
     grpc: grpcEndpoint,
@@ -173,8 +175,8 @@ function sendTokensTxnCreate(tokenHash) {
       const confirmation = {
         hash: res.txnHash,
         from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
-        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer_token.addr_to),
-        amount: res.response.transaction_unsigned.transfer_token.amount / SHOR_PER_QUANTA,
+        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer_token.addrs_to[0]),
+        amount: res.response.transaction_unsigned.transfer_token.amounts[0] / Math.pow(10, decimals),
         fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
         otsKey: otsKey,
       }
@@ -185,11 +187,12 @@ function sendTokensTxnCreate(tokenHash) {
           tokenDetails.symbol = token.symbol
           tokenDetails.name = token.symbol
           tokenDetails.token_txhash = token.hash
+          tokenDetails.decimals = token.decimals
         }
       })
 
-      LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
       LocalStore.set('tokenTransferConfirmation', confirmation)
+      LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
       LocalStore.set('tokenTransferConfirmationResponse', res.response)
 
       // Show confirmation
@@ -209,10 +212,10 @@ function confirmTokenTransfer() {
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
       tx.transaction_unsigned.addr_from,
-      stringToBytes(tx.transaction_unsigned.fee),
+      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee),
       tx.transaction_unsigned.transfer_token.token_txhash,
-      tx.transaction_unsigned.transfer_token.addr_to,
-      stringToBytes(tx.transaction_unsigned.transfer_token.amount)
+      tx.transaction_unsigned.transfer_token.addrs_to[0],
+      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.transfer_token.amounts[0])
   )
 
   // Convert Uint8Array to VectorUChar
@@ -241,6 +244,8 @@ function confirmTokenTransfer() {
   }
 
   let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+  console.log('Txn Hash: ', txnHash)
 
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   tx.grpc = grpcEndpoint
@@ -288,6 +293,7 @@ function checkResult(thisTxId, failureCount) {
       LocalStore.set('transactionConfirmed', "true")
       $('.loading').hide()
       $('#loadingHeader').hide()
+      refreshTransferPage()
     } else if (LocalStore.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if(failureCount < 5) {
@@ -425,8 +431,9 @@ Template.appTransfer.events({
         generateTransaction()
       } else {
       // Token Xfer
-        tokenHash = selectedType.split('-')[1]
-        sendTokensTxnCreate(tokenHash)
+        const tokenHash = selectedType.split('-')[1]
+        const decimals = selectedType.split('-')[2]
+        sendTokensTxnCreate(tokenHash, decimals)
       }
     }, 200)
   },
@@ -538,7 +545,7 @@ Template.appTransfer.helpers({
       const x = moment.unix(transaction.timestamp)
       const y = transaction
       y.timestamp = moment(x).format('HH:mm D MMM YYYY')
-
+      
       transactions.push(y)
     })
     return transactions

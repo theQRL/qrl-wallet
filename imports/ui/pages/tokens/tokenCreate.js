@@ -32,13 +32,11 @@ function createTokenTxn() {
   for (var i = 0; i < initialBalancesAddress.length; i++) {
     const thisHolder = {
       address: addressForAPI(initialBalancesAddress[i].value),
-      amount: initialBalancesAddressAmount[i].value * SHOR_PER_QUANTA
+      amount: initialBalancesAddressAmount[i].value * Math.pow(10, decimals)
     }
-     
+
     tokenHolders.push(thisHolder)
   }
-
-
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc

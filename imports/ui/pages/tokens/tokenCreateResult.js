@@ -100,11 +100,12 @@ Template.appTokenCreationResult.helpers({
   },
   tokenHolders() {
     const tokenHoldersRaw = LocalStore.get('txhash').transaction.tx.token.initial_balances
+    const tokenDecimals = LocalStore.get('txhash').transaction.tx.token.decimals
     let tokenHolders = []
     for (var i = 0; i < tokenHoldersRaw.length; i++) {
       const thisHolder = {
         address: binaryToQrlAddress(tokenHoldersRaw[i].address),
-        amount: tokenHoldersRaw[i].amount / SHOR_PER_QUANTA
+        amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals)
       }
       tokenHolders.push(thisHolder)
     }
