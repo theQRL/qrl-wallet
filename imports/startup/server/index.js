@@ -647,8 +647,8 @@ Meteor.methods({
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
 
-      output.transaction.tx.token.symbol = Buffer.from(output.transaction.tx.token.symbol).toString('hex')
-      output.transaction.tx.token.name = Buffer.from(output.transaction.tx.token.name).toString('hex')
+      output.transaction.tx.token.symbol = Buffer.from(output.transaction.tx.token.symbol).toString()
+      output.transaction.tx.token.name = Buffer.from(output.transaction.tx.token.name).toString()
       output.transaction.tx.token.owner = 'Q' + Buffer.from(output.transaction.tx.token.owner).toString('hex')
 
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
