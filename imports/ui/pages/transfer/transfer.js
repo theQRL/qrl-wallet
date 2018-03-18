@@ -14,18 +14,29 @@ let tokensHeld = []
 function generateTransaction() {
   // Get to/amount details
   const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
-  const sendTo = addressForAPI(document.getElementById('to').value)
-  const sendAmount = document.getElementById('amount').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  var sendTo = document.getElementsByName("to[]")
+  var sendAmounts = document.getElementsByName("amounts[]")
+
+  // Capture outputs
+  let this_addresses_to = []
+  let this_amounts = []
+
+  for (var i = 0; i < sendTo.length; i++) {
+    this_addresses_to.push(addressForAPI(sendTo[i].value))
+  }
+   for (var i = 0; i < sendAmounts.length; i++) {
+    this_amounts.push(sendAmounts[i].value * SHOR_PER_QUANTA)
+  }
 
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     fromAddress: sendFrom,
-    toAddress: sendTo,
-    amount: sendAmount * SHOR_PER_QUANTA,
+    addresses_to: this_addresses_to,
+    amounts: this_amounts,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
     grpc: grpcEndpoint,
@@ -37,16 +48,34 @@ function generateTransaction() {
       $('#transactionGenFailed').show()
       $('#transferForm').hide()
     } else {
+      let confirmation_outputs = []
+
+      let resAddrsTo = res.response.transaction_unsigned.transfer.addrs_to
+      let resAmounts = res.response.transaction_unsigned.transfer.amounts
+      let totalTransferAmount = 0
+
+      for (var i = 0; i < resAddrsTo.length; i++) {
+        // Create and store the output
+        const thisOutput = {
+          address: binaryToQrlAddress(resAddrsTo[i]),
+          amount: resAmounts[i] / SHOR_PER_QUANTA,
+          name: "Quanta"
+        }
+        confirmation_outputs.push(thisOutput)
+
+        // Update total transfer amount
+        totalTransferAmount += parseInt(resAmounts[i])
+      }
+
       const confirmation = {
         from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
-        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer.addrs_to[0]),
-        amount: res.response.transaction_unsigned.transfer.amounts[0] / SHOR_PER_QUANTA,
-        fee: res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA,
+        outputs: confirmation_outputs,
+        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
         otsKey: otsKey
       }
 
       LocalStore.set('transactionConfirmation', confirmation)
-      LocalStore.set('transactionConfirmationAmount', res.response.transaction_unsigned.transfer.amounts[0] / SHOR_PER_QUANTA)
+      LocalStore.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
       LocalStore.set('transactionConfirmationFee', res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA)
       LocalStore.set('transactionConfirmationResponse', res.response)
 
@@ -67,10 +96,27 @@ function confirmTransaction() {
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
       tx.transaction_unsigned.addr_from,
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee),
-      tx.transaction_unsigned.transfer.addrs_to[0],
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.transfer.amounts[0])
+      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee)
   )
+
+  // Now append all recipient (outputs) to concatenatedArrays
+  const addrsToRaw = tx.transaction_unsigned.transfer.addrs_to
+  const amountsRaw = tx.transaction_unsigned.transfer.amounts
+  for (var i = 0; i < addrsToRaw.length; i++) {
+    // Add address
+    concatenatedArrays = concatenateTypedArrays(
+      Uint8Array,
+        concatenatedArrays,
+        addrsToRaw[i]
+    )
+
+    // Add amount
+    concatenatedArrays = concatenateTypedArrays(
+      Uint8Array,
+        concatenatedArrays,
+        toBigendianUint64BytesUnsigned(amountsRaw[i])
+    )
+  }
 
   // Convert Uint8Array to VectorUChar
   const hashableBytes = new QRLLIB.VectorUChar()
@@ -143,24 +189,34 @@ function cancelTransaction() {
 function sendTokensTxnCreate(tokenHash, decimals) {
   // Get to/amount details
   const sendFrom = LocalStore.get('transferFromAddress')
-  const to = document.getElementById('to').value
-  const amount = document.getElementById('amount').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
-
+  var sendTo = document.getElementsByName("to[]")
+  var sendAmounts = document.getElementsByName("amounts[]")
+  
   // Convert strings to bytes
   const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
   const tokenHashBytes = stringToBytes(tokenHash)
   const sendFromAddress = addressForAPI(sendFrom)
-  const sendToAddress = addressForAPI(to)
-  
+
+  // Capture outputs
+  let this_addresses_to = []
+  let this_amounts = []
+
+  for (var i = 0; i < sendTo.length; i++) {
+    this_addresses_to.push(addressForAPI(sendTo[i].value))
+  }
+   for (var i = 0; i < sendAmounts.length; i++) {
+    this_amounts.push(sendAmounts[i].value * Math.pow(10, decimals))
+  }
+
   // Construct request
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     addressFrom: sendFromAddress,
-    addressTo: sendToAddress,
+    addresses_to: this_addresses_to,
+    amounts: this_amounts,
     tokenHash: tokenHashBytes,
-    amount: amount * Math.pow(10, decimals),
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
     grpc: grpcEndpoint,
@@ -172,14 +228,6 @@ function sendTokensTxnCreate(tokenHash, decimals) {
       $('#transactionGenFailed').show()
       $('#transferForm').hide()
     } else {
-      const confirmation = {
-        hash: res.txnHash,
-        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
-        to: binaryToQrlAddress(res.response.transaction_unsigned.transfer_token.addrs_to[0]),
-        amount: res.response.transaction_unsigned.transfer_token.amounts[0] / Math.pow(10, decimals),
-        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
-        otsKey: otsKey,
-      }
 
       let tokenDetails = {}
       _.each(LocalStore.get('tokensHeld'), (token) => {
@@ -191,9 +239,37 @@ function sendTokensTxnCreate(tokenHash, decimals) {
         }
       })
 
+      let confirmation_outputs = []
+
+      let resAddrsTo = res.response.transaction_unsigned.transfer_token.addrs_to
+      let resAmounts = res.response.transaction_unsigned.transfer_token.amounts
+      let totalTransferAmount = 0
+
+      for (var i = 0; i < resAddrsTo.length; i++) {
+        // Create and store the output
+        const thisOutput = {
+          address: binaryToQrlAddress(resAddrsTo[i]),
+          amount: resAmounts[i] / Math.pow(10, decimals),
+          name: tokenDetails.symbol
+        }
+        confirmation_outputs.push(thisOutput)
+
+        // Update total transfer amount
+        totalTransferAmount += parseInt(resAmounts[i])
+      }
+
+      const confirmation = {
+        hash: res.txnHash,
+        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
+        outputs: confirmation_outputs,
+        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
+        otsKey: otsKey,
+      }
+
       LocalStore.set('tokenTransferConfirmation', confirmation)
       LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
       LocalStore.set('tokenTransferConfirmationResponse', res.response)
+      LocalStore.set('tokenTransferConfirmationAmount', totalTransferAmount / Math.pow(10, decimals))
 
       // Show confirmation
       $('#generateTransactionArea').hide()
@@ -214,9 +290,27 @@ function confirmTokenTransfer() {
       tx.transaction_unsigned.addr_from,
       toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee),
       tx.transaction_unsigned.transfer_token.token_txhash,
-      tx.transaction_unsigned.transfer_token.addrs_to[0],
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.transfer_token.amounts[0])
+
   )
+
+  // Now append all recipient (outputs) to concatenatedArrays
+  const addrsToRaw = tx.transaction_unsigned.transfer_token.addrs_to
+  const amountsRaw = tx.transaction_unsigned.transfer_token.amounts
+  for (var i = 0; i < addrsToRaw.length; i++) {
+    // Add address
+    concatenatedArrays = concatenateTypedArrays(
+      Uint8Array,
+        concatenatedArrays,
+        addrsToRaw[i]
+    )
+
+    // Add amount
+    concatenatedArrays = concatenateTypedArrays(
+      Uint8Array,
+        concatenatedArrays,
+        toBigendianUint64BytesUnsigned(amountsRaw[i])
+    )
+  }
 
   // Convert Uint8Array to VectorUChar
   const hashableBytes = new QRLLIB.VectorUChar()
@@ -382,6 +476,7 @@ Template.appTransfer.onRendered(() => {
   $('.ui.dropdown').dropdown()
   
   // Transfer validation
+  /* TODO - Fix this up for multiple outputs
   $('.ui.form').form({
     fields: {
       to: {
@@ -412,6 +507,7 @@ Template.appTransfer.onRendered(() => {
       },
     },
   })
+  */
 
   $('#sendReceiveTabs .item').tab()
 
@@ -462,7 +558,34 @@ Template.appTransfer.events({
   },
   'change #amountType': () => {
     updateBalanceField()
-  }
+  },
+  'click #addTransferRecipient': (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const newTransferRecipient = `
+      <div>
+        <div class="field">
+          <label>Additional Recipient</label>
+          <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
+            <input type="text" id="to" name="to[]" placeholder="Address" style="width: 65%";>
+            <input type="text" id="amounts" name="amounts[]" placeholder="Amount" style="width: 30%";>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Append newTransferRecipient to transferRecipients div
+    $('#transferRecipients').append(newTransferRecipient)
+
+  },
+  'click .removeTransferRecipient': (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    // Remove the recipient
+    $(event.currentTarget).parent().parent().parent().remove();
+  },
 })
 
 Template.appTransfer.helpers({
@@ -529,6 +652,10 @@ Template.appTransfer.helpers({
     const confirmation = LocalStore.get('tokenTransferConfirmation')
     return confirmation
   },
+  tokenTransferConfirmationAmount() {
+    const amount = LocalStore.get('tokenTransferConfirmationAmount')
+    return amount
+  },
   tokenDetails() {
     const confirmation = LocalStore.get('tokenTransferConfirmationDetails')
     return confirmation
@@ -540,12 +667,24 @@ Template.appTransfer.helpers({
   },
   addressTransactions() {
     const transactions = []
+    const thisAddress = getXMSSDetails().address
     _.each(LocalStore.get('addressTransactions'), (transaction) => {
       // Update timestamp from unix epoch to human readable time/date.
       const x = moment.unix(transaction.timestamp)
       const y = transaction
       y.timestamp = moment(x).format('HH:mm D MMM YYYY')
       
+      // Set total received amount if sent to this address
+      let thisReceivedAmount = 0
+      if ((transaction.type === 'transfer') || (transaction.type === 'transfer_token')) {
+        _.each(transaction.outputs, (output) => {
+          if(output.address == thisAddress) {
+            thisReceivedAmount += output.amount
+          }
+        })
+      }
+      y.thisReceivedAmount = thisReceivedAmount
+
       transactions.push(y)
     })
     return transactions
