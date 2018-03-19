@@ -568,8 +568,9 @@ Template.appTransfer.events({
         <div class="field">
           <label>Additional Recipient</label>
           <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-            <input type="text" id="to" name="to[]" placeholder="Address" style="width: 65%";>
-            <input type="text" id="amounts" name="amounts[]" placeholder="Amount" style="width: 30%";>
+            <input type="text" id="to" name="to[]" placeholder="Address" style="width: 55%;">
+            <input type="text" id="amounts" name="amounts[]" placeholder="Amount" style="width: 30%;">
+            <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
           </div>
         </div>
       </div>
