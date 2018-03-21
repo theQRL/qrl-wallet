@@ -13,6 +13,7 @@
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
     "qrllib": "0.8.9",
+    "run-script-os": "^1.0.3",
     "tmp": "0.0.33"
   },
   "private": true,
@@ -31,8 +32,7 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
-    "gulp-chimp": "^2.2.1",
-    "run-script-os": "^1.0.3"
+    "gulp-chimp": "^2.2.1" 
   },
   "scripts": {
     "dev": "meteor",
