@@ -16,16 +16,16 @@ function confirmTokenCreation() {
   // Concatenate Uint8Arrays
   let tmptxnhash = concatenateTypedArrays(
     Uint8Array,
-      tx.transaction_unsigned.addr_from,
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee),
-      tx.transaction_unsigned.token.symbol,
-      tx.transaction_unsigned.token.name,
-      tx.transaction_unsigned.token.owner,
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.token.decimals)
+      tx.extended_transaction_unsigned.addr_from,
+      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+      tx.extended_transaction_unsigned.tx.token.symbol,
+      tx.extended_transaction_unsigned.tx.token.name,
+      tx.extended_transaction_unsigned.tx.token.owner,
+      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.token.decimals)
   )
 
   // Now append initial balances tmptxnhash
-  const tokenHoldersRaw = tx.transaction_unsigned.token.initial_balances
+  const tokenHoldersRaw = tx.extended_transaction_unsigned.tx.token.initial_balances
   for (var i = 0; i < tokenHoldersRaw.length; i++) {
     // Add address
     tmptxnhash = concatenateTypedArrays(
@@ -52,13 +52,13 @@ function confirmTokenCreation() {
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
   // Sign the sha sum
-  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
   // Calculate transaction hash
   let txnHashConcat = concatenateTypedArrays(
     Uint8Array,
       binaryToBytes(shaSum),
-      tx.transaction_unsigned.signature,
+      tx.extended_transaction_unsigned.tx.signature,
       binaryToBytes(XMSS_OBJECT.getPK())
   )
 

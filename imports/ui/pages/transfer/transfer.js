@@ -50,8 +50,8 @@ function generateTransaction() {
     } else {
       let confirmation_outputs = []
 
-      let resAddrsTo = res.response.transaction_unsigned.transfer.addrs_to
-      let resAmounts = res.response.transaction_unsigned.transfer.amounts
+      let resAddrsTo = res.response.extended_transaction_unsigned.tx.transfer.addrs_to
+      let resAmounts = res.response.extended_transaction_unsigned.tx.transfer.amounts
       let totalTransferAmount = 0
 
       for (var i = 0; i < resAddrsTo.length; i++) {
@@ -68,15 +68,15 @@ function generateTransaction() {
       }
 
       const confirmation = {
-        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
+        from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmation_outputs,
-        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
+        fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey: otsKey
       }
 
       LocalStore.set('transactionConfirmation', confirmation)
       LocalStore.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
-      LocalStore.set('transactionConfirmationFee', res.response.transaction_unsigned.transfer.fee / SHOR_PER_QUANTA)
+      LocalStore.set('transactionConfirmationFee', confirmation.fee)
       LocalStore.set('transactionConfirmationResponse', res.response)
 
       // Show confirmation
@@ -95,13 +95,13 @@ function confirmTransaction() {
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
-      tx.transaction_unsigned.addr_from,
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee)
+      tx.extended_transaction_unsigned.addr_from,
+      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
   )
 
   // Now append all recipient (outputs) to concatenatedArrays
-  const addrsToRaw = tx.transaction_unsigned.transfer.addrs_to
-  const amountsRaw = tx.transaction_unsigned.transfer.amounts
+  const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
+  const amountsRaw = tx.extended_transaction_unsigned.tx.transfer.amounts
   for (var i = 0; i < addrsToRaw.length; i++) {
     // Add address
     concatenatedArrays = concatenateTypedArrays(
@@ -128,13 +128,13 @@ function confirmTransaction() {
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
   // Sign the sha sum
-  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
   // Calculate transaction hash
   let txnHashConcat = concatenateTypedArrays(
     Uint8Array,
       binaryToBytes(shaSum),
-      tx.transaction_unsigned.signature,
+      tx.extended_transaction_unsigned.tx.signature,
       binaryToBytes(XMSS_OBJECT.getPK())
   )
 
@@ -241,8 +241,8 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 
       let confirmation_outputs = []
 
-      let resAddrsTo = res.response.transaction_unsigned.transfer_token.addrs_to
-      let resAmounts = res.response.transaction_unsigned.transfer_token.amounts
+      let resAddrsTo = res.response.extended_transaction_unsigned.tx.transfer_token.addrs_to
+      let resAmounts = res.response.extended_transaction_unsigned.tx.transfer_token.amounts
       let totalTransferAmount = 0
 
       for (var i = 0; i < resAddrsTo.length; i++) {
@@ -260,9 +260,9 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 
       const confirmation = {
         hash: res.txnHash,
-        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
+        from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmation_outputs,
-        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
+        fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey: otsKey,
       }
 
@@ -287,15 +287,15 @@ function confirmTokenTransfer() {
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
-      tx.transaction_unsigned.addr_from,
-      toBigendianUint64BytesUnsigned(tx.transaction_unsigned.fee),
-      tx.transaction_unsigned.transfer_token.token_txhash,
+      tx.extended_transaction_unsigned.addr_from,
+      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+      tx.extended_transaction_unsigned.tx.transfer_token.token_txhash,
 
   )
 
   // Now append all recipient (outputs) to concatenatedArrays
-  const addrsToRaw = tx.transaction_unsigned.transfer_token.addrs_to
-  const amountsRaw = tx.transaction_unsigned.transfer_token.amounts
+  const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer_token.addrs_to
+  const amountsRaw = tx.extended_transaction_unsigned.tx.transfer_token.amounts
   for (var i = 0; i < addrsToRaw.length; i++) {
     // Add address
     concatenatedArrays = concatenateTypedArrays(
@@ -322,13 +322,13 @@ function confirmTokenTransfer() {
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
   // Sign the sha sum
-  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
   // Calculate transaction hash
   let txnHashConcat = concatenateTypedArrays(
     Uint8Array,
       binaryToBytes(shaSum),
-      tx.transaction_unsigned.signature,
+      tx.extended_transaction_unsigned.tx.signature,
       binaryToBytes(XMSS_OBJECT.getPK())
   )
 
@@ -606,7 +606,7 @@ Template.appTransfer.helpers({
   },
   transactionConfirmationFee() {
     const transactionConfirmationFee = 
-      LocalStore.get('transactionConfirmationResponse').transaction_unsigned.fee / SHOR_PER_QUANTA
+      LocalStore.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
   transactionGenerationError() {

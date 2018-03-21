@@ -68,7 +68,6 @@ const loadGrpcClient = (request, callback) => {
 // Client side function to establish a connection with a remote node.
 // If there is no active server side connection for the requested node,
 // this function will call loadGrpcClient to establish one.
-
 const connectToNode = (request, callback) => {
   // First check if there is an existing object to store the gRPC connection
   if (qrlClient.hasOwnProperty(request.grpc) === true) {
@@ -187,7 +186,7 @@ const getTxnHash = (request, callback) => {
 // Function to call transferCoins API
 const transferCoins = (request, callback) => {
   const tx = {
-    address_from: request.fromAddress,
+    master_addr: request.fromAddress,
     addresses_to: request.addresses_to,
     amounts: request.amounts,
     fee: request.fee,
@@ -207,17 +206,14 @@ const transferCoins = (request, callback) => {
   })
 }
 
-
 const confirmTransaction = (request, callback) => {
-  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
 
   // change Uint8Arrays to Buffers
-  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  // confirmTxn.transaction_signed.transfer.addrs_to[0] = toBuffer(confirmTxn.transaction_signed.transfer.addrs_to[0])
   const addrs_to = confirmTxn.transaction_signed.transfer.addrs_to
   addrs_to_Formatted = []
   addrs_to.forEach (function (item) {
@@ -299,7 +295,7 @@ const confirmTransaction = (request, callback) => {
 // Function to call GetTokenTxn API
 const createTokenTxn = (request, callback) => {
   const tx = {
-    address_from: request.addressFrom,
+    master_addr: request.addressFrom,
     symbol: request.symbol,
     name: request.name,
     owner: request.owner,
@@ -318,7 +314,7 @@ const createTokenTxn = (request, callback) => {
       callback(err, null)
     } else {
       const transferResponse = {
-        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
         response,
       }
 
@@ -329,11 +325,10 @@ const createTokenTxn = (request, callback) => {
 
 
 const confirmTokenCreation = (request, callback) => {
-  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
 
   // change ArrayBuffer
-  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.transaction_hash =
     toBuffer(confirmTxn.transaction_signed.transaction_hash)
@@ -424,7 +419,7 @@ const confirmTokenCreation = (request, callback) => {
 // Function to call GetTransferTokenTxn API
 const createTokenTransferTxn = (request, callback) => {
   const tx = {
-    address_from: request.addressFrom,
+    master_addr: request.addressFrom,
     addresses_to: request.addresses_to,
     amounts: request.amounts,
     token_txhash: request.tokenHash,
@@ -448,20 +443,27 @@ const createTokenTransferTxn = (request, callback) => {
 
 
 const confirmTokenTransfer = (request, callback) => {
-  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
 
   // change ArrayBuffer
-  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.transaction_hash =
     toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
   confirmTxn.transaction_signed.transfer_token.token_txhash = 
     toBuffer(confirmTxn.transaction_signed.transfer_token.token_txhash)
-  confirmTxn.transaction_signed.transfer_token.addrs_to[0] = 
-    toBuffer(confirmTxn.transaction_signed.transfer_token.addrs_to[0])
+
+  const addrs_to = confirmTxn.transaction_signed.transfer_token.addrs_to
+  addrs_to_Formatted = []
+  addrs_to.forEach (function (item) {
+    item = toBuffer(item)
+    addrs_to_Formatted.push(item)
+  })
   
+  // Overwrite addrs_to with our updated one
+  confirmTxn.transaction_signed.transfer_token.addrs_to = addrs_to_Formatted
+
   // Relay transaction through user node, then all default nodes.
   let txnResponse
 
@@ -596,7 +598,6 @@ Meteor.methods({
 
     // refactor response data
     const output = response
-    // console.log(res)
     if (response.transaction.header) {
       output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
       output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
@@ -607,7 +608,7 @@ Meteor.methods({
       output.transaction.tx.amount = ''
 
       if (output.transaction.tx.transactionType === 'coinbase') {
-        output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.tx.addr_from).toString('hex')
+        output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
         output.transaction.tx.addr_to = 'Q' + Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')
         output.transaction.tx.coinbase.addr_to = 'Q' + Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')
         output.transaction.tx.amount = numberToString(output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA)
@@ -635,7 +636,7 @@ Meteor.methods({
         balances.push(edit)
       })
 
-      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.tx.addr_from).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
 
@@ -673,7 +674,7 @@ Meteor.methods({
         thisTotalTransferred += parseInt(output.transaction.tx.transfer.amounts[index])
       })
 
-      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.tx.addr_from).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
       output.transaction.tx.transfer.outputs = thisOutputs
       output.transaction.tx.amount = numberToString(thisTotalTransferred / SHOR_PER_QUANTA)
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
@@ -714,7 +715,7 @@ Meteor.methods({
       })
 
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
-      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.tx.addr_from).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
       output.transaction.tx.transfer_token.token_txhash = Buffer.from(output.transaction.tx.transfer_token.token_txhash).toString('hex')
@@ -737,7 +738,7 @@ Meteor.methods({
 
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.tx.addr_from).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
 
       output.transaction.tx.slave.slave_pks.forEach((value, index) => {
         output.transaction.tx.slave.slave_pks[index] = 
@@ -759,7 +760,7 @@ Meteor.methods({
 
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.tx.addr_from).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
 
       output.transaction.tx.latticePK.kyber_pk = Buffer.from(output.transaction.tx.latticePK.kyber_pk).toString('hex')
       output.transaction.tx.latticePK.dilithium_pk = Buffer.from(output.transaction.tx.latticePK.dilithium_pk).toString('hex')
@@ -811,8 +812,8 @@ Meteor.methods({
         // Moved this out of getTxnHash
         if (thisTxnHashResponse.found === true && thisTxnHashResponse.result === 'transaction') {
 
-          thisTxnHashResponse.transaction.tx.addr_from =
-            'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.addr_from).toString('hex')
+          thisTxnHashResponse.transaction.addr_from =
+            'Q' + Buffer.from(thisTxnHashResponse.transaction.addr_from).toString('hex')
           thisTxnHashResponse.transaction.tx.transaction_hash =
             Buffer.from(thisTxnHashResponse.transaction.tx.transaction_hash).toString('hex')
           
@@ -853,7 +854,7 @@ Meteor.methods({
             txhash: arr.txhash,
             totalTransferred: thisTotalTransferred / SHOR_PER_QUANTA,
             outputs: thisOutputs,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
@@ -865,7 +866,7 @@ Meteor.methods({
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
             name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
             decimals: thisTxnHashResponse.transaction.tx.token.decimals,
@@ -906,7 +907,7 @@ Meteor.methods({
             symbol: thisSymbol,
             totalTransferred: thisTotalTransferred / Math.pow(10, thisDecimals),
             outputs: thisOutputs,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
@@ -919,7 +920,7 @@ Meteor.methods({
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             to: thisTxnHashResponse.transaction.tx.coinbase.addr_to,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
@@ -933,7 +934,7 @@ Meteor.methods({
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: 0,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             to: '',
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
@@ -947,7 +948,7 @@ Meteor.methods({
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: 0,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             to: '',
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,

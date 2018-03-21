@@ -60,13 +60,13 @@ function createTokenTxn() {
     } else {
       const confirmation = {
         hash: res.txnHash,
-        from: binaryToQrlAddress(res.response.transaction_unsigned.addr_from),
-        symbol: bytesToString(res.response.transaction_unsigned.token.symbol),
-        name: bytesToString(res.response.transaction_unsigned.token.name),
-        owner: binaryToQrlAddress(res.response.transaction_unsigned.token.owner),
-        decimals: res.response.transaction_unsigned.token.decimals,
-        fee: res.response.transaction_unsigned.fee / SHOR_PER_QUANTA,
-        initialBalances: res.response.transaction_unsigned.token.initial_balances,
+        from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
+        symbol: bytesToString(res.response.extended_transaction_unsigned.tx.token.symbol),
+        name: bytesToString(res.response.extended_transaction_unsigned.tx.token.name),
+        owner: binaryToQrlAddress(res.response.extended_transaction_unsigned.tx.token.owner),
+        decimals: res.response.extended_transaction_unsigned.tx.token.decimals,
+        fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        initialBalances: res.response.extended_transaction_unsigned.tx.token.initial_balances,
         otsKey: otsKey,
       }
 

@@ -55,7 +55,7 @@ Template.appVerifyTxid.onRendered(() => {
 Template.appVerifyTxid.helpers({
   tx() {
     let txhash = LocalStore.get('txhash').transaction
-    let signature = bytesToHex(txhash.tx.signature)
+    let signature = txhash.tx.signature
     txhash.tx.ots_key = parseInt(signature.substring(0, 8), 16)
     return txhash
   },
