@@ -13,8 +13,6 @@ install:
   - cd C:\projects\qrl-wallet\
   - mkdir C:\projects\package
   - cd C:\projects\qrl-wallet\
-
-test_script:
   - node --version
   - npm --version
   - meteor --version
