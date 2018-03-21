@@ -13,5 +13,4 @@ install:
   - cd C:\projects\qrl-wallet\
   - mkdir C:\projects\package
   - cd C:\projects\qrl-wallet\
-  - timeout /t 60 && taskkill /im C:\Users\appveyor\AppData\Local\.meteor\meteor
   - electrify package -o C:\projects\package\
