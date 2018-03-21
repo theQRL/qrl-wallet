@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
-    "gulp-chimp": "^2.2.1" 
+    "gulp-chimp": "^2.2.1"
   },
   "scripts": {
     "dev": "meteor",
