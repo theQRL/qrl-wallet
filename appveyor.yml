@@ -15,6 +15,6 @@ install:
   - cd C:\projects\qrl-wallet\
   - node --version
   - npm --version
-  - C:\Users\appveyor\AppData\Local\.meteor\meteor\meteor --version
-  - timeout /t 60 && taskkill /im C:\Users\appveyor\AppData\Local\.meteor\meteor\meteor
+  - C:\Users\appveyor\AppData\Local\.meteor\meteor --version
+  - timeout /t 60 && taskkill /im C:\Users\appveyor\AppData\Local\.meteor\meteor
   - electrify package -o C:\projects\package\
