@@ -505,104 +505,115 @@
         </div>
       </div>
 
-      {{#each addressTransactions}}
-        {{#if isTransfer this.type}}
-        <div class="ui icon message transactionRecord">
-          {{#if isMyAddress this.from}}
-          <img class="transactionTypeImage" src="/img/icons/send.png" />
-          {{else}}
-          <img class="transactionTypeImage" src="/img/icons/receive.png" />
+      {{#if addressHasTransactions}}
+        {{#each addressTransactions}}
+          {{#if isTransfer this.type}}
+          <div class="ui icon message transactionRecord">
+            {{#if isMyAddress this.from}}
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            {{else}}
+            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            {{/if}}
+            <div class="content">
+              <div class="header">
+                {{#if isMyAddress this.from}}
+                Sent
+                {{else}}
+                Received
+                {{/if}}
+              </div>
+              <p class="transactionAddress">
+                {{#if isMyAddress this.from}}
+                  {{#each this.outputs}}
+                    {{this.address}} - {{this.amount}}<br />
+                  {{/each}}
+                {{else}}
+                  {{this.from}}
+                {{/if}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
+            </div>
+          </div>
           {{/if}}
-          <div class="content">
-            <div class="header">
-              {{#if isMyAddress this.from}}
-              Sent
-              {{else}}
-              Received
-              {{/if}}
-            </div>
-            <p class="transactionAddress">
-              {{#if isMyAddress this.from}}
-                {{#each this.outputs}}
-                  {{this.address}} - {{this.amount}}<br />
-                {{/each}}
-              {{else}}
-                {{this.from}}
-              {{/if}}
-            </p>
-          </div>
-          <div class="floatright">
-            <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
-          </div>
-        </div>
-        {{/if}}
 
-        {{#if isTokenCreation this.type}}
-        <div class="ui icon message transactionRecord">
-          <img class="transactionTypeImage" src="/img/icons/send.png" />
-          <div class="content">
-            <div class="header">
-              Token Creation - {{this.name}} ({{this.symbol}})
+          {{#if isTokenCreation this.type}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Token Creation - {{this.name}} ({{this.symbol}})
+              </div>
+              <p class="transactionAddress">
+                {{this.txhash}}
+              </p>
             </div>
-            <p class="transactionAddress">
-              {{this.txhash}}
-            </p>
+            <div class="floatright">
+               <a href="/verify-txid/{{this.txhash}}">{{this.symbol}} &gt;</a>
+            </div>
           </div>
-          <div class="floatright">
-             <a href="/verify-txid/{{this.txhash}}">{{this.symbol}} &gt;</a>
-          </div>
-        </div>
-        {{/if}}
-
-        {{#if isTokenTransfer this.type}}
-        <div class="ui icon message transactionRecord">
-          {{#if isMyAddress this.from}}
-          <img class="transactionTypeImage" src="/img/icons/send.png" />
-          {{else}}
-          <img class="transactionTypeImage" src="/img/icons/receive.png" />
           {{/if}}
-          <div class="content">
-            <div class="header">
-              {{#if isMyAddress this.from}}
-              Sent
-              {{else}}
-              Received
-              {{/if}}
+
+          {{#if isTokenTransfer this.type}}
+          <div class="ui icon message transactionRecord">
+            {{#if isMyAddress this.from}}
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            {{else}}
+            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            {{/if}}
+            <div class="content">
+              <div class="header">
+                {{#if isMyAddress this.from}}
+                Sent
+                {{else}}
+                Received
+                {{/if}}
+              </div>
+              <p class="transactionAddress">
+                {{#if isMyAddress this.from}}
+                  {{#each this.outputs}}
+                    {{this.address}} - {{this.amount}}<br />
+                  {{/each}}
+                {{else}}
+                  {{this.from}}
+                {{/if}}
+              </p>
             </div>
-            <p class="transactionAddress">
-              {{#if isMyAddress this.from}}
-                {{#each this.outputs}}
-                  {{this.address}} - {{this.amount}}<br />
-                {{/each}}
-              {{else}}
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if isCoinbaseTxn this.type}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            <div class="content">
+              <div class="header">
+                Coinbase Received
+              </div>
+              <p class="transactionAddress">
                 {{this.from}}
-              {{/if}}
-            </p>
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
+            </div>
           </div>
-          <div class="floatright">
-            <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
-          </div>
-        </div>
-        {{/if}}
+          {{/if}}
 
-        {{#if isCoinbaseTxn this.type}}
-        <div class="ui icon message transactionRecord">
-          <img class="transactionTypeImage" src="/img/icons/receive.png" />
+        {{/each}}
+      {{else}}
+        <div id="noTransactionsFound" style="display: none;" class="ui icon message">
+          <br /><br />
           <div class="content">
             <div class="header">
-              Coinbase Received
+              No transactions found
             </div>
-            <p class="transactionAddress">
-              {{this.from}}
-            </p>
-          </div>
-          <div class="floatright">
-            <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
           </div>
         </div>
-        {{/if}}
-
-      {{/each}}
+      {{/if}}
     </div>
   </div>
 </div>

@@ -690,6 +690,12 @@ Template.appTransfer.helpers({
     })
     return transactions
   },
+  addressHasTransactions() {
+    if(LocalStore.get('addressTransactions').length > 0) {
+      return true
+    }
+    return false
+  },
   isMyAddress(address) {
     if(address == getXMSSDetails().address) {
       return true

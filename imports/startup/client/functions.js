@@ -204,6 +204,7 @@ loadAddressTransactions = () => {
     } else {
       LocalStore.set('addressTransactions', res)
       $('#loadingTransactions').hide()
+      $('#noTransactionsFound').show()
     }
   })
 }
