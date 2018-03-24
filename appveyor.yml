@@ -12,7 +12,6 @@ install:
   - npm install
   - cd C:\projects\qrl-wallet\
   - mkdir C:\projects\package
-  - mkdir C:\projects\tmpbuild
   - cd C:\projects\qrl-wallet\
   - C:\Users\appveyor\AppData\Local\.meteor\meteor lint
   - electrify package -o C:\projects\package\
