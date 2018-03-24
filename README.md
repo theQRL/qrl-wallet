@@ -42,7 +42,7 @@ Windows Only - [node-gyp](https://github.com/nodejs/node-gyp)
 	git clone https://github.com/theQRL/qrl-wallet.git
 	cd qrl-wallet
 	meteor npm install --unsafe-perm
-	cd .electify
+	cd .electrify
 	npm install
 	cd ..
 

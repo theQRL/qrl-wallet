@@ -365,6 +365,14 @@ input {
   font-family: Quicksand !important;
   font-size: 14px;
 }
+.ui.button.sky {
+    background-color: #4A90E2 !important;
+    box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
+    color: #fff !important;
+    border-radius: 0px !important;
+    font-family: Quicksand !important;
+    font-size: 14px;
+}
 .ui.button.plain  {
   background-color: #f3f3f3 !important;
   box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;

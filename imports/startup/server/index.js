@@ -68,7 +68,6 @@ const loadGrpcClient = (request, callback) => {
 // Client side function to establish a connection with a remote node.
 // If there is no active server side connection for the requested node,
 // this function will call loadGrpcClient to establish one.
-
 const connectToNode = (request, callback) => {
   // First check if there is an existing object to store the gRPC connection
   if (qrlClient.hasOwnProperty(request.grpc) === true) {
@@ -160,11 +159,11 @@ const getAddressState = (request, callback) => {
       response.state.transaction_hashes.forEach((value) => {
         response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
       })
+
       callback(null, response)
     }
   })
 }
-
 
 // Function to call getObject API and extract a txn Hash..
 const getTxnHash = (request, callback) => {
@@ -187,12 +186,11 @@ const getTxnHash = (request, callback) => {
 // Function to call transferCoins API
 const transferCoins = (request, callback) => {
   const tx = {
-    address_from: request.fromAddress,
-    address_to: request.toAddress,
-    amount: request.amount,
+    master_addr: request.fromAddress,
+    addresses_to: request.addresses_to,
+    amounts: request.amounts,
     fee: request.fee,
-    xmss_pk: request.xmssPk,
-    xmss_ots_index: request.xmssOtsKey,
+    xmss_pk: request.xmssPk
   }
 
   qrlClient[request.grpc].transferCoins(tx, (err, response) => {
@@ -201,26 +199,30 @@ const transferCoins = (request, callback) => {
       callback(err, null)
     } else {
       const transferResponse = {
-        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
         response,
       }
-
       callback(null, transferResponse)
     }
   })
 }
 
-
 const confirmTransaction = (request, callback) => {
-  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
 
   // change Uint8Arrays to Buffers
-  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash = ''
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
-  confirmTxn.transaction_signed.transfer.addr_to = toBuffer(confirmTxn.transaction_signed.transfer.addr_to)
+
+  const addrs_to = confirmTxn.transaction_signed.transfer.addrs_to
+  addrs_to_Formatted = []
+  addrs_to.forEach (function (item) {
+    item = toBuffer(item)
+    addrs_to_Formatted.push(item)
+  })
+  
+  // Overwrite addrs_to with our updated one
+  confirmTxn.transaction_signed.transfer.addrs_to = addrs_to_Formatted
 
   // Relay transaction through user node, then all default nodes.
   let txnResponse
@@ -230,7 +232,6 @@ const confirmTransaction = (request, callback) => {
     function (wfcb) {
       try {
         qrlClient[request.grpc].pushTransaction(confirmTxn, (err, res) => {
-
           console.log('Relayed Txn: ', Buffer.from(res.tx_hash).toString('hex'))
 
           if (err) {
@@ -294,7 +295,7 @@ const confirmTransaction = (request, callback) => {
 // Function to call GetTokenTxn API
 const createTokenTxn = (request, callback) => {
   const tx = {
-    address_from: request.addressFrom,
+    master_addr: request.addressFrom,
     symbol: request.symbol,
     name: request.name,
     owner: request.owner,
@@ -313,7 +314,7 @@ const createTokenTxn = (request, callback) => {
       callback(err, null)
     } else {
       const transferResponse = {
-        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
         response,
       }
 
@@ -324,11 +325,10 @@ const createTokenTxn = (request, callback) => {
 
 
 const confirmTokenCreation = (request, callback) => {
-  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
 
   // change ArrayBuffer
-  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.transaction_hash =
     toBuffer(confirmTxn.transaction_signed.transaction_hash)
@@ -347,6 +347,7 @@ const confirmTokenCreation = (request, callback) => {
     item.address = toBuffer(item.address)
     initialBalancesFormatted.push(item)
   })
+
   // Overwrite inital_balances with our updated one
   confirmTxn.transaction_signed.token.initial_balances = initialBalancesFormatted
 
@@ -418,13 +419,12 @@ const confirmTokenCreation = (request, callback) => {
 // Function to call GetTransferTokenTxn API
 const createTokenTransferTxn = (request, callback) => {
   const tx = {
-    address_from: request.addressFrom,
-    address_to: request.addressTo,
+    master_addr: request.addressFrom,
+    addresses_to: request.addresses_to,
+    amounts: request.amounts,
     token_txhash: request.tokenHash,
-    amount: request.amount,
     fee: request.fee,
     xmss_pk: request.xmssPk,
-    xmss_ots_index: request.xmssOtsKey
   }
 
   qrlClient[request.grpc].getTransferTokenTxn(tx, (err, response) => {
@@ -433,8 +433,7 @@ const createTokenTransferTxn = (request, callback) => {
       callback(err, null)
     } else {
       const transferResponse = {
-        txnHash: Buffer.from(response.transaction_unsigned.transaction_hash).toString('hex'),
-        response,
+        response
       }
 
       callback(null, transferResponse)
@@ -444,22 +443,27 @@ const createTokenTransferTxn = (request, callback) => {
 
 
 const confirmTokenTransfer = (request, callback) => {
-  const confirmTxn = { transaction_signed: request.transaction_unsigned }
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
 
   // change ArrayBuffer
-  confirmTxn.transaction_signed.addr_from = toBuffer(confirmTxn.transaction_signed.addr_from)
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.transaction_hash =
     toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
-
-  
   confirmTxn.transaction_signed.transfer_token.token_txhash = 
     toBuffer(confirmTxn.transaction_signed.transfer_token.token_txhash)
-  confirmTxn.transaction_signed.transfer_token.addr_to = 
-    toBuffer(confirmTxn.transaction_signed.transfer_token.addr_to)
+
+  const addrs_to = confirmTxn.transaction_signed.transfer_token.addrs_to
+  addrs_to_Formatted = []
+  addrs_to.forEach (function (item) {
+    item = toBuffer(item)
+    addrs_to_Formatted.push(item)
+  })
   
+  // Overwrite addrs_to with our updated one
+  confirmTxn.transaction_signed.transfer_token.addrs_to = addrs_to_Formatted
+
   // Relay transaction through user node, then all default nodes.
   let txnResponse
 
@@ -547,6 +551,10 @@ Meteor.methods({
   status(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(getStats)(request)
     return response
   },
@@ -559,24 +567,233 @@ Meteor.methods({
   getAddress(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(getAddressState)(request)
     return response
   },
   getTxnHash(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(getTxnHash)(request)
     return response
   },
+
+
+  txhash(request) {
+    this.unblock()
+    check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
+
+    const response = Meteor.wrapAsync(getTxnHash)(request)
+
+    // refactor response data
+    const output = response
+    if (response.transaction.header) {
+      output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
+      output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
+      output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
+
+      output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
+      output.transaction.tx.amount = ''
+
+      if (output.transaction.tx.transactionType === 'coinbase') {
+        output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
+        output.transaction.tx.addr_to = 'Q' + Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')
+        output.transaction.tx.coinbase.addr_to = 'Q' + Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')
+        output.transaction.tx.amount = numberToString(output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA)
+
+        output.transaction.explorer = {
+          from: '',
+          to: output.transaction.tx.addr_to,
+          type: 'COINBASE',
+        }
+      }
+    } else {
+      output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
+    }
+
+    if (output.transaction.tx.transactionType === 'token') {
+      const balances = []
+      output.transaction.tx.token.initial_balances.forEach((value) => {
+        const edit = value
+        edit.address = 'Q' + Buffer.from(edit.address).toString('hex'),
+        edit.amount = numberToString(edit.amount / Math.pow(10, output.transaction.tx.token.decimals))
+        balances.push(edit)
+      })
+
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
+      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+
+      output.transaction.tx.token.symbol = Buffer.from(output.transaction.tx.token.symbol).toString()
+      output.transaction.tx.token.name = Buffer.from(output.transaction.tx.token.name).toString()
+      output.transaction.tx.token.owner = 'Q' + Buffer.from(output.transaction.tx.token.owner).toString('hex')
+
+      output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+      output.transaction.explorer = {
+        from: output.transaction.tx.addr_from,
+        to: output.transaction.tx.addr_from,
+        signature: output.transaction.tx.signature,
+        publicKey: output.transaction.tx.public_key,
+        symbol: output.transaction.tx.token.symbol,
+        name: output.transaction.tx.token.name,
+        decimals: output.transaction.tx.token.decimals,
+        owner: output.transaction.tx.token.owner,
+        initialBalances: balances,
+        type: 'CREATE TOKEN',
+      }
+    }
+    
+    if (output.transaction.tx.transactionType === 'transfer') {
+      // Calculate total transferred, and generate a clean structure to display outputs from
+      let thisTotalTransferred = 0
+      let thisOutputs = []
+      _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
+        const thisOutput = {
+          address: 'Q' + Buffer.from(thisAddress).toString('hex'),
+          amount: numberToString(output.transaction.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+        }
+        thisOutputs.push(thisOutput)
+
+        // Now update total transferred with the corresponding amount from this output
+        thisTotalTransferred += parseInt(output.transaction.tx.transfer.amounts[index])
+      })
+
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
+      output.transaction.tx.transfer.outputs = thisOutputs
+      output.transaction.tx.amount = numberToString(thisTotalTransferred / SHOR_PER_QUANTA)
+      output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+     
+      output.transaction.explorer = {
+        from: output.transaction.tx.addr_from,
+        outputs: thisOutputs,
+        totalTransferred: numberToString(thisTotalTransferred / SHOR_PER_QUANTA),
+        type: 'TRANSFER',
+      }
+    }
+
+    if (output.transaction.tx.transactionType === 'transfer_token') {
+      // Request Token Decimals / Symbol
+      const symbolRequest = {
+        query: Buffer.from(output.transaction.tx.transfer_token.token_txhash, 'hex'),
+        grpc: request.grpc
+      }
+      const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
+      const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
+      const thisDecimals = thisSymbolResponse.transaction.tx.token.decimals
+
+      // Calculate total transferred, and generate a clean structure to display outputs from
+      let thisTotalTransferred = 0
+      let thisOutputs = []
+      _.each(output.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
+        const thisOutput = {
+          address: 'Q' + Buffer.from(thisAddress).toString('hex'),
+          amount: numberToString(output.transaction.tx.transfer_token.amounts[index] / Math.pow(10, thisDecimals)),
+          symbol: thisSymbol
+        }
+        thisOutputs.push(thisOutput)
+
+        // Now update total transferred with the corresponding amount from this output
+        thisTotalTransferred += parseInt(output.transaction.tx.transfer_token.amounts[index])
+      })
+
+      output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
+      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+      output.transaction.tx.transfer_token.token_txhash = Buffer.from(output.transaction.tx.transfer_token.token_txhash).toString('hex')
+      output.transaction.tx.transfer_token.outputs = thisOutputs
+      output.transaction.tx.totalTransferred = numberToString(thisTotalTransferred / Math.pow(10, thisDecimals))
+
+      output.transaction.explorer = {
+        from: output.transaction.tx.addr_from,
+        outputs: thisOutputs,
+        signature: output.transaction.tx.signature,
+        publicKey: output.transaction.tx.public_key,
+        token_txhash: output.transaction.tx.transfer_token.token_txhash,
+        totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
+        type: 'TRANSFER TOKEN',
+      }
+    }
+
+    if (output.transaction.tx.transactionType === 'slave') {
+      output.transaction.tx.fee = output.transaction.tx.fee / SHOR_PER_QUANTA
+
+      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
+
+      output.transaction.tx.slave.slave_pks.forEach((value, index) => {
+        output.transaction.tx.slave.slave_pks[index] = 
+          Buffer.from(value).toString('hex')
+      })
+
+      output.transaction.explorer = {
+        from: output.transaction.tx.addr_from,
+        to: '',
+        signature: output.transaction.tx.signature,
+        publicKey: output.transaction.tx.public_key,
+        amount: output.transaction.tx.amount,
+        type: 'SLAVE',
+      }
+    }
+
+    if (output.transaction.tx.transactionType === 'latticePK') {
+      output.transaction.tx.fee = output.transaction.tx.fee / SHOR_PER_QUANTA
+
+      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+      output.transaction.tx.addr_from = 'Q' + Buffer.from(output.transaction.addr_from).toString('hex')
+
+      output.transaction.tx.latticePK.kyber_pk = Buffer.from(output.transaction.tx.latticePK.kyber_pk).toString('hex')
+      output.transaction.tx.latticePK.dilithium_pk = Buffer.from(output.transaction.tx.latticePK.dilithium_pk).toString('hex')
+
+      output.transaction.explorer = {
+        from: output.transaction.tx.addr_from,
+        to: '',
+        signature: output.transaction.tx.signature,
+        publicKey: output.transaction.tx.public_key,
+        amount: output.transaction.tx.amount,
+        type: 'LATTICE PK',
+      }
+    }
+    return output
+  },
+
+
+
+
   transferCoins(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(transferCoins)(request)
     return response
   },
   addressTransactions(request) {
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
+
     const targets = request.tx
+
     let result = []
     targets.forEach((arr) => {
       const thisRequest = {
@@ -590,8 +807,8 @@ Meteor.methods({
         // Moved this out of getTxnHash
         if (thisTxnHashResponse.found === true && thisTxnHashResponse.result === 'transaction') {
 
-          thisTxnHashResponse.transaction.tx.addr_from =
-            'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.addr_from).toString('hex')
+          thisTxnHashResponse.transaction.addr_from =
+            'Q' + Buffer.from(thisTxnHashResponse.transaction.addr_from).toString('hex')
           thisTxnHashResponse.transaction.tx.transaction_hash =
             Buffer.from(thisTxnHashResponse.transaction.tx.transaction_hash).toString('hex')
           
@@ -606,14 +823,6 @@ Meteor.methods({
             thisTxnHashResponse.transaction.tx.amount = thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA
           }
 
-          if (thisTxnHashResponse.transaction.tx.transfer) {
-            thisTxnHashResponse.transaction.tx.addr_to =
-              'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.transfer.addr_to).toString('hex')
-            thisTxnHashResponse.transaction.tx.transfer.addr_to =
-              'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.transfer.addr_to).toString('hex')
-            thisTxnHashResponse.transaction.tx.amount = thisTxnHashResponse.transaction.tx.transfer.amount / SHOR_PER_QUANTA
-          }
-
           thisTxnHashResponse.transaction.tx.public_key = Buffer.from(thisTxnHashResponse.transaction.tx.public_key).toString('hex')
           thisTxnHashResponse.transaction.tx.signature = Buffer.from(thisTxnHashResponse.transaction.tx.signature).toString('hex')
         }
@@ -621,12 +830,26 @@ Meteor.methods({
         let thisTxn = {}
 
         if (thisTxnHashResponse.transaction.tx.transactionType == "transfer") {
+          // Calculate total transferred, and generate a clean structure to display outputs from
+          let thisTotalTransferred = 0
+          let thisOutputs = []
+          _.each(thisTxnHashResponse.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
+            const thisOutput = {
+              address: 'Q' + Buffer.from(thisAddress).toString('hex'),
+              amount: parseInt(thisTxnHashResponse.transaction.tx.transfer.amounts[index]) / SHOR_PER_QUANTA
+            }
+            thisOutputs.push(thisOutput)
+
+            // Now update total transferred with the corresponding amount from this output
+            thisTotalTransferred += parseInt(thisTxnHashResponse.transaction.tx.transfer.amounts[index])
+          })
+
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
-            amount: thisTxnHashResponse.transaction.tx.amount,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
-            to: thisTxnHashResponse.transaction.tx.addr_to,
+            totalTransferred: thisTotalTransferred / SHOR_PER_QUANTA,
+            outputs: thisOutputs,
+            from: thisTxnHashResponse.transaction.addr_from,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
@@ -638,9 +861,10 @@ Meteor.methods({
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
             name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
+            decimals: thisTxnHashResponse.transaction.tx.token.decimals,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
@@ -656,21 +880,34 @@ Meteor.methods({
           }
           const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
           const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
+          const thisDecimals = thisSymbolResponse.transaction.tx.token.decimals
+
+          // Calculate total transferred, and generate a clean structure to display outputs from
+          let thisTotalTransferred = 0
+          let thisOutputs = []
+          _.each(thisTxnHashResponse.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
+            const thisOutput = {
+              address: 'Q' + Buffer.from(thisAddress).toString('hex'),
+              amount: parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index]) / Math.pow(10, thisDecimals)
+            }
+            thisOutputs.push(thisOutput)
+
+            // Now update total transferred with the corresponding amount from this output
+            thisTotalTransferred += parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index])
+          })
 
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             symbol: thisSymbol,
-            amount: thisTxnHashResponse.transaction.tx.transfer_token.amount / SHOR_PER_QUANTA,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
-            to: 'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.addr_to).toString('hex'),
+            totalTransferred: thisTotalTransferred / Math.pow(10, thisDecimals),
+            outputs: thisOutputs,
+            from: thisTxnHashResponse.transaction.addr_from,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
             timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
           }
-
-          console.log(thisTxn)
 
           result.push(thisTxn)
         } else if (thisTxnHashResponse.transaction.tx.transactionType == "coinbase") {
@@ -678,8 +915,36 @@ Meteor.methods({
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,
-            from: thisTxnHashResponse.transaction.tx.addr_from,
+            from: thisTxnHashResponse.transaction.addr_from,
             to: thisTxnHashResponse.transaction.tx.coinbase.addr_to,
+            ots_key: "",
+            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: thisTxnHashResponse.transaction.header.block_number,
+            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+          }
+
+          result.push(thisTxn)
+        } else if (thisTxnHashResponse.transaction.tx.transactionType == "slave") {
+          thisTxn = {
+            type: thisTxnHashResponse.transaction.tx.transactionType,
+            txhash: arr.txhash,
+            amount: 0,
+            from: thisTxnHashResponse.transaction.addr_from,
+            to: '',
+            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
+            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: thisTxnHashResponse.transaction.header.block_number,
+            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+          }
+
+          result.push(thisTxn)
+        } else if (thisTxnHashResponse.transaction.tx.transactionType == "latticePK") {
+          thisTxn = {
+            type: thisTxnHashResponse.transaction.tx.transactionType,
+            txhash: arr.txhash,
+            amount: 0,
+            from: thisTxnHashResponse.transaction.addr_from,
+            to: '',
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
@@ -688,7 +953,6 @@ Meteor.methods({
 
           result.push(thisTxn)
         }
-
 
       } catch (err) {
         console.log(`Error fetching transaction hash in addressTransactions '${arr.txhash}' - ${err}`)
@@ -700,30 +964,50 @@ Meteor.methods({
   confirmTransaction(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(confirmTransaction)(request)
     return response
   },
   createTokenTxn(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(createTokenTxn)(request)
     return response
   },
   confirmTokenCreation(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(confirmTokenCreation)(request)
     return response
   },
   createTokenTransferTxn(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(createTokenTransferTxn)(request)
     return response
   },
   confirmTokenTransfer(request) {
     this.unblock()
     check(request, Object)
+    if (qrlClient[request.grpc] == null) {
+      console.log(`No active grpc connection available - connecting to: ${request.grpc}`)
+      Meteor.wrapAsync(connectToNode)(request)
+    }
     const response = Meteor.wrapAsync(confirmTokenTransfer)(request)
     return response
   },

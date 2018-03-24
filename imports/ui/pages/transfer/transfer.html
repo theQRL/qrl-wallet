@@ -60,26 +60,43 @@
         <!-- Generate Transaction Area -->
         <div id="generateTransactionArea">
           <form id="generateTransactionForm" class="ui form">
-            <div class="field">
-              <label>Recipient</label>
-              <input type="text" id="to" placeholder="Recipient Address">
-            </div>
-            <div class="field">
-              <label>Amount</label>
-              <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 20px;">
-                <input type="text" id="amount">
 
-                <select id="amountType" class="ui compact selection dropdown">
-                  <option value="quanta">Quanta</option>
-                  {{#each tokensHeld}}
-                  <option value="token-{{this.hash}}">{{this.symbol}}</option>
-                  {{/each}}
-                </select>
+
+            <div id="transferRecipients">
+              <div>
+                <div class="field">
+                  <label>Recipient</label>
+                  <input type="text" id="to" name="to[]" placeholder="Recipient Address">
+                </div>
+                <div class="field">
+                  <label>Amount</label>
+                  <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 20px;">
+                    <input type="text" id="amounts" name="amounts[]">
+
+                    <select id="amountType" class="ui compact selection dropdown">
+                      <option value="quanta">Quanta</option>
+                      {{#each tokensHeld}}
+                      <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}}</option>
+                      {{/each}}
+                    </select>
+                  </div>
+                  <br />
+                  <div class="ui teal label">Balance: {{balanceAmount}} {{balanceSymbol}}</div>
+                </div>
+                <br />
               </div>
-              <br />
-              <div class="ui teal label">Balance: {{balanceAmount}} {{balanceSymbol}}</div>
-               
+
             </div>
+
+            <!-- Additional Recipients -->
+            <div class="field">
+              <button id="addTransferRecipient" class="ui small button sky" style="width: 100%">
+                <i class="add user icon"></i>
+                Add Another Recipient
+              </button>
+            </div>
+
+
             <div class="field">
               <label>Fee (In Quanta)</label>
               <input type="text" id="fee" value="1">
@@ -96,7 +113,7 @@
                   <div class="header">
                     OTS Key Index Warning
                   </div>
-                  <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected too. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+                  <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected to. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
                 </div>
               </div>
             </div>
@@ -124,7 +141,6 @@
         <!-- Confirm Transaction Area -->
         <div id="confirmTransactionArea" style="display: none;">
 
-
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -139,9 +155,13 @@
 
           <form>
             <div class="field">
-              <label>Recipient</label>
+              <label>Recipients</label>
               <div class="ui visible message">
-                <p class="wordBreak">{{transactionConfirmation.to}}</p>
+                <p class="wordBreak">
+                  {{#each transactionConfirmation.outputs}}
+                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                  {{/each}}
+                </p>
               </div>
             </div>
 
@@ -191,15 +211,19 @@
               </div>
             </div>
             <div class="floatright">
-              {{tokenTransferConfirmation.amount}} {{tokenDetails.symbol}}
+              {{tokenTransferConfirmationAmount}} {{tokenDetails.symbol}}
             </div>
           </div>
 
           <form>
             <div class="field">
-              <label>Recipient</label>
+              <label>Recipient(s)</label>
               <div class="ui visible message">
-                <p class="wordBreak">{{tokenTransferConfirmation.to}}</p>
+                <p class="wordBreak">
+                  {{#each tokenTransferConfirmation.outputs}}
+                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                  {{/each}}
+                </p>
               </div>
             </div>
           </form>
@@ -236,10 +260,6 @@
         </div>
 
 
-
-
-
-
         <!-- Transaction Result Area -->
         <div id="transactionResultArea" style="display: none;">
 
@@ -259,7 +279,11 @@
             <div class="field">
               <label>Recipient</label>
               <div class="ui visible message">
-                <p class="wordBreak">{{transactionConfirmation.to}}</p>
+                <p class="wordBreak">
+                  {{#each transactionConfirmation.outputs}}
+                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                  {{/each}}
+                </p>
               </div>
             </div>
           </form>
@@ -278,7 +302,6 @@
               <span>OTS Key Index <a class="ui">{{transactionConfirmation.otsKey}}</a></span>
             </div>
           </div>
-
 
           <div class="ui stackable one column grid">
             <div class="column">
@@ -333,7 +356,7 @@
               </div>
             </div>
             <div class="floatright">
-              {{tokenTransferConfirmation.amount}} {{tokenDetails.symbol}}
+              {{tokenTransferConfirmationAmount}} {{tokenDetails.symbol}}
             </div>
           </div>
 
@@ -341,7 +364,11 @@
             <div class="field">
               <label>Recipient</label>
               <div class="ui visible message">
-                <p class="wordBreak">{{tokenTransferConfirmation.to}}</p>
+                <p class="wordBreak">
+                  {{#each tokenTransferConfirmation.outputs}}
+                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                  {{/each}}
+                </p>
               </div>
             </div>
 
@@ -478,102 +505,115 @@
         </div>
       </div>
 
-
-      {{#each addressTransactions}}
-
-        {{#if isTransfer this.type}}
-        <div class="ui icon message transactionRecord">
-          {{#if isMyAddress this.from}}
-          <img class="transactionTypeImage" src="/img/icons/send.png" />
-          {{else}}
-          <img class="transactionTypeImage" src="/img/icons/receive.png" />
+      {{#if addressHasTransactions}}
+        {{#each addressTransactions}}
+          {{#if isTransfer this.type}}
+          <div class="ui icon message transactionRecord">
+            {{#if isMyAddress this.from}}
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            {{else}}
+            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            {{/if}}
+            <div class="content">
+              <div class="header">
+                {{#if isMyAddress this.from}}
+                Sent
+                {{else}}
+                Received
+                {{/if}}
+              </div>
+              <p class="transactionAddress">
+                {{#if isMyAddress this.from}}
+                  {{#each this.outputs}}
+                    {{this.address}} - {{this.amount}}<br />
+                  {{/each}}
+                {{else}}
+                  {{this.from}}
+                {{/if}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
+            </div>
+          </div>
           {{/if}}
-          <div class="content">
-            <div class="header">
-              {{#if isMyAddress this.from}}
-              Sent
-              {{else}}
-              Received
-              {{/if}}
-            </div>
-            <p class="transactionAddress">
-              {{#if isMyAddress this.from}}
-                {{this.to}}
-              {{else}}
-                {{this.from}}
-              {{/if}}
-            </p>
-          </div>
-          <div class="floatright">
-            <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
-          </div>
-        </div>
-        {{/if}}
 
-        {{#if isTokenCreation this.type}}
-        <div class="ui icon message transactionRecord">
-          <img class="transactionTypeImage" src="/img/icons/send.png" />
-          <div class="content">
-            <div class="header">
-              Token Creation - {{this.name}} ({{this.symbol}})
+          {{#if isTokenCreation this.type}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Token Creation - {{this.name}} ({{this.symbol}})
+              </div>
+              <p class="transactionAddress">
+                {{this.txhash}}
+              </p>
             </div>
-            <p class="transactionAddress">
-              {{this.txhash}}
-            </p>
+            <div class="floatright">
+               <a href="/verify-txid/{{this.txhash}}">{{this.symbol}} &gt;</a>
+            </div>
           </div>
-          <div class="floatright">
-             <a href="/verify-txid/{{this.txhash}}">{{this.symbol}} &gt;</a>
-          </div>
-        </div>
-        {{/if}}
-
-        {{#if isTokenTransfer this.type}}
-        <div class="ui icon message transactionRecord">
-          {{#if isMyAddress this.from}}
-          <img class="transactionTypeImage" src="/img/icons/send.png" />
-          {{else}}
-          <img class="transactionTypeImage" src="/img/icons/receive.png" />
           {{/if}}
-          <div class="content">
-            <div class="header">
-              {{#if isMyAddress this.from}}
-              Sent
-              {{else}}
-              Received
-              {{/if}}
+
+          {{#if isTokenTransfer this.type}}
+          <div class="ui icon message transactionRecord">
+            {{#if isMyAddress this.from}}
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            {{else}}
+            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            {{/if}}
+            <div class="content">
+              <div class="header">
+                {{#if isMyAddress this.from}}
+                Sent
+                {{else}}
+                Received
+                {{/if}}
+              </div>
+              <p class="transactionAddress">
+                {{#if isMyAddress this.from}}
+                  {{#each this.outputs}}
+                    {{this.address}} - {{this.amount}}<br />
+                  {{/each}}
+                {{else}}
+                  {{this.from}}
+                {{/if}}
+              </p>
             </div>
-            <p class="transactionAddress">
-              {{#if isMyAddress this.from}}
-                {{this.to}}
-              {{else}}
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if isCoinbaseTxn this.type}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            <div class="content">
+              <div class="header">
+                Coinbase Received
+              </div>
+              <p class="transactionAddress">
                 {{this.from}}
-              {{/if}}
-            </p>
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
+            </div>
           </div>
-          <div class="floatright">
-            <a href="/verify-txid/{{this.txhash}}">{{this.amount}} {{this.symbol}} &gt;</a>
-          </div>
-        </div>
-        {{/if}}
+          {{/if}}
 
-        {{#if isCoinbaseTxn this.type}}
-        <div class="ui icon message transactionRecord">
-          <img class="transactionTypeImage" src="/img/icons/receive.png" />
+        {{/each}}
+      {{else}}
+        <div id="noTransactionsFound" style="display: none;" class="ui icon message">
+          <br /><br />
           <div class="content">
             <div class="header">
-              Coinbase Received
+              No transactions found
             </div>
-            <p class="transactionAddress">
-              {{this.from}}
-            </p>
-          </div>
-          <div class="floatright">
-            <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
           </div>
         </div>
-        {{/if}}
-
-      {{/each}}
+      {{/if}}
     </div>
   </div>
 </div>

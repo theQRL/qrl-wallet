@@ -130,7 +130,6 @@ Template.appBody.onRendered(() => {
 
   updateNode(selectedNode())
 
-
   // Hide wallet warning on electrified clients
   if (isElectrified()) {
     $('#walletWarning').hide()

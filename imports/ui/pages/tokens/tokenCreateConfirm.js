@@ -6,7 +6,6 @@ import './tokenCreateConfirm.html'
 /* global findNodeData */
 /* global selectedNode */
 /* global DEFAULT_NODES */
-/* global SHOR_PER_QUANTA */
 
 function confirmTokenCreation() {
   const tx = LocalStore.get('tokenCreationConfirmationResponse')
@@ -15,60 +14,51 @@ function confirmTokenCreation() {
   XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenCreationConfirmation').otsKey))
 
   // Concatenate Uint8Arrays
-  let concatenatedArrays = concatenateTypedArrays(
+  let tmptxnhash = concatenateTypedArrays(
     Uint8Array,
-      tx.transaction_unsigned.addr_from,
-      stringToBytes(tx.transaction_unsigned.fee),
-      tx.transaction_unsigned.token.symbol,
-      tx.transaction_unsigned.token.name,
-      tx.transaction_unsigned.token.owner,
-      stringToBytes(tx.transaction_unsigned.token.decimals)
+      tx.extended_transaction_unsigned.addr_from,
+      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+      tx.extended_transaction_unsigned.tx.token.symbol,
+      tx.extended_transaction_unsigned.tx.token.name,
+      tx.extended_transaction_unsigned.tx.token.owner,
+      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.token.decimals)
   )
 
-  // Convert Uint8Array to VectorUChar
-  let tmpHashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < concatenatedArrays.length; i += 1) {
-    tmpHashableBytes.push_back(concatenatedArrays[i])
-  }
-
-  // Create bytes sha256 sum of concatenatedarray
-  let tmptxhash = binaryToBytes(QRLLIB.sha2_256(tmpHashableBytes))
-
-  // Now append initial balances to tmptxhash
-  const tokenHoldersRaw = tx.transaction_unsigned.token.initial_balances
+  // Now append initial balances tmptxnhash
+  const tokenHoldersRaw = tx.extended_transaction_unsigned.tx.token.initial_balances
   for (var i = 0; i < tokenHoldersRaw.length; i++) {
     // Add address
-    tmptxhash = concatenateTypedArrays(
+    tmptxnhash = concatenateTypedArrays(
       Uint8Array,
-        tmptxhash,
+        tmptxnhash,
         tokenHoldersRaw[i].address
     )
 
     // Add amount
-    tmptxhash = concatenateTypedArrays(
+    tmptxnhash = concatenateTypedArrays(
       Uint8Array,
-        tmptxhash,
-        stringToBytes(tokenHoldersRaw[i].amount)
+        tmptxnhash,
+        toBigendianUint64BytesUnsigned(tokenHoldersRaw[i].amount)
     )
   }
   
   // Convert Uint8Array to VectorUChar
   let hashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < tmptxhash.length; i += 1) {
-    hashableBytes.push_back(tmptxhash[i])
+  for (i = 0; i < tmptxnhash.length; i += 1) {
+    hashableBytes.push_back(tmptxnhash[i])
   }
 
   // Create sha256 sum of hashableBytes
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
   // Sign the sha sum
-  tx.transaction_unsigned.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
   // Calculate transaction hash
   let txnHashConcat = concatenateTypedArrays(
     Uint8Array,
       binaryToBytes(shaSum),
-      tx.transaction_unsigned.signature,
+      tx.extended_transaction_unsigned.tx.signature,
       binaryToBytes(XMSS_OBJECT.getPK())
   )
 
@@ -139,12 +129,13 @@ Template.appTokenCreationConfirm.helpers({
   },
   tokenHolders() {
     const tokenHoldersRaw = LocalStore.get('tokenCreationConfirmation').initialBalances
+    const tokenDecimals = LocalStore.get('tokenCreationConfirmation').decimals
     let tokenHolders = []
 
     for (var i = 0; i < tokenHoldersRaw.length; i++) {
       const thisHolder = {
         address: binaryToQrlAddress(tokenHoldersRaw[i].address),
-        amount: tokenHoldersRaw[i].amount / SHOR_PER_QUANTA
+        amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals)
       }
       tokenHolders.push(thisHolder)
     }
