@@ -329,5 +329,4 @@ resetLocalStorageState = () => {
   LocalStore.set('otsKeyEstimate', '')
   LocalStore.set('balanceAmount', '')
   LocalStore.set('balanceSymbol', '')
-  LocalStore.set('transactionConfirmed', 'false')
 }
