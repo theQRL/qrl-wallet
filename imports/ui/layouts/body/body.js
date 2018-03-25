@@ -177,7 +177,6 @@ Template.appBody.onRendered(() => {
 })
 
 
-
 Template.appBody.events({
   'click #hamburger': (event) => {
     event.preventDefault()
@@ -195,8 +194,6 @@ Template.appBody.events({
     // Completed transaction sections
     const tokenTransactionResultAreaVisible = $('#tokenTransactionResultArea').is(':visible')
     const transactionResultAreaVisible = $('#transactionResultArea').is(':visible')
-    
-    
 
     if(FlowRouter.getRouteName() == "App.transfer") {
       if(
@@ -214,10 +211,10 @@ Template.appBody.events({
             const reloadPath = FlowRouter.path('/reloadTransfer', {})
             FlowRouter.go(reloadPath)
           } else {
-            
-            $('#cancelWaitingForTransactionWarning').modal({
+            $('#cancelWaitingForTransactionWarning').modal('transition', 'disable')
+            .modal({
               onApprove: () => {
-                $('#cancelWaitingForTransactionWarning').modal('hide')
+                $('#cancelWaitingForTransactionWarning').modal('transition', 'disable').modal('hide')
                 const reloadPath = FlowRouter.path('/reloadTransfer', {})
                 FlowRouter.go(reloadPath)
               },
@@ -225,9 +222,10 @@ Template.appBody.events({
           }
         } else {
           // Confirm with user they will loose progress of this transaction if they proceeed.
-          $('#cancelTransactionGenerationWarning').modal({
+          $('#cancelTransactionGenerationWarning').modal('transition', 'disable')
+          .modal({
             onApprove: () => {
-              $('#cancelTransactionGenerationWarning').modal('hide')
+              $('#cancelTransactionGenerationWarning').modal('transition', 'disable').modal('hide')
               const reloadPath = FlowRouter.path('/reloadTransfer', {})
               FlowRouter.go(reloadPath)
             },

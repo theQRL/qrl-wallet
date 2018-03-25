@@ -10,6 +10,7 @@ import './transfer.html'
 /* global POLL_TXN_RATE */
 
 let tokensHeld = []
+let countRecipientsForValidation = 1
 
 function generateTransaction() {
   // Get to/amount details
@@ -461,7 +462,74 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   }
 }
 
+// Function to initialise form validation
+function initialiseFormValidation() {
+  let validationRules = {}
 
+  // Calculate validation fields based on countRecipientsForValidation for to/amount fields
+  for(let i = 1; i <= countRecipientsForValidation; i++) {
+     validationRules['to' + i] = {
+      identifier: 'to_'+i,
+      rules: [
+        {
+          type: 'empty',
+          prompt: 'Please enter the QRL address you wish to send to',
+        },
+        {
+          type: 'exactLength[79]',
+          prompt: 'QRL address must be exactly 79 characters',
+        },
+      ],
+    };
+
+    validationRules['amounts' + i] = {
+      identifier: 'amounts_'+i,
+      rules: [
+        {
+          type: 'empty',
+          prompt: 'You must enter an amount to send',
+        },
+        {
+          type: 'number',
+          prompt: 'Amount must be a number',
+        },
+      ],
+    }
+  }
+
+  // Now set fee and otskey validation rules
+  validationRules['fee'] = {
+    id: 'fee',
+    rules: [
+      {
+        type: 'empty',
+        prompt: 'You must enter a fee',
+      },
+      {
+        type: 'number',
+        prompt: 'Fee must be a number',
+      },
+    ],
+  }
+  validationRules['otsKey'] = {
+    id: 'otsKey',
+    rules: [
+      {
+        type: 'empty',
+        prompt: 'You must enter an OTS Key Index',
+      },
+      {
+        type: 'number',
+        prompt: 'OTS Key Index must be a number',
+      },
+    ],
+  }
+
+  // Initliase the form validation
+  $('.ui.form').form({
+    fields: validationRules,
+  })
+}
 
 Template.appTransfer.onCreated(() => {
   // Route to open wallet is already opened
@@ -473,44 +541,19 @@ Template.appTransfer.onCreated(() => {
 })
 
 Template.appTransfer.onRendered(() => {
+  // Initialise dropdowns
   $('.ui.dropdown').dropdown()
-  
-  // Transfer validation
-  /* TODO - Fix this up for multiple outputs
-  $('.ui.form').form({
-    fields: {
-      to: {
-        identifier: 'to',
-        rules: [
-          {
-            type: 'empty',
-            prompt: 'Please enter the QRL address you wish to send to',
-          },
-          {
-            type: 'exactLength[79]',
-            prompt: 'QRL address must be exactly 79 characters',
-          },
-        ],
-      },
-      amount: {
-        identifier: 'amount',
-        rules: [
-          {
-            type: 'empty',
-            prompt: 'You must enter an amount of Quanta to send',
-          },
-          {
-            type: 'number',
-            prompt: 'Quanta Amount must be a number',
-          },
-        ],
-      },
-    },
-  })
-  */
 
+  // Set default transfer recipients to 1
+  countRecipientsForValidation = 1
+  
+  // Initialise Form Validation
+  initialiseFormValidation()
+
+  // Initialise tabs
   $('#sendReceiveTabs .item').tab()
 
+  // Load transactions
   refreshTransferPage()
 })
 
@@ -563,13 +606,16 @@ Template.appTransfer.events({
     event.preventDefault()
     event.stopPropagation()
 
+    // Increment count of recipients
+    countRecipientsForValidation += 1
+
     const newTransferRecipient = `
       <div>
         <div class="field">
           <label>Additional Recipient</label>
           <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-            <input type="text" id="to" name="to[]" placeholder="Address" style="width: 55%;">
-            <input type="text" id="amounts" name="amounts[]" placeholder="Amount" style="width: 30%;">
+            <input type="text" id="to_${countRecipientsForValidation}" name="to[]" placeholder="Address" style="width: 55%;">
+            <input type="text" id="amounts_${countRecipientsForValidation}" name="amounts[]" placeholder="Amount" style="width: 30%;">
             <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
           </div>
         </div>
@@ -579,13 +625,21 @@ Template.appTransfer.events({
     // Append newTransferRecipient to transferRecipients div
     $('#transferRecipients').append(newTransferRecipient)
 
+    // Initialise form validation
+    initialiseFormValidation()
   },
   'click .removeTransferRecipient': (event) => {
     event.preventDefault()
     event.stopPropagation()
 
+    // Subtract one recipient for validation
+    countRecipientsForValidation -= 1
+
     // Remove the recipient
-    $(event.currentTarget).parent().parent().parent().remove();
+    $(event.currentTarget).parent().parent().parent().remove()
+
+    // Initialise form validation
+    initialiseFormValidation()
   },
 })
 
