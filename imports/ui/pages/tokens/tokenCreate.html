@@ -26,19 +26,19 @@
 
     <div class="field">
       <label>Owner Address</label>
-      <input type="text" id="owner" >
+      <input type="text" id="owner" autocomplete="off">
     </div>
     <div class="field">
       <label>Token Symbol</label>
-      <input type="text" id="symbol" placeholder="eg: TST, QRL, etc">
+      <input type="text" id="symbol" placeholder="eg: TST, QRL, etc" autocomplete="off">
     </div>
     <div class="field">
       <label>Token Name</label>
-      <input type="text" id="name">
+      <input type="text" id="name" autocomplete="off">
     </div>
     <div class="field">
       <label>Decimals</label>
-      <input type="text" id="decimals" value="10">
+      <input type="text" id="decimals" value="10" autocomplete="off">
     </div>
     
     
@@ -52,10 +52,10 @@
         <label>Holder Balance</label>
         <div class="three fields">
           <div class="ten wide field">
-            <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address">
+            <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address" autocomplete="off">
           </div>
           <div class="five wide field">
-            <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" placeholder="Token Balance">
+            <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" placeholder="Token Balance" autocomplete="off">
           </div>
           <div class="one wide field">
             <button class="ui red button removeTokenHolder"><i class="remove user icon"></i></button>
@@ -76,12 +76,12 @@
 
     <div class="field">
       <label>Token Creation Fee (In Quanta)</label>
-      <input type="text" id="fee" value="1">
+      <input type="text" id="fee" value="0.5" autocomplete="off">
     </div>
 
     <div class="field">
       <label>OTS Key Index</label>
-      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
+      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off">
     </div>
 
     <div class="field">
