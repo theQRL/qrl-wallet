@@ -66,12 +66,12 @@
               <div>
                 <div class="field">
                   <label>Recipient</label>
-                  <input type="text" id="to_1" name="to[]" placeholder="Recipient Address">
+                  <input type="text" id="to_1" name="to[]" placeholder="Recipient Address" autocomplete="off">
                 </div>
                 <div class="field">
                   <label>Amount</label>
                   <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 20px;">
-                    <input type="text" id="amounts_1" name="amounts[]">
+                    <input type="text" id="amounts_1" name="amounts[]" autocomplete="off">
 
                     <select id="amountType" class="ui compact selection dropdown">
                       <option value="quanta">Quanta</option>
@@ -99,11 +99,11 @@
 
             <div class="field">
               <label>Fee (In Quanta)</label>
-              <input type="text" id="fee" value="1">
+              <input type="text" id="fee" value="0.5" autocomplete="off">
             </div>
             <div class="field">
               <label>OTS Key Index</label>
-              <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}">
+              <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off">
             </div>
 
             <div class="field">
