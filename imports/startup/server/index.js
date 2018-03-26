@@ -836,7 +836,7 @@ Meteor.methods({
           _.each(thisTxnHashResponse.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
             const thisOutput = {
               address: 'Q' + Buffer.from(thisAddress).toString('hex'),
-              amount: parseInt(thisTxnHashResponse.transaction.tx.transfer.amounts[index]) / SHOR_PER_QUANTA
+              amount: numberToString(parseInt(thisTxnHashResponse.transaction.tx.transfer.amounts[index]) / SHOR_PER_QUANTA)
             }
             thisOutputs.push(thisOutput)
 
@@ -847,7 +847,7 @@ Meteor.methods({
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
-            totalTransferred: thisTotalTransferred / SHOR_PER_QUANTA,
+            totalTransferred: numberToString(thisTotalTransferred / SHOR_PER_QUANTA),
             outputs: thisOutputs,
             from: thisTxnHashResponse.transaction.addr_from,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
@@ -888,7 +888,7 @@ Meteor.methods({
           _.each(thisTxnHashResponse.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
             const thisOutput = {
               address: 'Q' + Buffer.from(thisAddress).toString('hex'),
-              amount: parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index]) / Math.pow(10, thisDecimals)
+              amount: numberToString(parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index]) / Math.pow(10, thisDecimals))
             }
             thisOutputs.push(thisOutput)
 
@@ -900,7 +900,7 @@ Meteor.methods({
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             symbol: thisSymbol,
-            totalTransferred: thisTotalTransferred / Math.pow(10, thisDecimals),
+            totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
             outputs: thisOutputs,
             from: thisTxnHashResponse.transaction.addr_from,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
@@ -914,7 +914,7 @@ Meteor.methods({
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
-            amount: thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,
+            amount: numberToString(thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA),
             from: thisTxnHashResponse.transaction.addr_from,
             to: thisTxnHashResponse.transaction.tx.coinbase.addr_to,
             ots_key: "",
