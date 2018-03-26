@@ -724,11 +724,15 @@ Template.appTransfer.helpers({
     const transactions = []
     const thisAddress = getXMSSDetails().address
     _.each(LocalStore.get('addressTransactions'), (transaction) => {
-      // Update timestamp from unix epoch to human readable time/date.
-      const x = moment.unix(transaction.timestamp)
       const y = transaction
-      y.timestamp = moment(x).format('HH:mm D MMM YYYY')
       
+      // Update timestamp from unix epoch to human readable time/date.
+      if (moment.unix(transaction.timestamp).isValid()) {
+        y.timestamp = moment.unix(transaction.timestamp).format('HH:mm D MMM YYYY')
+      } else {
+        y.timestamp = 'Unconfirmed Tx'
+      }
+
       // Set total received amount if sent to this address
       let thisReceivedAmount = 0
       if ((transaction.type === 'transfer') || (transaction.type === 'transfer_token')) {

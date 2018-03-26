@@ -521,6 +521,7 @@
                 {{else}}
                 Received
                 {{/if}}
+                 | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{#if isMyAddress this.from}}
@@ -543,7 +544,7 @@
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
               <div class="header">
-                Token Creation - {{this.name}} ({{this.symbol}})
+                Token Creation - {{this.name}} ({{this.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{this.txhash}}
@@ -569,6 +570,7 @@
                 {{else}}
                 Received
                 {{/if}}
+                 | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{#if isMyAddress this.from}}
@@ -591,7 +593,7 @@
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             <div class="content">
               <div class="header">
-                Coinbase Received
+                Coinbase Received | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{this.from}}
