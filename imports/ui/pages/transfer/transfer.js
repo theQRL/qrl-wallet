@@ -734,12 +734,11 @@ Template.appTransfer.helpers({
       if ((transaction.type === 'transfer') || (transaction.type === 'transfer_token')) {
         _.each(transaction.outputs, (output) => {
           if(output.address == thisAddress) {
-            thisReceivedAmount += output.amount
+            thisReceivedAmount += parseFloat(output.amount)
           }
         })
       }
       y.thisReceivedAmount = numberToString(thisReceivedAmount)
-      y.totalTransferred = numberToString(y.totalTransferred)
 
       transactions.push(y)
     })
