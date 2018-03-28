@@ -1,3 +1,4 @@
+import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import JSONFormatter from 'json-formatter-js'
 import './transfer.html'
 /* global LocalStore */
@@ -799,5 +800,17 @@ Template.appTransfer.helpers({
   },
   balanceSymbol() {
     return LocalStore.get('balanceSymbol')
+  },
+  addressValidation() {
+    const thisAddress = getXMSSDetails().address
+    const validationResult = qrlAddressValdidator.hexString(thisAddress)
+
+    let result = {}
+    result.height = validationResult.sig.height
+    result.totalSignatures = validationResult.sig.number
+    result.signatureScheme = validationResult.sig.type
+    result.hashFunction = validationResult.hash.function
+
+    return result
   },
 })

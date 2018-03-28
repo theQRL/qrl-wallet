@@ -61,7 +61,6 @@
         <div id="generateTransactionArea">
           <form id="generateTransactionForm" class="ui form">
 
-
             <div id="transferRecipients">
               <div>
                 <div class="field">
@@ -437,11 +436,12 @@
       <div class="ui bottom attached tab segment" id="receiveTab" data-tab="receive">
           <form>
             <div class="field">
-              <label>Your Public QRL Address</label>
+              <h4>Your Public QRL Address</h4>
               <div class="ui visible message">
                 <p class="wordBreak">{{openedAddress}}</p>
               </div>
             </div>
+
           </form>
           <br /><br />
           <div class="ui stackable grid">
@@ -449,8 +449,22 @@
               {{> QRCode text=openedAddress size="142px"}}
             </div>
           </div>
-      </div>
 
+          <div class="ui stackable grid">
+            <div class="sixteen wide column left aligned">
+              <h4>Address Details</h4>
+              <div class="ui label">Signature Scheme: {{addressValidation.signatureScheme}}</div>
+              <br /><br />
+              <div class="ui label">Tree Height: {{addressValidation.height}}</div>
+              <br /><br />
+              <div class="ui label">Total Signatures: {{addressValidation.totalSignatures}}</div>
+              <br /><br />
+              <div class="ui label">Hash Function: {{addressValidation.hashFunction}}</div>
+              <br /><br />
+            </div>
+          </div>
+
+      </div>
 
       <!-- Token Balances -->
       <div class="ui bottom attached tab segment" id="tokenBalancesTab" data-tab="tokenBalances">
