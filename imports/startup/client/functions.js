@@ -178,8 +178,8 @@ getBalance = (getAddress, callBack) => {
         LocalStore.set('transferFromAddress', binaryToQrlAddress(getAddress))
       }
 
-      // Rudimentary way to set otsKey
-      LocalStore.set('otsKeyEstimate', res.state.txcount)
+      // Collect next OTS key
+      LocalStore.set('otsKeyEstimate', res.ots.nextKey)
 
       // Callback if set
       callBack()
@@ -187,11 +187,9 @@ getBalance = (getAddress, callBack) => {
   })
 }
 
-loadAddressTransactions = () => {
-  const thisTxs = LocalStore.get('address').state.transactions.reverse()
-
+loadAddressTransactions = (txArray) => {
   const request = {
-    tx: thisTxs,
+    tx: txArray,
     grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc,
   }
 
@@ -301,7 +299,22 @@ refreshTransferPage = () => {
     // Get address balance
     getBalance(getXMSSDetails().address, function() {
       // Load Wallet Transactions
-      loadAddressTransactions()
+      const addressState = LocalStore.get('address')
+      const numPages = Math.ceil(addressState.state.transactions.length / 10)
+      const pages = []
+      while (pages.length !== numPages) {
+        pages.push({
+          number: pages.length + 1,
+          from: ((pages.length + 1) * 10) + 1,
+          to: ((pages.length + 1) * 10) + 10,
+        })
+      }
+      LocalStore.set('pages', pages)
+      let txArray = addressState.state.transactions.reverse()
+      if (txArray.length > 10) {
+        txArray = txArray.slice(0, 9)
+      }
+      loadAddressTransactions(txArray)
     })
 
     // Get Tokens and Balances

@@ -61,7 +61,6 @@
         <div id="generateTransactionArea">
           <form id="generateTransactionForm" class="ui form">
 
-
             <div id="transferRecipients">
               <div>
                 <div class="field">
@@ -429,19 +428,18 @@
           </div>
 
         </div>
-
-
-
       </div>
+      
       <!-- Receive Section -->
       <div class="ui bottom attached tab segment" id="receiveTab" data-tab="receive">
           <form>
             <div class="field">
-              <label>Your Public QRL Address</label>
+              <h4>Your Public QRL Address</h4>
               <div class="ui visible message">
                 <p class="wordBreak">{{openedAddress}}</p>
               </div>
             </div>
+
           </form>
           <br /><br />
           <div class="ui stackable grid">
@@ -449,8 +447,21 @@
               {{> QRCode text=openedAddress size="142px"}}
             </div>
           </div>
-      </div>
 
+          <div class="ui stackable grid">
+            <div class="sixteen wide column left aligned">
+              <h4>Address Details</h4>
+              <div class="ui label">Signature Scheme: {{addressValidation.signatureScheme}}</div>
+              <br /><br />
+              <div class="ui label">Tree Height: {{addressValidation.height}}</div>
+              <br /><br />
+              <div class="ui label">Total Signatures: {{addressValidation.totalSignatures}}</div>
+              <br /><br />
+              <div class="ui label">Hash Function: {{addressValidation.hashFunction}}</div>
+              <br /><br />
+            </div>
+          </div>
+      </div>
 
       <!-- Token Balances -->
       <div class="ui bottom attached tab segment" id="tokenBalancesTab" data-tab="tokenBalances">
@@ -606,6 +617,32 @@
           {{/if}}
 
         {{/each}}
+
+        {{#if pagination}}
+        <table class="ui striped table">
+          <tfoot>
+              <tr><th colspan="7">
+                <div class="ui right floated pagination menu">
+                  {{#if pback}}
+                  <a qrl-data="back" class="icon item">
+                    <i qrl-data="back" class="left chevron icon"></i>
+                  </a>
+                  {{/if}}
+                  {{#each pages}}
+                  <a class="item {{isActive}}">{{this.number}}</a>
+                  {{/each}}
+                  {{#if pforward}}
+                  <a qrl-data="forward" class="icon item">
+                    <i qrl-data="forward" class="right chevron icon"></i>
+                  </a>
+                  {{/if}}
+                </div>
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+        {{/if}}
+
       {{else}}
         <div id="noTransactionsFound" style="display: none;" class="ui icon message">
           <br /><br />
