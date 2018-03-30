@@ -428,10 +428,8 @@
           </div>
 
         </div>
-
-
-
       </div>
+      
       <!-- Receive Section -->
       <div class="ui bottom attached tab segment" id="receiveTab" data-tab="receive">
           <form>
@@ -463,7 +461,6 @@
               <br /><br />
             </div>
           </div>
-
       </div>
 
       <!-- Token Balances -->
@@ -620,6 +617,32 @@
           {{/if}}
 
         {{/each}}
+
+        {{#if pagination}}
+        <table class="ui striped table">
+          <tfoot>
+              <tr><th colspan="7">
+                <div class="ui right floated pagination menu">
+                  {{#if pback}}
+                  <a qrl-data="back" class="icon item">
+                    <i qrl-data="back" class="left chevron icon"></i>
+                  </a>
+                  {{/if}}
+                  {{#each pages}}
+                  <a class="item {{isActive}}">{{this.number}}</a>
+                  {{/each}}
+                  {{#if pforward}}
+                  <a qrl-data="forward" class="icon item">
+                    <i qrl-data="forward" class="right chevron icon"></i>
+                  </a>
+                  {{/if}}
+                </div>
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+        {{/if}}
+
       {{else}}
         <div id="noTransactionsFound" style="display: none;" class="ui icon message">
           <br /><br />

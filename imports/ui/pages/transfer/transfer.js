@@ -642,6 +642,36 @@ Template.appTransfer.events({
     // Initialise form validation
     initialiseFormValidation()
   },
+  'click .pagination': (event) => {
+    let b = 0
+    LocalStore.set('addressTransactions', {})
+    if (parseInt(event.target.text, 10)) {
+      b = parseInt(event.target.text, 10)
+      LocalStore.set('active', b)
+    } else {
+      const a = event.target.getAttribute('qrl-data')
+      b = LocalStore.get('active')
+      const c = LocalStore.get('pages')
+      if (a === 'forward') {
+        b += 1
+      }
+      if (a === 'back') {
+        b -= 1
+      }
+      if (b > c) {
+        b = c
+      }
+      if (b < 1) {
+        b = 1
+      }
+    }
+    const startIndex = (b - 1) * 10
+    LocalStore.set('active', b)
+    const txArray = LocalStore.get('address').state.transactions.reverse().slice(startIndex, startIndex + 10)
+    $('#loadingTransactions').show()
+    // LocalStore.set('fetchedTx', false)
+    loadAddressTransactions(txArray)
+  },
 })
 
 Template.appTransfer.helpers({
@@ -812,5 +842,51 @@ Template.appTransfer.helpers({
     result.hashFunction = validationResult.hash.function
 
     return result
+  },
+  // Pagination for address transactions
+  pages() {
+    let ret = []
+    const active = LocalStore.get('active')
+    if (LocalStore.get('pages').length > 0) {
+      ret = LocalStore.get('pages')
+      if ((active - 5) <= 0) {
+        ret = ret.slice(0, 9)
+      } else {
+        if ((active + 10) > ret.length) {
+          ret = ret.slice(ret.length - 10, ret.length)
+        } else {
+          ret = ret.slice(active - 5, active + 4)
+        }
+      }
+    }
+    return ret
+  },
+  isActive() {
+    let ret = ''
+    if (this.number === LocalStore.get('active')) {
+      ret = 'active'
+    }
+    return ret
+  },
+  pback() {
+    let ret = false
+    if (LocalStore.get('active') !== 1) {
+      ret = true
+    }
+    return ret
+  },
+  pforward() {
+    let ret = false
+    if (LocalStore.get('active') !== LocalStore.get('pages').length) {
+      ret = true
+    }
+    return ret
+  },
+  pagination() {
+    let ret = false
+    if (LocalStore.get('pages').length > 1) {
+      ret = true
+    }
+    return ret
   },
 })
