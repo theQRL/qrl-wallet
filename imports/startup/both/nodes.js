@@ -11,7 +11,7 @@ DEFAULT_NODES = [
     name: 'Testnet (Official QRL Node 1)',
     disabled: '',
     explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.237.3.185:9009',
+    grpc: '35.177.60.137:9009',
     type: 'both',
   },
   {
@@ -36,22 +36,6 @@ DEFAULT_NODES = [
     disabled: '',
     explorerUrl: 'https://explorer.theqrl.org',
     grpc: '104.251.219.40:9009',
-    type: 'both',
-  },
-  {
-    id: 'testnet-5',
-    name: 'Testnet (Official QRL Node 5)',
-    disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.237.3.184:9009',
-    type: 'both',
-  },
-  {
-    id: 'testnet-6',
-    name: 'Testnet (Official QRL Node 6)',
-    disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '52.220.119.253:9009',
     type: 'both',
   },
   {

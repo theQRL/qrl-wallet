@@ -57,11 +57,11 @@ module.exports = function () {
   })
 
   this.When(/^I then fill in the to address as "([^"]*)"$/, function (arg1) {
-    browser.setValue('#to', arg1)
+    browser.setValue('#to_1', arg1)
   })
 
   this.When(/^enter the amount as "([^"]*)"$/, function (arg1) {
-    browser.setValue('#amount', arg1)
+    browser.setValue('#amounts_1', arg1)
   })
 
   this.When(/^enter the fee as "([^"]*)"$/, function (arg1) {
