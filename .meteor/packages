@@ -24,7 +24,7 @@ johanbrook:publication-collector  # Test a Meteor publication by collecting its 
 http@1.3.0
 session@1.1.7
 semantic:ui
-juliancwirko:postcss
+# juliancwirko:postcss
 jquery@1.11.10
 check@1.2.5
 jayuda:flx-qrcode

@@ -10,9 +10,7 @@ install:
   - C:\Users\appveyor\AppData\Local\.meteor\meteor npm install --unsafe-perm
   - cd C:\projects\qrl-wallet\.electrify\
   - npm install
-  - mkdir C:\projects\qrl-wallet\.electrify\dist
-  - cd C:\projects\qrl-wallet\
-  - mkdir C:\projects\package
   - cd C:\projects\qrl-wallet\
   - C:\Users\appveyor\AppData\Local\.meteor\meteor lint
+  - mkdir C:\projects\qrl-wallet\.electrify\dist
   - electrify package -o C:\projects\qrl-wallet\.electrify\dist\
