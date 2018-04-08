@@ -11,7 +11,6 @@ import './transfer.html'
 /* global POLL_TXN_RATE */
 
 let tokensHeld = []
-let countRecipientsForValidation = 1
 
 function generateTransaction() {
   // Get to/amount details
@@ -463,14 +462,26 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   }
 }
 
+// Get list of ids for recipients
+function getRecipientIds() {
+  const ids = []
+  const elements = document.getElementsByName("to[]")
+  _.each(elements, (element) => {
+    const thisId = element.id
+    const parts = thisId.split('_')
+    ids.push(parseInt(parts[1]))
+  })
+  return ids
+}
+
 // Function to initialise form validation
 function initialiseFormValidation() {
   let validationRules = {}
 
-  // Calculate validation fields based on countRecipientsForValidation for to/amount fields
-  for(let i = 1; i <= countRecipientsForValidation; i++) {
-     validationRules['to' + i] = {
-      identifier: 'to_'+i,
+  // Calculate validation fields based on to/amount fields
+  _.each(getRecipientIds(), (id) => {
+     validationRules['to' + id] = {
+      identifier: 'to_'+id,
       rules: [
         {
           type: 'empty',
@@ -483,8 +494,8 @@ function initialiseFormValidation() {
       ],
     };
 
-    validationRules['amounts' + i] = {
-      identifier: 'amounts_'+i,
+    validationRules['amounts' + id] = {
+      identifier: 'amounts_'+id,
       rules: [
         {
           type: 'empty',
@@ -496,7 +507,7 @@ function initialiseFormValidation() {
         },
       ],
     }
-  }
+  })
 
   // Now set fee and otskey validation rules
   validationRules['fee'] = {
@@ -544,9 +555,6 @@ Template.appTransfer.onCreated(() => {
 Template.appTransfer.onRendered(() => {
   // Initialise dropdowns
   $('.ui.dropdown').dropdown()
-
-  // Set default transfer recipients to 1
-  countRecipientsForValidation = 1
   
   // Initialise Form Validation
   initialiseFormValidation()
@@ -608,15 +616,15 @@ Template.appTransfer.events({
     event.stopPropagation()
 
     // Increment count of recipients
-    countRecipientsForValidation += 1
+    const nextRecipientId = Math.max(...getRecipientIds()) + 1
 
     const newTransferRecipient = `
       <div>
         <div class="field">
           <label>Additional Recipient</label>
           <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-            <input type="text" id="to_${countRecipientsForValidation}" name="to[]" placeholder="Address" style="width: 55%;">
-            <input type="text" id="amounts_${countRecipientsForValidation}" name="amounts[]" placeholder="Amount" style="width: 30%;">
+            <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
+            <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
             <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
           </div>
         </div>
@@ -632,9 +640,6 @@ Template.appTransfer.events({
   'click .removeTransferRecipient': (event) => {
     event.preventDefault()
     event.stopPropagation()
-
-    // Subtract one recipient for validation
-    countRecipientsForValidation -= 1
 
     // Remove the recipient
     $(event.currentTarget).parent().parent().parent().remove()
