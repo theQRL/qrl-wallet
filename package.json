@@ -15,7 +15,7 @@
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
     "qrllib": "0.8.9",
-    "qrl-electrify": "4.0.1",
+    "qrl-electrify": "4.0.2",
     "run-script-os": "^1.0.3",
     "tmp": "0.0.33"
   },
