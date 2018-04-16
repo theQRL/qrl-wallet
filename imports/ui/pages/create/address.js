@@ -28,15 +28,43 @@ function saveWallet(encrypted) {
   document.body.removeChild(a)
 }
 
+function userDenyWalletSaveNotice() {
+  setTimeout( function() {
+    $('#saveItEducationModal').modal({
+      onHide: () => {
+        const path = FlowRouter.path('/', {})
+        FlowRouter.go(path)
+      }
+    }).modal('show')
+  }, 250)
+}
+
 Template.appCreateAddress.onCreated(() => {
   // Grab passphrase from LocalStore and reset
   passphrase = LocalStore.get('passphrase')
   LocalStore.set('passphrase', '')
+  LocalStore.set('modalEventTriggered', false)
 })
 
-
 Template.appCreateAddress.onRendered(() => {
-  $('.small.modal').modal()
+  $('#insecureModal').modal()
+  $('#saveItEducationModal').modal()
+
+  $('#saveItModal').modal({
+    onApprove: () => {
+      LocalStore.set('modalEventTriggered', true)
+    },
+    onDeny: () => {
+      LocalStore.set('modalEventTriggered', true)
+      userDenyWalletSaveNotice()
+    },
+    onHide: () => {
+      if (LocalStore.get('modalEventTriggered') === false) {
+        userDenyWalletSaveNotice()
+      }
+      LocalStore.set('modalEventTriggered', false)
+    }
+  }).modal('show')
 })
 
 Template.appCreateAddress.events({

@@ -82,15 +82,25 @@ Template.appVerifyTxid.helpers({
   },
   amount() {
     if (this.tx.coinbase) {
-      return (this.tx.coinbase.amount / SHOR_PER_QUANTA).toFixed(9)
+      return numberToString(this.tx.coinbase.amount / SHOR_PER_QUANTA)
     }
     if (this.tx.transactionType === 'transfer') {
-      return numberToString(this.tx.transfer.totalTransferred) + " Quanta"
+      return `${numberToString(this.tx.transfer.totalTransferred)} Quanta`
     }
     if (this.tx.transactionType === 'transfer_token') {
-      return numberToString(this.tx.transfer_token.totalTransferred) + " " + this.tx.transfer_token.tokenSymbol
+      return `${numberToString(this.tx.transfer_token.totalTransferred)} ${this.tx.transfer_token.tokenSymbol}`
     }
     return ''
+  },
+  isConfirmed() {
+    try {
+      if (this.header.block_number !== null) {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
   },
   confirmations() {
     const x = LocalStore.get('status')
@@ -130,6 +140,12 @@ Template.appVerifyTxid.helpers({
   },
   isTokenTransfer() {
     if (this.explorer.type === 'TRANSFER TOKEN') {
+      return true
+    }
+    return false
+  },
+  isNotCoinbase() {
+    if (this.explorer.type !== 'COINBASE') {
       return true
     }
     return false
