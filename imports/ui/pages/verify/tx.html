@@ -1,119 +1,158 @@
 <template name="appVerifyTxid">
-  {{#with tx}}
-    {{#if error}}
-      <h1>Transaction
-        <div class="ui label"><i class="exchange icon"></i>{{tx.parameter}}</div>
-      </h1>
+
+{{#with tx}}
+  {{#if error}}
+    <h3 class="ui pageHeader header">
+      <i class="tiny plus icon"></i>
+      <div class="content wordBreak">
+        Transaction {{tx.parameter}}
+      </div>
+    </h3>
+    <div class="ui negative message">
+      <i class="close icon"></i>
+      <div class="header">
+        Error reading transaction
+      </div>
+      <p>{{tx.error}}</p>
+    </div>
+  {{else}}
+    {{#if notFound}}
+      <h3 class="ui pageHeader header">
+        <i class="tiny plus icon"></i>
+        <div class="content wordBreak">
+          Transaction {{tx.parameter}}
+        </div>
+      </h3>
       <div class="ui negative message">
         <i class="close icon"></i>
-        <div class="header">
-          Error reading transaction
-        </div>
-        <p>{{tx.error}}</p>
+        Transaction <span class="hack">{{id}}</span> not found
       </div>
     {{else}}
-      {{#if notFound}}
-      <div class="ui raised fluid card">
-        <div class="content">
-          <div class="header">Error</div>
-      Transaction <span class="hack">{{tx.parameter}}</span> not found
-    </div></div>
-      {{else}}
-      <div class="ui raised fluid card">
-        <div class="content">
-          <div class="header">Transaction
-            <div class="ui label"><i class="exchange icon"></i> {{tx.tx.transaction_hash}}</div>
+      <h3 class="ui pageHeader header">
+        <i class="tiny plus icon"></i>
+        <div class="content wordBreak">
+          Transaction {{tx.tx.transaction_hash}}
+        </div>
+      </h3>
+
+      <div class="ui segment pageSegment">
+
+        <div class="description">
+          <div class="ui celled horizontal list">
+            <div class="item"><strong>Confirmations</strong> {{#if isConfirmed}} {{confirmations}} confirmations {{else}}Unconfirmed{{/if}}</div>
+            <div class="item"><strong>Block</strong> <a href="{{nodeExplorerUrl}}/block/{{tx.header.block_number}}">{{tx.header.block_number}}</a></div>
+            <div class="item"><strong>Nonce</strong> {{tx.tx.nonce}}</div>
+            <div class="item"><strong>OTS key</strong> {{ots_key}}</div>
+            <div class="item"><strong>Fee</strong> {{tx.tx.fee}} Quanta</div>
+            <div class="item"><strong>Size</strong> {{txSize}}</div>            
+            <div class="item"><strong>Status</strong> {{#if isConfirmed}} OK <i class="ui green circle icon"></i> {{ts}} {{else}} Unconfirmed <i class="ui yellow circle icon"></i>{{/if}}</div>
           </div>
-          <div class="meta">
-            {{#if confirmations}} {{confirmations}} confirmations {{else}}Unconfirmed{{/if}}
-          </div>
-          <div class="description">
-            <div class="ui basic center aligned segment">
-              <div class="ui statistic">
-                <div class="label">
-                  <div class="ui {{color}} label">{{explorer.type}}</div>
+          <div class="ui hidden divider"></div>
+        </div>
+
+        <div class="ui bottom attached tab segment active">
+          <div class="ui stackable grid">
+            <div class="sixteen wide column">
+              <div class="ui basic center aligned segment">
+                <div class="ui statistic">
+
+                  <div class="label">
+                    <div class="ui {{color}} label">{{explorer.type}}{{#if isTokenTransfer}}: {{explorer.tokenSymbol}} {{/if}}</div>
+                  </div>
+
+                  {{#if isToken}}
+                    <strong>{{explorer.name}} ({{explorer.symbol}})</strong><br />
+                    owned by:<br />
+                    <a href="{{nodeExplorerUrl}}/a/{{explorer.owner}}">{{explorer.owner}}</a>
+                  {{else}}
+                    {{#if isTokenTransfer}}
+                      <div class="value">{{explorer.totalTransferred}}</div>
+                      {{explorer.tokenSymbol}} ({{explorer.tokenName}})<br />
+                      tokens transferred
+                      <div class="label">Token creation transaction: </div>
+                      <a href="{{nodeExplorerUrl}}/tx/{{explorer.token_txhash}}" class="unbreakable">{{explorer.token_txhash}}</a>
+                    {{else}}
+                      <div class="value" data-html="<div class='content'>USD ${{qrl}}</div>">
+                        {{tx.tx.amount}}
+                      </div>
+                      <div class="label">
+                        Quanta<br><small>USD ${{qrl}}</small>
+                      </div>
+                    {{/if}}
+                  {{/if}}
+
                 </div>
-                {{#if isToken}}
-                <strong>{{explorer.name}} ({{explorer.symbol}})</strong><br>owned by:<br><a target="_blank" href="{{nodeExplorerUrl}}/a/{{explorer.owner}}">{{explorer.owner}}</a>
-                {{else}}
-                {{#if isTokenTransfer}}
-                <div class="value">{{explorer.totalTransferred}}</div>
-                Tokens transferred
-                <div class="label">Token creation transaction: </div>
-                <a target="_blank" href="{{nodeExplorerUrl}}/tx/{{explorer.token_txhash}}" class="unbreakable">{{explorer.token_txhash}}</a>
-                {{else}}
-                <div class="value" data-html="<div class='content'>USD ${{qrl}}</div>">
-                  {{tx.tx.amount}}
-                </div>
-                <div class="label">
-                  Quanta<br><small>USD ${{qrl}}</small>
-                </div>
-                {{/if}}
-                {{/if}}
               </div>
             </div>
-            {{#if isToken}}
+          </div>
+
+          {{#if isToken}}
             <h4>Initial balances</h4>
             <table class="ui stackable table">
-              <thead><th>Address</th><th>Balance</th></thead>
+              <thead>
+                <th>Address</th>
+                <th>Balance</th>
+              </thead>
               <tbody>
-            {{#each explorer.initialBalances}}
-            <tr><td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
-              <td>{{this.amount}}</td>
-            </tr>
-            {{/each}}
-          </tbody></table>
-            {{else}}
-            <table class="ui stackable table">
-              <thead></thead>
-              <tbody>
-              <tr>
-                <td class="single line">
-                  <div class="ui red label"><i class="sign out icon"></i>from</div>
-                </td>
-                <td><a target="_blank" href="{{nodeExplorerUrl}}/a/{{explorer.from}}">{{explorer.from}}</a></td>
-                <td><i class="large right arrow icon"></i></td>
-                <td class="single line">
-                  <div class="ui purple label"><i class="sign in icon"></i>to</div>
-                </td>
-                <td>
-                  {{#if isTransfer}}
-                    {{#each explorer.outputs}}
-                      <a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}} - {{this.amount}}</a><br />
-                    {{/each}}
-                  {{else if isTokenTransfer}}
-                    {{#each explorer.outputs}}
-                      <a target="_blank" href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}} - {{this.amount}}</a><br />
-                    {{/each}}
-                  {{else}}
-                  <a target="_blank" href="{{nodeExplorerUrl}}/a/{{explorer.to}}">{{explorer.to}}</a>
-                  {{/if}}
-                </td>
-              </tr>
+                {{#each explorer.initialBalances}}
+                  <tr>
+                    <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
+                    <td>{{this.amount}}</td>
+                  </tr>
+                {{/each}}
               </tbody>
             </table>
+          {{else}}
+            {{#if isNotCoinbase}}
+              <table class="ui stackable table">
+                <tbody>
+                  <tr>
+                    <td class="single line">
+                      <div class="ui red label"><i class="sign out icon"></i>from</div>
+                    </td>
+                    <td><a href="{{nodeExplorerUrl}}/a/{{explorer.from}}">{{explorer.from}}</a></td>
+                  </tr>
+                </tbody>
+              </table>
             {{/if}}
-            <div class="ui celled horizontal list">
-              <div class="item"><strong>Block</strong> <a target="_blank" href="{{nodeExplorerUrl}}/block/{{tx.header.block_number}}">{{tx.header.block_number}}</a></div>
-              <div class="item"><strong>Nonce</strong> {{tx.tx.nonce}}</div>
-              <div class="item"><strong>OTS key</strong> {{tx.tx.ots_key}}</div>
-              <div class="item"><strong>Fee</strong> {{tx.tx.fee}} Quanta</div>
-            </div>
-            <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
-            <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
-          </div>
-          <div class="extra content">
-            <div class="right floated author">
-              {{#if confirmations}}
-              OK <i class="ui green circle icon"></i> {{ts}}
-              {{else}}
-              Unconfirmed <i class="ui yellow circle icon"></i>
-              {{/if}}
-            </div>
-          </div>
+
+            <h3>To</h3>
+            <table class="ui stackable table">
+              <thead>
+                <th>Address</th>
+                <th>Amount</th>
+              </thead>
+              <tbody>
+                {{#if isTransfer}}
+                  {{#each explorer.outputs}}
+                    <tr>
+                      <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
+                      <td>{{this.amount}}</td>
+                    </tr>
+                  {{/each}}
+                {{else if isTokenTransfer}}
+                  {{#each explorer.outputs}}
+                    <tr>
+                      <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
+                      <td>{{this.amount}}</td>
+                    </tr>
+                  {{/each}}
+                {{else}}
+                  <tr>
+                    <td><a href="{{nodeExplorerUrl}}/a/{{explorer.to}}">{{explorer.to}}</a></td>
+                    <td>{{tx.tx.amount}}</td>
+                  </tr>
+                {{/if}}
+              </tbody>
+            </table>
+          {{/if}}
+          <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
+          <div class="ui raised segment jsonbox json" style="display: none">{{json}}</div>
         </div>
       </div>
-      {{/if}}
+
     {{/if}}
-  {{/with}}
+  {{/if}}
+{{/with}}
+
 </template>

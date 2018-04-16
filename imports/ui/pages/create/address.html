@@ -1,5 +1,39 @@
 <template name="appCreateAddress">
 
+<div class="small ui modal" id="saveItModal">
+  <div class="header">Save your wallet file now!</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <p>You must save the details on this page or risk loosing funds sent or allocated to this wallet address.</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve button red">I understand, I will save the details on this page!</div>
+    <div class="ui cancel red button plain">Cancel</div>
+  </div>
+</div>
+
+<div class="small ui modal" id="saveItEducationModal">
+  <div class="header">Please read about wallet basics!</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <p>
+          Please read our <a href="https://docs.theqrl.org/wallet/basics/" target="_blank">wallet basics</a> documentation before proceeding to create your wallet.<br /><br />
+          When you've done this, come back and re-create your QRL wallet.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button">Okay</div>
+  </div>
+</div>
+
 <div class="small ui modal" id="insecureModal">
   <div class="header">Whoa there buddy!!</div>
   <div class="content">
@@ -14,7 +48,7 @@
     </div>
   </div>
   <div class="actions">
-    <div class="ui approve green button red">I understand the risks, save the insecure file!</div>
+    <div class="ui approve button red">I understand the risks, save the insecure file!</div>
     <div class="ui cancel red button plain">Cancel</div>
   </div>
 </div>
@@ -27,7 +61,6 @@
 </h2>
 
 <div class="ui segment pageSegment">
-
   <div class="ui warning icon message">
     <i class="warning icon"></i>
     <div class="content">
@@ -38,9 +71,7 @@
     </div>
   </div>
 
-
   <div class="ui stackable two column grid">
-
     <div class="column fourteen wide">
       <h4 class="ui header">QRL Address</h4>
       <div class="ui inverted segment">
