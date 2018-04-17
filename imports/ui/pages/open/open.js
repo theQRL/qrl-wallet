@@ -25,27 +25,14 @@ Template.appAddressOpen.onRendered(() => {
 
 function openWallet(walletType, walletCode) {
   try {
-    // Generate binary seed
-    let thisSeedBin
-    let thisHeight
+    // Create XMSS object from seed
     if (walletType === 'hexseed') {
-      thisSeedBin = QRLLIB.hstr2bin(walletCode)
-      thisHeight = parseInt(QRLLIB.getHeight(thisSeedBin))
+      XMSS_OBJECT = QRLLIB.Xmss.fromHexSeed(walletCode)
     } else if (walletType === 'mnemonic') {
-      thisSeedBin = QRLLIB.mnemonic2bin(walletCode)
-      thisHeight = parseInt(QRLLIB.getHeight(thisSeedBin))
+      XMSS_OBJECT = QRLLIB.Xmss.fromMnemonic(walletCode)
     }
 
-    // Now remove first six ascii chars from hex seed (descriptors)
-    let hexSeed = QRLLIB.bin2hstr(thisSeedBin).substring(6)
-    // Save the seed back as binary format
-    thisSeedBin = QRLLIB.hstr2bin(hexSeed)
-
-    // eslint-disable-next-line no-global-assign
-    XMSS_OBJECT = new QRLLIB.Xmss(thisSeedBin, thisHeight)
-    const thisAddressBytes = XMSS_OBJECT.getAddress()
-    const thisAddress = 'Q' + QRLLIB.bin2hstr(thisAddressBytes)
-
+    const thisAddress = XMSS_OBJECT.getAddress()
 
     // If it worked, send the user to the address page.
     if (thisAddress !== '') {
@@ -72,7 +59,7 @@ function openWallet(walletType, walletCode) {
   }
 }
 
-function unlockWallet(basicOrAdvanced) {
+function unlockWallet() {
   let walletType = document.getElementById('walletType').value
   let walletCode = document.getElementById('walletCode').value
   let walletFiles = $('#walletFile').prop('files')

@@ -17,7 +17,7 @@ function generateTransaction() {
   const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
-  const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
   var sendTo = document.getElementsByName("to[]")
   var sendAmounts = document.getElementsByName("amounts[]")
 
@@ -96,7 +96,7 @@ function confirmTransaction() {
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
-      tx.extended_transaction_unsigned.addr_from,
+      //tx.extended_transaction_unsigned.addr_from,
       toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
   )
 
@@ -120,10 +120,7 @@ function confirmTransaction() {
   }
 
   // Convert Uint8Array to VectorUChar
-  const hashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < concatenatedArrays.length; i += 1) {
-    hashableBytes.push_back(concatenatedArrays[i])
-  }
+  const hashableBytes = toUint8Vector(concatenatedArrays)
 
   // Create sha256 sum of concatenatedarray
   let shaSum = QRLLIB.sha2_256(hashableBytes)
@@ -136,13 +133,10 @@ function confirmTransaction() {
     Uint8Array,
       binaryToBytes(shaSum),
       tx.extended_transaction_unsigned.tx.signature,
-      binaryToBytes(XMSS_OBJECT.getPK())
+      hexToBytes(XMSS_OBJECT.getPK())
   )
 
-  const txnHashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < txnHashConcat.length; i += 1) {
-    txnHashableBytes.push_back(txnHashConcat[i])
-  }
+  const txnHashableBytes = toUint8Vector(txnHashConcat)
 
   let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
@@ -196,7 +190,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   var sendAmounts = document.getElementsByName("amounts[]")
   
   // Convert strings to bytes
-  const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
   const tokenHashBytes = stringToBytes(tokenHash)
   const sendFromAddress = addressForAPI(sendFrom)
 
@@ -288,7 +282,7 @@ function confirmTokenTransfer() {
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
-      tx.extended_transaction_unsigned.addr_from,
+      // tx.extended_transaction_unsigned.addr_from,
       toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
       tx.extended_transaction_unsigned.tx.transfer_token.token_txhash,
 
@@ -314,10 +308,7 @@ function confirmTokenTransfer() {
   }
 
   // Convert Uint8Array to VectorUChar
-  const hashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < concatenatedArrays.length; i += 1) {
-    hashableBytes.push_back(concatenatedArrays[i])
-  }
+  const hashableBytes = toUint8Vector(concatenatedArrays)
 
   // Create sha256 sum of concatenatedarray
   let shaSum = QRLLIB.sha2_256(hashableBytes)
@@ -330,13 +321,10 @@ function confirmTokenTransfer() {
     Uint8Array,
       binaryToBytes(shaSum),
       tx.extended_transaction_unsigned.tx.signature,
-      binaryToBytes(XMSS_OBJECT.getPK())
+      hexToBytes(XMSS_OBJECT.getPK())
   )
 
-  const txnHashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < txnHashConcat.length; i += 1) {
-    txnHashableBytes.push_back(txnHashConcat[i])
-  }
+  const txnHashableBytes = toUint8Vector(txnHashConcat)
 
   let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 

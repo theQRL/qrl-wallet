@@ -230,7 +230,7 @@ const getTxnHash = (request, callback) => {
 // Function to call transferCoins API
 const transferCoins = (request, callback) => {
   const tx = {
-    master_addr: request.fromAddress,
+    // master_addr: request.fromAddress,
     addresses_to: request.addresses_to,
     amounts: request.amounts,
     fee: request.fee,
@@ -339,7 +339,7 @@ const confirmTransaction = (request, callback) => {
 // Function to call GetTokenTxn API
 const createTokenTxn = (request, callback) => {
   const tx = {
-    master_addr: request.addressFrom,
+    // master_addr: request.addressFrom,
     symbol: request.symbol,
     name: request.name,
     owner: request.owner,
@@ -463,7 +463,7 @@ const confirmTokenCreation = (request, callback) => {
 // Function to call GetTransferTokenTxn API
 const createTokenTransferTxn = (request, callback) => {
   const tx = {
-    master_addr: request.addressFrom,
+    // master_addr: request.addressFrom,
     addresses_to: request.addresses_to,
     amounts: request.amounts,
     token_txhash: request.tokenHash,

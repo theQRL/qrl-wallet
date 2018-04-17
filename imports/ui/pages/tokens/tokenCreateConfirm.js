@@ -16,7 +16,7 @@ function confirmTokenCreation() {
   // Concatenate Uint8Arrays
   let tmptxnhash = concatenateTypedArrays(
     Uint8Array,
-      tx.extended_transaction_unsigned.addr_from,
+      // tx.extended_transaction_unsigned.addr_from,
       toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
       tx.extended_transaction_unsigned.tx.token.symbol,
       tx.extended_transaction_unsigned.tx.token.name,
@@ -43,10 +43,7 @@ function confirmTokenCreation() {
   }
   
   // Convert Uint8Array to VectorUChar
-  let hashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < tmptxnhash.length; i += 1) {
-    hashableBytes.push_back(tmptxnhash[i])
-  }
+  let hashableBytes = toUint8Vector(tmptxnhash)
 
   // Create sha256 sum of hashableBytes
   let shaSum = QRLLIB.sha2_256(hashableBytes)
@@ -59,13 +56,10 @@ function confirmTokenCreation() {
     Uint8Array,
       binaryToBytes(shaSum),
       tx.extended_transaction_unsigned.tx.signature,
-      binaryToBytes(XMSS_OBJECT.getPK())
+      hexToBytes(XMSS_OBJECT.getPK())
   )
 
-  const txnHashableBytes = new QRLLIB.VectorUChar()
-  for (i = 0; i < txnHashConcat.length; i += 1) {
-    txnHashableBytes.push_back(txnHashConcat[i])
-  }
+  const txnHashableBytes = toUint8Vector(txnHashConcat)
 
   let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
@@ -102,7 +96,6 @@ function cancelTransaction() {
   $('#tokenCreationConfirmation').hide()
   $('#transactionFailed').show()
 }
-
 
 Template.appTokenCreationConfirm.onRendered(() => {
   $('.ui.dropdown').dropdown()

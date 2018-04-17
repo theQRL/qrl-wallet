@@ -1,6 +1,6 @@
 {
   "name": "qrl-wallet",
-  "version": "1.0.0",
+  "version": "0.3.2",
   "description": "QRL Wallet",
   "main": "index.js",
   "dependencies": {
@@ -16,7 +16,7 @@
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
     "qrl-electrify": "4.0.2",
-    "qrllib": "0.8.9",
+    "qrllib": "0.9.2",
     "run-script-os": "^1.0.3",
     "tmp": "0.0.33"
   },
