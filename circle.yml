@@ -4,7 +4,7 @@ general:
 
 machine:
   node:
-    version: 8.9.3
+    version: 8.11.1
 
 dependencies:
   cache_directories:
