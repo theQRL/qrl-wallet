@@ -11,7 +11,6 @@ let countRecipientsForValidation = 1
 function createTokenTxn() {
   // Get to/amount details
   const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
-
   const owner = addressForAPI(document.getElementById('owner').value)
   const symbol = document.getElementById('symbol').value
   const name = document.getElementById('name').value
@@ -22,7 +21,7 @@ function createTokenTxn() {
   let tokenHolders = []
 
   // Convert strings to bytes
-  const pubKey = binaryToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
   const symbolBytes = stringToBytes(symbol)
   const nameBytes = stringToBytes(name)
 

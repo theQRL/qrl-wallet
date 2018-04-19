@@ -18,21 +18,16 @@ selectedNode = () => {
 
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
-  const thisAddressBytes = XMSS_OBJECT.getAddress()
-  const thisAddress = QRLLIB.bin2hstr(thisAddressBytes)
+  const thisAddress = XMSS_OBJECT.getAddress()
   const thisPk = XMSS_OBJECT.getPK()
-  
-  const thisHashFunction = QRLLIB.getHashFunction(thisAddressBytes)
-  const thisSignatureType = QRLLIB.getSignatureType(thisAddressBytes)
-  const thisHeight = QRLLIB.getHeight(thisAddressBytes)
-
-  const thisRandomSeed = XMSS_OBJECT.getExtendedSeed()
-
-  const thisHexSeed = QRLLIB.bin2hstr(thisRandomSeed)
-  const thisMnemonic = QRLLIB.bin2mnemonic(thisRandomSeed)
+  const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+  const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+  const thisHeight = XMSS_OBJECT.getHeight()
+  const thisHexSeed = XMSS_OBJECT.getHexSeed()
+  const thisMnemonic = XMSS_OBJECT.getMnemonic()
 
   const xmssDetail = {
-    address: 'Q' + thisAddress,
+    address: thisAddress,
     pk: thisPk,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
@@ -106,6 +101,11 @@ bytesToHex = (byteArray) => {
   }).join('')
 }
 
+// Convert hex to bytes
+hexToBytes = (hex) => {
+  return Buffer.from(hex, 'hex')
+}
+
 // Returns an address ready to send to gRPC API
 addressForAPI = (address) => {
   return Buffer.from(address.substring(1), 'hex')
@@ -138,6 +138,14 @@ toBigendianUint64BytesUnsigned = (input) => {
 
   const result = new Uint8Array(byteArray)
   return result
+}
+
+toUint8Vector = (arr) => {
+  let vec = new QRLLIB.Uint8Vector()
+  for (let i = 0; i < arr.length; i++) {
+    vec.push_back(arr[i])
+  }
+  return vec
 }
 
 // Concatenates multiple typed arrays into one.
