@@ -1,4 +1,9 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.10.1
-ignore: {}
+version: v1.11.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  'npm:shelljs:20140723':
+    - '*':
+        reason: shelljs used in qrl-eletrify only for CI server to bundle app
+        expires: 2019-01-01T00:00:00.000Z
 patch: {}
