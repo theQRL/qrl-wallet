@@ -208,7 +208,13 @@ Template.appTokenCreate.onRendered(() => {
   initialiseFormValidation()
 
   // Get wallet balance
-  getBalance(getXMSSDetails().address, function() {})
+  getBalance(getXMSSDetails().address, function() {
+    // Show warning is otsKeysRemaining is low
+    if(LocalStore.get('otsKeysRemaining') < 50) {
+      // Shown low OTS Key warning modal
+      $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+    }
+  })
 })
 
 Template.appTokenCreate.events({

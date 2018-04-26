@@ -551,7 +551,13 @@ Template.appTransfer.onRendered(() => {
   $('#sendReceiveTabs .item').tab()
 
   // Load transactions
-  refreshTransferPage()
+  refreshTransferPage(function () {
+    // Show warning is otsKeysRemaining is low
+    if(LocalStore.get('otsKeysRemaining') < 50) {
+      // Shown low OTS Key warning modal
+      $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+    }
+  })
 })
 
 Template.appTransfer.events({
@@ -694,6 +700,10 @@ Template.appTransfer.helpers({
   otsKeyEstimate() {
     const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
     return otsKeyEstimate
+  },
+  otsKeysRemaining() {
+    const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
+    return otsKeysRemaining
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
