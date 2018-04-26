@@ -297,6 +297,10 @@ Template.appTokenCreate.helpers({
     const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
     return otsKeyEstimate
   },
+  otsKeysRemaining() {
+    const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
+    return otsKeysRemaining
+  },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NODES[0].explorerUrl
