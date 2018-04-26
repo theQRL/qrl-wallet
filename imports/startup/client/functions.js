@@ -1,3 +1,4 @@
+import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
@@ -163,6 +164,21 @@ concatenateTypedArrays = (resultConstructor, ...arrays) => {
     return result
 }
 
+// Check if users web browser supports Web Assemblies
+supportedBrowser = () => {
+  try {
+    if (typeof WebAssembly === "object"
+      && typeof WebAssembly.instantiate === "function") {
+      const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00))
+      if (module instanceof WebAssembly.Module)
+          return new WebAssembly.Instance(module) instanceof WebAssembly.Instance
+    }
+  } catch (e) {
+  }
+  return false
+}
+
+
 // Get wallet address state details
 getBalance = (getAddress, callBack) => {
   const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
@@ -188,6 +204,15 @@ getBalance = (getAddress, callBack) => {
 
       // Collect next OTS key
       LocalStore.set('otsKeyEstimate', res.ots.nextKey)
+
+      // Get remaining OTS Keys
+      const validationResult = qrlAddressValdidator.hexString(getAddress)
+      const { keysConsumed } = res.ots
+      const totalSignatures = validationResult.sig.number
+      const keysRemaining = totalSignatures - keysConsumed
+
+      // Set keys remaining
+      LocalStore.set('otsKeysRemaining', keysRemaining)
 
       // Callback if set
       callBack()
@@ -299,7 +324,7 @@ updateBalanceField = () => {
   }
 }
 
-refreshTransferPage = () => {
+refreshTransferPage = (callback) => {
   resetLocalStorageState()
 
   // Wait for QRLLIB to load
@@ -323,6 +348,8 @@ refreshTransferPage = () => {
         txArray = txArray.slice(0, 9)
       }
       loadAddressTransactions(txArray)
+
+      callback()
     })
 
     // Get Tokens and Balances

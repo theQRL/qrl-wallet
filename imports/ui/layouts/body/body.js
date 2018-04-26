@@ -174,6 +174,9 @@ Template.appBody.onRendered(() => {
 
     }, 'xml')
   })
+
+  // Debug log for web assembly support
+  console.log('Web Assembly Supported: ', supportedBrowser())
 })
 
 

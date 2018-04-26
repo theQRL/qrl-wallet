@@ -162,26 +162,25 @@ const getAddressState = (request, callback) => {
       })
 
       // Parse OTS Bitfield, and grab the lowest unused key
-      let newOtsBitfield = {}
+      const newOtsBitfield = {}
       let lowestUnusedOtsKey = -1
       let otsBitfieldLength = 0
 
-      let thisOtsBitfield = response.state.ots_bitfield
-      thisOtsBitfield.forEach (function (item, index) {
+      const thisOtsBitfield = response.state.ots_bitfield
+      thisOtsBitfield.forEach((item, index) => {
         const thisDecimal = new Uint8Array(item)[0]
         const thisBinary = decimalToBinary(thisDecimal).reverse()
-
         const startIndex = index * 8
-        const endIndex = startIndex + 7
 
-        for(let i = 0; i < 8; i++) {
+        for (let i = 0; i < 8; i += 1) {
           const thisOtsIndex = startIndex + i
 
           // Add to parsed array
           newOtsBitfield[thisOtsIndex] = thisBinary[i]
 
           // Check if this is lowest unused key
-          if((thisBinary[i] == 0) && ((thisOtsIndex < lowestUnusedOtsKey) || (lowestUnusedOtsKey == -1))) {
+          if ((thisBinary[i] === 0) &&
+           ((thisOtsIndex < lowestUnusedOtsKey) || (lowestUnusedOtsKey === -1))) {
             lowestUnusedOtsKey = thisOtsIndex
           }
 
@@ -191,18 +190,33 @@ const getAddressState = (request, callback) => {
       })
 
       // If all keys in bitfield are used, lowest key will be what is shown in ots_counter + 1
-      if(lowestUnusedOtsKey == -1) {
-        if(response.state.ots_counter == "0") {
+      if (lowestUnusedOtsKey === -1) {
+        if (response.state.ots_counter === '0') {
           lowestUnusedOtsKey = otsBitfieldLength
         } else {
-          lowestUnusedOtsKey = parseInt(response.state.ots_counter) + 1
+          lowestUnusedOtsKey = parseInt(response.state.ots_counter, 10) + 1
         }
+      }
+
+      // Calculate number of keys that are consumed
+      let totalKeysConsumed = 0
+      // First add all tracked keys from bitfield
+      for (let i = 0; i < otsBitfieldLength; i += 1) {
+        if(newOtsBitfield[i] === 1) {
+          totalKeysConsumed += 1
+        }
+      }
+
+      // Then add any extra from `otsBitfieldLength` to `ots_counter`
+      if (response.state.ots_counter !== '0') {
+        totalKeysConsumed += parseInt(response.state.ots_counter, 10) - (otsBitfieldLength - 1)
       }
 
       // Add in OTS fields to response
       response.ots = {}
       response.ots.keys = newOtsBitfield
       response.ots.nextKey = lowestUnusedOtsKey
+      response.ots.keysConsumed = totalKeysConsumed
 
       callback(null, response)
     }
