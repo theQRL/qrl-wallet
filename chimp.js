@@ -3,7 +3,7 @@ module.exports = {
   webdriverio: {
     desiredCapabilities: {
       chromeOptions: {
-        args: ["headless", "disable-gpu"]
+        args: ["headless", "disable-gpu", "no-sandbox"]
       },
       isHeadless: true
     }
