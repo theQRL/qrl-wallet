@@ -53,8 +53,20 @@ DEFAULT_NODES = [
     explorerUrl: 'http://explorer.theqrl.org',
     grpc: 'localhost:9009',
     type: 'desktop',
-  },
+  }
 ]
+
+// Override DEFAULT_NODES if provided in settings file
+try {
+  if (Meteor.settings.public.defaultNodes.length > 0) {
+    // Reset DEFAULT_NODES
+    DEFAULT_NODES = []
+    // Set DEFAULT_NODES from Meteor settings
+    DEFAULT_NODES=Meteor.settings.public.defaultNodes
+  }
+} catch (e) {
+  // no configuration file used
+}
 
 // Function to search through the DEFAULT_NODES array and identify and return an
 // object based on its 'id' value.

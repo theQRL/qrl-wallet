@@ -1,0 +1,14 @@
+{
+  "public" :{
+    "defaultNodes": [
+      {
+        "id": "mocknet",
+        "name": "Mocknet",
+        "disabled": "",
+        "explorerUrl": "https://explorer.theqrl.org",
+        "grpc": "127.0.0.1:10002",
+        "type": "both"
+      }
+    ]
+  }
+}
