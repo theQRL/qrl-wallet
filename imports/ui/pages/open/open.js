@@ -44,6 +44,8 @@ function openWallet(walletType, walletCode) {
       status.menuHidden = ''
       status.menuHiddenInverse = 'display: none'
       LocalStore.set('walletStatus', status)
+      LocalStore.set('transferFromAddress', thisAddress)
+      console.log('Opened address ', thisAddress)
 
       const params = {}
       const path = FlowRouter.path('/transfer', params)
