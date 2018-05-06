@@ -193,13 +193,11 @@ getBalance = (getAddress, callBack) => {
     } else {
       if (res.state.address !== '') {
         LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
-        LocalStore.set('transferFromAddress', binaryToQrlAddress(res.state.address))
         LocalStore.set('transferFromTokenState', res.state.tokens)
         LocalStore.set('address', res)
       } else {
         // Wallet not found, put together an empty response
         LocalStore.set('transferFromBalance', 0)
-        LocalStore.set('transferFromAddress', binaryToQrlAddress(getAddress))
       }
 
       // Collect next OTS key
@@ -329,6 +327,9 @@ refreshTransferPage = (callback) => {
 
   // Wait for QRLLIB to load
   waitForQRLLIB(function () {
+    // Set transfer from address
+    LocalStore.set('transferFromAddress', getXMSSDetails().address)
+
     // Get address balance
     getBalance(getXMSSDetails().address, function() {
       // Load Wallet Transactions
