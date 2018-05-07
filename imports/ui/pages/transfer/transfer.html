@@ -315,7 +315,7 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <span>Transaction Hash <a href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
+              <span>Transaction Hash <a id="confirmedTransferTxnHash" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
               <br />
               <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
               <br />
@@ -401,7 +401,7 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <span>Transaction Hash <a href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
+              <span>Transaction Hash <a id="confirmedTransferTokenTxnHash" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
               <br />
               <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a> Quanta</span>
               <br />
