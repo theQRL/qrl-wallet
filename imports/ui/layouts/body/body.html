@@ -64,6 +64,25 @@
       <!-- Main Content Area -->
       <div class="main-content">
 
+        <!-- Web Assembly Warning -->
+        <div class="small ui modal" id="webassemblyWarning">
+          <div class="header">Your browser is not supported!</div>
+          <div class="content">
+            <div class="ui warning icon message">
+              <i class="warning icon"></i>
+              <div class="content">
+                <p>Your browser does not support Web Assembly which is a core component in the QRL Wallet.</p>
+                <p>It is recommended that you use the latest version of Google Chrome or Mozilla Firefox to access the QRL Wallet.</p>
+                <p><a href="https://www.mozilla.org/" target="_blank">Download Mozilla Firefox</a></p>
+                <p><a href="https://www.google.com/chrome/" target="_blank">Download Google Chrome</a></p>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <div class="ui approve button green">Okay</div>
+          </div>
+        </div>
+
         <!-- Top Right Network Selection -->
         <div class="ui selection dropdown floatright" id="networkDropdown">
           <input id="network" type="hidden" value="{{nodeId}}">

@@ -177,6 +177,11 @@ Template.appBody.onRendered(() => {
 
   // Debug log for web assembly support
   console.log('Web Assembly Supported: ', supportedBrowser())
+
+  // Show warning if web assembly is not supported.
+  if(!supportedBrowser()) {
+    $('#webassemblyWarning').modal('show')
+  }
 })
 
 

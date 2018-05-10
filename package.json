@@ -41,7 +41,7 @@
   "scripts": {
     "dev": "meteor",
     "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
-    "postinstall": "run-script-os",
+    "postinstall": "sleep 10 && run-script-os",
     "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\",
     "install:darwin": "cp node_modules/qrllib/build/web-libjsqrl.wasm public/",
     "install:linux": "cp node_modules/qrllib/build/web-libjsqrl.wasm public/"
