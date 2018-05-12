@@ -818,6 +818,24 @@ Template.appTransfer.helpers({
     }
     return false
   },
+  isSlaveTxn(txType) {
+    if (txType === 'slave') {
+      return true
+    }
+    return false
+  },
+  isLatticePKTxn(txType) {
+    if (txType === 'latticePK') {
+      return true
+    }
+    return false
+  },
+  isMessageTxn(txType) {
+    if (txType === 'message') {
+      return true
+    }
+    return false
+  },
   ts() {
     const x = moment.unix(this.timestamp)
     return moment(x).format('HH:mm D MMM YYYY')
