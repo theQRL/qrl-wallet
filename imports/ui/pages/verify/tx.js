@@ -150,6 +150,18 @@ Template.appVerifyTxid.helpers({
     }
     return false
   },
+  isMessage() {
+    if (this.explorer.type === 'MESSAGE') {
+      return true
+    }
+    return false
+  },
+  isNotMessage() {
+    if (this.explorer.type !== 'MESSAGE') {
+      return true
+    }
+    return false
+  },
   nodeExplorerUrl() {
     return LocalStore.get('nodeExplorerUrl')
   },
