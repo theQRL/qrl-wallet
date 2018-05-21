@@ -8,8 +8,28 @@ function generateWallet(type) {
   // Determine XMSS Tree Height
   let xmssHeight = parseInt(document.getElementById('xmssHeight').value)
   let passphrase = document.getElementById('passphrase').value
-  // TODO - Allow advanced wallet creation using SHA2_256, SHAKE_128 and SHAKE_256
-  let hashFunction = QRLLIB.eHashFunction.SHAKE_128
+  let hashFunctionSelection = document.getElementById('hashFunction').value
+
+  // Set hash function to user selected hash function
+  let hashFunction
+  switch (hashFunctionSelection) {
+    case 'SHAKE_128':
+      hashFunction = QRLLIB.eHashFunction.SHAKE_128
+      console.log('shake 128')
+      break
+    case 'SHAKE_256':
+      hashFunction = QRLLIB.eHashFunction.SHAKE_256
+      console.log('shake 256')
+      break
+    case 'SHA2_256':
+      hashFunction = QRLLIB.eHashFunction.SHA2_256
+      console.log('SHA2_256')
+      break
+    default:
+      $('#generating').hide()
+      $('#error').show()
+      return false
+  }
 
   // Check that passphrase matches the password policy
   if (passwordPolicyValid(passphrase)) {
@@ -42,6 +62,7 @@ function generateWallet(type) {
 
 Template.appCreate.onRendered(() => {
   $('#xmssHeightDropdown').dropdown({direction: 'upward' })
+  $('#hashFunctionDropdown').dropdown({direction: 'upward' })
 })
 
 Template.appCreate.events({
