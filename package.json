@@ -4,6 +4,7 @@
   "description": "QRL Wallet",
   "main": "index.js",
   "dependencies": {
+    "@babel/runtime": "^7.0.0-beta.47",
     "@theqrl/explorer-helpers": "0.0.2",
     "@theqrl/validate-qrl-address": "^1.1.0",
     "aes256": "^1.0.2",
