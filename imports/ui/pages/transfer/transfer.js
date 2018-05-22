@@ -9,6 +9,7 @@ import './transfer.html'
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
 /* global POLL_TXN_RATE */
+/* global nodeReturnedValidResponse */
 
 let tokensHeld = []
 
@@ -75,14 +76,18 @@ function generateTransaction() {
         otsKey: otsKey
       }
 
-      LocalStore.set('transactionConfirmation', confirmation)
-      LocalStore.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
-      LocalStore.set('transactionConfirmationFee', confirmation.fee)
-      LocalStore.set('transactionConfirmationResponse', res.response)
+      if (nodeReturnedValidResponse(request, confirmation, 'transferCoins')) {
+        LocalStore.set('transactionConfirmation', confirmation)
+        LocalStore.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+        LocalStore.set('transactionConfirmationFee', confirmation.fee)
+        LocalStore.set('transactionConfirmationResponse', res.response)
 
-      // Show confirmation
-      $('#generateTransactionArea').hide()
-      $('#confirmTransactionArea').show()
+        // Show confirmation
+        $('#generateTransactionArea').hide()
+        $('#confirmTransactionArea').show()
+      } else {
+        $('#invalidNodeResponse').modal('show')
+      }
     }
   })
 }
@@ -258,17 +263,22 @@ function sendTokensTxnCreate(tokenHash, decimals) {
         from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmation_outputs,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        tokenHash: res.response.extended_transaction_unsigned.tx.transfer_token.token_txhash,
         otsKey: otsKey,
       }
 
-      LocalStore.set('tokenTransferConfirmation', confirmation)
-      LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
-      LocalStore.set('tokenTransferConfirmationResponse', res.response)
-      LocalStore.set('tokenTransferConfirmationAmount', totalTransferAmount / Math.pow(10, decimals))
+      if (nodeReturnedValidResponse(request, confirmation, 'createTokenTransferTxn', decimals)) {
+        LocalStore.set('tokenTransferConfirmation', confirmation)
+        LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
+        LocalStore.set('tokenTransferConfirmationResponse', res.response)
+        LocalStore.set('tokenTransferConfirmationAmount', totalTransferAmount / Math.pow(10, decimals))
 
-      // Show confirmation
-      $('#generateTransactionArea').hide()
-      $('#confirmTokenTransactionArea').show()
+        // Show confirmation
+        $('#generateTransactionArea').hide()
+        $('#confirmTokenTransactionArea').show()
+      } else {
+        $('#invalidNodeResponse').modal('show')
+      }
     }
   })
 }
