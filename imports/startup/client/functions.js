@@ -379,3 +379,181 @@ resetLocalStorageState = () => {
   LocalStore.set('balanceAmount', '')
   LocalStore.set('balanceSymbol', '')
 }
+
+function logRequestResponse(request, response) {
+  console.log('DEBUG - Invalid Request and Response Identified')
+  console.log('---Request---')
+  console.log(request)
+  console.log('---Response---')
+  console.log(response)
+  console.log('---END---')
+}
+
+// Function to validate that request and response payloads of transactions match the user intention
+nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
+  // First validate fields shared across all transaction types
+  // Validate fee
+  if ((request.fee / SHOR_PER_QUANTA) !== response.fee) {
+    console.log('Transaction Validation - Fee mismatch')
+    logRequestResponse(request, response)
+    return false
+  }
+
+  // Validate that the request payload matches the response data for a standard transaction
+  if (type === 'transferCoins') {
+    // Validate From address
+    if(binaryToQrlAddress(request.fromAddress) !== response.from) {
+      console.log('Transaction Validation - From address mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate output (to addresses and amounts)
+    // Modify structure of request payload to match response payload
+    let request_outputs = []
+    for (var i = 0; i < request.addresses_to.length; i++) {
+      const thisOutput = {
+        address: binaryToQrlAddress(request.addresses_to[i]),
+        amount: request.amounts[i] / SHOR_PER_QUANTA
+      }
+      request_outputs.push(thisOutput)
+    }
+
+    // Now check count of outputs on request and response matches
+    if (request_outputs.length !== response.outputs.length) {
+      console.log('Transaction Validation - Outputs length mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Now check that all outputs are identical
+    for (var i = 0; i < request_outputs.length; i++) {
+      if (request_outputs[i].address !== response.outputs[i].address) {
+        console.log('Transaction Validation - Output address mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+      if (request_outputs[i].amount !== response.outputs[i].amount) {
+        console.log('Transaction Validation - Output amount mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+    }
+
+    // If we got here, everything matches the request
+    return true
+  // Validate that the request payload matches the response data for a token transfer transaction
+  } else if (type === 'createTokenTransferTxn') {
+    // Validate From address
+    if(binaryToQrlAddress(request.addressFrom) !== response.from) {
+      console.log('Transaction Validation - From address mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate token hash
+    if (bytesToString(request.tokenHash) !== Buffer.from(response.tokenHash).toString('hex')) {
+      console.log('Transaction Validation - Token Hash mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate output (to addresses and amounts)
+    // Modify structure of request payload to match response payload
+    let request_outputs = []
+    for (var i = 0; i < request.addresses_to.length; i++) {
+      const thisOutput = {
+        address: binaryToQrlAddress(request.addresses_to[i]),
+        amount: request.amounts[i] / Math.pow(10, tokenDecimals)
+      }
+      request_outputs.push(thisOutput)
+    }
+
+    // Now check count of outputs on request and response matches
+    if (request_outputs.length !== response.outputs.length) {
+      console.log('Transaction Validation - Outputs length mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Now check that all outputs are identical
+    for (var i = 0; i < request_outputs.length; i++) {
+      if (request_outputs[i].address !== response.outputs[i].address) {
+        console.log('Transaction Validation - Output address mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+      if (request_outputs[i].amount !== response.outputs[i].amount) {
+        console.log('Transaction Validation - Output amount mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+    }
+    // If we got here, everything matches the request
+    return true
+  // Validate that the request payload matches the response data for a token creation transaction
+  } else if (type === 'createTokenTxn') {
+    // Validate From address
+    if(binaryToQrlAddress(request.addressFrom) !== response.from) {
+      console.log('Transaction Validation - From address mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate Owner address
+    if(binaryToQrlAddress(request.owner) !== response.owner) {
+      console.log('Transaction Validation - Owner address mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate Token Symbol
+    if(bytesToString(request.symbol) !== response.symbol) {
+      console.log('Transaction Validation - Token symbol mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate Token Name
+    if(bytesToString(request.name) !== response.name) {
+      console.log('Transaction Validation - Token name mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Validate Token decimals
+    if(request.decimals !== response.decimals) {
+      console.log('Transaction Validation - Token decimals mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Now check count of initial balances
+    if (request.initialBalances.length !== response.initialBalances.length) {
+      console.log('Transaction Validation - Initial balances length mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // Now check that all initial balances  are identical
+    for (var i = 0; i < request.initialBalances.length; i++) {
+      if (binaryToQrlAddress(request.initialBalances[i].address) !== 
+        binaryToQrlAddress(response.initialBalances[i].address)) {
+        console.log('Transaction Validation - Initial balance address mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+      if (request.initialBalances[i].amount !== parseInt(response.initialBalances[i].amount)) {
+        console.log('Transaction Validation - Initial balance amount mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+    }
+
+    // If we got here, everything matches the request
+    return true
+  }
+
+  // We should not get this far - return false as failsafe
+  return false
+}

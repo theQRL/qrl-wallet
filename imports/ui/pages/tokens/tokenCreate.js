@@ -5,6 +5,7 @@ import './tokenCreate.html'
 /* global findNodeData */
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
+/* global nodeReturnedValidResponse */
 
 let countRecipientsForValidation = 1
 
@@ -70,13 +71,18 @@ function createTokenTxn() {
         otsKey: otsKey,
       }
 
-      LocalStore.set('tokenCreationConfirmation', confirmation)
-      LocalStore.set('tokenCreationConfirmationResponse', res.response)
 
-      // Send to confirm page.
-      const params = { }
-      const path = FlowRouter.path('/tokens/create/confirm', params)
-      FlowRouter.go(path)
+      if (nodeReturnedValidResponse(request, confirmation, 'createTokenTxn')) {
+        LocalStore.set('tokenCreationConfirmation', confirmation)
+        LocalStore.set('tokenCreationConfirmationResponse', res.response)
+
+        // Send to confirm page.
+        const params = { }
+        const path = FlowRouter.path('/tokens/create/confirm', params)
+        FlowRouter.go(path)
+      } else {
+        $('#invalidNodeResponse').modal('show')
+      }
     }
   })
 }
