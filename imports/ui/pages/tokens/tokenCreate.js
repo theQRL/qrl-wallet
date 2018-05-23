@@ -9,6 +9,14 @@ import './tokenCreate.html'
 
 let countRecipientsForValidation = 1
 
+function getBaseLog(x, y) {
+  return Math.log(y) / Math.log(x)
+}
+
+function maxAllowedDecimals(tokenTotalSupply) {
+  return Math.max(Math.floor(19 - getBaseLog(10, tokenTotalSupply)) ,0)
+}
+
 function createTokenTxn() {
   // Get to/amount details
   const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
@@ -29,7 +37,8 @@ function createTokenTxn() {
   // Collect Token Holders and create payload
   var initialBalancesAddress = document.getElementsByName("initialBalancesAddress[]")
   var initialBalancesAddressAmount = document.getElementsByName("initialBalancesAddressAmount[]")
-  
+  let tokenTotalSupply = 0
+
   for (var i = 0; i < initialBalancesAddress.length; i++) {
     const thisHolder = {
       address: addressForAPI(initialBalancesAddress[i].value),
@@ -37,6 +46,18 @@ function createTokenTxn() {
     }
 
     tokenHolders.push(thisHolder)
+
+    // Update total supply
+    tokenTotalSupply += parseInt(initialBalancesAddressAmount[i].value)
+  }
+
+  // Fail token creation if decimals are too high for circulating supply
+  if (parseInt(decimals) > maxAllowedDecimals(tokenTotalSupply)) {
+    LocalStore.set('maxDecimals', maxAllowedDecimals(tokenTotalSupply))
+    LocalStore.set('tokenTotalSupply', tokenTotalSupply)
+    $('#generating').hide()
+    $('#maxDecimalsReached').modal('show')
+    return
   }
 
   // Construct request
@@ -306,6 +327,14 @@ Template.appTokenCreate.helpers({
   otsKeysRemaining() {
     const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
     return otsKeysRemaining
+  },
+  maxDecimals() {
+    const maxDecimals = LocalStore.get('maxDecimals')
+    return maxDecimals
+  },
+  tokenTotalSupply() {
+    const tokenTotalSupply = LocalStore.get('tokenTotalSupply')
+    return tokenTotalSupply
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
