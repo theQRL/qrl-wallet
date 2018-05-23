@@ -42,6 +42,26 @@
   </div>
 </div>
 
+<div class="small ui modal" id="maxDecimalsReached">
+  <div class="header">Error - Decimals value too large</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          You have selected a decimal value that is too large for the total supply of your token. With your current allocation of {{tokenTotalSupply}} tokens, you can use up to {{maxDecimals}} decimals.
+          <br /><br />
+          Please adjust your decimals value and try again.
+        </div>
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button red">Okay</div>
+  </div>
+</div>
+
 
 <h2 class="ui header pageHeader">
   <i class="tiny ticket icon"></i>
