@@ -749,6 +749,7 @@ Template.appTransfer.helpers({
   },
   tokenTransferConfirmation() {
     const confirmation = LocalStore.get('tokenTransferConfirmation')
+    confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
     return confirmation
   },
   tokenTransferConfirmationAmount() {

@@ -276,11 +276,27 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
+              <span>Token Hash <a class="ui wordBreak" target="_blank" href="{{nodeExplorerUrl}}/tx/{{tokenTransferConfirmation.tokenHash}}">{{tokenTransferConfirmation.tokenHash}}</a></span>
+              <br />
               <span>Fee <a class="ui">{{tokenTransferConfirmation.fee}}</a> Quanta</span>
               <br />
               <span>OTS Key Index <a class="ui">{{tokenTransferConfirmation.otsKey}}</a></span>
             </div>
           </div>
+
+          <br />
+          <div class="field">
+            <div class="ui warning icon message" style="display: inline-flex;">
+              <i class="warning icon"></i>
+              <div class="content">
+                <div class="header">
+                  Check the Token Hash!
+                </div>
+                <p>Please ensure the token hash above is correct before proceeding with this transaction!</p>
+              </div>
+            </div>
+          </div>
+          <br />
 
           <div class="ui stackable one column grid">
             <div class="column center aligned">
