@@ -855,7 +855,12 @@ Template.appTransfer.helpers({
     return getXMSSDetails().address
   },
   tokensHeld() {
-    return LocalStore.get('tokensHeld')
+    const tokens = []
+    _.each(LocalStore.get('tokensHeld'), (token) => {
+      token.shortHash = token.hash.slice(-5)
+      tokens.push(token)
+    })
+    return tokens
   },
   balanceAmount() {
     return LocalStore.get('balanceAmount')

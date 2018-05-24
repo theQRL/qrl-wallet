@@ -117,7 +117,7 @@
                     <select id="amountType" class="ui compact selection dropdown">
                       <option value="quanta">Quanta</option>
                       {{#each tokensHeld}}
-                      <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}}</option>
+                      <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}} ({{this.shortHash}})</option>
                       {{/each}}
                     </select>
                   </div>
@@ -546,7 +546,8 @@
             <i class="large ticket middle aligned icon"></i>
             <div class="content">
               <p class="header">{{this.name}} ({{this.symbol}})</p>
-              <div class="description">{{this.balance}}</div>
+              <div class="description"><strong>Balance:</strong> {{this.balance}}</div>
+              <div class="description wordBreak"><strong>Hash:</strong> {{this.hash}}</div>
             </div>
           </div>
           {{/each}}
