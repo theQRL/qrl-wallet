@@ -11,7 +11,7 @@ DEFAULT_NODES = [
     name: 'Testnet (Official QRL Node 1)',
     disabled: '',
     explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '35.177.60.137:9009',
+    grpc: '104.237.3.185:9009',
     type: 'both',
   },
   {
@@ -43,7 +43,7 @@ DEFAULT_NODES = [
     name: 'Mainnet (Official QRL Node)',
     disabled: 'disabled',
     explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.237.3.185:9009',
+    grpc: '127.0.0.1:9009',
     type: 'both',
   },
   {
