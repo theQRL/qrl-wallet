@@ -136,5 +136,15 @@ Template.appAddressOpen.events({
       $('#passphraseArea').hide()
     }
   },
+  'input #walletCode': () => {
+    const walletCode = $('#walletCode').val()
+    if (walletCode.length > 10) {
+      if (walletCode.indexOf(' ') > -1) {
+        $('#walletType').val('mnemonic').change()
+      } else {
+        $('#walletType').val('hexseed').change()
+      }
+    }
+  },
 })
 
