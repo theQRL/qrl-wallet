@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu } = require('electron');
-const electrify = require('qrl-electrify')(__dirname);
+const electrify = require('electrify-qrl')(__dirname);
 
 let window;
 let loading;
