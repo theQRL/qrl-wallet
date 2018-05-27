@@ -21,9 +21,9 @@ The following dependencies are required for a functional local development envir
 
 [Meteor](https://www.meteor.com/install)
 
-[qrl-electrify](https://www.npmjs.com/package/qrl-electrify)
+[electrify-qrl](https://www.npmjs.com/package/electrify-qrl)
 
-	npm install -g qrl-electrify
+	npm install -g electrify-qrl
 
 [chimp](https://github.com/xolvio/chimp)
 
@@ -50,7 +50,7 @@ Windows Only - [node-gyp](https://github.com/nodejs/node-gyp)
 
 	meteor
 
-## Run Tests	
+## Run Tests
 
 Note: meteor must already be running for this to work!
 
