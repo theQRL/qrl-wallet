@@ -29,4 +29,4 @@ checks:
       threshold: 200
   return-statements:
     config:
-      threshold: 4
+      threshold: 10
