@@ -1,0 +1,4 @@
+## Excluding some items from CodeClimate
+## - Client Directory: Contains SemanticUI Code
+exclude_patterns:
+- "client/"
