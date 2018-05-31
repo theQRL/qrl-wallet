@@ -25,10 +25,10 @@ jayuda:flx-qrcode
 momentjs:moment
 audit-argument-checks@1.0.7
 frozeman:storage
-browser-policy@1.1.0
 force-ssl@1.1.0
 semantic:ui
 semantic:ui-data
 juliancwirko:postcss
 less@2.7.11
 jquery@1.11.10
+qrl:browser-policy
