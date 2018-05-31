@@ -1,5 +1,5 @@
 [![Build Status](https://circleci.com/gh/theQRL/qrl-wallet.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/theQRL/qrl-wallet)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c91e0f3f6ca04283879cbbe6a5f4f53d)](https://www.codacy.com/app/scottdonaldau/qrl-wallet?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=theQRL/qrl-wallet&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a91585507ea24454a43190dfb48d8c09)](https://www.codacy.com/app/qrl/qrl-wallet?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=theQRL/qrl-wallet&amp;utm_campaign=Badge_Grade)
 [![Maintainability](https://api.codeclimate.com/v1/badges/30e006c07f50365faa9a/maintainability)](https://codeclimate.com/github/theQRL/qrl-wallet/maintainability)
 [![Known Vulnerabilities](https://snyk.io/test/github/theqrl/qrl-wallet/badge.svg)](https://snyk.io/test/github/theqrl/qrl-wallet)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/theQRL/qrl-wallet/master/LICENSE)
@@ -21,9 +21,9 @@ The following dependencies are required for a functional local development envir
 
 [Meteor](https://www.meteor.com/install)
 
-[qrl-electrify](https://www.npmjs.com/package/qrl-electrify)
+[electrify-qrl](https://www.npmjs.com/package/electrify-qrl)
 
-	npm install -g qrl-electrify
+	npm install -g electrify-qrl
 
 [chimp](https://github.com/xolvio/chimp)
 
@@ -50,7 +50,7 @@ Windows Only - [node-gyp](https://github.com/nodejs/node-gyp)
 
 	meteor
 
-## Run Tests	
+## Run Tests
 
 Note: meteor must already be running for this to work!
 
