@@ -1,0 +1,89 @@
+version: 2
+jobs:
+  build_wallet:
+    macos:
+      xcode: "9.0"
+
+    steps:
+      # Checkout repo
+      - checkout
+
+      # Save/Restore cache
+      - save_cache:
+          key: wallet_cache
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.meteor
+
+      - restore_cache:
+          key: wallet_cache
+      
+      # Install dependencies
+      - run:
+          name: Install dependencies
+          command: |
+            npm install -g n
+            sudo n 8.11.1
+            brew update
+            brew cleanup
+            brew cask cleanup
+            brew cask install google-chrome
+            brew cask install chromedriver
+
+      # Prepare app
+      - run:
+          name: Prepare App
+          command: |
+            if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
+            if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com | sh; fi
+            npm install -g chimp
+            npm install -g selenium-standalone
+            npm install -g electrify-qrl
+            cd .electrify && npm install
+            meteor npm install --unsafe-perm
+            meteor npm install --save @babel/runtime mathjs qrllib meteor-node-stubs aes256 @theqrl/validate-qrl-address json-formatter-js @theqrl/explorer-helpers grpc tmp async
+            meteor node -e 'console.log("I am Node.js %s!", process.version);'
+
+      # Start meteor in background
+      - run:
+          name: Start Meteor
+          command: npm run dev
+          background: true
+
+      # Run unit tests
+      - run:
+          name: Run selenium tests
+          command: |
+            until curl --max-time 300 http://localhost:3000/; do sleep 1; done
+            chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
+
+      # Run unit tests
+      - run:
+          name: Temp run electrify build
+          command: |
+            ls -la .meteor/local/dev_bundle/
+            ls -la .meteor/local/dev_bundle/bin/
+            rm -rf .electrify/.dist/
+            mkdir .electrify/.dist
+            electrify package -o .electrify/.dist/
+
+      # Create package on master
+      - deploy:
+          command:  |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              rm -rf .electrify/.dist/
+              mkdir .electrify/.dist
+              electrify package -o .electrify/.dist/
+            fi
+
+      # Save artifacts
+      - store_artifacts:
+          path: .electrify/.dist/
+          destination: build
+
+workflows:
+  version: 2
+  build_all:
+    jobs:
+      - build_wallet

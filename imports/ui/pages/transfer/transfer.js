@@ -704,7 +704,7 @@ Template.appTransfer.helpers({
     return transactionConfirmationFee
   },
   transactionGenerationError() {
-    const error = LocalStore.get('transactionGenerationError')
+    const error = LocalStore.get('transactionGenerationError').message
     return error
   },
   otsKeyEstimate() {
