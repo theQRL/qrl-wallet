@@ -60,7 +60,9 @@ app.on('window-all-closed', function terminate_and_quit(event) {
   // if electrify is up, cancel exiting with `preventDefault`,
   // so we can terminate electrify gracefully without leaving child
   // processes hanging in background
-  if(electrify.isup() && event) {
+
+  // if(electrify.isup() && event) {
+
     // holds electron termination
     event.preventDefault();
 
@@ -69,7 +71,9 @@ app.on('window-all-closed', function terminate_and_quit(event) {
       // and then finally quit app
       app.quit();
     });
-  }
+  
+  // }
+
 });
 
 // Defining Methods on the Electron side
