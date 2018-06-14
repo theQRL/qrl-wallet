@@ -38,10 +38,6 @@ deployment:
   devnet:
     branch: "devnet"
     commands:
-      # - rm -rf node_modules/
-      # - meteor reset
-      # - meteor npm install --unsafe-perm
-      # - meteor lint
       - rm -rf .electrify/.dist/
       - mkdir .electrify/.dist
       - electrify package -o .electrify/.dist/
@@ -53,3 +49,5 @@ deployment:
       - rm -rf .electrify/.dist/
       - mkdir .electrify/.dist
       - electrify package -o .electrify/.dist/
+      - cd .electrify/.dist/ && zip -r QRL-Wallet-Macos.zip QRLWallet-darwin-x64
+      - rm -rf .electrify/.dist/QRLWallet-darwin-x64
