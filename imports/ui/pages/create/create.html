@@ -22,8 +22,16 @@
               <i class="lock icon"></i>
             </div>
           </div>
+          <div class="field">
+            <label>Confirm Passphrase</label>
+            <div class="ui left icon input">
+              <input type="password" id="passphraseConfirm" >
+              <i class="lock icon"></i>
+            </div>
+          </div>
           <p>Your passphrase must contain at least 8 characters, and contain at least 1 number and 1 letter.</p>
         </div>
+
         <div id="xmssHeightDropdown" class="ui fluid selection dropdown">
           <input type="hidden" id="xmssHeight" value="10">
           <i class="dropdown icon"></i>
@@ -117,6 +125,12 @@
     </div>
   </div>
 
+  <div id="passMismatchError" style="display: none;">
+    <div class="ui red segment">
+      <h4>Error!</h4>
+      <p>Your passphrases do not match. Please carefully type your passphrase into each box and try again.</p>
+    </div>
+  </div>
 </div>
 
 </template>

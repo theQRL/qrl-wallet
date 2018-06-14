@@ -8,6 +8,7 @@ function generateWallet(type) {
   // Determine XMSS Tree Height
   let xmssHeight = parseInt(document.getElementById('xmssHeight').value)
   let passphrase = document.getElementById('passphrase').value
+  let passphraseConfirm = document.getElementById('passphraseConfirm').value
   let hashFunctionSelection = document.getElementById('hashFunction').value
 
   // Set hash function to user selected hash function
@@ -31,31 +32,41 @@ function generateWallet(type) {
       return false
   }
 
-  // Check that passphrase matches the password policy
-  if (passwordPolicyValid(passphrase)) {
-    // Generate random seed for XMSS tree
-    const randomSeed = toUint8Vector(require('crypto').randomBytes(48))
+  // Check that each passphrase matches
+  if(passphrase === passphraseConfirm) {
+    // Check that passphrase matches the password policy
+    if (passwordPolicyValid(passphrase)) {
+      // Generate random seed for XMSS tree
+      const randomSeed = toUint8Vector(require('crypto').randomBytes(48))
 
-    // Generate XMSS object.
-    // eslint-disable-next-line no-global-assign
-    XMSS_OBJECT = new QRLLIB.Xmss.fromParameters(randomSeed, xmssHeight, hashFunction)
-    const newAddress = XMSS_OBJECT.getAddress()
+      // Generate XMSS object.
+      // eslint-disable-next-line no-global-assign
+      XMSS_OBJECT = new QRLLIB.Xmss.fromParameters(randomSeed, xmssHeight, hashFunction)
+      const newAddress = XMSS_OBJECT.getAddress()
 
-    // If it worked, send the user to the address page.
-    if (newAddress !== '') {
-      LocalStore.set('passphrase', passphrase)
-      LocalStore.set('xmssHeight', xmssHeight)
+      // If it worked, send the user to the address page.
+      if (newAddress !== '') {
+        LocalStore.set('passphrase', passphrase)
+        LocalStore.set('xmssHeight', xmssHeight)
 
-      const params = { address: newAddress }
-      const path = FlowRouter.path('/create/:address', params)
-      FlowRouter.go(path)
+        const params = { address: newAddress }
+        const path = FlowRouter.path('/create/:address', params)
+        FlowRouter.go(path)
+      } else {
+        // Error generating walled with QRLLIB.
+        $('#generating').hide()
+        $('#error').show()
+      }
     } else {
+      // Invalid passphrase policy
       $('#generating').hide()
-      $('#error').show()
+      $('#passError').show()
+      $('#generate').show()
     }
   } else {
+    // Passphrases do not match
     $('#generating').hide()
-    $('#passError').show()
+    $('#passMismatchError').show()
     $('#generate').show()
   }
 }
@@ -68,6 +79,7 @@ Template.appCreate.onRendered(() => {
 Template.appCreate.events({
   'click #generate': () => {
     $('#passError').hide()
+    $('#passMismatchError').hide()
     $('#generating').show()
     // Delay so we get the generating icon up.
     setTimeout(() => { generateWallet() }, 200)
