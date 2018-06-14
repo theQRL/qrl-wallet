@@ -2,7 +2,7 @@
   "name": "QRLWallet",
   "productName": "QRLWallet",
   "projectName": "qrl-wallet",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "main": "index.js",
   "dependencies": {
     "electrify-qrl": "0.0.1",
