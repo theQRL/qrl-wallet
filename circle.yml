@@ -28,21 +28,12 @@ dependencies:
 
 test:
   override:
-    #- npm run dev:
-    #    background: true
-    #- until curl --max-time 300 http://localhost:3000/; do sleep 1; done
-    #- chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
-    - echo true
+    - npm run dev:
+        background: true
+    - until curl --max-time 300 http://localhost:3000/; do sleep 1; done
+    - chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
 
 deployment:
-  devnet:
-    branch: "devnet"
-    commands:
-      - rm -rf .electrify/.dist/
-      - mkdir .electrify/.dist
-      - electrify package -o .electrify/.dist/
-      - cd .electrify/.dist/ && zip -r QRL-Wallet-Macos.zip QRLWallet-darwin-x64
-      - rm -rf .electrify/.dist/QRLWallet-darwin-x64
   production:
     branch: "master"
     commands:
