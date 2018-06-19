@@ -42,7 +42,7 @@
             <div class="item"><strong>Confirmations</strong> {{#if isConfirmed}} {{confirmations}} confirmations {{else}}Unconfirmed{{/if}}</div>
             <div class="item"><strong>Block</strong> <a href="{{nodeExplorerUrl}}/block/{{tx.header.block_number}}">{{tx.header.block_number}}</a></div>
             <div class="item"><strong>Nonce</strong> {{tx.tx.nonce}}</div>
-            <div class="item"><strong>OTS key</strong> {{ots_key}}</div>
+            <div class="item"><strong>OTS key</strong> {{tx.tx.ots_key}}</div>
             <div class="item"><strong>Fee</strong> {{tx.tx.fee}} Quanta</div>
             <div class="item"><strong>Size</strong> {{txSize}}</div>            
             <div class="item"><strong>Status</strong> {{#if isConfirmed}} OK <i class="ui green circle icon"></i> {{ts}} {{else}} Unconfirmed <i class="ui yellow circle icon"></i>{{/if}}</div>

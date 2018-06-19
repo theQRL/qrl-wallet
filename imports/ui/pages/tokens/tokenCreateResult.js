@@ -2,6 +2,7 @@ import JSONFormatter from 'json-formatter-js'
 import './tokenCreateResult.html'
 /* global LocalStore */
 /* global POLL_TXN_RATE */
+/* global POLL_MAX_CHECKS */
 /* eslint no-console:0 */
 
 function sleep(ms) {
@@ -45,13 +46,13 @@ function checkResult(thisTxId, failureCount) {
     // For a while
     console.log(`Caught Error: ${err}`)
 
-    // We attempt to find the transaction 5 times below absolutely failing.
-    if(failureCount < 60) {
+    // Continue to check the txn status until POLL_MAX_CHECKS is reached in failureCount
+    if(failureCount < POLL_MAX_CHECKS) {
       failureCount += 1
       setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
     } else {
       // Transaction error - Give up
-      LocalStore.set('txstatus', 'Pending')
+      LocalStore.set('txstatus', 'Error')
       $('.loading').hide()
       $('#loadingHeader').hide()
     }
