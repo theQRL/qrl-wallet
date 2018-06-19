@@ -9,7 +9,9 @@ import './functions.js'
 XMSS_OBJECT = null
 
 // Rate in ms to check transaction status
-POLL_TXN_RATE = 5000
+POLL_TXN_RATE = 5000 // 5seconds
+POLL_MAX_CHECKS = 120 // max 10 minutes checking status
+
 
 // Reset wallet status
 resetWalletStatus()

@@ -14,7 +14,7 @@
     </div>
   </div>
   <div class="actions">
-    <div class="ui approve green button red">Yes, cancel this transaction!</div>
+    <div class="ui approve green button">Yes, cancel this transaction!</div>
     <div class="ui cancel red button plain">Cancel</div>
   </div>
 </div>
@@ -33,7 +33,7 @@
     </div>
   </div>
   <div class="actions">
-    <div class="ui approve green button red">I understand, leave now anyway.</div>
+    <div class="ui approve green button">I understand, leave now anyway.</div>
     <div class="ui cancel red button plain">Cancel</div>
   </div>
 </div>
@@ -54,7 +54,7 @@
     </div>
   </div>
   <div class="actions">
-    <div class="ui approve green button red">Okay</div>
+    <div class="ui approve green button">Okay</div>
   </div>
 </div>
 
@@ -76,7 +76,26 @@
     </div>
   </div>
   <div class="actions">
-    <div class="ui approve green button red">Okay</div>
+    <div class="ui approve green button">Okay</div>
+  </div>
+</div>
+
+<div class="small ui modal" id="recoverySeedModal">
+  <div class="header">Wallet Recovery Seed</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div>
+        <div class="header">
+          Warning: Keep this information private at all times!
+        </div>
+        <p class="wordBreak"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
+        <p class="wordBreak"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve red button">Close</div>
   </div>
 </div>
 
@@ -209,7 +228,7 @@
           </form>
 
           <h4 class="ui horizontal divider header">
-            <i class="file text outline icon"></i>
+            <i class="file icon"></i>
             Transaction Details
           </h4>
 
@@ -270,7 +289,7 @@
           </form>
 
           <h4 class="ui horizontal divider header">
-            <i class="file text outline icon"></i>
+            <i class="file icon"></i>
             Transaction Details
           </h4>
 
@@ -346,7 +365,7 @@
           </form>
 
           <h4 class="ui horizontal divider header">
-            <i class="file text outline icon"></i>
+            <i class="file icon"></i>
             Transaction Details
           </h4>
 
@@ -432,7 +451,7 @@
           </form>
 
           <h4 class="ui horizontal divider header">
-            <i class="file text outline icon"></i>
+            <i class="file icon"></i>
             Transaction Details
           </h4>
 
@@ -519,6 +538,15 @@
               <br /><br />
             </div>
           </div>
+
+          <div class="ui stackable grid">
+            <div class="sixteen wide column left aligned">
+              <h4>View Recovery Seed</h4>
+              <div class="column center aligned">
+                <button id="showRecoverySeed" class="ui huge primary button red" style="width: 100%">Click to View</button>
+              </div>
+            </div>
+          </div>
       </div>
 
       <!-- Token Balances -->
@@ -543,7 +571,7 @@
         <div class="ui middle aligned divided list">
           {{#each tokensHeld}}
           <div class="item">
-            <i class="large ticket middle aligned icon"></i>
+            <i class="large tags middle aligned icon"></i>
             <div class="content">
               <p class="header">{{this.name}} ({{this.symbol}})</p>
               <div class="description"><strong>Balance:</strong> {{this.balance}}</div>
