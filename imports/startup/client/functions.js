@@ -189,7 +189,12 @@ getBalance = (getAddress, callBack) => {
 
   Meteor.call('getAddress', request, (err, res) => {
     if (err) {
-      // TODO - Error handling
+      console.log('err: ',err)
+      LocalStore.set('transferFromBalance', 0)
+      LocalStore.set('transferFromTokenState', [])
+      LocalStore.set('address', 'Error')
+      LocalStore.set('otsKeyEstimate', 0)
+      LocalStore.set('otsKeysRemaining', 0)
     } else {
       if (res.state.address !== '') {
         LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
@@ -247,7 +252,12 @@ getTokenBalances = (getAddress, callback) => {
 
   Meteor.call('getAddress', request, (err, res) => {
     if (err) {
-      // TODO - Error handling
+      console.log('err: ',err)
+      LocalStore.set('transferFromBalance', 0)
+      LocalStore.set('transferFromTokenState', [])
+      LocalStore.set('address', 'Error')
+      LocalStore.set('otsKeyEstimate', 0)
+      LocalStore.set('otsKeysRemaining', 0)
     } else {
       if (res.state.address !== '') {
         let tokensHeld = []
@@ -267,12 +277,13 @@ getTokenBalances = (getAddress, callback) => {
 
           Meteor.call('getTxnHash', request, (err, res) => {
             if (err) {
-              // TODO - Error handling here
               console.log('err:',err)
+              LocalStore.set('tokensHeld', [])
             } else {
               // Check if this is a token hash.
               if (res.transaction.tx.transactionType !== "token") {
-                // TODO - Error handling here
+                console.log('err: ',err)
+                LocalStore.set('tokensHeld', [])
               } else {
                 let tokenDetails = res.transaction.tx.token
 

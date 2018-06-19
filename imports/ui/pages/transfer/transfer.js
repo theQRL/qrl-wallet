@@ -9,6 +9,7 @@ import './transfer.html'
 /* global DEFAULT_NODES */
 /* global SHOR_PER_QUANTA */
 /* global POLL_TXN_RATE */
+/* global POLL_MAX_CHECKS */
 /* global nodeReturnedValidResponse */
 
 let tokensHeld = []
@@ -409,13 +410,13 @@ function checkResult(thisTxId, failureCount) {
     // For a while
     console.log(`Caught Error: ${err}`)
 
-    // We attempt to find the transaction 5 times below absolutely failing.
-    if(failureCount < 60) {
+    // Continue to check the txn status until POLL_MAX_CHECKS is reached in failureCount
+    if(failureCount < POLL_MAX_CHECKS) {
       failureCount += 1
       setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
     } else {
       // Transaction error - Give up
-      LocalStore.set('txstatus', 'Pending')
+      LocalStore.set('txstatus', 'Error')
       LocalStore.set('transactionConfirmed', "false")
       $('.loading').hide()
       $('#loadingHeader').hide()
@@ -442,7 +443,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   if (thisTxId) {
     Meteor.call('getTxnHash', request, (err, res) => {
       if (err) {
-        if(failureCount < 60) {
+        if(failureCount < POLL_MAX_CHECKS) {
           LocalStore.set('txhash', { })
           LocalStore.set('txstatus', 'Pending')
         } else {
@@ -681,6 +682,9 @@ Template.appTransfer.events({
     // LocalStore.set('fetchedTx', false)
     loadAddressTransactions(txArray)
   },
+  'click #showRecoverySeed': () => {
+    $('#recoverySeedModal').modal('show')
+  }
 })
 
 Template.appTransfer.helpers({
@@ -925,5 +929,8 @@ Template.appTransfer.helpers({
       ret = true
     }
     return ret
+  },
+  recoverySeed() {
+    return getXMSSDetails()
   },
 })
