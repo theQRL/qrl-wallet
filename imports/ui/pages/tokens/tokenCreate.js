@@ -1,9 +1,8 @@
 import './tokenCreate.html'
 /* global LocalStore */
-/* global selectedNode */
+/* global selectedNetwork */
 /* global XMSS_OBJECT */
-/* global findNodeData */
-/* global DEFAULT_NODES */
+/* global DEFAULT_NETWORKS */
 /* global SHOR_PER_QUANTA */
 /* global nodeReturnedValidResponse */
 
@@ -61,7 +60,6 @@ function createTokenTxn() {
   }
 
   // Construct request
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     addressFrom: sendFrom,
     owner: owner,
@@ -71,10 +69,10 @@ function createTokenTxn() {
     initialBalances: tokenHolders,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    grpc: grpcEndpoint,
+    network: selectedNetwork()
   }
 
-  Meteor.call('createTokenTxn', request, (err, res) => {
+  wrapMeteorCall('createTokenTxn', request, (err, res) => {
     if (err) {
       LocalStore.set('tokenCreationError', err)
       $('#tokenCreationFailed').show()
@@ -91,7 +89,6 @@ function createTokenTxn() {
         initialBalances: res.response.extended_transaction_unsigned.tx.token.initial_balances,
         otsKey: otsKey,
       }
-
 
       if (nodeReturnedValidResponse(request, confirmation, 'createTokenTxn')) {
         LocalStore.set('tokenCreationConfirmation', confirmation)
@@ -338,7 +335,7 @@ Template.appTokenCreate.helpers({
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
-      return DEFAULT_NODES[0].explorerUrl
+      return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
   },

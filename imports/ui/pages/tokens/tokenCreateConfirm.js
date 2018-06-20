@@ -1,11 +1,9 @@
 import './tokenCreateConfirm.html'
 /* global LocalStore */
 /* global QRLLIB */
-/* global selectedNode */
 /* global XMSS_OBJECT */
-/* global findNodeData */
-/* global selectedNode */
-/* global DEFAULT_NODES */
+/* global selectedNetwork */
+/* global DEFAULT_NETWORKS */
 
 function confirmTokenCreation() {
   const tx = LocalStore.get('tokenCreationConfirmationResponse')
@@ -65,10 +63,9 @@ function confirmTokenCreation() {
 
   console.log('Txn Hash: ', txnHash)
 
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  tx.grpc = grpcEndpoint
+  tx.network = selectedNetwork()
 
-  Meteor.call('confirmTokenCreation', tx, (err, res) => {
+  wrapMeteorCall('confirmTokenCreation', tx, (err, res) => {
     if (res.error) {
       $('#tokenCreationConfirmation').hide()
       $('#transactionFailed').show()
@@ -137,7 +134,7 @@ Template.appTokenCreationConfirm.helpers({
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
-      return DEFAULT_NODES[0].explorerUrl
+      return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
   },

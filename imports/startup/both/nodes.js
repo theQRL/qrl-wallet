@@ -3,83 +3,126 @@
 // All functions and variables are here are not defined by 'let' or 'const'
 // so that they can be utilised in other files within Meteor.
 
-// Define the default nodes available in the UI.
+// Define the default networks available in the UI.
 // eslint-disable-next-line no-unused-vars, no-undef
-DEFAULT_NODES = [
+DEFAULT_NETWORKS = [
   {
-    id: 'testnet-1',
-    name: 'Testnet (Official QRL Node 1)',
+    id: 'testnet',
+    name: 'Testnet',
     disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.237.3.185:9009',
+    explorerUrl: 'https://testnet-explorer.theqrl.org',
     type: 'both',
-  },
-  {
-    id: 'testnet-2',
-    name: 'Testnet (Official QRL Node 2)',
-    disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.251.219.215:9009',
-    type: 'both',
-  },
-  {
-    id: 'testnet-3',
-    name: 'Testnet (Official QRL Node 3)',
-    disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.251.219.145:9009',
-    type: 'both',
-  },
-  {
-    id: 'testnet-4',
-    name: 'Testnet (Official QRL Node 4)',
-    disabled: '',
-    explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '104.251.219.40:9009',
-    type: 'both',
+    healthy: false,
+    nodes: [
+      {
+        id: 'testnet-1',
+        grpc: 'testnet-1.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      },
+      {
+        id: 'testnet-2',
+        grpc: 'testnet-2.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      },
+      {
+        id: 'testnet-3',
+        grpc: 'testnet-3.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      },
+      {
+        id: 'testnet-4',
+        grpc: 'testnet-4.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      }
+    ]
   },
   {
     id: 'mainnet',
-    name: 'Mainnet (Official QRL Node)',
+    name: 'Mainnet (QRL Foundation Nodes)',
     disabled: 'disabled',
     explorerUrl: 'https://explorer.theqrl.org',
-    grpc: '127.0.0.1:9009',
     type: 'both',
+    healthy: false,
+    nodes: [
+      {
+        id: 'mainnet-1',
+        grpc: 'mainnet-1.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      },
+      {
+        id: 'mainnet-2',
+        grpc: 'mainnet-2.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      },
+      {
+        id: 'mainnet-3',
+        grpc: 'mainnet-3.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      },
+      {
+        id: 'mainnet-4',
+        grpc: 'mainnet-4.automated.theqrl.org:9009',
+        state: false,
+        height: 0
+      }
+    ]
   },
   {
     id: 'localhost',
     name: 'Localhost (Desktop App Only)',
     disabled: '',
     explorerUrl: 'http://explorer.theqrl.org',
-    grpc: 'localhost:9009',
     type: 'desktop',
+    healthy: false,
+    nodes: [
+      {
+        id: 'localhost',
+        grpc: 'localhost:9009',
+        state: false,
+        height: 0
+      }
+    ]
   }
 ]
 
-// Override DEFAULT_NODES if provided in settings file
+// Override DEFAULT_NETWORKS if provided in settings file
 try {
-  if (Meteor.settings.public.defaultNodes.length > 0) {
-    // Reset DEFAULT_NODES
-    DEFAULT_NODES = []
-    // Set DEFAULT_NODES from Meteor settings
-    DEFAULT_NODES=Meteor.settings.public.defaultNodes
+  if (Meteor.settings.public.defaultNetworks.length > 0) {
+    // Reset DEFAULT_NETWORKS
+    DEFAULT_NETWORKS = []
+    // Set DEFAULT_NETWORKS from Meteor settings
+    DEFAULT_NETWORKS=Meteor.settings.public.defaultNetworks
   }
 } catch (e) {
   // no configuration file used
 }
 
-// Function to search through the DEFAULT_NODES array and identify and return an
+// Function to search through the DEFAULT_NETWORKS array and identify and return an
 // object based on its 'id' value.
 // eslint-disable-next-line no-unused-vars, no-undef
-findNodeData = (array, key) => {
+findNetworkData = (array, key) => {
   if((LocalStore.get('nodeId') == 'custom') && (LocalStore.get('nodeStatus') != 'connecting')) {
     const nodeData = {
       id: 'custom',
       name: LocalStore.get('customNodeName'),
       disabled: '',
       explorerUrl: LocalStore.get('customNodeExplorerUrl'),
-      grpc: LocalStore.get('customNodeGrpc'),
       type: 'both',
+      nodes: [
+        {
+          id: 'custom',
+          grpc: LocalStore.get('customNodeGrpc'),
+          state: false,
+          height: 0
+        }
+      ]
     }
     return nodeData
   } else {

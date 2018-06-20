@@ -1,8 +1,8 @@
 /* eslint no-console:0 */
 /* global LocalStore */
-/* global findNodeData */
-/* global DEFAULT_NODES */
-/* global selectedNode */
+/* global findNetworkData */
+/* global DEFAULT_NETWORKS */
+/* global selectedNetwork */
 /* global isElectrified */
 /* global WALLET_VERSION */
 
@@ -12,8 +12,18 @@ import '../../stylesheets/overrides.css'
 
 BlazeLayout.setRoot('body')
 
-const connectToNode = (nodeData, callback) => {
-  Meteor.call('connectToNode', nodeData, (err, res) => {
+const connectToNode = (endpoint, callback) => {
+  wrapMeteorCall('connectToNode', endpoint, (err, res) => {
+    if (err) {
+      callback(err, null)
+    } else {
+      callback(null, res)
+    }
+  })
+}
+
+const checkNetworkHealth = (network, callback) => {
+  wrapMeteorCall('checkNetworkHealth', network, (err, res) => {
     if (err) {
       callback(err, null)
     } else {
@@ -23,16 +33,16 @@ const connectToNode = (nodeData, callback) => {
 }
 
 // Set session state based on selected network node.
-const updateNode = (selectedNode) => {
+const updateNetwork = (selectedNetwork) => {
   // Set node status to connecting
   LocalStore.set('nodeStatus', 'connecting')
   // Update local node connection details
-  switch (selectedNode) {
+  switch (selectedNetwork) {
     case 'add': {
       $('#addNode').modal({
         onDeny: () => {
           LocalStore.set('modalEventTriggered', true)
-          $('#networkDropdown').dropdown('set selected', 'testnet-1')
+          $('#networkDropdown').dropdown('set selected', 'testnet')
         },
         onApprove: () => {
           LocalStore.set('nodeId', 'custom')
@@ -70,15 +80,15 @@ const updateNode = (selectedNode) => {
         },
       }).modal('show')
       break
-    }
+    };
     case 'custom': {
       const nodeData = {
         id: 'custom',
         name: LocalStore.get('customNodeName'),
         disabled: '',
         explorerUrl: LocalStore.get('customNodeExplorerUrl'),
-        grpc: LocalStore.get('customNodeGrpc'),
         type: 'both',
+        grpc: LocalStore.get('customNodeGrpc'),
       }
 
       LocalStore.set('nodeId', 'custom')
@@ -87,7 +97,7 @@ const updateNode = (selectedNode) => {
       LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
-      connectToNode(nodeData, (err) => {
+      connectToNode(nodeData.grpc, (err) => {
         if (err) {
           console.log('Error: ', err)
           LocalStore.set('nodeStatus', 'failed')
@@ -97,21 +107,21 @@ const updateNode = (selectedNode) => {
         }
       })
       break
-    }
+    };
     default: {
-      const nodeData = findNodeData(DEFAULT_NODES, selectedNode)
+      const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
       LocalStore.set('nodeId', nodeData.id)
       LocalStore.set('nodeName', nodeData.name)
       LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
       LocalStore.set('nodeGrpc', nodeData.grpc)
 
-      console.log('Connecting to remote gRPC node: ', nodeData.grpc)
-      connectToNode(nodeData, (err) => {
+      console.log('Connecting to network: ', nodeData.name)
+      checkNetworkHealth(nodeData.id, (err) => {
         if (err) {
-          console.log(err)
+          console.log('the error: ', err)
           LocalStore.set('nodeStatus', 'failed')
         } else {
-          console.log('gRPC client loaded: ', nodeData.grpc)
+          console.log('Connection to network is healthy: ', nodeData.id)
           LocalStore.set('nodeStatus', 'ok')
         }
       })
@@ -123,12 +133,10 @@ const updateNode = (selectedNode) => {
 Template.appBody.onRendered(() => {
   LocalStore.set('modalEventTriggered', false)
   
-  // $('.sidebar').first().sidebar('attach events', '#hamburger', 'show')
-
   $('#networkDropdown').dropdown({ allowReselection: true })
   $('.small.modal').modal()
 
-  updateNode(selectedNode())
+  updateNetwork(selectedNetwork())
 
   // Hide wallet warning on electrified clients
   if (isElectrified()) {
@@ -184,14 +192,13 @@ Template.appBody.onRendered(() => {
   }
 })
 
-
 Template.appBody.events({
   'click #hamburger': (event) => {
     event.preventDefault()
     $('.sidebar').sidebar('show')
   },
   'change #network': () => {
-    updateNode(selectedNode())
+    updateNetwork(selectedNetwork())
   },
   'click #sendAndReceiveButton': () => {
     // Three primary sections
@@ -248,27 +255,27 @@ Template.appBody.events({
 Template.appBody.helpers({
   nodeId() {
     if ((LocalStore.get('nodeId') === '') || (LocalStore.get('nodeId') === null)) {
-      return DEFAULT_NODES[0].id
+      return DEFAULT_NETWORKS[0].id
     }
     return LocalStore.get('nodeId')
   },
   nodeName() {
     if ((LocalStore.get('nodeName') === '') || (LocalStore.get('nodeName') === null)) {
-      return DEFAULT_NODES[0].name
+      return DEFAULT_NETWORKS[0].name
     }
     return LocalStore.get('nodeName')
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
-      return DEFAULT_NODES[0].explorerUrl
+      return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
   },
-  defaultNodes() {
+  defaultNetworks() {
     const visibleNodes = []
 
     // Only return nodes specific to this (web/desktop/both).
-    _.each(DEFAULT_NODES, (node) => {
+    _.each(DEFAULT_NETWORKS, (node) => {
       // Desktop Electrified Clients
       if ((node.type === 'desktop') && (isElectrified())) {
         visibleNodes.push(node)

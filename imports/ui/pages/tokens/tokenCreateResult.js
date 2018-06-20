@@ -3,6 +3,8 @@ import './tokenCreateResult.html'
 /* global LocalStore */
 /* global POLL_TXN_RATE */
 /* global POLL_MAX_CHECKS */
+/* global DEFAULT_NETWORKS */
+/* global selectedNetwork */
 /* eslint no-console:0 */
 
 function sleep(ms) {
@@ -68,14 +70,13 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
   LocalStore.set('txstatus', 'Pending')
 
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     query: thisTxId,
-    grpc: grpcEndpoint,
+    network: selectedNetwork()
   }
 
   if (thisTxId) {
-    Meteor.call('getTxnHash', request, (err, res) => {
+    wrapMeteorCall('getTxnHash', request, (err, res) => {
       if (err) {
         if(failureCount < 60) {
           LocalStore.set('txhash', { })
@@ -142,7 +143,7 @@ Template.appTokenCreationResult.helpers({
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
-      return DEFAULT_NODES[0].explorerUrl
+      return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
   },
