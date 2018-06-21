@@ -2,10 +2,10 @@ import JSONFormatter from 'json-formatter-js'
 import './tx.html'
 
 /* global LocalStore */
-/* global findNodeData */
-/* global selectedNode */
-/* global DEFAULT_NODES */
+/* global selectedNetwork */
 /* global SHOR_PER_QUANTA */
+/* global DEFAULT_NETWORKS */
+/* global wrapMeteorCall */
 /* eslint no-console: 0 */
 /* ^^^ remove once testing complete
  */
@@ -18,14 +18,13 @@ Template.appVerifyTxid.onRendered(() => {
   LocalStore.set('status', {})
 
   const thisTxId = FlowRouter.getParam('txId')
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     query: thisTxId,
-    grpc: grpcEndpoint,
+    network: selectedNetwork(),
   }
 
   if (thisTxId) {
-    Meteor.call('txhash', request, (err, res) => {
+    wrapMeteorCall('txhash', request, (err, res) => {
       if (err) {
         LocalStore.set('txhash', { error: err, id: thisTxId })
       } else {
@@ -41,7 +40,7 @@ Template.appVerifyTxid.onRendered(() => {
       }
     })
 
-    Meteor.call('status', request, (err, res) => {
+    wrapMeteorCall('status', { network: request.network }, (err, res) => {
       if (err) {
         LocalStore.set('status', { error: err })
       } else {
@@ -163,6 +162,9 @@ Template.appVerifyTxid.helpers({
     return false
   },
   nodeExplorerUrl() {
+    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NETWORKS[0].explorerUrl
+    }
     return LocalStore.get('nodeExplorerUrl')
   },
 })

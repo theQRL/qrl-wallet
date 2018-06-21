@@ -6,3 +6,4 @@ public/web-libjsqrl.wasm
 .build/
 .DS_Store
 .idea/
+localtests/
