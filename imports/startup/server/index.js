@@ -546,7 +546,7 @@ const confirmTokenCreation = (request, callback) => {
     // Relay through user node.
     function (wfcb) {
       try{
-        qrlApi('pushTransaction', confirmTxn, (err) => {
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
           if (err) {
             console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
@@ -662,7 +662,7 @@ const confirmTokenTransfer = (request, callback) => {
     // Relay through user node.
     function (wfcb) {
       try {
-        qrlApi('pushTransaction', confirmTxn, (err) => {
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
           if (err) {
             console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
