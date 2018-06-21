@@ -200,7 +200,7 @@ wrapMeteorCall = (method, request, callback) => {
 getBalance = (getAddress, callBack) => {
   const request = {
     address: addressForAPI(getAddress),
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   wrapMeteorCall('getAddress', request, (err, res) => {
@@ -242,7 +242,7 @@ getBalance = (getAddress, callBack) => {
 loadAddressTransactions = (txArray) => {
   const request = {
     tx: txArray,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   LocalStore.set('addressTransactions', [])
@@ -262,7 +262,7 @@ loadAddressTransactions = (txArray) => {
 getTokenBalances = (getAddress, callback) => {
   const request = {
     address: addressForAPI(getAddress),
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   wrapMeteorCall('getAddress', request, (err, res) => {
@@ -286,7 +286,7 @@ getTokenBalances = (getAddress, callback) => {
 
           const request = {
             query: tokenHash,
-            network: selectedNetwork()
+            network: selectedNetwork(),
           }
 
           wrapMeteorCall('getTxnHash', request, (err, res) => {

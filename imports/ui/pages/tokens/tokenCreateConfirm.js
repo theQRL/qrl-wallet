@@ -4,6 +4,7 @@ import './tokenCreateConfirm.html'
 /* global XMSS_OBJECT */
 /* global selectedNetwork */
 /* global DEFAULT_NETWORKS */
+/* global wrapMeteorCall */
 
 function confirmTokenCreation() {
   const tx = LocalStore.get('tokenCreationConfirmationResponse')

@@ -18,27 +18,27 @@ DEFAULT_NETWORKS = [
         id: 'testnet-1',
         grpc: 'testnet-1.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       },
       {
         id: 'testnet-2',
         grpc: 'testnet-2.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       },
       {
         id: 'testnet-3',
         grpc: 'testnet-3.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       },
       {
         id: 'testnet-4',
         grpc: 'testnet-4.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       }
-    ]
+    ],
   },
   {
     id: 'mainnet',
@@ -52,27 +52,27 @@ DEFAULT_NETWORKS = [
         id: 'mainnet-1',
         grpc: 'mainnet-1.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       },
       {
         id: 'mainnet-2',
         grpc: 'mainnet-2.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       },
       {
         id: 'mainnet-3',
         grpc: 'mainnet-3.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       },
       {
         id: 'mainnet-4',
         grpc: 'mainnet-4.automated.theqrl.org:9009',
         state: false,
-        height: 0
+        height: 0,
       }
-    ]
+    ],
   },
   {
     id: 'localhost',
@@ -86,9 +86,9 @@ DEFAULT_NETWORKS = [
         id: 'localhost',
         grpc: 'localhost:9009',
         state: false,
-        height: 0
+        height: 0,
       }
-    ]
+    ],
   }
 ]
 

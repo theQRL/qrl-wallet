@@ -5,6 +5,7 @@ import './tokenCreateResult.html'
 /* global POLL_MAX_CHECKS */
 /* global DEFAULT_NETWORKS */
 /* global selectedNetwork */
+/* global wrapMeteorCall */
 /* eslint no-console:0 */
 
 function sleep(ms) {
@@ -72,7 +73,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
   const request = {
     query: thisTxId,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   if (thisTxId) {

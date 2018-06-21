@@ -4,6 +4,8 @@ import './tx.html'
 /* global LocalStore */
 /* global selectedNetwork */
 /* global SHOR_PER_QUANTA */
+/* global DEFAULT_NETWORKS */
+/* global wrapMeteorCall */
 /* eslint no-console: 0 */
 /* ^^^ remove once testing complete
  */
@@ -164,7 +166,7 @@ Template.appVerifyTxid.helpers({
       return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
-  }
+  },
 })
 
 Template.appVerifyTxid.events({

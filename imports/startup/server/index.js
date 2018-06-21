@@ -136,10 +136,10 @@ const checkNetworkHealth = (userNetwork, callback) => {
   let networkHealthy = false
 
   // Determine current active nodes
-  DEFAULT_NETWORKS.forEach((network, networkIndex) => {
+  DEFAULT_NETWORKS.forEach((network) => {
     // Only look at health of userNetwork
-    if(network.id == userNetwork) {
-      if(network.healthy == true) {
+    if (network.id == userNetwork) {
+      if (network.healthy == true) {
         networkHealthy = true
       }
     }

@@ -9,6 +9,7 @@ import './transfer.html'
 /* global SHOR_PER_QUANTA */
 /* global POLL_TXN_RATE */
 /* global POLL_MAX_CHECKS */
+/* global wrapMeteorCall */
 /* global nodeReturnedValidResponse */
 
 let tokensHeld = []
@@ -40,7 +41,7 @@ function generateTransaction() {
     amounts: this_amounts,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   wrapMeteorCall('transferCoins', request, (err, res) => {
@@ -216,7 +217,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
     tokenHash: tokenHashBytes,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   wrapMeteorCall('createTokenTransferTxn', request, (err, res) => {
@@ -431,7 +432,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
   const request = {
     query: thisTxId,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   if (thisTxId) {

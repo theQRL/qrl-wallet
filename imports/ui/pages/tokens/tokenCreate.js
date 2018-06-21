@@ -4,6 +4,7 @@ import './tokenCreate.html'
 /* global XMSS_OBJECT */
 /* global DEFAULT_NETWORKS */
 /* global SHOR_PER_QUANTA */
+/* global wrapMeteorCall */
 /* global nodeReturnedValidResponse */
 
 let countRecipientsForValidation = 1
@@ -69,7 +70,7 @@ function createTokenTxn() {
     initialBalances: tokenHolders,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   wrapMeteorCall('createTokenTxn', request, (err, res) => {
