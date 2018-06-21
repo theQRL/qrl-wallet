@@ -224,6 +224,9 @@ const qrlApi = (api, request, callback) => {
       console.log('Making', api, 'request to', bestNode.grpc)
 
       qrlClient[bestNode.grpc][api](request, (error, response) => {
+        if (api == 'pushTransaction') {
+          response.relayed = bestNode.grpc
+        }
         callback(error, response)
       })
     }
@@ -232,7 +235,12 @@ const qrlApi = (api, request, callback) => {
     const apiEndpoint = request.network
     // Delete network from request object
     delete request.network;
+    console.log('Making', api, 'request to', bestNode.grpc)
+
     qrlClient[apiEndpoint][api](request, (error, response) => {
+      if (api == 'pushTransaction') {
+        response.relayed = apiEndpoint
+      }
       callback(error, response)
     })
   }
@@ -421,13 +429,13 @@ const confirmTransaction = (request, callback) => {
               signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
             }
             txnResponse = { error: null, response: hashResponse }
-            relayedThrough.push(request.grpc)
-            console.log(`Transaction sent via user node ${request.grpc}`)
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
             wfcb()
           }
         })
       } catch(err) {
-        console.log(`Error: Failed to send transaction through ${request.grpc} - ${err}`)
+        console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
       }
@@ -540,7 +548,7 @@ const confirmTokenCreation = (request, callback) => {
       try{
         qrlApi('pushTransaction', confirmTxn, (err) => {
           if (err) {
-            console.log(`Error: Failed to send transaction through ${request.grpc} - ${err}`)
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -549,8 +557,8 @@ const confirmTokenCreation = (request, callback) => {
               signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
             }
             txnResponse = { error: null, response: hashResponse }
-            relayedThrough.push(request.grpc)
-            console.log(`Transaction sent via user node ${request.grpc}`)
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
             wfcb()
           }
         })
@@ -656,7 +664,7 @@ const confirmTokenTransfer = (request, callback) => {
       try {
         qrlApi('pushTransaction', confirmTxn, (err) => {
           if (err) {
-            console.log(`Error: Failed to send transaction through ${request.grpc} - ${err}`)
+            console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -665,8 +673,8 @@ const confirmTokenTransfer = (request, callback) => {
               signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
             }
             txnResponse = { error: null, response: hashResponse }
-            relayedThrough.push(request.grpc)
-            console.log(`Transaction sent via user node ${request.grpc}`)
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
             wfcb()
           }
         })
@@ -921,7 +929,7 @@ Meteor.methods({
           // Request Token Symbol
           const symbolRequest = {
             query: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'),
-            grpc: request.grpc,
+            network: request.network,
           }
           const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
           const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
