@@ -34,6 +34,12 @@ app.on('ready', function() {
     window.webContents.on('contextmenu', () => {
         menu.popup(window);
     });
+
+    // Prevent drag and drop links from opening in electron window
+    window.webContents.on('will-navigate', ev => {
+      ev.preventDefault()
+    })
+
     var template = [{
         label: "Application",
         submenu: [

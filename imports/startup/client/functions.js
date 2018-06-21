@@ -12,9 +12,9 @@ isElectrified = () => {
 }
 
 // Returns the selected node
-selectedNode = () => {
-  const selectedNode = document.getElementById('network').value
-  return selectedNode
+selectedNetwork = () => {
+  const selectedNetwork = document.getElementById('network').value
+  return selectedNetwork
 }
 
 // Fetchs XMSS details from the global XMSS_OBJECT variable
@@ -179,15 +179,31 @@ supportedBrowser = () => {
 }
 
 
-// Get wallet address state details
-getBalance = (getAddress, callBack) => {
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  const request = {
-    address: addressForAPI(getAddress),
-    grpc: grpcEndpoint,
+// Wrapper for Meteor.call
+wrapMeteorCall = (method, request, callback) => {
+  // Modify network to gRPC endpoint for custom/localhost settings
+  if (request.network == "localhost") {
+    // Override network to localhost
+    request.network = 'localhost:9009'
+  }
+  if (request.network == "custom") {
+    // Override network to localhost
+    request.network = LocalStore.get('nodeGrpc')
   }
 
-  Meteor.call('getAddress', request, (err, res) => {
+  Meteor.call(method, request, (err, res) => {
+    callback(err, res)
+  })
+}
+
+// Get wallet address state details
+getBalance = (getAddress, callBack) => {
+  const request = {
+    address: addressForAPI(getAddress),
+    network: selectedNetwork(),
+  }
+
+  wrapMeteorCall('getAddress', request, (err, res) => {
     if (err) {
       console.log('err: ',err)
       LocalStore.set('transferFromBalance', 0)
@@ -226,13 +242,13 @@ getBalance = (getAddress, callBack) => {
 loadAddressTransactions = (txArray) => {
   const request = {
     tx: txArray,
-    grpc: findNodeData(DEFAULT_NODES, selectedNode()).grpc,
+    network: selectedNetwork(),
   }
 
   LocalStore.set('addressTransactions', [])
   $('#loadingTransactions').show()
   
-  Meteor.call('addressTransactions', request, (err, res) => {
+  wrapMeteorCall('addressTransactions', request, (err, res) => {
     if (err) {
       LocalStore.set('addressTransactions', { error: err })
     } else {
@@ -244,13 +260,12 @@ loadAddressTransactions = (txArray) => {
 }
 
 getTokenBalances = (getAddress, callback) => {
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     address: addressForAPI(getAddress),
-    grpc: grpcEndpoint,
+    network: selectedNetwork(),
   }
 
-  Meteor.call('getAddress', request, (err, res) => {
+  wrapMeteorCall('getAddress', request, (err, res) => {
     if (err) {
       console.log('err: ',err)
       LocalStore.set('transferFromBalance', 0)
@@ -269,13 +284,12 @@ getTokenBalances = (getAddress, callback) => {
 
           let thisToken = {}
 
-          const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
           const request = {
             query: tokenHash,
-            grpc: grpcEndpoint,
+            network: selectedNetwork(),
           }
 
-          Meteor.call('getTxnHash', request, (err, res) => {
+          wrapMeteorCall('getTxnHash', request, (err, res) => {
             if (err) {
               console.log('err:',err)
               LocalStore.set('tokensHeld', [])

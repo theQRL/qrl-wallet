@@ -3,13 +3,13 @@ import JSONFormatter from 'json-formatter-js'
 import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */
-/* global selectedNode */
+/* global selectedNetwork */
 /* global XMSS_OBJECT */
-/* global findNodeData */
-/* global DEFAULT_NODES */
+/* global DEFAULT_NETWORKS */
 /* global SHOR_PER_QUANTA */
 /* global POLL_TXN_RATE */
 /* global POLL_MAX_CHECKS */
+/* global wrapMeteorCall */
 /* global nodeReturnedValidResponse */
 
 let tokensHeld = []
@@ -35,17 +35,16 @@ function generateTransaction() {
   }
 
   // Construct request
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     fromAddress: sendFrom,
     addresses_to: this_addresses_to,
     amounts: this_amounts,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    grpc: grpcEndpoint,
+    network: selectedNetwork(),
   }
 
-  Meteor.call('transferCoins', request, (err, res) => {
+  wrapMeteorCall('transferCoins', request, (err, res) => {
     if (err) {
       LocalStore.set('transactionGenerationError', err)
       $('#transactionGenFailed').show()
@@ -149,10 +148,9 @@ function confirmTransaction() {
   console.log('Txn Hash: ', txnHash)
 
   // Prepare gRPC call
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  tx.grpc = grpcEndpoint
+  tx.network = selectedNetwork()
 
-  Meteor.call('confirmTransaction', tx, (err, res) => {
+  wrapMeteorCall('confirmTransaction', tx, (err, res) => {
     if (res.error) {
       $('#transactionConfirmation').hide()
       $('#transactionFailed').show()
@@ -212,7 +210,6 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   }
 
   // Construct request
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     addressFrom: sendFromAddress,
     addresses_to: this_addresses_to,
@@ -220,10 +217,10 @@ function sendTokensTxnCreate(tokenHash, decimals) {
     tokenHash: tokenHashBytes,
     fee: txnFee * SHOR_PER_QUANTA,
     xmssPk: pubKey,
-    grpc: grpcEndpoint,
+    network: selectedNetwork(),
   }
 
-  Meteor.call('createTokenTransferTxn', request, (err, res) => {
+  wrapMeteorCall('createTokenTransferTxn', request, (err, res) => {
     if (err) {
       LocalStore.set('tokenTransferError', err)
       $('#transactionGenFailed').show()
@@ -341,10 +338,9 @@ function confirmTokenTransfer() {
 
   console.log('Txn Hash: ', txnHash)
 
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
-  tx.grpc = grpcEndpoint
+  tx.network = selectedNetwork()
 
-  Meteor.call('confirmTokenTransfer', tx, (err, res) => {
+  wrapMeteorCall('confirmTokenTransfer', tx, (err, res) => {
     if (res.error) {
       $('#tokenCreationConfirmation').hide()
       $('#transactionFailed').show()
@@ -434,14 +430,13 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   LocalStore.set('txstatus', 'Pending')
   LocalStore.set('transactionConfirmed', "false")
 
-  const grpcEndpoint = findNodeData(DEFAULT_NODES, selectedNode()).grpc
   const request = {
     query: thisTxId,
-    grpc: grpcEndpoint,
+    network: selectedNetwork(),
   }
 
   if (thisTxId) {
-    Meteor.call('getTxnHash', request, (err, res) => {
+    wrapMeteorCall('getTxnHash', request, (err, res) => {
       if (err) {
         if(failureCount < POLL_MAX_CHECKS) {
           LocalStore.set('txhash', { })
@@ -721,7 +716,7 @@ Template.appTransfer.helpers({
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
-      return DEFAULT_NODES[0].explorerUrl
+      return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
   },
