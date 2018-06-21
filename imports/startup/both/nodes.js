@@ -120,9 +120,9 @@ findNetworkData = (array, key) => {
           id: 'custom',
           grpc: LocalStore.get('customNodeGrpc'),
           state: false,
-          height: 0
+          height: 0,
         }
-      ]
+      ],
     }
     return nodeData
   } else {

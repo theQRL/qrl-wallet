@@ -20,7 +20,7 @@ Template.appVerifyTxid.onRendered(() => {
   const thisTxId = FlowRouter.getParam('txId')
   const request = {
     query: thisTxId,
-    network: selectedNetwork()
+    network: selectedNetwork(),
   }
 
   if (thisTxId) {

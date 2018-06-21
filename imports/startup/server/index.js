@@ -191,7 +191,7 @@ const qrlApi = (api, request, callback) => {
     const activeNodes = []
 
     // Determine current active nodes
-    DEFAULT_NETWORKS.forEach((network, networkIndex) => {
+    DEFAULT_NETWORKS.forEach((network) => {
       // Only get nodes from user selected network
       if(network.id == request.network) {
         const networkNodes = network.nodes
