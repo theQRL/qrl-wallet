@@ -116,7 +116,7 @@ const updateNetwork = (selectedNetwork) => {
       LocalStore.set('nodeGrpc', nodeData.grpc)
 
       console.log('Connecting to network: ', nodeData.name)
-      checkNetworkHealth(nodeData.id, (err) => {
+      checkNetworkHealth(nodeData.id, (err, res) => {
         if (err) {
           console.log('the error: ', err)
           LocalStore.set('nodeStatus', 'failed')

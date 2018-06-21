@@ -131,7 +131,6 @@ const connectToNode = (endpoint, callback) => {
   }
 }
 
-
 const checkNetworkHealth = (userNetwork, callback) => {
   let networkHealthy = false
 
@@ -148,15 +147,15 @@ const checkNetworkHealth = (userNetwork, callback) => {
   if (networkHealthy == true) {
     callback(null, true)
   } else {
-    callback(true, null)
+    callback(true, {error: 'Network unhealthy'})
   }
 }
 
 // Connect to all nodes
 const connectNodes = () => {
-  // Establish gRPC connections with all enabled, non-localhost DEFAULT_NETWORKS
+  // Establish gRPC connections with all enabled DEFAULT_NETWORKS
   DEFAULT_NETWORKS.forEach((network, networkIndex) => {
-    if ((network.disabled === '') && (network.id !== 'localhost')) {
+    if ((network.disabled === '')) {
       console.log(`Attempting to create gRPC connections to network: ${network.name} ...`)
 
       // Loop each node in the network and establish a gRPC connection.

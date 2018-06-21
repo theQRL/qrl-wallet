@@ -42,7 +42,7 @@ DEFAULT_NETWORKS = [
   },
   {
     id: 'mainnet',
-    name: 'Mainnet (QRL Foundation Nodes)',
+    name: 'Mainnet',
     disabled: 'disabled',
     explorerUrl: 'https://explorer.theqrl.org',
     type: 'both',
