@@ -7,6 +7,40 @@
 // eslint-disable-next-line no-unused-vars, no-undef
 DEFAULT_NETWORKS = [
   {
+    id: 'mainnet',
+    name: 'Mainnet',
+    disabled: '',
+    explorerUrl: 'https://explorer.theqrl.org',
+    type: 'both',
+    healthy: false,
+    nodes: [
+      {
+        id: 'mainnet-1',
+        grpc: 'mainnet-1.automated.theqrl.org:9009',
+        state: false,
+        height: 0,
+      },
+      {
+        id: 'mainnet-2',
+        grpc: 'mainnet-2.automated.theqrl.org:9009',
+        state: false,
+        height: 0,
+      },
+      {
+        id: 'mainnet-3',
+        grpc: 'mainnet-3.automated.theqrl.org:9009',
+        state: false,
+        height: 0,
+      },
+      {
+        id: 'mainnet-4',
+        grpc: 'mainnet-4.automated.theqrl.org:9009',
+        state: false,
+        height: 0,
+      }
+    ],
+  },
+  {
     id: 'testnet',
     name: 'Testnet',
     disabled: '',
@@ -35,40 +69,6 @@ DEFAULT_NETWORKS = [
       {
         id: 'testnet-4',
         grpc: 'testnet-4.automated.theqrl.org:9009',
-        state: false,
-        height: 0,
-      }
-    ],
-  },
-  {
-    id: 'mainnet',
-    name: 'Mainnet',
-    disabled: 'disabled',
-    explorerUrl: 'https://explorer.theqrl.org',
-    type: 'both',
-    healthy: false,
-    nodes: [
-      {
-        id: 'mainnet-1',
-        grpc: 'mainnet-1.automated.theqrl.org:9009',
-        state: false,
-        height: 0,
-      },
-      {
-        id: 'mainnet-2',
-        grpc: 'mainnet-2.automated.theqrl.org:9009',
-        state: false,
-        height: 0,
-      },
-      {
-        id: 'mainnet-3',
-        grpc: 'mainnet-3.automated.theqrl.org:9009',
-        state: false,
-        height: 0,
-      },
-      {
-        id: 'mainnet-4',
-        grpc: 'mainnet-4.automated.theqrl.org:9009',
         state: false,
         height: 0,
       }
