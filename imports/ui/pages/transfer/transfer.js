@@ -33,7 +33,7 @@ function generateTransaction() {
   }
   let amount = new BigNumber(SHOR_PER_QUANTA) // prevents arithmetic errors
    for (var i = 0; i < sendAmounts.length; i++) {
-    this_amounts.push(amount.times(sendAmounts[i].value))
+    this_amounts.push(amount.times(sendAmounts[i].value).toString())
   }
 
   // Construct request
