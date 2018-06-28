@@ -10,6 +10,7 @@
     "aes256": "^1.0.2",
     "async": "^2.6.0",
     "babel-runtime": "^6.26.0",
+    "bignumber.js": "^7.2.1",
     "crypto-browserify": "^3.11.1",
     "electrify-qrl": "0.0.1",
     "grpc": "^1.11.0-pre1",
