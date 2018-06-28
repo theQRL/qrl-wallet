@@ -1,5 +1,6 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import JSONFormatter from 'json-formatter-js'
+import { BigNumber } from 'bignumber.js'
 import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */
@@ -30,8 +31,9 @@ function generateTransaction() {
   for (var i = 0; i < sendTo.length; i++) {
     this_addresses_to.push(addressForAPI(sendTo[i].value))
   }
+  let amount = new BigNumber(SHOR_PER_QUANTA) // prevents arithmetic errors
    for (var i = 0; i < sendAmounts.length; i++) {
-    this_amounts.push(sendAmounts[i].value * SHOR_PER_QUANTA)
+    this_amounts.push(amount.times(sendAmounts[i].value))
   }
 
   // Construct request
