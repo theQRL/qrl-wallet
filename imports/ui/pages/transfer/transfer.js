@@ -1,5 +1,6 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import JSONFormatter from 'json-formatter-js'
+import { BigNumber } from 'bignumber.js'
 import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */

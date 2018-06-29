@@ -1,4 +1,5 @@
 import './tokenCreate.html'
+import { BigNumber } from 'bignumber.js'
 /* global LocalStore */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
