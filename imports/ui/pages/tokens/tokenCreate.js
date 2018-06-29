@@ -40,9 +40,12 @@ function createTokenTxn() {
   let tokenTotalSupply = 0
 
   for (var i = 0; i < initialBalancesAddress.length; i++) {
+    let convertAmountToBigNumber = new BigNumber(initialBalancesAddressAmount[i].value)
+    let thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber()
+
     const thisHolder = {
       address: addressForAPI(initialBalancesAddress[i].value),
-      amount: initialBalancesAddressAmount[i].value * Math.pow(10, decimals)
+      amount: thisAmount
     }
 
     tokenHolders.push(thisHolder)
@@ -60,6 +63,10 @@ function createTokenTxn() {
     return
   }
 
+  // Calculate txn fee
+  let convertFeeToBigNumber = new BigNumber(txnFee)
+  let thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+
   // Construct request
   const request = {
     addressFrom: sendFrom,
@@ -68,7 +75,7 @@ function createTokenTxn() {
     name: nameBytes,
     decimals: decimals,
     initialBalances: tokenHolders,
-    fee: txnFee * SHOR_PER_QUANTA,
+    fee: thisTxnFee,
     xmssPk: pubKey,
     network: selectedNetwork(),
   }
@@ -100,6 +107,9 @@ function createTokenTxn() {
         const path = FlowRouter.path('/tokens/create/confirm', params)
         FlowRouter.go(path)
       } else {
+        // Hide generating component
+        $('#generating').hide()
+        // Show warning modal
         $('#invalidNodeResponse').modal('show')
       }
     }
@@ -136,6 +146,10 @@ function initialiseFormValidation() {
         {
           type: 'number',
           prompt: 'Amount must be a number',
+        },
+        {
+          type: 'maxDecimals',
+          prompt: 'You can only enter up to 9 decimal places in the amount field'
         },
       ],
     }
@@ -200,6 +214,10 @@ function initialiseFormValidation() {
         type: 'number',
         prompt: 'Fee must be a number',
       },
+      {
+        type: 'maxDecimals',
+        prompt: 'You can only enter up to 9 decimal places in the fee field'
+      },
     ],
   }
   validationRules['otsKey'] = {
@@ -214,6 +232,11 @@ function initialiseFormValidation() {
         prompt: 'OTS Key Index must be a number',
       },
     ],
+  }
+
+  // Max of 9 decimals
+  $.fn.form.settings.rules.maxDecimals = function(value) {
+    return (countDecimals(value) <= 9)
   }
 
   // Initliase the form validation

@@ -10,6 +10,7 @@ import './transfer.html'
 /* global POLL_TXN_RATE */
 /* global POLL_MAX_CHECKS */
 /* global wrapMeteorCall */
+/* global countDecimals */
 /* global nodeReturnedValidResponse */
 
 let tokensHeld = []
@@ -31,15 +32,21 @@ function generateTransaction() {
     this_addresses_to.push(addressForAPI(sendTo[i].value))
   }
    for (var i = 0; i < sendAmounts.length; i++) {
-    this_amounts.push(sendAmounts[i].value * SHOR_PER_QUANTA)
+    let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
+    let thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+    this_amounts.push(thisAmount)
   }
+
+  // Calculate txn fee
+  let convertFeeToBigNumber = new BigNumber(txnFee)
+  let thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
 
   // Construct request
   const request = {
     fromAddress: sendFrom,
     addresses_to: this_addresses_to,
     amounts: this_amounts,
-    fee: txnFee * SHOR_PER_QUANTA,
+    fee: thisTxnFee,
     xmssPk: pubKey,
     network: selectedNetwork(),
   }
@@ -86,6 +93,9 @@ function generateTransaction() {
         $('#generateTransactionArea').hide()
         $('#confirmTransactionArea').show()
       } else {
+        // Hide generating component
+        $('#generating').hide()
+        // Show warning modal
         $('#invalidNodeResponse').modal('show')
       }
     }
@@ -206,8 +216,14 @@ function sendTokensTxnCreate(tokenHash, decimals) {
     this_addresses_to.push(addressForAPI(sendTo[i].value))
   }
    for (var i = 0; i < sendAmounts.length; i++) {
-    this_amounts.push(sendAmounts[i].value * Math.pow(10, decimals))
+    let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
+    let thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber()
+    this_amounts.push(thisAmount)
   }
+
+  // Calculate txn fee
+  let convertFeeToBigNumber = new BigNumber(txnFee)
+  let thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
 
   // Construct request
   const request = {
@@ -215,7 +231,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
     addresses_to: this_addresses_to,
     amounts: this_amounts,
     tokenHash: tokenHashBytes,
-    fee: txnFee * SHOR_PER_QUANTA,
+    fee: thisTxnFee,
     xmssPk: pubKey,
     network: selectedNetwork(),
   }
@@ -499,6 +515,10 @@ function initialiseFormValidation() {
           type: 'number',
           prompt: 'Amount must be a number',
         },
+        {
+          type: 'maxDecimals',
+          prompt: 'You can only enter up to 9 decimal places in the amount field'
+        },
       ],
     }
   })
@@ -515,6 +535,10 @@ function initialiseFormValidation() {
         type: 'number',
         prompt: 'Fee must be a number',
       },
+      {
+        type: 'maxDecimals',
+        prompt: 'You can only enter up to 9 decimal places in the fee field'
+      },
     ],
   }
   validationRules['otsKey'] = {
@@ -529,6 +553,11 @@ function initialiseFormValidation() {
         prompt: 'OTS Key Index must be a number',
       },
     ],
+  }
+
+  // Max of 9 decimals
+  $.fn.form.settings.rules.maxDecimals = function(value) {
+    return (countDecimals(value) <= 9)
   }
 
   // Initliase the form validation
@@ -578,7 +607,7 @@ Template.appTransfer.events({
       if(selectedType == 'quanta') {
         generateTransaction()
       } else {
-      // Token Xfer
+        // Token Xfer
         const tokenHash = selectedType.split('-')[1]
         const decimals = selectedType.split('-')[2]
         sendTokensTxnCreate(tokenHash, decimals)

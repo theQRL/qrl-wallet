@@ -164,6 +164,12 @@ concatenateTypedArrays = (resultConstructor, ...arrays) => {
     return result
 }
 
+// Count decimals in value
+countDecimals = (value) => {
+  if(Math.floor(value) === value) return 0
+  return value.toString().split(".")[1].length || 0
+}
+
 // Check if users web browser supports Web Assemblies
 supportedBrowser = () => {
   try {
