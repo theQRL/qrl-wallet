@@ -20,7 +20,8 @@
     "meteor-node-stubs": "^0.2.11",
     "qrllib": "0.99.3",
     "run-script-os": "^1.0.3",
-    "tmp": "0.0.33"
+    "tmp": "0.0.33",
+    "snyk": "^1.88.0"
   },
   "private": true,
   "repository": {
@@ -46,6 +47,9 @@
     "postinstall": "run-script-os",
     "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\",
     "install:darwin": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/",
-    "install:linux": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/"
-  }
+    "install:linux": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "snyk": true
 }
