@@ -715,7 +715,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/tx/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -732,7 +732,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/tx/{{this.txhash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -749,7 +749,24 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/tx/{{this.txhash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">View Transaction &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if isDocumentNotarisation this.type}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Document Notarisation | {{this.timestamp}}
+              </div>
+              <p class="transactionAddress">
+                {{this.txhash}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.txhash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}

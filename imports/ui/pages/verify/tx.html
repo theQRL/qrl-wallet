@@ -121,37 +121,48 @@
               <h3>Message</h3>
               <p><pre>{{explorer.message}}</pre></p>
             {{else}}
-              <h3>To</h3>
-              <table class="ui stackable table">
-                <thead>
-                  <th>Address</th>
-                  <th>Amount</th>
-                </thead>
-                <tbody>
-                  {{#if isTransfer}}
-                    {{#each explorer.outputs}}
+              {{#if isDocumentNotarisation}}
+                <h3>Document Notarisaion</h3>
+                <span>Notary <a class="ui">{{explorer.from}}</a></span>
+                <br />
+                <span>Hash Function <a class="ui">{{explorer.hash_function}}</a></span>
+                <br />
+                <span>File Hash <a class="ui">{{explorer.hash}}</a></span>
+                <br />
+                <span>Additional Text <a class="ui">{{explorer.text}}</a></span>
+                <br />
+              {{else}}
+                <h3>To</h3>
+                <table class="ui stackable table">
+                  <thead>
+                    <th>Address</th>
+                    <th>Amount</th>
+                  </thead>
+                  <tbody>
+                    {{#if isTransfer}}
+                      {{#each explorer.outputs}}
+                        <tr>
+                          <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
+                          <td>{{this.amount}}</td>
+                        </tr>
+                      {{/each}}
+                    {{else if isTokenTransfer}}
+                      {{#each explorer.outputs}}
+                        <tr>
+                          <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
+                          <td>{{this.amount}}</td>
+                        </tr>
+                      {{/each}}
+                    {{else}}
                       <tr>
-                        <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
-                        <td>{{this.amount}}</td>
+                        <td><a href="{{nodeExplorerUrl}}/a/{{explorer.to}}">{{explorer.to}}</a></td>
+                        <td>{{tx.tx.amount}}</td>
                       </tr>
-                    {{/each}}
-                  {{else if isTokenTransfer}}
-                    {{#each explorer.outputs}}
-                      <tr>
-                        <td><a href="{{nodeExplorerUrl}}/a/{{this.address}}">{{this.address}}</a></td>
-                        <td>{{this.amount}}</td>
-                      </tr>
-                    {{/each}}
-                  {{else}}
-                    <tr>
-                      <td><a href="{{nodeExplorerUrl}}/a/{{explorer.to}}">{{explorer.to}}</a></td>
-                      <td>{{tx.tx.amount}}</td>
-                    </tr>
-                  {{/if}}
-                </tbody>
-              </table>
+                    {{/if}}
+                  </tbody>
+                </table>
+              {{/if}}
             {{/if}}
-
           {{/if}}
           <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
           <div class="ui raised segment jsonbox json" style="display: none">{{json}}</div>
