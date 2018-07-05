@@ -1,5 +1,5 @@
 import JSONFormatter from 'json-formatter-js'
-import './tokenCreateResult.html'
+import './result.html'
 /* global LocalStore */
 /* global POLL_TXN_RATE */
 /* global POLL_MAX_CHECKS */
@@ -94,17 +94,27 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 }
 
 
-Template.appTokenCreationResult.onRendered(() => {
+Template.appNotariseResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   // Start polling this transcation
   pollTransaction(LocalStore.get('transactionHash'), true)
 })
 
-Template.appTokenCreationResult.helpers({
+Template.appNotariseResult.helpers({
+  transferFrom() {
+    const transferFrom = {}
+    transferFrom.balance = LocalStore.get('transferFromBalance')
+    transferFrom.address = LocalStore.get('transferFromAddress')
+    return transferFrom
+  },
   transactionHash() {
     const hash = LocalStore.get('transactionHash')
     return hash
+  },
+  notariseCreationConfirmation() {
+    const confirmation = LocalStore.get('notariseCreationConfirmation')
+    return confirmation
   },
   transactionSignature() {
     const signature = LocalStore.get('transactionSignature')
@@ -118,25 +128,10 @@ Template.appTokenCreationResult.helpers({
     const status = LocalStore.get('transactionRelayedThrough')
     return status
   },
-  tokenDetails() {
-    let details = LocalStore.get('txhash').transaction.tx.token
-    details.owner = binaryToQrlAddress(details.owner)
-    details.symbol = bytesToString(details.symbol)
-    details.name = bytesToString(details.name)
+  messageDetails() {
+    let details = LocalStore.get('txhash').transaction.tx.message
+    details.message = bytesToString(details.message_hash)
     return details
-  },
-  tokenHolders() {
-    const tokenHoldersRaw = LocalStore.get('txhash').transaction.tx.token.initial_balances
-    const tokenDecimals = LocalStore.get('txhash').transaction.tx.token.decimals
-    let tokenHolders = []
-    for (var i = 0; i < tokenHoldersRaw.length; i++) {
-      const thisHolder = {
-        address: binaryToQrlAddress(tokenHoldersRaw[i].address),
-        amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals)
-      }
-      tokenHolders.push(thisHolder)
-    }
-    return tokenHolders
   },
   nodeExplorerUrl() {
     if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
@@ -146,7 +141,7 @@ Template.appTokenCreationResult.helpers({
   },
 })
 
-Template.appTokenCreationResult.events({
+Template.appNotariseResult.events({
   'click .jsonclick': () => {
     if (!($('.json').html())) {
       setRawDetail()

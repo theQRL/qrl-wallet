@@ -12,6 +12,14 @@ import '../../ui/pages/close/close.js'
 import '../../ui/pages/transfer/transfer.js'
 import '../../ui/pages/transfer/reload.js'
 
+import '../../ui/pages/tools/tools.js'
+import '../../ui/pages/tools/message/messageCreate.js'
+import '../../ui/pages/tools/message/messageConfirm.js'
+import '../../ui/pages/tools/message/messageResult.js'
+import '../../ui/pages/tools/notarise/start.js'
+import '../../ui/pages/tools/notarise/confirm.js'
+import '../../ui/pages/tools/notarise/result.js'
+
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
 import '../../ui/pages/tokens/tokenCreateResult.js'
@@ -66,6 +74,50 @@ FlowRouter.route('/reloadTransfer', {
   name: 'App.reloadTransfer',
   action() {
     BlazeLayout.render('appBody', { main: 'appReloadTransfer' })
+  },
+})
+
+// Tools
+FlowRouter.route('/tools', {
+  name: 'App.tools',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appTools' })
+  },
+})
+FlowRouter.route('/tools/message/create', {
+  name: 'App.messageCreate',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appMessageCreate' })
+  },
+})
+FlowRouter.route('/tools/message/confirm', {
+  name: 'App.messageConfirm',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appMessageConfirm' })
+  },
+})
+FlowRouter.route('/tools/message/result', {
+  name: 'App.messageResult',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appMessageResult' })
+  },
+})
+FlowRouter.route('/tools/notarise/start', {
+  name: 'App.notariseStart',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appNotariseStart' })
+  },
+})
+FlowRouter.route('/tools/notarise/confirm', {
+  name: 'App.notariseConfirm',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appNotariseConfirm' })
+  },
+})
+FlowRouter.route('/tools/notarise/result', {
+  name: 'App.notariseResult',
+  action() {
+    BlazeLayout.render('appBody', { main: 'appNotariseResult' })
   },
 })
 
