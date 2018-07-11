@@ -235,7 +235,7 @@ const qrlApi = (api, request, callback) => {
     const apiEndpoint = request.network
     // Delete network from request object
     delete request.network;
-    console.log('Making', api, 'request to', bestNode.grpc)
+    console.log('Making', api, 'request to', apiEndpoint)
 
     qrlClient[apiEndpoint][api](request, (error, response) => {
       if (api == 'pushTransaction') {
@@ -511,6 +511,32 @@ const createTokenTxn = (request, callback) => {
   })
 }
 
+// Function to call GetMessageTxn API
+const createMessageTxn = (request, callback) => {
+  const tx = {
+    // master_addr: request.addressFrom,
+    message: request.message,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+    network: request.network
+  }
+
+  qrlApi('getMessageTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
 const confirmTokenCreation = (request, callback) => {
   const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
@@ -605,6 +631,90 @@ const confirmTokenCreation = (request, callback) => {
     callback(null, txnResponse)
   })
 }
+
+
+const confirmMessageCreation = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  confirmTxn.transaction_signed.message.message_hash =
+    toBuffer(confirmTxn.transaction_signed.message.message_hash)
+
+  confirmTxn.network = request.network
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try{
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          if (err) {
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+    /*
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          try{
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+                cb()
+              } else {
+                console.log(`Token Creation Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch (err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+            cb()
+          }
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('All token creation txns sent')
+        wfcb()
+      })
+    },
+    */
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
 
 // Function to call GetTransferTokenTxn API
 const createTokenTransferTxn = (request, callback) => {
@@ -844,10 +954,20 @@ Meteor.methods({
   },
   addressTransactions(request) {
     check(request, Object)
-
     const targets = request.tx
-
     let result = []
+
+
+
+
+
+
+
+
+
+
+
+
     targets.forEach((arr) => {
       const thisRequest = {
         query: arr.txhash,
@@ -857,102 +977,70 @@ Meteor.methods({
       try {
         const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
 
-        // Moved this out of getTxnHash
-        if (thisTxnHashResponse.found === true && thisTxnHashResponse.result === 'transaction') {
-
-          thisTxnHashResponse.transaction.addr_from =
-            'Q' + Buffer.from(thisTxnHashResponse.transaction.addr_from).toString('hex')
-          thisTxnHashResponse.transaction.tx.transaction_hash =
-            Buffer.from(thisTxnHashResponse.transaction.tx.transaction_hash).toString('hex')
-          
-          thisTxnHashResponse.transaction.tx.addr_to = ''
-          thisTxnHashResponse.transaction.tx.amount = ''
-
-          if (thisTxnHashResponse.transaction.coinbase) {
-            thisTxnHashResponse.transaction.tx.addr_to =
-              'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.coinbase.addr_to).toString('hex')
-            thisTxnHashResponse.transaction.tx.coinbase.addr_to =
-              'Q' + Buffer.from(thisTxnHashResponse.transaction.tx.coinbase.addr_to).toString('hex')
-            thisTxnHashResponse.transaction.tx.amount = thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA
-          }
-
-          thisTxnHashResponse.transaction.tx.public_key = Buffer.from(thisTxnHashResponse.transaction.tx.public_key).toString('hex')
-          thisTxnHashResponse.transaction.tx.signature = Buffer.from(thisTxnHashResponse.transaction.tx.signature).toString('hex')
-        }
+        const output = helpers.txhash(thisTxnHashResponse)
 
         let thisTxn = {}
 
-        if (thisTxnHashResponse.transaction.tx.transactionType == "transfer") {
-          // Calculate total transferred, and generate a clean structure to display outputs from
-          let thisTotalTransferred = 0
-          let thisOutputs = []
-          _.each(thisTxnHashResponse.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
-            const thisOutput = {
-              address: 'Q' + Buffer.from(thisAddress).toString('hex'),
-              amount: numberToString(parseInt(thisTxnHashResponse.transaction.tx.transfer.amounts[index]) / SHOR_PER_QUANTA)
-            }
-            thisOutputs.push(thisOutput)
-
-            // Now update total transferred with the corresponding amount from this output
-            thisTotalTransferred += parseInt(thisTxnHashResponse.transaction.tx.transfer.amounts[index])
-          })
-
+        if (output.transaction.tx.transactionType === 'transfer') {
           thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
+            type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
-            totalTransferred: numberToString(thisTotalTransferred / SHOR_PER_QUANTA),
-            outputs: thisOutputs,
-            from: thisTxnHashResponse.transaction.addr_from,
-            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+            totalTransferred: output.transaction.explorer.totalTransferred,
+            outputs: output.transaction.explorer.outputs,
+            from: output.transaction.explorer.from,
+            ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
+            fee: output.transaction.tx.fee,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
+          }
+          result.push(thisTxn)
+        } else if (output.transaction.tx.transactionType === 'token') {
+          thisTxn = {
+            type: output.transaction.tx.transactionType,
+            txhash: arr.txhash,
+            from: output.transaction.explorer.from,
+            symbol: output.transaction.tx.token.symbol,
+            name: output.transaction.tx.token.name,
+            decimals: output.transaction.tx.token.decimals,
+            ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
+            fee: output.transaction.tx.fee,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
           }
 
           result.push(thisTxn)
-        } else if (thisTxnHashResponse.transaction.tx.transactionType == "token") {
-          thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
-            txhash: arr.txhash,
-            from: thisTxnHashResponse.transaction.addr_from,
-            symbol: Buffer.from(thisTxnHashResponse.transaction.tx.token.symbol).toString(),
-            name: Buffer.from(thisTxnHashResponse.transaction.tx.token.name).toString(),
-            decimals: thisTxnHashResponse.transaction.tx.token.decimals,
-            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
-          }
-
-          result.push(thisTxn)
-        } else if (thisTxnHashResponse.transaction.tx.transactionType == "transfer_token") {
+        } else if (thisTxnHashResponse.transaction.tx.transactionType === 'transfer_token') {
           // Request Token Symbol
           const symbolRequest = {
-            query: Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'),
-            network: request.network,
+            query: Buffer.from(Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'), 'hex'),
           }
-          const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
+
+          const thisSymbolResponse = Meteor.wrapAsync(getObject)(symbolRequest)
           const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
           const thisDecimals = thisSymbolResponse.transaction.tx.token.decimals
 
           // Calculate total transferred, and generate a clean structure to display outputs from
           let thisTotalTransferred = 0
-          let thisOutputs = []
+          const thisOutputs = []
+          // eslint-disable-next-line
           _.each(thisTxnHashResponse.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
             const thisOutput = {
-              address: 'Q' + Buffer.from(thisAddress).toString('hex'),
-              amount: numberToString(parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index]) / Math.pow(10, thisDecimals))
+              address: `Q${Buffer.from(thisAddress).toString('hex')}`,
+              // eslint-disable-next-line
+              amount: numberToString(parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index], 10) / Math.pow(10, thisDecimals)),
             }
             thisOutputs.push(thisOutput)
 
             // Now update total transferred with the corresponding amount from this output
-            thisTotalTransferred += parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index])
+            thisTotalTransferred +=
+            parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index], 10)
           })
 
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
             symbol: thisSymbol,
+            // eslint-disable-next-line
             totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
             outputs: thisOutputs,
             from: thisTxnHashResponse.transaction.addr_from,
@@ -963,61 +1051,70 @@ Meteor.methods({
           }
 
           result.push(thisTxn)
-        } else if (thisTxnHashResponse.transaction.tx.transactionType == "coinbase") {
+        } else if (output.transaction.tx.transactionType === 'coinbase') {
           thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
+            type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
-            amount: numberToString(thisTxnHashResponse.transaction.tx.coinbase.amount / SHOR_PER_QUANTA),
-            from: thisTxnHashResponse.transaction.addr_from,
-            to: thisTxnHashResponse.transaction.tx.coinbase.addr_to,
-            ots_key: "",
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+            amount: output.transaction.tx.coinbase.amount,
+            from: output.transaction.explorer.from,
+            to: output.transaction.tx.coinbase.addr_to,
+            ots_key: '',
+            fee: output.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
           }
-
           result.push(thisTxn)
-        } else if (thisTxnHashResponse.transaction.tx.transactionType == "slave") {
+        } else if (output.transaction.tx.transactionType === 'slave') {
           thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
+            type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: 0,
-            from: thisTxnHashResponse.transaction.addr_from,
+            from: output.transaction.explorer.from,
             to: '',
-            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+            ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
+            fee: output.transaction.tx.fe,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
           }
-
           result.push(thisTxn)
-        } else if (thisTxnHashResponse.transaction.tx.transactionType == "latticePK") {
+        } else if (output.transaction.tx.transactionType === 'latticePK') {
           thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
+            type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: 0,
-            from: thisTxnHashResponse.transaction.addr_from,
+            from: output.transaction.explorer.from,
             to: '',
-            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+            ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
+            fee: output.transaction.tx.fee,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
           }
-
           result.push(thisTxn)
-        } else if (thisTxnHashResponse.transaction.tx.transactionType === 'message') {
+        } else if (output.transaction.explorer.type === 'MESSAGE') {
           thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
+            type: output.transaction.explorer.type,
             txhash: arr.txhash,
             amount: 0,
-            from: thisTxnHashResponse.transaction.addr_from,
+            from: output.transaction.explorer.from,
             to: '',
-            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
+            ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
+            fee: output.transaction.tx.fee,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
           }
-
+          result.push(thisTxn)
+        } else if (output.transaction.explorer.type === 'DOCUMENT_NOTARISATION') {
+          thisTxn = {
+            type: output.transaction.explorer.type,
+            txhash: arr.txhash,
+            amount: 0,
+            from: output.transaction.explorer.from,
+            to: '',
+            ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
+            fee: output.transaction.tx.fee,
+            block: output.transaction.header.block_number,
+            timestamp: output.transaction.header.timestamp_seconds,
+          }
           result.push(thisTxn)
         }
       } catch (err) {
@@ -1031,6 +1128,18 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(confirmTransaction)(request)
+    return response
+  },
+  createMessageTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createMessageTxn)(request)
+    return response
+  },
+  confirmMessageCreation(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMessageCreation)(request)
     return response
   },
   createTokenTxn(request) {
