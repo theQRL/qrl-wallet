@@ -155,8 +155,14 @@ Template.appVerifyTxid.helpers({
     }
     return false
   },
+  isDocumentNotarisation() {
+    if (this.explorer.type === 'DOCUMENT_NOTARISATION') {
+      return true
+    }
+    return false
+  },
   isNotMessage() {
-    if (this.explorer.type !== 'MESSAGE') {
+    if ((this.explorer.type !== 'MESSAGE') && (this.explorer.type !== 'DOCUMENT_NOTARISATION')) {
       return true
     }
     return false

@@ -1,0 +1,87 @@
+<template name="appNotariseResult">
+
+<h2 class="ui header pageHeader">
+  <i class="tiny edit icon"></i>
+  <div class="content">
+    Document Notarisation Result
+  </div>
+</h2>
+
+<div id="transactionComplete" class="ui red segment pageSegment">
+
+  <h4 class="ui horizontal divider header">
+    <i class="edit icon"></i>
+    Notarisation Details
+  </h4>
+
+  <div class="ui items">
+    <div class="item">
+      <div class="image">
+        {{> QRCode text=transactionHash size="128px"}}
+      </div>
+      <div class="content">
+
+        <span>Notary <a class="ui">{{transferFrom.address}}</a></span>
+        <br />
+        <span>File Name (Not saved on chain) <a class="ui">{{notariseCreationConfirmation.file_name}}</a></span>
+        <br />
+        <span>File Hash <a class="ui">{{notariseCreationConfirmation.hash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
+        <br />
+        <span>Additional Text <a class="ui">{{notariseCreationConfirmation.additional_text}}</a></span>
+
+        <div class="meta">
+          <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
+        </div>
+        <br /><br />
+        If someone has shared the file '{{notariseCreationConfirmation.file_name}}' with you, you can send them the transaction hash link above to prove you have notarised this document.
+        <br /><br />
+        Alternatively, you can send them the file and the transaction hash link to prove you have notarised this document. When viewing the transaction hash on the QRL block explorer, the user can upload the document to verify the notarisation is valid for that particular file, or they can hash the file locally themselves.
+      </div>
+    </div>
+  </div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="signal icon"></i>
+    Transaction Status
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
+        Success! Your notarisation has been relayed into the QRL network through the following nodes, and is pending validation.
+      </p>
+    </div>
+  </div>
+
+  <div class="ui mini horizontal divided list">
+  {{#each transactionRelayedThrough}}
+    <div class="item">
+      <i class="checkmark icon green"></i>
+      <div class="content">
+        <div class="header">{{this}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+  <div id="relaying" class="ui icon message">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div id="loadingHeader" class="header">
+        Just a moment
+      </div>
+      <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
+    </div>
+  </div>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
+      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+    </div>
+  </div>
+  
+</div>
+
+</template>

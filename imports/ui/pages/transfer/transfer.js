@@ -843,7 +843,13 @@ Template.appTransfer.helpers({
     return false
   },
   isMessageTxn(txType) {
-    if (txType === 'message') {
+    if (txType === 'MESSAGE') {
+      return true
+    }
+    return false
+  },
+  isDocumentNotarisation(txType) {
+    if (txType === 'DOCUMENT_NOTARISATION') {
       return true
     }
     return false
