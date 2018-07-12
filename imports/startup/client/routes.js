@@ -27,11 +27,27 @@ import '../../ui/pages/tokens/tokenCreateResult.js'
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
 
+import '../../ui/mobile/mobile.js'
+
+function useMobile() {
+  // set mobile limits
+  const mobileLimit = 640
+  // route based on screensize
+  if (window.matchMedia(`(min-width: ${mobileLimit}px)`).matches) {
+    return true
+  }
+  return false
+}
+
 // Home route (create wallet)
 FlowRouter.route('/', {
   name: 'App.home',
   action() {
-    BlazeLayout.render('appBody', { main: 'appCreate' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appCreate' })
+    }
   },
 })
 
@@ -39,13 +55,21 @@ FlowRouter.route('/', {
 FlowRouter.route('/create', {
   name: 'App.create',
   action() {
-    BlazeLayout.render('appBody', { main: 'appCreate' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appCreate' })
+    }
   },
 })
 FlowRouter.route('/create/:address', {
   name: 'App.createAddress',
   action() {
-    BlazeLayout.render('appBody', { main: 'appCreateAddress' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appCreateAddress' })
+      } else {
+        BlazeLayout.render('mobile', { main: 'appCreateAddress' })
+      }
   },
 })
 
@@ -53,13 +77,21 @@ FlowRouter.route('/create/:address', {
 FlowRouter.route('/open', {
   name: 'App.open',
   action() {
-    BlazeLayout.render('appBody', { main: 'appAddressOpen' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appAddressOpen' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appAddressOpen' })
+    }
   },
 })
 FlowRouter.route('/close', {
   name: 'App.close',
   action() {
-    BlazeLayout.render('appBody', { main: 'appAddressClose' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appAddressClose' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appAddressClose' })
+    }
   },
 })
 
@@ -67,13 +99,21 @@ FlowRouter.route('/close', {
 FlowRouter.route('/transfer', {
   name: 'App.transfer',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTransfer' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appTransfer' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appTransfer' })
+    }
   },
 })
 FlowRouter.route('/reloadTransfer', {
   name: 'App.reloadTransfer',
   action() {
-    BlazeLayout.render('appBody', { main: 'appReloadTransfer' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appReloadTransfer' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appReloadTransfer' })
+    }
   },
 })
 
@@ -81,43 +121,71 @@ FlowRouter.route('/reloadTransfer', {
 FlowRouter.route('/tools', {
   name: 'App.tools',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTools' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appTools' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appTools' })
+    }
   },
 })
 FlowRouter.route('/tools/message/create', {
   name: 'App.messageCreate',
   action() {
-    BlazeLayout.render('appBody', { main: 'appMessageCreate' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMessageCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMessageCreate' })
+    }
   },
 })
 FlowRouter.route('/tools/message/confirm', {
   name: 'App.messageConfirm',
   action() {
-    BlazeLayout.render('appBody', { main: 'appMessageConfirm' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMessageConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMessageConfirm' })
+    }
   },
 })
 FlowRouter.route('/tools/message/result', {
   name: 'App.messageResult',
   action() {
-    BlazeLayout.render('appBody', { main: 'appMessageResult' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMessageResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMessageResult' })
+    }
   },
 })
 FlowRouter.route('/tools/notarise/start', {
   name: 'App.notariseStart',
   action() {
-    BlazeLayout.render('appBody', { main: 'appNotariseStart' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appNotariseStart' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appNotariseStart' })
+    }
   },
 })
 FlowRouter.route('/tools/notarise/confirm', {
   name: 'App.notariseConfirm',
   action() {
-    BlazeLayout.render('appBody', { main: 'appNotariseConfirm' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appNotariseConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appNotariseConfirm' })
+    }
   },
 })
 FlowRouter.route('/tools/notarise/result', {
   name: 'App.notariseResult',
   action() {
-    BlazeLayout.render('appBody', { main: 'appNotariseResult' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appNotariseResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appNotariseResult' })
+    }
   },
 })
 
@@ -125,19 +193,31 @@ FlowRouter.route('/tools/notarise/result', {
 FlowRouter.route('/tokens/create', {
   name: 'App.tokensCreate',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTokenCreate' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appTokenCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appTokenCreate' })
+    }
   },
 })
 FlowRouter.route('/tokens/create/confirm', {
   name: 'App.tokenCreationConfirm',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTokenCreationConfirm' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appTokenCreationConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appTokenCreationConfirm' })
+    }
   },
 })
 FlowRouter.route('/tokens/create/result', {
   name: 'App.tokenCreationResult',
   action() {
-    BlazeLayout.render('appBody', { main: 'appTokenCreationResult' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appTokenCreationResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appTokenCreationResult' })
+    }
   },
 })
 
@@ -145,19 +225,31 @@ FlowRouter.route('/tokens/create/result', {
 FlowRouter.route('/verify', {
   name: 'App.verify',
   action() {
-    BlazeLayout.render('appBody', { main: 'appVerify' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appVerify' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appVerify' })
+    }
   },
 })
 FlowRouter.route('/verify-txid/:txId', {
   name: 'App.verifytxid',
   action() {
-    BlazeLayout.render('appBody', { main: 'appVerifyTxid' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appVerifyTxid' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appVerifyTxid' })
+    }
   },
 })
 
 // Not found
 FlowRouter.notFound = {
   action() {
-    BlazeLayout.render('appBody', { main: 'appNotFound' })
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appNotFound' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appNotFound' })
+    }
   },
 }
