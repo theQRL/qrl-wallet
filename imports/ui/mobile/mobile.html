@@ -1,0 +1,50 @@
+<template name="mobile">
+  <div class="mobile-wallet">
+    <div class="ui labeled icon bottom fixed four item menu">
+      <a id="newWalletButton" href="/create" class="item {{menuNewWalletActive}}">
+              <img class="svg" src="/img/icons/new-wallet.svg" />
+              New
+            </a>
+            <a id="openWalletButton" href="/open" class="item {{menuOpenWalletActive}}" style="{{walletStatus.menuHiddenInverse}}">
+              <img class="svg" src="/img/icons/open-wallet.svg" />
+              Open
+            </a>
+            <a id="closeWalletButton" href="/close" class="item" style="{{walletStatus.menuHidden}}">
+              <img class="svg" src="/img/icons/lock.svg" />
+              Close
+            </a>
+
+            <a id="sendAndReceiveButton" href="/transfer" class="item {{menuTransferActive}}" style="{{walletStatus.menuHidden}}">
+              <img class="svg" src="/img/icons/transfer.svg" />
+              Send &amp;<br />Receive
+            </a>
+
+ <!--            <a id="createTokenButton" href="/tokens/create" class="item {{menuTokensActive}}" style="{{walletStatus.menuHidden}}">
+              <img class="svg" src="/img/icons/transfer.svg" />
+              Create<br />Token
+            </a>
+
+            <a href="/verify" class="item {{menuVerifyActive}}">
+              <img class="svg" src="/img/icons/tick.svg" />
+              Verify<br />Transaction
+            </a> -->
+    </div>
+    {{> Template.dynamic template=main}}
+    <!-- Footer -->
+    <div class="footer">
+      <div class="ui center aligned container">
+        <a href="/">
+                  <img class="footerLogo" src="/img/Q@2x.png">
+                </a>
+        <br />
+        <div class="ui horizontal small divided link list">
+          <a class="item" target="_blank" href="http://theqrl.org/">theQRL.org</a>
+          <a class="item" target="_blank" href="http://theqrl.org/whitepaper/QRL_whitepaper.pdf">White Paper</a>
+          <a class="item" target="_blank" href="https://github.com/theQRL">Github</a>
+          <a class="item" target="_blank" href="https://github.com/theQRL/qrl-wallet/issues">Found a Problem?</a>
+          <a class="item" target="_blank" href="https://github.com/theQRL/qrl-wallet">qrl-wallet v{{qrlWalletVersion}}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
