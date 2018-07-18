@@ -305,6 +305,7 @@ td .unbreakable {
   margin: 0px !important;
   font-family: 'Quicksand', sans-serif;
   padding: 10px;
+  font-size: 1.5em !important;
 }
 .ui .pageHeader .icon {
   float: right;
@@ -429,4 +430,76 @@ input {
 .wordBreak {
   word-wrap: break-word;
   word-break: break-all;
+}
+
+.only-mobile {
+  display: none;
+}
+
+.mobile-wallet {
+  padding-bottom: 85px;
+}
+
+.mobile-wallet > h4.ui.header, h3.ui.header {
+ font-family: Quicksand;
+ font-size: 1.5em;
+ text-align: center;
+ font-weight: 300;
+ margin-top: 0px;
+ padding-top: 10px;
+ padding-bottom: 10px;
+ color: #fff;
+ background: #1b1c1d;
+ display: block !important;
+}
+
+.mobile-wallet > h3.ui.header > i.icon {
+  display: none;
+}
+
+
+
+.mobile-wallet > div.ui.selection.floatright {
+  float: none;
+}
+#mainSearch {
+  width:400px !important;
+}
+.mobile-wallet > div.ui.selection.floatright > div.ui.icon.fluid.input > input#mainSearch {
+    width: 90% !important;
+    display: flex !important;
+    margin-left: 5%;
+    margin-right: 5% !important;
+}
+.mobile-wallet > div.ui.selection.floatright > div.ui.icon.fluid.input > i.search.link.icon {
+margin-right: 5% !important;
+}
+.mobile-wallet > div.ui.icon.message {
+  width: 95% !important;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
+  display: flex;
+}
+.mobile-wallet > div.ui.segment.pageSegment {
+  width: 95% !important;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
+  /*display: flex;*/
+}
+.mobile-wallet > div > .float-right {
+  box-sizing: initial;
+}
+.mobile-wallet > div.footer {
+  padding-top: 50px !important;
+}
+.mobile-wallet > .pageHeader > .icon {
+  padding-left: 0.5em;
+}
+.mobile-wallet > #networkDropdown {
+  width: 100%;
+  margin-bottom: 2px;
+  z-index: 1000;
+}
+.mobile-wallet > #transferForm > div > div > .transactionRecord > .content > p.transactionAddress {
+  word-break: break-all !important;
 }
