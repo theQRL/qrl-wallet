@@ -201,7 +201,7 @@ Template.mobile.onRendered(() => {
   })
 })
 Template.mobile.events({
-  click: (event) => {
+  click: () => {
     console.log($(event.currentTarget).attr('href'))
     adjustClasses()
   },
