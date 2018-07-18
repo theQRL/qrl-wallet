@@ -7,3 +7,4 @@ public/web-libjsqrl.wasm
 .DS_Store
 .idea/
 localtests/
+local.json
