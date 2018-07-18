@@ -1,33 +1,59 @@
 <template name="mobile">
   <div class="mobile-wallet">
-    <div class="ui labeled icon bottom fixed four item menu">
-      <a id="newWalletButton" href="/create" class="item {{menuNewWalletActive}}">
-              <img class="svg" src="/img/icons/new-wallet.svg" />
-              New
-            </a>
-            <a id="openWalletButton" href="/open" class="item {{menuOpenWalletActive}}" style="{{walletStatus.menuHiddenInverse}}">
-              <img class="svg" src="/img/icons/open-wallet.svg" />
-              Open
-            </a>
-            <a id="closeWalletButton" href="/close" class="item" style="{{walletStatus.menuHidden}}">
-              <img class="svg" src="/img/icons/lock.svg" />
-              Close
-            </a>
+    <div class="ui labeled icon bottom fixed {{menuItemsCount
+  }} item menu">
 
-            <a id="sendAndReceiveButton" href="/transfer" class="item {{menuTransferActive}}" style="{{walletStatus.menuHidden}}">
-              <img class="svg" src="/img/icons/transfer.svg" />
-              Send &amp;<br />Receive
-            </a>
+        <a id="newWalletButton" href="/create" class="item">
+          <img class="svg" src="/img/icons/new-wallet.svg" />
+          New
+        </a>
 
- <!--            <a id="createTokenButton" href="/tokens/create" class="item {{menuTokensActive}}" style="{{walletStatus.menuHidden}}">
+
+        <a id="openWalletButton" href="/open" class="item">
+          <img class="svg" src="/img/icons/open-wallet.svg" />
+          Open
+        </a>
+
+        <a id="closeWalletButton" href="/close" class="item">
+          <img class="svg" src="/img/icons/lock.svg" />
+          Close
+        </a>
+
+        <a id="sendAndReceiveButton" href="/transfer" class="item">
+          <img class="svg" src="/img/icons/transfer.svg" />
+          Send &amp;<br />Receive
+        </a>
+
+      <!--            <a id="createTokenButton" href="/tokens/create" class="item {{menuTokensActive}}" style="{{walletStatus.menuHidden}}">
               <img class="svg" src="/img/icons/transfer.svg" />
               Create<br />Token
             </a>
+      -->
 
-            <a href="/verify" class="item {{menuVerifyActive}}">
-              <img class="svg" src="/img/icons/tick.svg" />
-              Verify<br />Transaction
-            </a> -->
+      <a id="toolsButton" href="/tools" class="item">
+        <img class="svg" src="/img/icons/cogs.svg" />
+        Tools
+      </a>
+
+        <a id="verifyButton" href="/verify" class="item">
+          <img class="svg" src="/img/icons/tick.svg" />
+          Verify<br />Transaction
+        </a>
+
+    </div>
+    <div class="ui selection dropdown floatright" id="networkDropdown">
+      <input id="network" type="hidden" value="{{nodeId}}">
+      <i class="dropdown icon"></i>
+      <div class="text"></div>
+      <div class="menu">
+        {{#each defaultNetworks}}
+        <div class="{{this.disabled}} item" data-value="{{this.id}}">{{this.name}}</div>
+        {{/each}}
+        {{#if customNodeCreated}}
+        <div class="item" data-value="custom">{{customNodeName}}</div>
+        {{/if}}
+        <div class="item" data-value="add">Add/Edit Custom Node</div>
+      </div>
     </div>
     {{> Template.dynamic template=main}}
     <!-- Footer -->

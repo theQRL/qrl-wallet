@@ -495,3 +495,11 @@ margin-right: 5% !important;
 .mobile-wallet > .pageHeader > .icon {
   padding-left: 0.5em;
 }
+.mobile-wallet > #networkDropdown {
+  width: 100%;
+  margin-bottom: 2px;
+  z-index: 1000;
+}
+.mobile-wallet > #transferForm > div > div > .transactionRecord > .content > p.transactionAddress {
+  word-break: break-all !important;
+}

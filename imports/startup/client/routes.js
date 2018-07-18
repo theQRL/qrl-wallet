@@ -67,9 +67,9 @@ FlowRouter.route('/create/:address', {
   action() {
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appCreateAddress' })
-      } else {
-        BlazeLayout.render('mobile', { main: 'appCreateAddress' })
-      }
+    } else {
+      BlazeLayout.render('mobile', { main: 'appCreateAddress' })
+    }
   },
 })
 
