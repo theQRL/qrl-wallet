@@ -22,7 +22,7 @@
         <div class="description">
           <p></p>
         </div>
-        <div class="extra">
+        <div class="extra wordBreak">
           Owner: {{tokenCreationConfirmation.owner}}<br />
           Decimals: {{tokenCreationConfirmation.decimals}}
         </div>
@@ -41,7 +41,7 @@
     <div class="item">
       <i class="large user middle aligned icon"></i>
       <div class="content">
-        <a class="header">{{this.address}}</a>
+        <a class="header wordBreak">{{this.address}}</a>
         <div class="description">{{tokenCreationConfirmation.symbol}}: {{this.amount}}</div>
       </div>
     </div>
@@ -57,7 +57,7 @@
 
   <div class="ui stackable one column grid">
     <div class="column">
-      <span>From <a class="ui">{{tokenCreationConfirmation.from}}</a></span>
+      <span>From <a class="ui wordBreak">{{tokenCreationConfirmation.from}}</a></span>
       <br />
       <span>Fee <a class="ui">{{tokenCreationConfirmation.fee}}</a></span>
       <br />

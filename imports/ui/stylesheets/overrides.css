@@ -503,3 +503,9 @@ margin-right: 5% !important;
 .mobile-wallet > #transferForm > div > div > .transactionRecord > .content > p.transactionAddress {
   word-break: break-all !important;
 }
+.mobile-wallet > #walletFile {
+  max-width: 70% !important;
+}
+.mobile-wallet > div.extra {
+  word-wrap: break-word; 
+}
