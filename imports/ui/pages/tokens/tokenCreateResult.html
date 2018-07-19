@@ -1,11 +1,11 @@
 <template name="appTokenCreationResult">
 
-<h2 class="ui header pageHeader">
+<h4 class="ui header pageHeader">
   <i class="tiny tags icon"></i>
   <div class="content">
     Token Creation Result
   </div>
-</h2>
+</h4>
 
 
 <div id="transactionComplete" class="ui red segment pageSegment">
@@ -29,7 +29,7 @@
         <div class="description">
           <p></p>
         </div>
-        <div class="extra">
+        <div class="wordBreak extra">
           Owner: {{tokenDetails.owner}}<br />
           Decimals: {{tokenDetails.decimals}}
         </div>
@@ -47,7 +47,7 @@
     <div class="item">
       <i class="large user middle aligned icon"></i>
       <div class="content">
-        <a class="header">{{this.address}}</a>
+        <a class="header wordBreak">{{this.address}}</a>
         <div class="description">{{tokenDetails.symbol}}: {{this.amount}}</div>
       </div>
     </div>
