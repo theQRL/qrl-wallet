@@ -189,50 +189,6 @@ FlowRouter.route('/tools/notarise/result', {
   },
 })
 
-// Tools
-FlowRouter.route('/tools', {
-  name: 'App.tools',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appTools' })
-  },
-})
-FlowRouter.route('/tools/message/create', {
-  name: 'App.messageCreate',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appMessageCreate' })
-  },
-})
-FlowRouter.route('/tools/message/confirm', {
-  name: 'App.messageConfirm',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appMessageConfirm' })
-  },
-})
-FlowRouter.route('/tools/message/result', {
-  name: 'App.messageResult',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appMessageResult' })
-  },
-})
-FlowRouter.route('/tools/notarise/start', {
-  name: 'App.notariseStart',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appNotariseStart' })
-  },
-})
-FlowRouter.route('/tools/notarise/confirm', {
-  name: 'App.notariseConfirm',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appNotariseConfirm' })
-  },
-})
-FlowRouter.route('/tools/notarise/result', {
-  name: 'App.notariseResult',
-  action() {
-    BlazeLayout.render('appBody', { main: 'appNotariseResult' })
-  },
-})
-
 // Token Creation
 FlowRouter.route('/tokens/create', {
   name: 'App.tokensCreate',
