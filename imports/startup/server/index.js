@@ -1013,9 +1013,10 @@ Meteor.methods({
           // Request Token Symbol
           const symbolRequest = {
             query: Buffer.from(Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'), 'hex'),
+            network: request.network
           }
 
-          const thisSymbolResponse = Meteor.wrapAsync(getObject)(symbolRequest)
+          const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
           const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
           const thisDecimals = thisSymbolResponse.transaction.tx.token.decimals
 
@@ -1036,6 +1037,7 @@ Meteor.methods({
             parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index], 10)
           })
 
+          thisTxnHashResponse.transaction.tx.signature = Buffer.from(thisTxnHashResponse.transaction.tx.signature).toString('hex')
           thisTxn = {
             type: thisTxnHashResponse.transaction.tx.transactionType,
             txhash: arr.txhash,
@@ -1043,7 +1045,7 @@ Meteor.methods({
             // eslint-disable-next-line
             totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
             outputs: thisOutputs,
-            from: thisTxnHashResponse.transaction.addr_from,
+            from: `Q${Buffer.from(thisTxnHashResponse.transaction.addr_from).toString('hex')}`,
             ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
             fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
             block: thisTxnHashResponse.transaction.header.block_number,
