@@ -14,7 +14,7 @@ function createMessageTxn() {
   const otsKey = document.getElementById('otsKey').value
 
   // Convert strings to bytes
-  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(getXMSSDetails().pk)
   const messageBytes = stringToBytes(userMessage)
 
   // Construct request
@@ -172,5 +172,17 @@ Template.appMessageCreate.helpers({
       return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
+  },
+  ledgerWalletDisabled() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return 'disabled'
+    }
+    return ''
+  },
+  isLedgerWallet() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return true
+    }
+    return false
   },
 })

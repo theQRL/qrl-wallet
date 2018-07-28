@@ -9,8 +9,10 @@ import './tokenCreateConfirm.html'
 function confirmTokenCreation() {
   const tx = LocalStore.get('tokenCreationConfirmationResponse')
 
-  // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenCreationConfirmation').otsKey))
+  // Set OTS Key Index for seed wallets
+  if(getXMSSDetails().walletType == 'seed') {
+    XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenCreationConfirmation').otsKey))
+  }
 
   // Concatenate Uint8Arrays
   let tmptxnhash = concatenateTypedArrays(
@@ -47,42 +49,85 @@ function confirmTokenCreation() {
   // Create sha256 sum of hashableBytes
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
-  // Sign the sha sum
-  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+  // Sign the transaction and relay into network.
+  if(getXMSSDetails().walletType == 'seed') {
+    // Sign the sha sum
+    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
-  // Calculate transaction hash
-  let txnHashConcat = concatenateTypedArrays(
-    Uint8Array,
-      binaryToBytes(shaSum),
-      tx.extended_transaction_unsigned.tx.signature,
-      hexToBytes(XMSS_OBJECT.getPK())
-  )
+    // Calculate transaction hash
+    let txnHashConcat = concatenateTypedArrays(
+      Uint8Array,
+        binaryToBytes(shaSum),
+        tx.extended_transaction_unsigned.tx.signature,
+        hexToBytes(getXMSSDetails().pk)
+    )
 
-  const txnHashableBytes = toUint8Vector(txnHashConcat)
+    const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-  let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+    let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
-  console.log('Txn Hash: ', txnHash)
+    console.log('Txn Hash: ', txnHash)
 
-  tx.network = selectedNetwork()
+    tx.network = selectedNetwork()
 
-  wrapMeteorCall('confirmTokenCreation', tx, (err, res) => {
-    if (res.error) {
-      $('#tokenCreationConfirmation').hide()
-      $('#transactionFailed').show()
+    wrapMeteorCall('confirmTokenCreation', tx, (err, res) => {
+      if (res.error) {
+        $('#tokenCreationConfirmation').hide()
+        $('#transactionFailed').show()
 
-      LocalStore.set('transactionFailed', res.error)
-    } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+        LocalStore.set('transactionFailed', res.error)
+      } else {
+        LocalStore.set('transactionHash', txnHash)
+        LocalStore.set('transactionSignature', res.response.signature)
+        LocalStore.set('transactionRelayedThrough', res.relayed)
 
-      // Send to result page.
-      const params = { }
-      const path = FlowRouter.path('/tokens/create/result', params)
-      FlowRouter.go(path)
-    }
-  })
+        // Send to result page.
+        const params = { }
+        const path = FlowRouter.path('/tokens/create/result', params)
+        FlowRouter.go(path)
+      }
+    })
+  } else if(getXMSSDetails().walletType == 'ledger') {
+    signWithLedger(shaSum, (response) => {
+      // Sign the sha sum
+      tx.extended_transaction_unsigned.tx.signature = response
+
+      // Calculate transaction hash
+      let txnHashConcat = concatenateTypedArrays(
+        Uint8Array,
+          binaryToBytes(shaSum),
+          tx.extended_transaction_unsigned.tx.signature,
+          hexToBytes(getXMSSDetails().pk)
+      )
+
+      const txnHashableBytes = toUint8Vector(txnHashConcat)
+
+      let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+      console.log('Txn Hash: ', txnHash)
+
+      tx.network = selectedNetwork()
+
+      wrapMeteorCall('confirmTokenCreation', tx, (err, res) => {
+        if (res.error) {
+          $('#tokenCreationConfirmation').hide()
+          $('#transactionFailed').show()
+
+          LocalStore.set('transactionFailed', res.error)
+        } else {
+          LocalStore.set('transactionHash', txnHash)
+          LocalStore.set('transactionSignature', res.response.signature)
+          LocalStore.set('transactionRelayedThrough', res.relayed)
+
+          // Send to result page.
+          const params = { }
+          const path = FlowRouter.path('/tokens/create/result', params)
+          FlowRouter.go(path)
+        }
+      })
+    })
+  }
+
 }
 
 function cancelTransaction() {

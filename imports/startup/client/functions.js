@@ -1,4 +1,6 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
+import async from 'async'
+
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
@@ -17,25 +19,51 @@ selectedNetwork = () => {
   return selectedNetwork
 }
 
-// Fetchs XMSS details from the global XMSS_OBJECT variable
+// Fetchs XMSS details from the global XMSS_OBJECT variable or saved ledger values
 getXMSSDetails = () => {
-  const thisAddress = XMSS_OBJECT.getAddress()
-  const thisPk = XMSS_OBJECT.getPK()
-  const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
-  const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
-  const thisHeight = XMSS_OBJECT.getHeight()
-  const thisHexSeed = XMSS_OBJECT.getHexSeed()
-  const thisMnemonic = XMSS_OBJECT.getMnemonic()
+  const walletStatus = LocalStore.get('walletStatus')
+  let xmssDetail
 
-  const xmssDetail = {
-    address: thisAddress,
-    pk: thisPk,
-    hexseed: thisHexSeed,
-    mnemonic: thisMnemonic,
-    height: thisHeight,
-    hashFunction: thisHashFunction,
-    signatureType: thisSignatureType,
-    index: 0
+  if (walletStatus.walletType == 'seed') {
+    const thisAddress = XMSS_OBJECT.getAddress()
+    const thisPk = XMSS_OBJECT.getPK()
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = XMSS_OBJECT.getHeight()
+    const thisHexSeed = XMSS_OBJECT.getHexSeed()
+    const thisMnemonic = XMSS_OBJECT.getMnemonic()
+
+    xmssDetail = {
+      address: thisAddress,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: 0,
+      walletType: 'seed',
+    }
+  } else if(walletStatus.walletType == 'ledger') {
+    const thisAddress = walletStatus.address
+    const thisPk = walletStatus.pubkey
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = QRLLIB.getHeight(thisAddress)
+    const thisHexSeed = null
+    const thisMnemonic = null
+
+    xmssDetail = {
+      address: thisAddress,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: walletStatus.xmss_index,
+      walletType: 'ledger',
+    }
   }
 
   return xmssDetail
@@ -46,10 +74,210 @@ resetWalletStatus = () => {
   status.colour = 'red'
   status.string = 'No wallet has been opened.'
   status.address = ''
+  status.pubkey = ''
+  status.xmss_index = 0
+  status.walletType = ''
   status.unlocked = false
   status.menuHidden = 'display: none'
   status.menuHiddenInverse = ''
   LocalStore.set('walletStatus', status)
+}
+
+signWithLedger = (message, callback) => {
+  let signature = new Uint8Array()
+
+  async.waterfall([
+    // Call the QrlLedger.sign function with message to sign
+    function(cb) {
+      console.log('async - sign')
+      let signMe = binaryToBytes(message)
+
+      QrlLedger.sign(signMe).then(data => {
+        console.log('sign response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 1/11
+    function(data, cb) {
+      console.log('async - signNext 1')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 2/11
+    function(data, cb) {
+      console.log('async - signNext 2')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 3/11
+    function(data, cb) {
+      console.log('async - signNext 3')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 4/11
+    function(data, cb) {
+      console.log('async - signNext 4')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 5/11
+    function(data, cb) {
+      console.log('async - signNext 5')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 6/11
+    function(data, cb) {
+      console.log('async - signNext 6')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 7/11
+    function(data, cb) {
+      console.log('async - signNext 7')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 8/11
+    function(data, cb) {
+      console.log('async - signNext 8')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 9/11
+    function(data, cb) {
+      console.log('async - signNext 9')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 10/11
+    function(data, cb) {
+      console.log('async - signNext 10')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 11/11
+    function(data, cb) {
+      console.log('async - signNext 11')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      // Now get next Signature chunk
+      QrlLedger.signNext().then(data => {
+        console.log('signNext response: ', data)
+        cb(null, data)
+      })
+    },
+    // signNext - 1/11
+    function(data, cb) {
+      console.log('async - last capture of signature chunk')
+      // Add last signature chunk to array.
+      signature = concatenateTypedArrays(
+        Uint8Array,
+          signature,
+          data.signature_chunk
+      )
+      cb()
+    },
+  ], () => {
+    console.log('message signed')
+    console.log(signature)
+    callback(signature)
+  })
 }
 
 passwordPolicyValid = (password) => {
@@ -227,20 +455,38 @@ getBalance = (getAddress, callBack) => {
         LocalStore.set('transferFromBalance', 0)
       }
 
-      // Collect next OTS key
-      LocalStore.set('otsKeyEstimate', res.ots.nextKey)
+      if(getXMSSDetails().walletType == 'seed') {
+        // Collect next OTS key
+        LocalStore.set('otsKeyEstimate', res.ots.nextKey)
 
-      // Get remaining OTS Keys
-      const validationResult = qrlAddressValdidator.hexString(getAddress)
-      const { keysConsumed } = res.ots
-      const totalSignatures = validationResult.sig.number
-      const keysRemaining = totalSignatures - keysConsumed
+        // Get remaining OTS Keys
+        const validationResult = qrlAddressValdidator.hexString(getAddress)
+        const { keysConsumed } = res.ots
+        const totalSignatures = validationResult.sig.number
+        const keysRemaining = totalSignatures - keysConsumed
 
-      // Set keys remaining
-      LocalStore.set('otsKeysRemaining', keysRemaining)
+        // Set keys remaining
+        LocalStore.set('otsKeysRemaining', keysRemaining)
 
-      // Callback if set
-      callBack()
+        // Callback if set
+        callBack()
+      } else if(getXMSSDetails().walletType == 'ledger') {
+        // Collect next OTS key from Ledger Device
+        // Whilst technically we may have unused ones - we prefer to rely on state tracked in ledger device
+        QrlLedger.get_state().then(data => {
+          LocalStore.set('otsKeyEstimate', data.xmss_index)
+
+          // Get remaining OTS Keys
+          const validationResult = qrlAddressValdidator.hexString(getAddress)
+          const totalSignatures = validationResult.sig.number
+          const keysRemaining = totalSignatures - data.xmss_index
+
+          // Set keys remaining
+          LocalStore.set('otsKeysRemaining', keysRemaining)
+
+          callBack()
+        })
+      }
     }
   })
 }

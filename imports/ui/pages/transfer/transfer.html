@@ -163,9 +163,22 @@
             </div>
             <div class="field">
               <label>OTS Key Index</label>
-              <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off">
+              <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}}>
             </div>
 
+            {{#if isLedgerWallet}}
+            <div class="field">
+              <div class="ui warning icon message" style="display: inline-flex;">
+                <i class="warning icon"></i>
+                <div class="content">
+                  <div class="header">
+                    OTS Key Index Notice
+                  </div>
+                  <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is based on data provided by your Ledger Device. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. As you are using a Ledger Device, you can rest assured your Device will keep track of all used signatures for you. As a result, you cannot change the OTS Key that will be used to sign this transaction as the Ledger Device will automatically use the next one in line.</p>
+                </div>
+              </div>
+            </div>
+            {{else}}
             <div class="field">
               <div class="ui warning icon message" style="display: inline-flex;">
                 <i class="warning icon"></i>
@@ -177,6 +190,7 @@
                 </div>
               </div>
             </div>
+            {{/if}}
 
             <div class="ui stackable one column grid">
               <div class="column center aligned">

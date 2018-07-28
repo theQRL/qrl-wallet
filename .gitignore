@@ -3,6 +3,8 @@ node_modules/
 version.desktop
 .desktop-installer
 public/web-libjsqrl.wasm
+public/ledger.js
+public/qrl-ledger-library.js
 .build/
 .DS_Store
 .idea/

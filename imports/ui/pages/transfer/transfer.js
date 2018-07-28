@@ -1,11 +1,13 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
+import async from 'async'
 import './transfer.html'
 /* global LocalStore */
 /* global QRLLIB */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
+/* global signWithLedger */
 /* global DEFAULT_NETWORKS */
 /* global SHOR_PER_QUANTA */
 /* global POLL_TXN_RATE */
@@ -21,7 +23,7 @@ function generateTransaction() {
   const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
-  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(getXMSSDetails().pk)
   var sendTo = document.getElementsByName("to[]")
   var sendAmounts = document.getElementsByName("amounts[]")
 
@@ -106,8 +108,10 @@ function generateTransaction() {
 function confirmTransaction() {
   const tx = LocalStore.get('transactionConfirmationResponse')
 
-  // Set OTS Key Index
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
+  // Set OTS Key Index for seed wallets
+  if(getXMSSDetails().walletType == 'seed') {
+    XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
+  }
 
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
@@ -141,46 +145,92 @@ function confirmTransaction() {
   // Create sha256 sum of concatenatedarray
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
-  // Sign the sha sum
-  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+  // Sign the transaction and relay into network.
+  if(getXMSSDetails().walletType == 'seed') {
+    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
-  // Calculate transaction hash
-  let txnHashConcat = concatenateTypedArrays(
-    Uint8Array,
-      binaryToBytes(shaSum),
-      tx.extended_transaction_unsigned.tx.signature,
-      hexToBytes(XMSS_OBJECT.getPK())
-  )
 
-  const txnHashableBytes = toUint8Vector(txnHashConcat)
+    // Calculate transaction hash
+    let txnHashConcat = concatenateTypedArrays(
+      Uint8Array,
+        binaryToBytes(shaSum),
+        tx.extended_transaction_unsigned.tx.signature,
+        hexToBytes(getXMSSDetails().pk)
+    )
 
-  let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+    const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-  console.log('Txn Hash: ', txnHash)
+    let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
-  // Prepare gRPC call
-  tx.network = selectedNetwork()
+    console.log('Txn Hash: ', txnHash)
 
-  wrapMeteorCall('confirmTransaction', tx, (err, res) => {
-    if (res.error) {
-      $('#transactionConfirmation').hide()
-      $('#transactionFailed').show()
+    // Prepare gRPC call
+    tx.network = selectedNetwork()
 
-      LocalStore.set('transactionFailed', res.error)
-    } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+    wrapMeteorCall('confirmTransaction', tx, (err, res) => {
+      if (res.error) {
+        $('#transactionConfirmation').hide()
+        $('#transactionFailed').show()
 
-      // Show result
-      $('#generateTransactionArea').hide()
-      $('#confirmTransactionArea').hide()
-      $('#transactionResultArea').show()
-      
-      // Start polling this transcation
-      pollTransaction(LocalStore.get('transactionHash'), true)
-    }
-  })
+        LocalStore.set('transactionFailed', res.error)
+      } else {
+        LocalStore.set('transactionHash', txnHash)
+        LocalStore.set('transactionSignature', res.response.signature)
+        LocalStore.set('transactionRelayedThrough', res.relayed)
+
+        // Show result
+        $('#generateTransactionArea').hide()
+        $('#confirmTransactionArea').hide()
+        $('#transactionResultArea').show()
+
+        // Start polling this transcation
+        pollTransaction(LocalStore.get('transactionHash'), true)
+      }
+    })
+  } else if(getXMSSDetails().walletType == 'ledger') {
+
+    signWithLedger(shaSum, (response) => {
+      tx.extended_transaction_unsigned.tx.signature = response
+
+      // Calculate transaction hash
+      let txnHashConcat = concatenateTypedArrays(
+        Uint8Array,
+          binaryToBytes(shaSum),
+          tx.extended_transaction_unsigned.tx.signature,
+          hexToBytes(getXMSSDetails().pk)
+      )
+
+      const txnHashableBytes = toUint8Vector(txnHashConcat)
+
+      let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+      console.log('Txn Hash: ', txnHash)
+
+      // Prepare gRPC call
+      tx.network = selectedNetwork()
+
+      wrapMeteorCall('confirmTransaction', tx, (err, res) => {
+        if (res.error) {
+          $('#transactionConfirmation').hide()
+          $('#transactionFailed').show()
+
+          LocalStore.set('transactionFailed', res.error)
+        } else {
+          LocalStore.set('transactionHash', txnHash)
+          LocalStore.set('transactionSignature', res.response.signature)
+          LocalStore.set('transactionRelayedThrough', res.relayed)
+
+          // Show result
+          $('#generateTransactionArea').hide()
+          $('#confirmTransactionArea').hide()
+          $('#transactionResultArea').show()
+
+          // Start polling this transcation
+          pollTransaction(LocalStore.get('transactionHash'), true)
+        }
+      })
+    })
+  }
 }
 
 function cancelTransaction() {
@@ -205,7 +255,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   var sendAmounts = document.getElementsByName("amounts[]")
   
   // Convert strings to bytes
-  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(getXMSSDetails().pk)
   const tokenHashBytes = stringToBytes(tokenHash)
   const sendFromAddress = addressForAPI(sendFrom)
 
@@ -301,8 +351,10 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 function confirmTokenTransfer() {
   const tx = LocalStore.get('tokenTransferConfirmationResponse')
 
-  // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenTransferConfirmation').otsKey))
+  // Set OTS Key Index for seed wallets
+  if(getXMSSDetails().walletType == 'seed') {
+    XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenTransferConfirmation').otsKey))
+  }
 
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
@@ -310,7 +362,6 @@ function confirmTokenTransfer() {
       // tx.extended_transaction_unsigned.addr_from,
       toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
       tx.extended_transaction_unsigned.tx.transfer_token.token_txhash,
-
   )
 
   // Now append all recipient (outputs) to concatenatedArrays
@@ -338,45 +389,92 @@ function confirmTokenTransfer() {
   // Create sha256 sum of concatenatedarray
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
-  // Sign the sha sum
-  tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
-  // Calculate transaction hash
-  let txnHashConcat = concatenateTypedArrays(
-    Uint8Array,
-      binaryToBytes(shaSum),
-      tx.extended_transaction_unsigned.tx.signature,
-      hexToBytes(XMSS_OBJECT.getPK())
-  )
+  // Sign the transaction and relay into network.
+  if(getXMSSDetails().walletType == 'seed') {
+    // Sign the sha sum
+    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
-  const txnHashableBytes = toUint8Vector(txnHashConcat)
+    // Calculate transaction hash
+    let txnHashConcat = concatenateTypedArrays(
+      Uint8Array,
+        binaryToBytes(shaSum),
+        tx.extended_transaction_unsigned.tx.signature,
+        hexToBytes(getXMSSDetails().pk)
+    )
 
-  let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+    const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-  console.log('Txn Hash: ', txnHash)
+    let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
-  tx.network = selectedNetwork()
+    console.log('Txn Hash: ', txnHash)
 
-  wrapMeteorCall('confirmTokenTransfer', tx, (err, res) => {
-    if (res.error) {
-      $('#tokenCreationConfirmation').hide()
-      $('#transactionFailed').show()
+    tx.network = selectedNetwork()
 
-      LocalStore.set('transactionFailed', res.error)
-    } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+    wrapMeteorCall('confirmTokenTransfer', tx, (err, res) => {
+      if (res.error) {
+        $('#tokenCreationConfirmation').hide()
+        $('#transactionFailed').show()
 
-      // Show result
-      $('#generateTransactionArea').hide()
-      $('#confirmTokenTransactionArea').hide()
-      $('#tokenTransactionResultArea').show()
+        LocalStore.set('transactionFailed', res.error)
+      } else {
+        LocalStore.set('transactionHash', txnHash)
+        LocalStore.set('transactionSignature', res.response.signature)
+        LocalStore.set('transactionRelayedThrough', res.relayed)
 
-      // Start polling this transcation
-      pollTransaction(LocalStore.get('transactionHash'), true)
-    }
-  })
+        // Show result
+        $('#generateTransactionArea').hide()
+        $('#confirmTokenTransactionArea').hide()
+        $('#tokenTransactionResultArea').show()
+
+        // Start polling this transcation
+        pollTransaction(LocalStore.get('transactionHash'), true)
+      }
+    })
+  } else if(getXMSSDetails().walletType == 'ledger') {
+    // Sign the shasum with ledger
+    signWithLedger(shaSum, (response) => {
+      tx.extended_transaction_unsigned.tx.signature = response
+
+      // Calculate transaction hash
+      let txnHashConcat = concatenateTypedArrays(
+        Uint8Array,
+          binaryToBytes(shaSum),
+          tx.extended_transaction_unsigned.tx.signature,
+          hexToBytes(getXMSSDetails().pk)
+      )
+
+      const txnHashableBytes = toUint8Vector(txnHashConcat)
+
+      let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+      console.log('Txn Hash: ', txnHash)
+
+      tx.network = selectedNetwork()
+
+      wrapMeteorCall('confirmTokenTransfer', tx, (err, res) => {
+        if (res.error) {
+          $('#tokenCreationConfirmation').hide()
+          $('#transactionFailed').show()
+
+          LocalStore.set('transactionFailed', res.error)
+        } else {
+          LocalStore.set('transactionHash', txnHash)
+          LocalStore.set('transactionSignature', res.response.signature)
+          LocalStore.set('transactionRelayedThrough', res.relayed)
+
+          // Show result
+          $('#generateTransactionArea').hide()
+          $('#confirmTokenTransactionArea').hide()
+          $('#tokenTransactionResultArea').show()
+
+          // Start polling this transcation
+          pollTransaction(LocalStore.get('transactionHash'), true)
+        }
+      })
+    })
+  }
+
 }
 
 function setRawDetail() {
@@ -963,5 +1061,17 @@ Template.appTransfer.helpers({
   },
   recoverySeed() {
     return getXMSSDetails()
+  },
+  ledgerWalletDisabled() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return 'disabled'
+    }
+    return ''
+  },
+  isLedgerWallet() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return true
+    }
+    return false
   },
 })

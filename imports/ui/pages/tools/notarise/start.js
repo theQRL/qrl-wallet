@@ -11,17 +11,13 @@ import CryptoJS from 'crypto-js';
 
 let additional_text_max_length_value = 57
 
-function ab2str(buf) {
-    return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-
 function createMessageTxn() {
   const finalNotarisation = document.getElementById('message').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
 
   // Convert strings to bytes
-  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(getXMSSDetails().pk)
   const messageBytes = hexToBytes(finalNotarisation)
 
   // Construct request
@@ -260,5 +256,17 @@ Template.appNotariseStart.helpers({
       return DEFAULT_NETWORKS[0].explorerUrl
     }
     return LocalStore.get('nodeExplorerUrl')
+  },
+  ledgerWalletDisabled() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return 'disabled'
+    }
+    return ''
+  },
+  isLedgerWallet() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return true
+    }
+    return false
   },
 })
