@@ -24,27 +24,7 @@ getXMSSDetails = () => {
   const walletStatus = LocalStore.get('walletStatus')
   let xmssDetail
 
-  if (walletStatus.walletType == 'seed') {
-    const thisAddress = XMSS_OBJECT.getAddress()
-    const thisPk = XMSS_OBJECT.getPK()
-    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
-    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
-    const thisHeight = XMSS_OBJECT.getHeight()
-    const thisHexSeed = XMSS_OBJECT.getHexSeed()
-    const thisMnemonic = XMSS_OBJECT.getMnemonic()
-
-    xmssDetail = {
-      address: thisAddress,
-      pk: thisPk,
-      hexseed: thisHexSeed,
-      mnemonic: thisMnemonic,
-      height: thisHeight,
-      hashFunction: thisHashFunction,
-      signatureType: thisSignatureType,
-      index: 0,
-      walletType: 'seed',
-    }
-  } else if(walletStatus.walletType == 'ledger') {
+  if(walletStatus.walletType == 'ledger') {
     const thisAddress = walletStatus.address
     const thisPk = walletStatus.pubkey
     const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
@@ -63,6 +43,26 @@ getXMSSDetails = () => {
       signatureType: thisSignatureType,
       index: walletStatus.xmss_index,
       walletType: 'ledger',
+    }
+  } else {
+    const thisAddress = XMSS_OBJECT.getAddress()
+    const thisPk = XMSS_OBJECT.getPK()
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = XMSS_OBJECT.getHeight()
+    const thisHexSeed = XMSS_OBJECT.getHexSeed()
+    const thisMnemonic = XMSS_OBJECT.getMnemonic()
+
+    xmssDetail = {
+      address: thisAddress,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: 0,
+      walletType: 'seed',
     }
   }
 
