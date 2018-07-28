@@ -25,7 +25,7 @@ function openWallet(walletType, walletCode) {
       status.colour = 'green'
       status.string = `${thisAddress} is ready to use.`
       status.unlocked = true
-      status.type = 'seed'
+      status.walletType = 'seed'
       status.address = thisAddress
       status.pubkey = null
       status.menuHidden = ''
