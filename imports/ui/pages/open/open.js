@@ -6,7 +6,7 @@ import './open.html'
 /* global XMSS_OBJECT */
 /* global resetLocalStorageState */
 
-const LEDGER_TIMEOUT = 60000
+const LEDGER_TIMEOUT = 10000
 
 function openWallet(walletType, walletCode) {
   try {
