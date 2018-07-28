@@ -110,7 +110,6 @@ function clearLedgerDetails() {
   LocalStore.set('ledgerDetailsAppVersion', '')
   LocalStore.set('ledgerDetailsLibraryVersion', '')
   LocalStore.set('ledgerDetailsPkHex', '')
-  $('#walletCode').val('')
 }
 
 function getLedgerState(callback) {
@@ -315,6 +314,7 @@ Template.appAddressOpen.events({
       $('#ledgerRefreshButton').hide()
       $('#unlockButton').show()
     } else if (walletType === 'ledgernano') {
+      $('#walletCode').val('')
       $('#walletFile').hide()
       $('#passphraseArea').hide()
       $('#walletCode').show()
