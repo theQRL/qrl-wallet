@@ -32,7 +32,7 @@ function generateTransaction() {
   for (var i = 0; i < sendTo.length; i++) {
     const thisAddress = sendTo[i].value
 
-     // Fail early if attempting to send to an Ethereum style 0x address
+    // Fail early if attempting to send to an Ethereum style 0x address
     if ((thisAddress[0] === '0') && (thisAddress[1] === 'x')) {
       $('#generating').hide()
       $('#invalidAddress0x').modal('show')
@@ -41,7 +41,7 @@ function generateTransaction() {
 
     this_addresses_to.push(addressForAPI(thisAddress))
   }
-  
+
   for (var i = 0; i < sendAmounts.length; i++) {
     let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     let thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
