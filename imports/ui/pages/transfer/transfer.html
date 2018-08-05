@@ -58,6 +58,30 @@
   </div>
 </div>
 
+<div class="small ui modal" id="invalidAddress0x">
+  <div class="header">Invalid Address</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          You have attempted to create a transaction to an Ethereum ERC20 address starting with <strong>0x</strong>.
+          <br /><br />
+          This is not possible from the QRL Network. You can only send to addresses that start with a <strong>Q</strong>.
+          <br /><br />
+          Some exchanges still list our ERC20 token, and will provide an <strong>0x</strong> deposit address that is only compatible with the legacy QRL ERC20 token.
+          <br /><br />
+          Please keep this in mind when attempting to transfer your Quanta around.
+        </div>
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button">Okay</div>
+  </div>
+</div>
+
 <div class="small ui modal" id="invalidNodeResponse">
   <div class="header">WARNING - Bad Response</div>
   <div class="content">
