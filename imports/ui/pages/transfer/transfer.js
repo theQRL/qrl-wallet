@@ -30,9 +30,19 @@ function generateTransaction() {
   let this_amounts = []
 
   for (var i = 0; i < sendTo.length; i++) {
-    this_addresses_to.push(addressForAPI(sendTo[i].value))
+    const thisAddress = sendTo[i].value
+    
+     // Fail early if attempting to send to an Ethereum style 0x address
+    if ((thisAddress[0] === '0') && (thisAddress[1] === 'x')) {
+      $('#generating').hide()
+      $('#invalidAddress0x').modal('show')
+      return
+    }
+
+    this_addresses_to.push(addressForAPI(thisAddress))
   }
-   for (var i = 0; i < sendAmounts.length; i++) {
+
+  for (var i = 0; i < sendAmounts.length; i++) {
     let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     let thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
     this_amounts.push(thisAmount)
