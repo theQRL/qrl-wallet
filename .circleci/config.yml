@@ -65,14 +65,13 @@ jobs:
       - run:
           name: Temp run electrify build
           command: |
-
             rm -rf .electrify/.dist/
             mkdir .electrify/.dist
             npm install -g electrify-qrl
             meteor npm install --unsafe-perm
             /usr/local/Cellar/node/8.6.0/bin/electrify package -o .electrify/.dist/
             cd .electrify/.dist/ && zip -r QRL-Wallet-Macos.zip QRLWallet-darwin-x64
-            rm -rf .electrify/.dist/QRLWallet-darwin-x64
+            rm -rf QRLWallet-darwin-x64
 
       # Create package on master
       - deploy:
@@ -83,6 +82,8 @@ jobs:
               npm install -g electrify-qrl
               meteor npm install --unsafe-perm
               /usr/local/Cellar/node/8.6.0/bin/electrify package -o .electrify/.dist/
+              cd .electrify/.dist/ && zip -r QRL-Wallet-Macos.zip QRLWallet-darwin-x64
+              rm -rf QRLWallet-darwin-x64
             fi
 
       # Save artifacts
