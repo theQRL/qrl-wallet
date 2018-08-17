@@ -2,11 +2,11 @@
   "name": "QRLWallet",
   "productName": "QRLWallet",
   "projectName": "qrl-wallet",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "index.js",
   "dependencies": {
     "electrify-qrl": "0.0.1",
-    "grpc": "^1.11.0-pre1",
+    "grpc": "^1.13.0",
     "grpc-promise": "^1.1.0"
   },
   "electronPackager": {
