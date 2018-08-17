@@ -42,13 +42,17 @@ jobs:
             npm install -g electrify-qrl
             cd .electrify && npm install
             meteor npm install --unsafe-perm
-            meteor npm install --save @babel/runtime mathjs qrllib meteor-node-stubs aes256 @theqrl/validate-qrl-address json-formatter-js @theqrl/explorer-helpers grpc tmp async
+            meteor npm install --save @babel/runtime mathjs qrllib meteor-node-stubs aes256 @theqrl/validate-qrl-address json-formatter-js bignumber.js crypto-js @theqrl/explorer-helpers grpc tmp async
             meteor node -e 'console.log("I am Node.js %s!", process.version);'
 
       # Start meteor in background
       - run:
           name: Start Meteor
-          command: npm run dev
+          command: |
+            meteor npm install --unsafe-perm
+            meteor npm install --save @babel/runtime mathjs qrllib meteor-node-stubs aes256 @theqrl/validate-qrl-address json-formatter-js bignumber.js crypto-js @theqrl/explorer-helpers grpc tmp async
+            meteor node -e 'console.log("I am Node.js %s!", process.version);'
+            npm run dev
           background: true
 
       # Run unit tests
