@@ -71,7 +71,7 @@ jobs:
             mkdir .electrify/.dist
             npm install -g electrify-qrl
             meteor npm install --unsafe-perm
-            electrify package -o .electrify/.dist/
+            /usr/local/Cellar/node/8.6.0/bin/electrify package -o .electrify/.dist/
 
       # Create package on master
       - deploy:
