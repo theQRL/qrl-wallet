@@ -1,4 +1,6 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
+import helpers from '@theqrl/explorer-helpers'
+bech32 = require('bech32')
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
@@ -17,9 +19,31 @@ selectedNetwork = () => {
   return selectedNetwork
 }
 
+// BECH32 Address is built from the extended PK
+// bech32(descr + sha2(ePK))
+pkRawToB32Address = (pkRaw) => {
+  rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
+  ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw))  // Uint8Vector -> Uint8Array conversion
+  descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
+  return helpers.b32Encode(descriptorAndHash)
+}
+
+// wrapper to decide if addresses should be converted to BECH32 for display
+hexOrB32 = (hexAddress) => {
+  if(LocalStore.get('addressFormat') === 'bech32') {
+    return helpers.hexAddressToB32Address(hexAddress)
+  }
+  else {
+    return hexAddress
+  }
+}
+
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
   const thisAddress = XMSS_OBJECT.getAddress()
+  const thisPkRaw = XMSS_OBJECT.getPKRaw()
+  const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+
   const thisPk = XMSS_OBJECT.getPK()
   const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
   const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
@@ -29,6 +53,7 @@ getXMSSDetails = () => {
 
   const xmssDetail = {
     address: thisAddress,
+    addressB32: thisAddressB32,
     pk: thisPk,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
