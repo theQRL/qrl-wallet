@@ -604,6 +604,17 @@ Template.appTransfer.onRendered(() => {
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
   })
+
+  Tracker.autorun(function () {
+    if(LocalStore.get('addressFormat') == 'bech32') {
+      $('.qr-code-container').empty()
+      $(".qr-code-container").qrcode({width:142, height:142, text: getXMSSDetails().addressB32})
+    }
+    else {
+      $('.qr-code-container').empty()
+      $(".qr-code-container").qrcode({width:142, height:142, text: getXMSSDetails().address})
+    }
+  })
 })
 
 Template.appTransfer.events({
