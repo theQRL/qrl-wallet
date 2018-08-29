@@ -12,6 +12,7 @@ import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
 import async from 'async'
+import CryptoJS from 'crypto-js'
 
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
@@ -37,36 +38,74 @@ const errorCallback = (error, message, alert) => {
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (endpoint, callback) => {
-  // Load qrlbase.proto and fetch current qrl.proto from node
-  const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
-  const client = new baseGrpcObject.qrl.Base(endpoint, grpc.credentials.createInsecure())
+  try {
+    // Load qrlbase.proto and fetch current qrl.proto from node
+    const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
+    const client = new baseGrpcObject.qrl.Base(endpoint, grpc.credentials.createInsecure())
 
-  client.getNodeInfo({}, (err, res) => {
-    if (err) {
-      console.log(`Error fetching qrl.proto from ${endpoint}`)
-      callback(err, null)
-    } else {
-      // Write a new temp file for this grpc connection
-      const qrlProtoFilePath = tmp.fileSync({ mode: '0644', prefix: 'qrl-', postfix: '.proto' }).name
+    client.getNodeInfo({}, (err, res) => {
+      if (err) {
+        console.log(`Error fetching qrl.proto from ${endpoint}`)
+        callback(err, null)
+      } else {
+        // Write a new temp file for this grpc connection
+        const qrlProtoFilePath = tmp.fileSync({ mode: '0644', prefix: 'qrl-', postfix: '.proto' }).name
+        fs.writeFile(qrlProtoFilePath, res.grpcProto, (fsErr) => {
+          if (fsErr) {
+            console.log(fsErr)
+            throw fsErr
+          }
 
-      fs.writeFile(qrlProtoFilePath, res.grpcProto, (fsErr) => {
-        if (fsErr) {
-          console.log(fsErr)
-          throw fsErr
-        }
+          // Validate proto file matches node version
+          getQrlProtoShasum(res.version, (verifiedProtoSha256Hash) => {
+            // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
+            if(verifiedProtoSha256Hash == null) {
+              console.log(`Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`)
+              const myError = errorCallback(err, `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`, '**ERROR/connect**')
+              callback(myError, null)
+            }
 
-        const grpcObject = grpc.load(qrlProtoFilePath)
+            // Now read the saved qrl.proto file so we can calculate a hash from it
+            fs.readFile(qrlProtoFilePath, function(err, contents) {
+              if (fsErr) {
+                console.log(fsErr)
+                throw fsErr
+              }
 
-        // Create the gRPC Connection
-        qrlClient[endpoint] =
-          new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
+              // Calculate the hash of the qrl.proto file contents
+              const resultWordArray = CryptoJS.lib.WordArray.create(contents)
+              const calculatedHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex)
 
-        console.log(`qrlClient loaded for ${endpoint}`)
+              // If the calculated qrl.proto hash matches the verified one for this version,
+              // go ahead and establish the grpc connection to this node.
+              if(calculatedHash == verifiedProtoSha256Hash) {
+                // Load gRPC object
+                const grpcObject = grpc.load(qrlProtoFilePath)
 
-        callback(null, true)
-      })
-    }
-  })
+                // Create the gRPC Connection
+                qrlClient[endpoint] =
+                  new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
+
+                console.log(`qrlClient loaded for ${endpoint}`)
+
+                callback(null, true)
+              } else {
+                // qrl.proto file shasum does not match verified known shasum
+                // Could be node acting in bad faith.
+                console.log(`Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedHash}, expected: ${verifiedProtoSha256Hash}`)
+                const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedHash}, expected: ${verifiedProtoSha256Hash}`, '**ERROR/connect**')
+                callback(myError, null)
+              }
+            })
+          })
+        })
+      }
+    })
+  } catch(err) {
+    console.log('node connection error exception')
+    const myError = errorCallback(err, `Cannot access node: ${endpoint}`, '**ERROR/connect**')
+    callback(myError, null)
+  }
 }
 
 // Establish a connection with a remote node.
