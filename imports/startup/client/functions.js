@@ -1,4 +1,5 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
+bech32 = require('bech32')
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
@@ -17,9 +18,63 @@ selectedNetwork = () => {
   return selectedNetwork
 }
 
+b32Encode = (input) => {
+  return bech32.encode('q', bech32.toWords(input))
+}
+
+b32Decode = (input) => {
+  a = bech32.decode(input)
+  if (a.prefix != 'q') {
+    throw "This is not a QRL address"
+  }
+  return Uint8Array.from(bech32.fromWords(a.words))
+}
+
+// BECH32 Address is built from the extended PK
+// bech32(descr + sha2(ePK))
+pkRawToB32Address = (pkRaw) => {
+  rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
+  ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw))  // Uint8Vector -> Uint8Array conversion
+  descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
+  return b32Encode(descriptorAndHash)
+}
+
+// Hexstring Address to BECH32 Address
+hexAddressToB32Address = (hexAddress) => {
+  bin = Buffer.from(hexAddress.substring(1), 'hex')
+  descriptorAndHash = bin.slice(0, 35)
+  return b32Encode(descriptorAndHash)
+}
+
+b32AddressToHexAddress = (b32Address) => {
+  descriptorAndHash = b32Decode(b32Address)
+  hash = binaryToBytes(QRLLIB.sha2_256(toUint8Vector(descriptorAndHash)))
+  address = concatenateTypedArrays(Uint8Array, descriptorAndHash, hash.slice(28,32))
+  return binaryToQrlAddress(address)
+}
+
+compareB32HexAddresses = (b32Address, hexAddress) => {
+  b32_side = b32Decode(b32Address)
+  hex_side = hexToBytes(hexAddress.substring(1)).slice(0, 35)
+  return b32_side == hex_side
+}
+
+// wrapper to decide if addresses should be converted to BECH32 for display
+hexOrB32 = (hexAddress) => {
+  if(LocalStore.get('addressFormat') == 'bech32') {
+    return hexAddressToB32Address(hexAddress)
+  }
+  else {
+    return hexAddress
+  }
+}
+
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
   const thisAddress = XMSS_OBJECT.getAddress()
+  const thisPkRaw = XMSS_OBJECT.getPKRaw()
+  const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+
   const thisPk = XMSS_OBJECT.getPK()
   const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
   const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
@@ -29,6 +84,7 @@ getXMSSDetails = () => {
 
   const xmssDetail = {
     address: thisAddress,
+    addressB32: thisAddressB32,
     pk: thisPk,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
