@@ -13,6 +13,7 @@ import tmp from 'tmp'
 import fs from 'fs'
 import async from 'async'
 import CryptoJS from 'crypto-js'
+import util from 'util'
 
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
@@ -83,8 +84,11 @@ const loadGrpcClient = (endpoint, callback) => {
                 // Load gRPC object
                 const grpcObject = grpc.load(qrlProtoFilePath)
 
-                // Calculate the hash of the grpc object returned
-                const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObject)
+                // Inspect the object and convert to string.
+                const grpcObjectString = JSON.stringify(util.inspect(grpcObject, {showHidden: true, depth: 4}))
+
+                // Calculate the hash of the grpc object string returned
+                const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
                 const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
 
                 // If the grpc object shasum matches, establish the grpc connection.
@@ -107,8 +111,8 @@ const loadGrpcClient = (endpoint, callback) => {
               } else {
                 // qrl.proto file shasum does not match verified known shasum
                 // Could be node acting in bad faith.
-                console.log(`Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${verifiedProtoSha256Hash}, expected: ${verifiedProtoSha256Hash.protoSha256}`)
-                const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${verifiedProtoSha256Hash}, expected: ${verifiedProtoSha256Hash.protoSha256}`, '**ERROR/connect**')
+                console.log(`Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}, expected: ${verifiedProtoSha256Hash.protoSha256}`)
+                const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}, expected: ${verifiedProtoSha256Hash.protoSha256}`, '**ERROR/connect**')
                 callback(myError, null)
               }
             })
