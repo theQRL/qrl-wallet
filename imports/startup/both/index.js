@@ -11,23 +11,33 @@ WALLET_VERSION="1.0.2"
 QRLPROTO_SHA256 = [
   {
     version: "1.0.0",
-    sha256: "4565ecb1a7e3852bd46a8e357bbcc95dfc7a81bec761df50550d567a71bf6ed6"
+    protoSha256: "4565ecb1a7e3852bd46a8e357bbcc95dfc7a81bec761df50550d567a71bf6ed6",
+    objectSha256: "TODO",
   },
   {
     version: "1.1.0",
-    sha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892"
+    protoSha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892",
+    objectSha256: "4ea5c508a6566e76240543f8feb06fd457777be39549c4016436afda65d2330e",
   },
   {
     version: "1.1.1",
-    sha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892"
+    protoSha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892",
+    objectSha256: "4ea5c508a6566e76240543f8feb06fd457777be39549c4016436afda65d2330e",
   },
   {
     version: "1.1.2",
-    sha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892"
+    protoSha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892",
+    objectSha256: "4ea5c508a6566e76240543f8feb06fd457777be39549c4016436afda65d2330e",
   },
   {
     version: "1.1.3",
-    sha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892"
+    protoSha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892",
+    objectSha256: "4ea5c508a6566e76240543f8feb06fd457777be39549c4016436afda65d2330e",
+  },
+  {
+    version: "1.1.4",
+    protoSha256: "TODO",
+    objectSha256: "TODO",
   },
 ]
 
@@ -38,7 +48,7 @@ getQrlProtoShasum = (nodeVersion, callback) => {
     itemsProcessed++
     // Only look at health of userNetwork
     if (qrlnode.version == nodeVersion) {
-      callback(qrlnode.sha256)
+      callback(qrlnode)
     }
     // If we got to the end, and didn't callback above, the version was not found.
     // Return null
