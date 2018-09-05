@@ -59,7 +59,7 @@ const loadGrpcClient = (endpoint, callback) => {
           // Validate proto file matches node version
           getQrlProtoShasum(res.version, (verifiedProtoSha256Hash) => {
             // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
-            if(verifiedProtoSha256Hash == null) {
+            if(verifiedProtoSha256Hash.protoSha256 == null) {
               console.log(`Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`)
               const myError = errorCallback(err, `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`, '**ERROR/connect**')
               callback(myError, null)
@@ -73,27 +73,42 @@ const loadGrpcClient = (endpoint, callback) => {
               }
 
               // Calculate the hash of the qrl.proto file contents
-              const resultWordArray = CryptoJS.lib.WordArray.create(contents)
-              const calculatedHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex)
+              const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
+              const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
 
               // If the calculated qrl.proto hash matches the verified one for this version,
-              // go ahead and establish the grpc connection to this node.
-              if(calculatedHash == verifiedProtoSha256Hash) {
+              // continue to verify the grpc object loaded from the proto also matches the correct
+              // shasum.
+              if (calculatedProtoHash == verifiedProtoSha256Hash.protoSha256) {
                 // Load gRPC object
                 const grpcObject = grpc.load(qrlProtoFilePath)
 
-                // Create the gRPC Connection
-                qrlClient[endpoint] =
-                  new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
+                // Calculate the hash of the grpc object returned
+                const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObject)
+                const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
 
-                console.log(`qrlClient loaded for ${endpoint}`)
+                // If the grpc object shasum matches, establish the grpc connection.
+                if (calculatedObjectHash == verifiedProtoSha256Hash.objectSha256) {
+                  // Create the gRPC Connection
+                  qrlClient[endpoint] =
+                    new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
 
-                callback(null, true)
+                  console.log(`qrlClient loaded for ${endpoint}`)
+
+                  callback(null, true)
+                } else {
+                  // grpc object shasum does not match verified known shasum
+                  // Could be local side attack changing the proto file in between validation
+                  // and grpc connection establishment
+                  console.log(`Invalid qrl.proto grpc object shasum - node version: ${res.version}, qrl.proto object sha256: ${calculatedObjectHash}, expected: ${verifiedProtoSha256Hash.objectSha256}`)
+                  const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedObjectHash}, expected: ${verifiedProtoSha256Hash.objectSha256}`, '**ERROR/connect**')
+                  callback(myError, null)
+                }
               } else {
                 // qrl.proto file shasum does not match verified known shasum
                 // Could be node acting in bad faith.
-                console.log(`Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedHash}, expected: ${verifiedProtoSha256Hash}`)
-                const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedHash}, expected: ${verifiedProtoSha256Hash}`, '**ERROR/connect**')
+                console.log(`Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${verifiedProtoSha256Hash}, expected: ${verifiedProtoSha256Hash.protoSha256}`)
+                const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${verifiedProtoSha256Hash}, expected: ${verifiedProtoSha256Hash.protoSha256}`, '**ERROR/connect**')
                 callback(myError, null)
               }
             })
