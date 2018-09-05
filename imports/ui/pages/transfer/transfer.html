@@ -630,14 +630,14 @@
         {{#each addressTransactions}}
           {{#if isTransfer this.type}}
           <div class="ui icon message transactionRecord">
-            {{#if isMyAddress this.from}}
+            {{#if isMyAddress this.from_b32}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             {{else}}
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             {{/if}}
             <div class="content">
               <div class="header">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                 Sent
                 {{else}}
                 Received
@@ -645,17 +645,17 @@
                  | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                   {{#each this.outputs}}
                     {{this.address}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
-                  {{this.from}}
+                  {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
                 {{/if}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from_b32}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -679,14 +679,14 @@
 
           {{#if isTokenTransfer this.type}}
           <div class="ui icon message transactionRecord">
-            {{#if isMyAddress this.from}}
+            {{#if isMyAddress this.from_b32}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             {{else}}
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             {{/if}}
             <div class="content">
               <div class="header">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                 Sent
                 {{else}}
                 Received
@@ -694,7 +694,7 @@
                  | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                   {{#each this.outputs}}
                     {{this.address}} - {{this.amount}}<br />
                   {{/each}}
@@ -704,7 +704,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from_b32}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -717,7 +717,7 @@
                 Coinbase Received | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.from}}
+                {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
               </p>
             </div>
             <div class="floatright">

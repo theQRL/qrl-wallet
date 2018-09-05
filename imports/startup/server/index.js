@@ -12,8 +12,6 @@ import grpc from 'grpc'
 import tmp from 'tmp'
 import fs from 'fs'
 import async from 'async'
-import CryptoJS from 'crypto-js'
-import util from 'util'
 
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
@@ -39,92 +37,36 @@ const errorCallback = (error, message, alert) => {
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (endpoint, callback) => {
-  try {
-    // Load qrlbase.proto and fetch current qrl.proto from node
-    const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
-    const client = new baseGrpcObject.qrl.Base(endpoint, grpc.credentials.createInsecure())
+  // Load qrlbase.proto and fetch current qrl.proto from node
+  const baseGrpcObject = grpc.load(Assets.absoluteFilePath('qrlbase.proto'))
+  const client = new baseGrpcObject.qrl.Base(endpoint, grpc.credentials.createInsecure())
 
-    client.getNodeInfo({}, (err, res) => {
-      if (err) {
-        console.log(`Error fetching qrl.proto from ${endpoint}`)
-        callback(err, null)
-      } else {
-        // Write a new temp file for this grpc connection
-        const qrlProtoFilePath = tmp.fileSync({ mode: '0644', prefix: 'qrl-', postfix: '.proto' }).name
-        fs.writeFile(qrlProtoFilePath, res.grpcProto, (fsErr) => {
-          if (fsErr) {
-            console.log(fsErr)
-            throw fsErr
-          }
+  client.getNodeInfo({}, (err, res) => {
+    if (err) {
+      console.log(`Error fetching qrl.proto from ${endpoint}`)
+      callback(err, null)
+    } else {
+      // Write a new temp file for this grpc connection
+      const qrlProtoFilePath = tmp.fileSync({ mode: '0644', prefix: 'qrl-', postfix: '.proto' }).name
 
-          // Validate proto file matches node version
-          getQrlProtoShasum(res.version, (verifiedProtoSha256Hash) => {
-            // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
-            if(verifiedProtoSha256Hash.protoSha256 == null) {
-              console.log(`Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`)
-              const myError = errorCallback(err, `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`, '**ERROR/connect**')
-              callback(myError, null)
-            }
+      fs.writeFile(qrlProtoFilePath, res.grpcProto, (fsErr) => {
+        if (fsErr) {
+          console.log(fsErr)
+          throw fsErr
+        }
 
-            // Now read the saved qrl.proto file so we can calculate a hash from it
-            fs.readFile(qrlProtoFilePath, function(err, contents) {
-              if (fsErr) {
-                console.log(fsErr)
-                throw fsErr
-              }
+        const grpcObject = grpc.load(qrlProtoFilePath)
 
-              // Calculate the hash of the qrl.proto file contents
-              const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
-              const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
+        // Create the gRPC Connection
+        qrlClient[endpoint] =
+          new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
 
-              // If the calculated qrl.proto hash matches the verified one for this version,
-              // continue to verify the grpc object loaded from the proto also matches the correct
-              // shasum.
-              if (calculatedProtoHash == verifiedProtoSha256Hash.protoSha256) {
-                // Load gRPC object
-                const grpcObject = grpc.load(qrlProtoFilePath)
+        console.log(`qrlClient loaded for ${endpoint}`)
 
-                // Inspect the object and convert to string.
-                const grpcObjectString = JSON.stringify(util.inspect(grpcObject, {showHidden: true, depth: 4}))
-
-                // Calculate the hash of the grpc object string returned
-                const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
-                const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
-
-                // If the grpc object shasum matches, establish the grpc connection.
-                if (calculatedObjectHash == verifiedProtoSha256Hash.objectSha256) {
-                  // Create the gRPC Connection
-                  qrlClient[endpoint] =
-                    new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
-
-                  console.log(`qrlClient loaded for ${endpoint}`)
-
-                  callback(null, true)
-                } else {
-                  // grpc object shasum does not match verified known shasum
-                  // Could be local side attack changing the proto file in between validation
-                  // and grpc connection establishment
-                  console.log(`Invalid qrl.proto grpc object shasum - node version: ${res.version}, qrl.proto object sha256: ${calculatedObjectHash}, expected: ${verifiedProtoSha256Hash.objectSha256}`)
-                  const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedObjectHash}, expected: ${verifiedProtoSha256Hash.objectSha256}`, '**ERROR/connect**')
-                  callback(myError, null)
-                }
-              } else {
-                // qrl.proto file shasum does not match verified known shasum
-                // Could be node acting in bad faith.
-                console.log(`Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}, expected: ${verifiedProtoSha256Hash.protoSha256}`)
-                const myError = errorCallback(err, `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}, expected: ${verifiedProtoSha256Hash.protoSha256}`, '**ERROR/connect**')
-                callback(myError, null)
-              }
-            })
-          })
-        })
-      }
-    })
-  } catch(err) {
-    console.log('node connection error exception')
-    const myError = errorCallback(err, `Cannot access node: ${endpoint}`, '**ERROR/connect**')
-    callback(myError, null)
-  }
+        callback(null, true)
+      })
+    }
+  })
 }
 
 // Establish a connection with a remote node.
@@ -1034,7 +976,8 @@ Meteor.methods({
             txhash: arr.txhash,
             totalTransferred: output.transaction.explorer.totalTransferred,
             outputs: output.transaction.explorer.outputs,
-            from: output.transaction.explorer.from,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
             fee: output.transaction.tx.fee,
             block: output.transaction.header.block_number,
@@ -1045,7 +988,8 @@ Meteor.methods({
           thisTxn = {
             type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
-            from: output.transaction.explorer.from,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             symbol: output.transaction.tx.token.symbol,
             name: output.transaction.tx.token.name,
             decimals: output.transaction.tx.token.decimals,
@@ -1104,8 +1048,9 @@ Meteor.methods({
           thisTxn = {
             type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
-            amount: output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,
-            from: output.transaction.explorer.from,
+            amount: output.transaction.tx.coinbase.amount,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             to: output.transaction.tx.coinbase.addr_to,
             ots_key: '',
             fee: output.transaction.tx.fee / SHOR_PER_QUANTA,
@@ -1118,7 +1063,8 @@ Meteor.methods({
             type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: 0,
-            from: output.transaction.explorer.from,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             to: '',
             ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
             fee: output.transaction.tx.fe,
@@ -1131,7 +1077,8 @@ Meteor.methods({
             type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
             amount: 0,
-            from: output.transaction.explorer.from,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             to: '',
             ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
             fee: output.transaction.tx.fee,
@@ -1144,7 +1091,8 @@ Meteor.methods({
             type: output.transaction.explorer.type,
             txhash: arr.txhash,
             amount: 0,
-            from: output.transaction.explorer.from,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             to: '',
             ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
             fee: output.transaction.tx.fee,
@@ -1157,7 +1105,8 @@ Meteor.methods({
             type: output.transaction.explorer.type,
             txhash: arr.txhash,
             amount: 0,
-            from: output.transaction.explorer.from,
+            from_hex: output.transaction.explorer.from_hex,
+            from_b32: output.transaction.explorer.from_b32,
             to: '',
             ots_key: parseInt(output.transaction.tx.signature.substring(0, 8), 16),
             fee: output.transaction.tx.fee,

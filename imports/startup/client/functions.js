@@ -38,6 +38,13 @@ hexOrB32 = (hexAddress) => {
   }
 }
 
+anyAddressToRawAddress = (address) => {
+  if ( address[0] === 'q') {
+    return helpers.b32AddressToRawAddress(address)
+  }
+  return helpers.hexAddressToRawAddress(address)
+}
+
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
   const thisAddress = XMSS_OBJECT.getAddress()

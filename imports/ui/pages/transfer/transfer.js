@@ -1,4 +1,5 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
+import helpers from '@theqrl/explorer-helpers'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
 import './transfer.html'
@@ -740,6 +741,12 @@ Template.appTransfer.helpers({
     transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
     return transferFrom
   },
+  bech32() {
+    if (LocalStore.get('addressFormat') == 'bech32') {
+      return true
+    }
+    return false
+  },
   transactionConfirmation() {
     const confirmation = LocalStore.get('transactionConfirmation')
     return confirmation
@@ -832,7 +839,7 @@ Template.appTransfer.helpers({
       let thisReceivedAmount = 0
       if ((transaction.type === 'transfer') || (transaction.type === 'transfer_token')) {
         _.each(transaction.outputs, (output) => {
-          if(output.address == thisAddress) {
+          if(output.address_hex == thisAddress) {
             thisReceivedAmount += parseFloat(output.amount)
           }
         })
@@ -850,7 +857,9 @@ Template.appTransfer.helpers({
     return false
   },
   isMyAddress(address) {
-    if(address == getXMSSDetails().address) {
+    a = Buffer.from(anyAddressToRawAddress(address))
+    b = Buffer.from(binaryToBytes(XMSS_OBJECT.getAddressRaw()))
+    if(a.equals(b)) {
       return true
     }
     return false
