@@ -1,6 +1,6 @@
 {
   "name": "qrl-wallet",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "QRL Wallet",
   "main": "index.js",
   "dependencies": {
