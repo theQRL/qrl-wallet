@@ -1,5 +1,6 @@
 import './tokenCreate.html'
 import { BigNumber } from 'bignumber.js'
+import helpers from '@theqrl/explorer-helpers'
 /* global LocalStore */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
@@ -20,8 +21,8 @@ function maxAllowedDecimals(tokenTotalSupply) {
 
 function createTokenTxn() {
   // Get to/amount details
-  const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
-  const owner = addressForAPI(document.getElementById('owner').value)
+  const sendFrom = anyAddressToRawAddress(LocalStore.get('transferFromAddress'))
+  const owner = anyAddressToRawAddress(document.getElementById('owner').value)
   const symbol = document.getElementById('symbol').value
   const name = document.getElementById('name').value
   const decimals = document.getElementById('decimals').value
@@ -45,7 +46,7 @@ function createTokenTxn() {
     let thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber()
 
     const thisHolder = {
-      address: addressForAPI(initialBalancesAddress[i].value),
+      address: anyAddressToRawAddress(initialBalancesAddress[i].value),
       amount: thisAmount
     }
 
@@ -89,10 +90,14 @@ function createTokenTxn() {
     } else {
       const confirmation = {
         hash: res.txnHash,
-        from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
+        from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
+        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
+        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
         symbol: bytesToString(res.response.extended_transaction_unsigned.tx.token.symbol),
         name: bytesToString(res.response.extended_transaction_unsigned.tx.token.name),
-        owner: binaryToQrlAddress(res.response.extended_transaction_unsigned.tx.token.owner),
+        owner: Buffer.from(res.response.extended_transaction_unsigned.tx.token.owner),
+        owner_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.tx.token.owner),
+        owner_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.tx.token.owner),
         decimals: res.response.extended_transaction_unsigned.tx.token.decimals,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.extended_transaction_unsigned.tx.token.initial_balances,
@@ -130,10 +135,6 @@ function initialiseFormValidation() {
           type: 'empty',
           prompt: 'Please enter the QRL address you wish to allocate funds to',
         },
-        {
-          type: 'exactLength[79]',
-          prompt: 'QRL address must be exactly 79 characters',
-        },
       ],
     };
 
@@ -163,10 +164,6 @@ function initialiseFormValidation() {
       {
         type: 'empty',
         prompt: 'Please enter the QRL address you wish to make the owner of this token',
-      },
-      {
-        type: 'exactLength[79]',
-        prompt: 'QRL address must be exactly 79 characters',
       },
     ],
   }
