@@ -19,7 +19,7 @@ let tokensHeld = []
 
 function generateTransaction() {
   // Get to/amount details
-  const sendFrom = addressForAPI(LocalStore.get('transferFromAddress'))
+  const sendFrom = anyAddressToRawAddress(LocalStore.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
@@ -40,7 +40,7 @@ function generateTransaction() {
       return
     }
 
-    this_addresses_to.push(addressForAPI(thisAddress))
+    this_addresses_to.push(anyAddressToRawAddress(thisAddress))
   }
 
   for (var i = 0; i < sendAmounts.length; i++) {
@@ -78,7 +78,9 @@ function generateTransaction() {
       for (var i = 0; i < resAddrsTo.length; i++) {
         // Create and store the output
         const thisOutput = {
-          address: binaryToQrlAddress(resAddrsTo[i]),
+          address: Buffer.from(resAddrsTo[i]),
+          address_hex: helpers.rawAddressToHexAddress(resAddrsTo[i]),
+          address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
           amount: resAmounts[i] / SHOR_PER_QUANTA,
           name: "Quanta"
         }
@@ -89,7 +91,9 @@ function generateTransaction() {
       }
 
       const confirmation = {
-        from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
+        from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
+        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
+        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmation_outputs,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey: otsKey
@@ -209,7 +213,7 @@ function cancelTransaction() {
 
 function sendTokensTxnCreate(tokenHash, decimals) {
   // Get to/amount details
-  const sendFrom = LocalStore.get('transferFromAddress')
+  const sendFrom = anyAddressToRawAddress(LocalStore.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   var sendTo = document.getElementsByName("to[]")
@@ -218,14 +222,13 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
   const tokenHashBytes = stringToBytes(tokenHash)
-  const sendFromAddress = addressForAPI(sendFrom)
 
   // Capture outputs
   let this_addresses_to = []
   let this_amounts = []
 
   for (var i = 0; i < sendTo.length; i++) {
-    this_addresses_to.push(addressForAPI(sendTo[i].value))
+    this_addresses_to.push(anyAddressToRawAddress(sendTo[i].value))
   }
    for (var i = 0; i < sendAmounts.length; i++) {
     let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
@@ -239,7 +242,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 
   // Construct request
   const request = {
-    addressFrom: sendFromAddress,
+    addressFrom: sendFrom,
     addresses_to: this_addresses_to,
     amounts: this_amounts,
     tokenHash: tokenHashBytes,
@@ -274,7 +277,9 @@ function sendTokensTxnCreate(tokenHash, decimals) {
       for (var i = 0; i < resAddrsTo.length; i++) {
         // Create and store the output
         const thisOutput = {
-          address: binaryToQrlAddress(resAddrsTo[i]),
+          address: Buffer.from(resAddrsTo[i]),
+          address_hex: helpers.rawAddressToHexAddress(resAddrsTo[i]),
+          address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
           amount: resAmounts[i] / Math.pow(10, decimals),
           name: tokenDetails.symbol
         }
@@ -286,7 +291,9 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 
       const confirmation = {
         hash: res.txnHash,
-        from: binaryToQrlAddress(res.response.extended_transaction_unsigned.addr_from),
+        from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
+        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
+        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmation_outputs,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         tokenHash: res.response.extended_transaction_unsigned.tx.transfer_token.token_txhash,
@@ -508,10 +515,6 @@ function initialiseFormValidation() {
         {
           type: 'empty',
           prompt: 'Please enter the QRL address you wish to send to',
-        },
-        {
-          type: 'exactLength[79]',
-          prompt: 'QRL address must be exactly 79 characters',
         },
       ],
     };

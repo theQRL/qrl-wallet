@@ -243,7 +243,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each transactionConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -305,7 +305,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -381,7 +381,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each transactionConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -466,7 +466,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
