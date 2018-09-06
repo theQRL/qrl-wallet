@@ -38,6 +38,16 @@ hexOrB32 = (hexAddress) => {
   }
 }
 
+// wrapper to decide if addresses should be converted to BECH32 for display
+rawToHexOrB32 = (rawAddress) => {
+  if(LocalStore.get('addressFormat') === 'bech32') {
+    return helpers.rawAddressToB32Address(rawAddress)
+  }
+  else {
+    return helpers.rawAddressToHexAddress(rawAddress)
+  }
+}
+
 // A Template helper cannot access the helpers for some reason, so this has to stay in qrl-wallet
 anyAddressToRawAddress = (address) => {
   if ( address[0] === 'q') {
