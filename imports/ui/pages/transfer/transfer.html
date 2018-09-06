@@ -647,7 +647,7 @@
               <p class="transactionAddress">
                 {{#if isMyAddress this.from_b32}}
                   {{#each this.outputs}}
-                    {{this.address}} - {{this.amount}}<br />
+                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
                   {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
@@ -696,7 +696,7 @@
               <p class="transactionAddress">
                 {{#if isMyAddress this.from_b32}}
                   {{#each this.outputs}}
-                    {{this.address}} - {{this.amount}}<br />
+                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
                   {{this.from}}
