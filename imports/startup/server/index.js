@@ -1115,7 +1115,7 @@ Meteor.methods({
           thisTxn = {
             type: output.transaction.tx.transactionType,
             txhash: arr.txhash,
-            amount: output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,,
+            amount: output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA,
             from: output.transaction.explorer.from,
             to: output.transaction.tx.coinbase.addr_to,
             ots_key: '',
