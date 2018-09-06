@@ -1004,45 +1004,11 @@ Meteor.methods({
           // Request Token Symbol
           const symbolRequest = {
             query: Buffer.from(Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'), 'hex'),
-            network: request.network
+            network: request.network,
           }
 
           const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
-          const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
-          const thisDecimals = thisSymbolResponse.transaction.tx.token.decimals
-
-          // Calculate total transferred, and generate a clean structure to display outputs from
-          let thisTotalTransferred = 0
-          const thisOutputs = []
-          // eslint-disable-next-line
-          _.each(thisTxnHashResponse.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
-            const thisOutput = {
-              address: thisAddress,
-              // eslint-disable-next-line
-              amount: numberToString(parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index], 10) / Math.pow(10, thisDecimals)),
-            }
-            thisOutputs.push(thisOutput)
-
-            // Now update total transferred with the corresponding amount from this output
-            thisTotalTransferred +=
-            parseInt(thisTxnHashResponse.transaction.tx.transfer_token.amounts[index], 10)
-          })
-
-          thisTxnHashResponse.transaction.tx.signature = Buffer.from(thisTxnHashResponse.transaction.tx.signature).toString('hex')
-          thisTxn = {
-            type: thisTxnHashResponse.transaction.tx.transactionType,
-            txhash: arr.txhash,
-            symbol: thisSymbol,
-            // eslint-disable-next-line
-            totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
-            outputs: thisOutputs,
-            from: thisTxnHashResponse.transaction.addr_from,
-            ots_key: parseInt(thisTxnHashResponse.transaction.tx.signature.substring(0, 8), 16),
-            fee: thisTxnHashResponse.transaction.tx.fee / SHOR_PER_QUANTA,
-            block: thisTxnHashResponse.transaction.header.block_number,
-            timestamp: thisTxnHashResponse.transaction.header.timestamp_seconds,
-          }
-
+          thisTxn = helpers.parseTokenAndTransferTokenTx(thisSymbolResponse, thisTxnHashResponse)
           result.push(thisTxn)
         } else if (output.transaction.tx.transactionType === 'coinbase') {
           thisTxn = {
