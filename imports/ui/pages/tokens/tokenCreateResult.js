@@ -120,7 +120,7 @@ Template.appTokenCreationResult.helpers({
   },
   tokenDetails() {
     let details = LocalStore.get('txhash').transaction.tx.token
-    details.owner = binaryToQrlAddress(details.owner)
+    details.owner = rawToHexOrB32(Buffer.from(details.owner))
     details.symbol = bytesToString(details.symbol)
     details.name = bytesToString(details.name)
     return details
@@ -131,7 +131,7 @@ Template.appTokenCreationResult.helpers({
     let tokenHolders = []
     for (var i = 0; i < tokenHoldersRaw.length; i++) {
       const thisHolder = {
-        address: binaryToQrlAddress(tokenHoldersRaw[i].address),
+        address: rawToHexOrB32(Buffer.from(tokenHoldersRaw[i].address)),
         amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals)
       }
       tokenHolders.push(thisHolder)
