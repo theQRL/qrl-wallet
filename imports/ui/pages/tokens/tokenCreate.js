@@ -8,6 +8,7 @@ import helpers from '@theqrl/explorer-helpers'
 /* global SHOR_PER_QUANTA */
 /* global wrapMeteorCall */
 /* global nodeReturnedValidResponse */
+/* global otsIndexUsed */
 
 let countRecipientsForValidation = 1
 
@@ -30,6 +31,13 @@ function createTokenTxn() {
   const otsKey = document.getElementById('otsKey').value
 
   let tokenHolders = []
+
+  // Fail if OTS Key reuse is detected
+  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+    $('#generating').hide()
+    $('#otsKeyReuseDetected').modal('show')
+    return
+  }
 
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())

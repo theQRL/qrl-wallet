@@ -14,6 +14,7 @@ import './transfer.html'
 /* global wrapMeteorCall */
 /* global countDecimals */
 /* global nodeReturnedValidResponse */
+/* global otsIndexUsed */
 
 let tokensHeld = []
 
@@ -43,6 +44,14 @@ function generateTransaction() {
     this_addresses_to.push(anyAddressToRawAddress(thisAddress))
   }
 
+  // Fail if OTS Key reuse is detected
+  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+    $('#generating').hide()
+    $('#otsKeyReuseDetected').modal('show')
+    return
+  }
+
+  // Format amounts correctly.
   for (var i = 0; i < sendAmounts.length; i++) {
     let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     let thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
@@ -222,6 +231,13 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
   const tokenHashBytes = stringToBytes(tokenHash)
+
+  // Fail if OTS Key reuse is detected
+  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+    $('#generating').hide()
+    $('#otsKeyReuseDetected').modal('show')
+    return
+  }
 
   // Capture outputs
   let this_addresses_to = []
