@@ -1,6 +1,5 @@
 import './start.html'
 import CryptoJS from 'crypto-js';
-
 /* global LocalStore */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
@@ -10,11 +9,7 @@ import CryptoJS from 'crypto-js';
 /* global nodeReturnedValidResponse */
 /* global otsIndexUsed */
 
-let additional_text_max_length_value = 57
-
-function ab2str(buf) {
-    return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
+let additional_text_max_length_value = 45
 
 function createMessageTxn() {
   const finalNotarisation = document.getElementById('message').value
@@ -90,15 +85,9 @@ function notariseDocument() {
       // Convert FileReader ArrayBuffer to WordArray first
       var resultWordArray = CryptoJS.lib.WordArray.create(reader.result);
 
-      if(hashFunction == "SHA1") {
-        fileHash = CryptoJS.SHA1(resultWordArray).toString(CryptoJS.enc.Hex);
-        notarisation = notarisation + '1' + fileHash
-      } else if(hashFunction == "SHA256") {
+      if(hashFunction == "SHA256") {
         fileHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex);
         notarisation = notarisation + '2' + fileHash
-      } else if(hashFunction == "MD5") {
-        fileHash = CryptoJS.MD5(resultWordArray).toString(CryptoJS.enc.Hex);
-        notarisation = notarisation + '3' + fileHash
       }
 
       // Convert free form text to hex
@@ -214,15 +203,9 @@ Template.appNotariseStart.events({
   },
   'change #hashFunction': (event) => {
     const selectedFunction = document.getElementById('hashFunction').value
-    if(selectedFunction == "SHA1") {
-      additional_text_max_length_value = 57
-      document.getElementById('additional_text_max_length').innerHTML = '(Max Length: 57)'
-    } else if(selectedFunction == "SHA256") {
+    if(selectedFunction == "SHA256") {
       additional_text_max_length_value = 45
       document.getElementById('additional_text_max_length').innerHTML = '(Max Length: 45)'
-    } else if(selectedFunction == "MD5") {
-      additional_text_max_length_value = 61
-      document.getElementById('additional_text_max_length').innerHTML = '(Max Length: 61)'
     }
     initialiseFormValidation()
   }
