@@ -12,7 +12,6 @@ XMSS_OBJECT = null
 POLL_TXN_RATE = 5000 // 5seconds
 POLL_MAX_CHECKS = 120 // max 10 minutes checking status
 
-
 // Reset wallet status
 resetWalletStatus()
 

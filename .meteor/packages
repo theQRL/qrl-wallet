@@ -32,4 +32,4 @@ juliancwirko:postcss
 less@2.7.12
 jquery@1.11.10
 qrl:browser-policy
-underscore
+underscore@1.0.10
