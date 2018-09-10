@@ -6,12 +6,20 @@ import './messageCreate.html'
 /* global SHOR_PER_QUANTA */
 /* global wrapMeteorCall */
 /* global nodeReturnedValidResponse */
+/* global otsIndexUsed */
 
 function createMessageTxn() {
   // Get to/amount details
   const userMessage = document.getElementById('message').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
+
+  // Fail if OTS Key reuse is detected
+  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+    $('#generating').hide()
+    $('#otsKeyReuseDetected').modal('show')
+    return
+  }
 
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
