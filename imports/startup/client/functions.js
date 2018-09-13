@@ -217,6 +217,7 @@ getBalance = (getAddress, callBack) => {
       LocalStore.set('address', 'Error')
       LocalStore.set('otsKeyEstimate', 0)
       LocalStore.set('otsKeysRemaining', 0)
+      LocalStore.set('otsBitfield', {})
     } else {
       if (res.state.address !== '') {
         LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
@@ -239,10 +240,20 @@ getBalance = (getAddress, callBack) => {
       // Set keys remaining
       LocalStore.set('otsKeysRemaining', keysRemaining)
 
+      // Store OTS Bitfield in LocalStorage
+      LocalStore.set('otsBitfield', res.ots.keys)
+
       // Callback if set
       callBack()
     }
   })
+}
+
+otsIndexUsed = (otsBitfield, index) => {
+  if(otsBitfield[index] === 1) {
+    return true
+  }
+  return false
 }
 
 loadAddressTransactions = (txArray) => {
@@ -409,6 +420,7 @@ resetLocalStorageState = () => {
   LocalStore.set('otsKeyEstimate', '')
   LocalStore.set('balanceAmount', '')
   LocalStore.set('balanceSymbol', '')
+  LocalStore.set('otsBitfield', '')
 }
 
 function logRequestResponse(request, response) {
