@@ -454,6 +454,7 @@ refreshTransferPage = (callback) => {
 // Reset wallet localstorage state
 resetLocalStorageState = () => {
   LocalStore.set('address', '')
+  LocalStore.set('addressFormat', 'hex')
   LocalStore.set('addressTransactions', '')
   LocalStore.set('transferFromAddress', '')
   LocalStore.set('transferFromBalance', '')
