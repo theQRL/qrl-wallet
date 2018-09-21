@@ -73,19 +73,33 @@ function unlockWallet() {
     const reader = new FileReader()
     reader.onload = (function(theFile) {
       return function(e) {
+        function getMnemonicOfFirstAddress(walletObject) {
+          function handleVersion1() {
+            let mnemonic = ''
+            if (walletObject.encrypted === true) {
+              mnemonic = aes256.decrypt(passphrase, walletObject.addresses[0].mnemonic)
+            } else {
+              mnemonic = walletObject.addresses[0].mnemonic
+            }
+            return mnemonic
+          }
+          function handleVersion0() {
+            let mnemonic = ''
+            if (walletObject[0].encrypted === true) {
+              mnemonic = aes256.decrypt(passphrase, walletObject[0].mnemonic)
+            } else {
+              mnemonic = walletObject[0].mnemonic
+            }
+            return mnemonic
+          }
+          if (walletObject.version === 1) {
+            return handleVersion1()
+          }
+          return handleVersion0()
+        }
         try {
           const walletJson = JSON.parse(e.target.result)
-          const walletEncrypted = walletJson[0].encrypted
-
-          // Decrypt an encrypted wallet file
-          if (walletEncrypted === true) {
-            // Decrypt wallet items before proceeding
-            walletJson[0].address = aes256.decrypt(passphrase, walletJson[0].address)
-            walletJson[0].mnemonic = aes256.decrypt(passphrase, walletJson[0].mnemonic)
-            walletJson[0].hexseed = aes256.decrypt(passphrase, walletJson[0].hexseed)
-          }
-
-          const walletMnemonic = walletJson[0].mnemonic
+          const walletMnemonic = getMnemonicOfFirstAddress(walletJson)
 
           // Validate we have a valid mnemonic before attemptint to open file
           if ((walletMnemonic.split(' ').length - 1) !== 33) {
