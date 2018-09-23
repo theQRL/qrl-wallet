@@ -1022,9 +1022,23 @@ Meteor.methods({
             query: Buffer.from(Buffer.from(thisTxnHashResponse.transaction.tx.transfer_token.token_txhash).toString('hex'), 'hex'),
             network: request.network,
           }
-
           const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
-          thisTxn = helpers.parseTokenAndTransferTokenTx(thisSymbolResponse, thisTxnHashResponse)
+          const helpersResponse = helpers.parseTokenAndTransferTokenTx(thisSymbolResponse, thisTxnHashResponse)
+          thisTxn = {
+            type: helpersResponse.transaction.tx.transactionType,
+            txhash: arr.txhash,
+            symbol: helpersResponse.transaction.explorer.symbol,
+            // eslint-disable-next-line
+            totalTransferred: helpersResponse.transaction.explorer.totalTransferred,
+            outputs: helpersResponse.transaction.explorer.outputs,
+            from_hex: helpersResponse.transaction.explorer.from_hex,
+            from_b32: helpersResponse.transaction.explorer.from_b32,
+            ots_key: parseInt(helpersResponse.transaction.tx.signature.substring(0, 8), 16),
+            fee: helpersResponse.transaction.tx.fee / SHOR_PER_QUANTA,
+            block: helpersResponse.transaction.header.block_number,
+            timestamp: helpersResponse.transaction.header.timestamp_seconds,
+          }
+
           result.push(thisTxn)
         } else if (output.transaction.tx.transactionType === 'coinbase') {
           thisTxn = {
