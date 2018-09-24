@@ -58,6 +58,12 @@ Template.appVerifyTxid.helpers({
     txhash.tx.ots_key = parseInt(signature.substring(0, 8), 16)
     return txhash
   },
+  bech32() {
+    if (LocalStore.get('addressFormat') == 'bech32') {
+      return true
+    }
+    return false
+  },
   notFound() {
     if (LocalStore.get('txhash').found === false) {
       return true
@@ -87,7 +93,7 @@ Template.appVerifyTxid.helpers({
       return `${numberToString(this.tx.transfer.totalTransferred)} Quanta`
     }
     if (this.tx.transactionType === 'transfer_token') {
-      return `${numberToString(this.tx.transfer_token.totalTransferred)} ${this.tx.transfer_token.tokenSymbol}`
+      return `${numberToString(this.tx.transfer_token.totalTransferred)} ${this.tx.transfer_token.symbol}`
     }
     return ''
   },

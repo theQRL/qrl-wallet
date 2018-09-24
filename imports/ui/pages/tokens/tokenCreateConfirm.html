@@ -23,7 +23,7 @@
           <p></p>
         </div>
         <div class="extra wordBreak">
-          Owner: {{tokenCreationConfirmation.owner}}<br />
+          Owner: {{#if bech32}}{{tokenCreationConfirmation.owner_b32}}{{else}}{{tokenCreationConfirmation.owner_hex}}{{/if}}<br />
           Decimals: {{tokenCreationConfirmation.decimals}}
         </div>
       </div>
@@ -41,7 +41,7 @@
     <div class="item">
       <i class="large user middle aligned icon"></i>
       <div class="content">
-        <a class="header wordBreak">{{this.address}}</a>
+        <a class="header wordBreak">{{#if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}</a>
         <div class="description">{{tokenCreationConfirmation.symbol}}: {{this.amount}}</div>
       </div>
     </div>
@@ -57,7 +57,7 @@
 
   <div class="ui stackable one column grid">
     <div class="column">
-      <span>From <a class="ui wordBreak">{{tokenCreationConfirmation.from}}</a></span>
+      <span>From <a class="ui wordBreak">{{#if bech32}}{{tokenCreationConfirmation.from_b32}}{{else}}{{tokenCreationConfirmation.from_hex}}{{/if}}</a></span>
       <br />
       <span>Fee <a class="ui">{{tokenCreationConfirmation.fee}}</a></span>
       <br />

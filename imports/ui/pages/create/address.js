@@ -63,8 +63,19 @@ Template.appCreateAddress.onRendered(() => {
         userDenyWalletSaveNotice()
       }
       LocalStore.set('modalEventTriggered', false)
-    }
+    },
   }).modal('show')
+
+  Tracker.autorun(function () {
+    if (LocalStore.get('addressFormat') == 'bech32') {
+      $('.qr-code-container').empty()
+      $(".qr-code-container").qrcode({width:88, height:88, text: getXMSSDetails().addressB32})
+    }
+    else {
+      $('.qr-code-container').empty()
+      $(".qr-code-container").qrcode({width:88, height:88, text: getXMSSDetails().address})
+    }
+  })
 })
 
 Template.appCreateAddress.events({
@@ -86,6 +97,12 @@ Template.appCreateAddress.events({
 })
 
 Template.appCreateAddress.helpers({
+  bech32() {
+    if (LocalStore.get('addressFormat') == 'bech32') {
+      return true
+    }
+    return false
+  },
   newAddress() {
     return getXMSSDetails()
   },

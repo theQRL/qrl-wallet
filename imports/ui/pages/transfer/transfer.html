@@ -263,7 +263,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each transactionConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -325,7 +325,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -401,7 +401,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each transactionConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -486,7 +486,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{this.address}}<br /><br />
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -564,8 +564,7 @@
           </form>
           <br /><br />
           <div class="ui stackable grid">
-            <div class="sixteen wide column center aligned">
-              {{> QRCode text=openedAddress size="142px"}}
+            <div class="sixteen wide column center aligned qr-code-container">
             </div>
           </div>
 
@@ -651,14 +650,14 @@
         {{#each addressTransactions}}
           {{#if isTransfer this.type}}
           <div class="ui icon message transactionRecord">
-            {{#if isMyAddress this.from}}
+            {{#if isMyAddress this.from_b32}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             {{else}}
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             {{/if}}
             <div class="content">
               <div class="header">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                 Sent
                 {{else}}
                 Received
@@ -666,17 +665,17 @@
                  | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                   {{#each this.outputs}}
-                    {{this.address}} - {{this.amount}}<br />
+                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
-                  {{this.from}}
+                  {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
                 {{/if}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from_b32}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -700,14 +699,14 @@
 
           {{#if isTokenTransfer this.type}}
           <div class="ui icon message transactionRecord">
-            {{#if isMyAddress this.from}}
+            {{#if isMyAddress this.from_b32}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             {{else}}
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             {{/if}}
             <div class="content">
               <div class="header">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                 Sent
                 {{else}}
                 Received
@@ -715,9 +714,9 @@
                  | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{#if isMyAddress this.from}}
+                {{#if isMyAddress this.from_b32}}
                   {{#each this.outputs}}
-                    {{this.address}} - {{this.amount}}<br />
+                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
                   {{this.from}}
@@ -725,7 +724,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from_b32}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -738,7 +737,7 @@
                 Coinbase Received | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.from}}
+                {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
               </p>
             </div>
             <div class="floatright">
