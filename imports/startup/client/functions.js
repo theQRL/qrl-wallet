@@ -431,7 +431,7 @@ refreshTransferPage = (callback) => {
       LocalStore.set('pages', pages)
       let txArray = addressState.state.transactions.reverse()
       if (txArray.length > 10) {
-        txArray = txArray.slice(0, 9)
+        txArray = txArray.slice(0, 10)
       }
       loadAddressTransactions(txArray)
 
