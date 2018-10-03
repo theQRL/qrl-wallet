@@ -27,6 +27,8 @@ jobs:
             sudo n 8.11.1
             brew update
             brew cleanup
+            brew untap homebrew/cask
+            brew tap homebrew/cask
             brew cask cleanup
             brew cask install google-chrome
             brew cask install chromedriver
