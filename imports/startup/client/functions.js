@@ -1,4 +1,6 @@
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
+import helpers from '@theqrl/explorer-helpers'
+bech32 = require('bech32')
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 
@@ -17,9 +19,49 @@ selectedNetwork = () => {
   return selectedNetwork
 }
 
+// BECH32 Address is built from the extended PK
+// bech32(descr + sha2(ePK))
+pkRawToB32Address = (pkRaw) => {
+  rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
+  ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw))  // Uint8Vector -> Uint8Array conversion
+  descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
+  return helpers.b32Encode(descriptorAndHash)
+}
+
+// wrapper to decide if addresses should be converted to BECH32 for display
+hexOrB32 = (hexAddress) => {
+  if(LocalStore.get('addressFormat') === 'bech32') {
+    return helpers.hexAddressToB32Address(hexAddress)
+  }
+  else {
+    return hexAddress
+  }
+}
+
+// wrapper to decide if addresses should be converted to BECH32 for display
+rawToHexOrB32 = (rawAddress) => {
+  if(LocalStore.get('addressFormat') === 'bech32') {
+    return helpers.rawAddressToB32Address(rawAddress)
+  }
+  else {
+    return helpers.rawAddressToHexAddress(rawAddress)
+  }
+}
+
+// A Template helper cannot access the helpers for some reason, so this has to stay in qrl-wallet
+anyAddressToRawAddress = (address) => {
+  if ( address[0] === 'q') {
+    return helpers.b32AddressToRawAddress(address)
+  }
+  return helpers.hexAddressToRawAddress(address)
+}
+
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
   const thisAddress = XMSS_OBJECT.getAddress()
+  const thisPkRaw = XMSS_OBJECT.getPKRaw()
+  const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+
   const thisPk = XMSS_OBJECT.getPK()
   const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
   const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
@@ -29,6 +71,7 @@ getXMSSDetails = () => {
 
   const xmssDetail = {
     address: thisAddress,
+    addressB32: thisAddressB32,
     pk: thisPk,
     hexseed: thisHexSeed,
     mnemonic: thisMnemonic,
@@ -166,7 +209,7 @@ concatenateTypedArrays = (resultConstructor, ...arrays) => {
 
 // Count decimals in value
 countDecimals = (value) => {
-  if(Math.floor(value) === value) return 0
+  if(Math.floor(value) === Number(value)) return 0
   return value.toString().split(".")[1].length || 0
 }
 
@@ -388,7 +431,7 @@ refreshTransferPage = (callback) => {
       LocalStore.set('pages', pages)
       let txArray = addressState.state.transactions.reverse()
       if (txArray.length > 10) {
-        txArray = txArray.slice(0, 9)
+        txArray = txArray.slice(0, 10)
       }
       loadAddressTransactions(txArray)
 
@@ -411,6 +454,7 @@ refreshTransferPage = (callback) => {
 // Reset wallet localstorage state
 resetLocalStorageState = () => {
   LocalStore.set('address', '')
+  LocalStore.set('addressFormat', 'hex')
   LocalStore.set('addressTransactions', '')
   LocalStore.set('transferFromAddress', '')
   LocalStore.set('transferFromBalance', '')
@@ -445,7 +489,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // Validate that the request payload matches the response data for a standard transaction
   if (type === 'transferCoins') {
     // Validate From address
-    if(binaryToQrlAddress(request.fromAddress) !== response.from) {
+    if(!Buffer.from(request.fromAddress).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
       logRequestResponse(request, response)
       return false
@@ -456,7 +500,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     let request_outputs = []
     for (var i = 0; i < request.addresses_to.length; i++) {
       const thisOutput = {
-        address: binaryToQrlAddress(request.addresses_to[i]),
+        address: request.addresses_to[i],
         amount: request.amounts[i] / SHOR_PER_QUANTA
       }
       request_outputs.push(thisOutput)
@@ -471,7 +515,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Now check that all outputs are identical
     for (var i = 0; i < request_outputs.length; i++) {
-      if (request_outputs[i].address !== response.outputs[i].address) {
+      if (!Buffer.from(request_outputs[i].address).equals(Buffer.from(response.outputs[i].address))) {
         console.log('Transaction Validation - Output address mismatch')
         logRequestResponse(request, response)
         return false
@@ -488,7 +532,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // Validate that the request payload matches the response data for a token transfer transaction
   } else if (type === 'createTokenTransferTxn') {
     // Validate From address
-    if(binaryToQrlAddress(request.addressFrom) !== response.from) {
+    if(!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
       logRequestResponse(request, response)
       return false
@@ -506,7 +550,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     let request_outputs = []
     for (var i = 0; i < request.addresses_to.length; i++) {
       const thisOutput = {
-        address: binaryToQrlAddress(request.addresses_to[i]),
+        address: request.addresses_to[i],
         amount: request.amounts[i] / Math.pow(10, tokenDecimals)
       }
       request_outputs.push(thisOutput)
@@ -521,7 +565,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Now check that all outputs are identical
     for (var i = 0; i < request_outputs.length; i++) {
-      if (request_outputs[i].address !== response.outputs[i].address) {
+      if (!Buffer.from(request_outputs[i].address).equals(Buffer.from(response.outputs[i].address))) {
         console.log('Transaction Validation - Output address mismatch')
         logRequestResponse(request, response)
         return false
@@ -537,14 +581,14 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // Validate that the request payload matches the response data for a token creation transaction
   } else if (type === 'createTokenTxn') {
     // Validate From address
-    if(binaryToQrlAddress(request.addressFrom) !== response.from) {
+    if(!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Validate Owner address
-    if(binaryToQrlAddress(request.owner) !== response.owner) {
+    if(!Buffer.from(request.owner).equals(Buffer.from(response.owner))) {
       console.log('Transaction Validation - Owner address mismatch')
       logRequestResponse(request, response)
       return false
@@ -580,8 +624,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Now check that all initial balances  are identical
     for (var i = 0; i < request.initialBalances.length; i++) {
-      if (binaryToQrlAddress(request.initialBalances[i].address) !== 
-        binaryToQrlAddress(response.initialBalances[i].address)) {
+      if (!Buffer.from(request.initialBalances[i].address).equals(Buffer.from(response.initialBalances[i].address))) {
         console.log('Transaction Validation - Initial balance address mismatch')
         logRequestResponse(request, response)
         return false
