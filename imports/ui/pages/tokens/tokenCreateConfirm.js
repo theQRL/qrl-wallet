@@ -1,4 +1,6 @@
 import './tokenCreateConfirm.html'
+import helpers from '@theqrl/explorer-helpers'
+
 /* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
@@ -110,6 +112,12 @@ Template.appTokenCreationConfirm.events({
 })
 
 Template.appTokenCreationConfirm.helpers({
+  bech32() {
+    if (LocalStore.get('addressFormat') == 'bech32') {
+      return true
+    }
+    return false
+  },
   tokenCreationConfirmation() {
     const confirmation = LocalStore.get('tokenCreationConfirmation')
     return confirmation
@@ -125,7 +133,8 @@ Template.appTokenCreationConfirm.helpers({
 
     for (var i = 0; i < tokenHoldersRaw.length; i++) {
       const thisHolder = {
-        address: binaryToQrlAddress(tokenHoldersRaw[i].address),
+        address_hex: helpers.rawAddressToHexAddress(tokenHoldersRaw[i].address),
+        address_b32: helpers.rawAddressToB32Address(tokenHoldersRaw[i].address),
         amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals)
       }
       tokenHolders.push(thisHolder)

@@ -92,7 +92,7 @@ Template.appMessageConfirm.helpers({
   transferFrom() {
     const transferFrom = {}
     transferFrom.balance = LocalStore.get('transferFromBalance')
-    transferFrom.address = LocalStore.get('transferFromAddress')
+    transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
     return transferFrom
   },
   messageCreationConfirmation() {

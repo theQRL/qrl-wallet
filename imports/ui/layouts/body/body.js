@@ -200,6 +200,15 @@ Template.appBody.events({
   'change #network': () => {
     updateNetwork(selectedNetwork())
   },
+  'change #addressFormatCheckbox': () => {
+    var checked = $('#addressFormatCheckbox').prop("checked")
+    if(checked){
+      LocalStore.set('addressFormat', 'bech32')
+    }
+    else {
+      LocalStore.set('addressFormat', 'hex')
+    }
+  },
   'click #sendAndReceiveButton': () => {
     // Three primary sections
     const transactionGenerateFieldVisible = $('#generateTransactionArea').is(':visible')
@@ -253,6 +262,22 @@ Template.appBody.events({
 
 
 Template.appBody.helpers({
+  addressFormat() {
+    if(LocalStore.get('addressFormat') == 'bech32'){
+      return 'BECH32'
+    }
+    else {
+      return 'Hex'
+    }
+  },
+  addressFormatChecked() {
+    if(LocalStore.get('addressFormat') == 'bech32'){
+      return 'checked'
+    }
+    else {
+      return ''
+    }
+  },
   nodeId() {
     if ((LocalStore.get('nodeId') === '') || (LocalStore.get('nodeId') === null)) {
       return DEFAULT_NETWORKS[0].id
