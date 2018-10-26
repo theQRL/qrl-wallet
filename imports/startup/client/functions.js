@@ -1,3 +1,4 @@
+import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 bech32 = require('bech32')
@@ -56,6 +57,32 @@ anyAddressToRawAddress = (address) => {
   return helpers.hexAddressToRawAddress(address)
 }
 
+// Gets mnemonic phrase from wallet file
+getMnemonicOfFirstAddress = (walletObject, passphrase) => {
+  function handleVersion1() {
+    let mnemonic = ''
+    if (walletObject.encrypted === true) {
+      mnemonic = aes256.decrypt(passphrase, walletObject.addresses[0].mnemonic)
+    } else {
+      mnemonic = walletObject.addresses[0].mnemonic
+    }
+    return mnemonic
+  }
+  function handleVersion0() {
+    let mnemonic = ''
+    if (walletObject[0].encrypted === true) {
+      mnemonic = aes256.decrypt(passphrase, walletObject[0].mnemonic)
+    } else {
+      mnemonic = walletObject[0].mnemonic
+    }
+    return mnemonic
+  }
+  if (walletObject.version === 1) {
+    return handleVersion1()
+  }
+  return handleVersion0()
+}
+
 // Fetchs XMSS details from the global XMSS_OBJECT variable
 getXMSSDetails = () => {
   const thisAddress = XMSS_OBJECT.getAddress()
@@ -82,6 +109,32 @@ getXMSSDetails = () => {
   }
 
   return xmssDetail
+}
+
+// Check if a wallet is deprecated
+isWalletFileDeprecated = (wallet) => {
+  // There are three characteristics that describe a deprecated encrypted wallet file
+  // 1: The encrypted field is true and;
+  // 2: The addressB32 field is unencrypted and;
+  // 3: The pk field is unencrypted.
+  // Whilst neither of these fields risk funds being lost, they do reveal a users public
+  // address if their wallet file is stolen. This is a privacy concern.
+  // We can determine if they are unencrypted by checking their lengths.
+  // If addressB32 field is 64 characters in length, and pk field is 134 characters in length.
+  if (
+      (typeof wallet[0].encrypted !== 'undefined') &&
+      (typeof wallet[0].addressB32 !== 'undefined') &&
+      (typeof wallet[0].pk !== 'undefined')
+    ) {
+      if (
+        (wallet[0].encrypted === true) &&
+        (wallet[0].addressB32.length === 64) &&
+        (wallet[0].pk.length === 134)
+      ) {
+        return true
+      }
+  }
+  return false
 }
 
 resetWalletStatus = () => {
