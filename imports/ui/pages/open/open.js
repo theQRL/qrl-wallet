@@ -5,12 +5,15 @@ import './open.html'
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 /* global resetLocalStorageState */
+/* global getMnemonicOfFirstAddress */
+/* global isWalletFileDeprecated */
+
+Template.appAddressOpen.onCreated(() => {
+  LocalStore.set('modalEventTriggered', false)
+})
 
 Template.appAddressOpen.onRendered(() => {
   $('.ui.dropdown').dropdown()
-
-  $('#openWalletTabs .item').tab()
-  $('#xmssHeightDropdown').dropdown({direction: 'upward' })
 
   // Restore local storage state
   resetLocalStorageState()
@@ -61,6 +64,20 @@ function openWallet(walletType, walletCode) {
   }
 }
 
+function triggerOpen(walletJson, passphrase) {
+  const walletMnemonic = getMnemonicOfFirstAddress(walletJson, passphrase)
+
+  // Validate we have a valid mnemonic before attempting to open file
+  if ((walletMnemonic.split(' ').length - 1) !== 33) {
+    // Invalid mnemonic in wallet file
+    $('#unlocking').hide()
+    $('#noWalletFileSelected').show()
+  } else {
+    // Open wallet file
+    setTimeout(() => { openWallet('mnemonic', walletMnemonic) }, 200)
+  }
+}
+
 function unlockWallet() {
   let walletType = document.getElementById('walletType').value
   let walletCode = document.getElementById('walletCode').value
@@ -73,42 +90,46 @@ function unlockWallet() {
     const reader = new FileReader()
     reader.onload = (function(theFile) {
       return function(e) {
-        function getMnemonicOfFirstAddress(walletObject) {
-          function handleVersion1() {
-            let mnemonic = ''
-            if (walletObject.encrypted === true) {
-              mnemonic = aes256.decrypt(passphrase, walletObject.addresses[0].mnemonic)
-            } else {
-              mnemonic = walletObject.addresses[0].mnemonic
-            }
-            return mnemonic
-          }
-          function handleVersion0() {
-            let mnemonic = ''
-            if (walletObject[0].encrypted === true) {
-              mnemonic = aes256.decrypt(passphrase, walletObject[0].mnemonic)
-            } else {
-              mnemonic = walletObject[0].mnemonic
-            }
-            return mnemonic
-          }
-          if (walletObject.version === 1) {
-            return handleVersion1()
-          }
-          return handleVersion0()
-        }
         try {
-          const walletJson = JSON.parse(e.target.result)
-          const walletMnemonic = getMnemonicOfFirstAddress(walletJson)
+          const walletDetail = JSON.parse(e.target.result)
 
-          // Validate we have a valid mnemonic before attemptint to open file
-          if ((walletMnemonic.split(' ').length - 1) !== 33) {
-            // Invalid mnemonic in wallet file
-            $('#unlocking').hide()
-            $('#noWalletFileSelected').show()
+          // Check if wallet file is deprecated
+          if(isWalletFileDeprecated(walletDetail)) {
+            $('#updateWalletFileFormat').modal({
+              onApprove: () => {
+                LocalStore.set('modalEventTriggered', true)
+                // User has requested to update wallet file, resave with updated fields
+                walletDetail[0].addressB32 = aes256.encrypt(passphrase, walletDetail[0].addressB32)
+                walletDetail[0].pk = aes256.encrypt(passphrase, walletDetail[0].pk)
+
+                const walletJson = ['[', JSON.stringify(walletDetail[0]), ']'].join('')
+                const binBlob = new Blob([walletJson])
+                const a = window.document.createElement('a')
+                a.href = window.URL.createObjectURL(binBlob, { type: 'text/plain' })
+                a.download = 'wallet.json'
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+
+                // Reset the state of the open wallet page.
+                $('#unlocking').hide()
+                $("#walletFile").val('')
+                $("#passphrase").val('')
+              },
+              onDeny: () => {
+                LocalStore.set('modalEventTriggered', true)
+                triggerOpen(walletDetail, passphrase)
+              },
+              onHide: () => {
+                if (LocalStore.get('modalEventTriggered') === false) {
+                  triggerOpen(walletDetail, passphrase)
+                }
+                LocalStore.set('modalEventTriggered', false)
+              },
+            }).modal('show')
           } else {
-            // Open wallet file
-            setTimeout(() => { openWallet('mnemonic', walletMnemonic) }, 200)
+            // Wallet is not bugged version - go ahead and trigger opening it
+            triggerOpen(walletDetail, passphrase)
           }
         } catch (err) {
           // Invalid file format

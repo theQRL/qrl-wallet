@@ -14,6 +14,8 @@ function saveWallet(encrypted) {
     walletDetail.address = aes256.encrypt(passphrase, walletDetail.address)
     walletDetail.mnemonic = aes256.encrypt(passphrase, walletDetail.mnemonic)
     walletDetail.hexseed = aes256.encrypt(passphrase, walletDetail.hexseed)
+    walletDetail.addressB32 = aes256.encrypt(passphrase, walletDetail.addressB32)
+    walletDetail.pk = aes256.encrypt(passphrase, walletDetail.pk)
   } else {
     walletDetail.encrypted = false
   }
