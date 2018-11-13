@@ -1,5 +1,4 @@
 import './messageConfirm.html'
-/* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 /* global selectedNetwork */
@@ -7,10 +6,10 @@ import './messageConfirm.html'
 /* global wrapMeteorCall */
 
 function confirmMessageCreation() {
-  const tx = LocalStore.get('messageCreationConfirmationResponse')
+  const tx = Session.get('messageCreationConfirmationResponse')
 
   // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('messageCreationConfirmation').otsKey))
+  XMSS_OBJECT.setIndex(parseInt(Session.get('messageCreationConfirmation').otsKey))
 
   // Concatenate Uint8Arrays
   let tmptxnhash = concatenateTypedArrays(
@@ -50,11 +49,11 @@ function confirmMessageCreation() {
       $('#messageCreationConfirmation').hide()
       $('#transactionFailed').show()
 
-      LocalStore.set('transactionFailed', res.error)
+      Session.set('transactionFailed', res.error)
     } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+      Session.set('transactionHash', txnHash)
+      Session.set('transactionSignature', res.response.signature)
+      Session.set('transactionRelayedThrough', res.relayed)
 
       // Send to result page.
       const params = { }
@@ -65,10 +64,10 @@ function confirmMessageCreation() {
 }
 
 function cancelTransaction() {
-  LocalStore.set('messageCreationConfirmation', '')
-  LocalStore.set('messageCreationConfirmationResponse', '')
+  Session.set('messageCreationConfirmation', '')
+  Session.set('messageCreationConfirmationResponse', '')
 
-  LocalStore.set('transactionFailed', 'User requested cancellation')
+  Session.set('transactionFailed', 'User requested cancellation')
 
   $('#messageCreationConfirmation').hide()
   $('#transactionFailed').show()
@@ -91,22 +90,22 @@ Template.appMessageConfirm.events({
 Template.appMessageConfirm.helpers({
   transferFrom() {
     const transferFrom = {}
-    transferFrom.balance = LocalStore.get('transferFromBalance')
-    transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
+    transferFrom.balance = Session.get('transferFromBalance')
+    transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
     return transferFrom
   },
   messageCreationConfirmation() {
-    const confirmation = LocalStore.get('messageCreationConfirmation')
+    const confirmation = Session.get('messageCreationConfirmation')
     return confirmation
   },
   transactionFailed() {
-    const failed = LocalStore.get('transactionFailed')
+    const failed = Session.get('transactionFailed')
     return failed
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
 })

@@ -280,13 +280,18 @@ const qrlApi = (api, request, callback) => {
       // Delete network from request object
       delete request.network;
       console.log('Making', api, 'request to', bestNode.grpc)
-
       qrlClient[bestNode.grpc][api](request, (error, response) => {
         if (api == 'pushTransaction') {
           response.relayed = bestNode.grpc
         }
-        callback(error, response)
+        if (error) {
+          const myError = new Meteor.Error(500, error.details)
+          callback(myError, null)
+        } else {
+          callback(null, response)
+        }
       })
+
     }
   } else {
     // Handle custom and localhost connections
@@ -299,7 +304,12 @@ const qrlApi = (api, request, callback) => {
       if (api == 'pushTransaction') {
         response.relayed = apiEndpoint
       }
-      callback(error, response)
+      if (error) {
+        const myError = new Meteor.Error(500, error.details)
+        callback(myError, null)
+      } else {
+        callback(null, response)
+      }
     })
   }
 }

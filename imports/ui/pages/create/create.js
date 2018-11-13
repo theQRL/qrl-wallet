@@ -1,7 +1,6 @@
 import './create.html'
 /* global QRLLIB */
 /* global XMSS_OBJECT */
-/* global LocalStore */
 /* global passwordPolicyValid */
 
 function generateWallet(type) {
@@ -46,8 +45,8 @@ function generateWallet(type) {
 
       // If it worked, send the user to the address page.
       if (newAddress !== '') {
-        LocalStore.set('passphrase', passphrase)
-        LocalStore.set('xmssHeight', xmssHeight)
+        Session.set('passphrase', passphrase)
+        Session.set('xmssHeight', xmssHeight)
 
         const params = { address: newAddress }
         const path = FlowRouter.path('/create/:address', params)

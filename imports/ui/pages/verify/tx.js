@@ -1,21 +1,16 @@
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
-
-/* global LocalStore */
 /* global selectedNetwork */
 /* global SHOR_PER_QUANTA */
 /* global DEFAULT_NETWORKS */
 /* global wrapMeteorCall */
-/* eslint no-console: 0 */
-/* ^^^ remove once testing complete
- */
 
 Template.appVerifyTxid.onRendered(() => {
   this.$('.value').popup()
 
-  LocalStore.set('txhash', {})
-  LocalStore.set('qrlValue', {})
-  LocalStore.set('status', {})
+  Session.set('txhash', {})
+  Session.set('qrlValue', {})
+  Session.set('status', {})
 
   const thisTxId = FlowRouter.getParam('txId')
   const request = {
@@ -26,25 +21,25 @@ Template.appVerifyTxid.onRendered(() => {
   if (thisTxId) {
     wrapMeteorCall('txhash', request, (err, res) => {
       if (err) {
-        LocalStore.set('txhash', { error: err, id: thisTxId })
+        Session.set('txhash', { error: err, id: thisTxId })
       } else {
-        LocalStore.set('txhash', res)
+        Session.set('txhash', res)
       }
     })
 
     Meteor.call('QRLvalue', (err, res) => {
       if (err) {
-        LocalStore.set('qrlValue', 'Error getting value from API')
+        Session.set('qrlValue', 'Error getting value from API')
       } else {
-        LocalStore.set('qrlValue', res)
+        Session.set('qrlValue', res)
       }
     })
 
     wrapMeteorCall('status', { network: request.network }, (err, res) => {
       if (err) {
-        LocalStore.set('status', { error: err })
+        Session.set('status', { error: err })
       } else {
-        LocalStore.set('status', res)
+        Session.set('status', res)
       }
     })
   }
@@ -53,31 +48,31 @@ Template.appVerifyTxid.onRendered(() => {
 
 Template.appVerifyTxid.helpers({
   tx() {
-    let txhash = LocalStore.get('txhash').transaction
+    let txhash = Session.get('txhash').transaction
     let signature = txhash.tx.signature
     txhash.tx.ots_key = parseInt(signature.substring(0, 8), 16)
     return txhash
   },
   bech32() {
-    if (LocalStore.get('addressFormat') == 'bech32') {
+    if (Session.get('addressFormat') == 'bech32') {
       return true
     }
     return false
   },
   notFound() {
-    if (LocalStore.get('txhash').found === false) {
+    if (Session.get('txhash').found === false) {
       return true
     }
     return false
   },
   header() {
-    return LocalStore.get('txhash').transaction.header
+    return Session.get('txhash').transaction.header
   },
   qrl() {
-    const txhash = LocalStore.get('txhash')
+    const txhash = Session.get('txhash')
     try {
       const value = txhash.transaction.tx.amount
-      const x = LocalStore.get('qrlValue')
+      const x = Session.get('qrlValue')
       const y = Math.round((x * value) * 100) / 100
       if (y !== 0) { return y }
     } catch (e) {
@@ -108,7 +103,7 @@ Template.appVerifyTxid.helpers({
     }
   },
   confirmations() {
-    const x = LocalStore.get('status')
+    const x = Session.get('status')
     try {
       return x.node_info.block_height - this.header.block_number
     } catch (e) {
@@ -174,10 +169,10 @@ Template.appVerifyTxid.helpers({
     return false
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
 })
 
@@ -187,7 +182,7 @@ Template.appVerifyTxid.events({
   },
   'click .jsonclick': () => {
     if (!($('.json').html())) {
-      const myJSON = LocalStore.get('txhash').transaction
+      const myJSON = Session.get('txhash').transaction
       const formatter = new JSONFormatter(myJSON)
       $('.json').html(formatter.render())
     }
