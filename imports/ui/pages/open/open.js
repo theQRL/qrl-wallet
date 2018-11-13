@@ -1,7 +1,6 @@
 import aes256 from 'aes256'
 import './open.html'
 
-/* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 /* global resetLocalStorageState */
@@ -9,7 +8,7 @@ import './open.html'
 /* global isWalletFileDeprecated */
 
 Template.appAddressOpen.onCreated(() => {
-  LocalStore.set('modalEventTriggered', false)
+  Session.set('modalEventTriggered', false)
 })
 
 Template.appAddressOpen.onRendered(() => {
@@ -19,7 +18,7 @@ Template.appAddressOpen.onRendered(() => {
   resetLocalStorageState()
 
   // Route to transfer if wallet is already opened
-  if (LocalStore.get('walletStatus').unlocked === true) {
+  if (Session.get('walletStatus').unlocked === true) {
     const params = {}
     const path = FlowRouter.path('/transfer', params)
     FlowRouter.go(path)
@@ -46,8 +45,8 @@ function openWallet(walletType, walletCode) {
       status.address = thisAddress
       status.menuHidden = ''
       status.menuHiddenInverse = 'display: none'
-      LocalStore.set('walletStatus', status)
-      LocalStore.set('transferFromAddress', thisAddress)
+      Session.set('walletStatus', status)
+      Session.set('transferFromAddress', thisAddress)
       console.log('Opened address ', thisAddress)
 
       const params = {}
@@ -97,7 +96,7 @@ function unlockWallet() {
           if(isWalletFileDeprecated(walletDetail)) {
             $('#updateWalletFileFormat').modal({
               onApprove: () => {
-                LocalStore.set('modalEventTriggered', true)
+                Session.set('modalEventTriggered', true)
                 // User has requested to update wallet file, resave with updated fields
                 walletDetail[0].addressB32 = aes256.encrypt(passphrase, walletDetail[0].addressB32)
                 walletDetail[0].pk = aes256.encrypt(passphrase, walletDetail[0].pk)
@@ -117,14 +116,14 @@ function unlockWallet() {
                 $("#passphrase").val('')
               },
               onDeny: () => {
-                LocalStore.set('modalEventTriggered', true)
+                Session.set('modalEventTriggered', true)
                 triggerOpen(walletDetail, passphrase)
               },
               onHide: () => {
-                if (LocalStore.get('modalEventTriggered') === false) {
+                if (Session.get('modalEventTriggered') === false) {
                   triggerOpen(walletDetail, passphrase)
                 }
-                LocalStore.set('modalEventTriggered', false)
+                Session.set('modalEventTriggered', false)
               },
             }).modal('show')
           } else {

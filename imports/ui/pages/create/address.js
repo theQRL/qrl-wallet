@@ -1,7 +1,6 @@
 import aes256 from 'aes256'
 import './address.html'
 /* global getXMSSDetails */
-/* global LocalStore */
 
 let passphrase
 
@@ -42,10 +41,10 @@ function userDenyWalletSaveNotice() {
 }
 
 Template.appCreateAddress.onCreated(() => {
-  // Grab passphrase from LocalStore and reset
-  passphrase = LocalStore.get('passphrase')
-  LocalStore.set('passphrase', '')
-  LocalStore.set('modalEventTriggered', false)
+  // Grab passphrase from session and reset
+  passphrase = Session.get('passphrase')
+  Session.set('passphrase', '')
+  Session.set('modalEventTriggered', false)
 })
 
 Template.appCreateAddress.onRendered(() => {
@@ -54,22 +53,22 @@ Template.appCreateAddress.onRendered(() => {
 
   $('#saveItModal').modal({
     onApprove: () => {
-      LocalStore.set('modalEventTriggered', true)
+      Session.set('modalEventTriggered', true)
     },
     onDeny: () => {
-      LocalStore.set('modalEventTriggered', true)
+      Session.set('modalEventTriggered', true)
       userDenyWalletSaveNotice()
     },
     onHide: () => {
-      if (LocalStore.get('modalEventTriggered') === false) {
+      if (Session.get('modalEventTriggered') === false) {
         userDenyWalletSaveNotice()
       }
-      LocalStore.set('modalEventTriggered', false)
+      Session.set('modalEventTriggered', false)
     },
   }).modal('show')
 
   Tracker.autorun(function () {
-    if (LocalStore.get('addressFormat') == 'bech32') {
+    if (Session.get('addressFormat') == 'bech32') {
       $('.qr-code-container').empty()
       $(".qr-code-container").qrcode({width:88, height:88, text: getXMSSDetails().addressB32})
     }
@@ -100,7 +99,7 @@ Template.appCreateAddress.events({
 
 Template.appCreateAddress.helpers({
   bech32() {
-    if (LocalStore.get('addressFormat') == 'bech32') {
+    if (Session.get('addressFormat') == 'bech32') {
       return true
     }
     return false

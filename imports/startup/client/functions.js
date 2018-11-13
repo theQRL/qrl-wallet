@@ -31,7 +31,7 @@ pkRawToB32Address = (pkRaw) => {
 
 // wrapper to decide if addresses should be converted to BECH32 for display
 hexOrB32 = (hexAddress) => {
-  if(LocalStore.get('addressFormat') === 'bech32') {
+  if(Session.get('addressFormat') === 'bech32') {
     return helpers.hexAddressToB32Address(hexAddress)
   }
   else {
@@ -41,7 +41,7 @@ hexOrB32 = (hexAddress) => {
 
 // wrapper to decide if addresses should be converted to BECH32 for display
 rawToHexOrB32 = (rawAddress) => {
-  if(LocalStore.get('addressFormat') === 'bech32') {
+  if(Session.get('addressFormat') === 'bech32') {
     return helpers.rawAddressToB32Address(rawAddress)
   }
   else {
@@ -145,7 +145,7 @@ resetWalletStatus = () => {
   status.unlocked = false
   status.menuHidden = 'display: none'
   status.menuHiddenInverse = ''
-  LocalStore.set('walletStatus', status)
+  Session.set('walletStatus', status)
 }
 
 passwordPolicyValid = (password) => {
@@ -290,7 +290,7 @@ wrapMeteorCall = (method, request, callback) => {
   }
   if (request.network == "custom") {
     // Override network to localhost
-    request.network = LocalStore.get('nodeGrpc')
+    request.network = Session.get('nodeGrpc')
   }
 
   Meteor.call(method, request, (err, res) => {
@@ -308,24 +308,24 @@ getBalance = (getAddress, callBack) => {
   wrapMeteorCall('getAddress', request, (err, res) => {
     if (err) {
       console.log('err: ',err)
-      LocalStore.set('transferFromBalance', 0)
-      LocalStore.set('transferFromTokenState', [])
-      LocalStore.set('address', 'Error')
-      LocalStore.set('otsKeyEstimate', 0)
-      LocalStore.set('otsKeysRemaining', 0)
-      LocalStore.set('otsBitfield', {})
+      Session.set('transferFromBalance', 0)
+      Session.set('transferFromTokenState', [])
+      Session.set('address', 'Error')
+      Session.set('otsKeyEstimate', 0)
+      Session.set('otsKeysRemaining', 0)
+      Session.set('otsBitfield', {})
     } else {
       if (res.state.address !== '') {
-        LocalStore.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
-        LocalStore.set('transferFromTokenState', res.state.tokens)
-        LocalStore.set('address', res)
+        Session.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
+        Session.set('transferFromTokenState', res.state.tokens)
+        Session.set('address', res)
       } else {
         // Wallet not found, put together an empty response
-        LocalStore.set('transferFromBalance', 0)
+        Session.set('transferFromBalance', 0)
       }
 
       // Collect next OTS key
-      LocalStore.set('otsKeyEstimate', res.ots.nextKey)
+      Session.set('otsKeyEstimate', res.ots.nextKey)
 
       // Get remaining OTS Keys
       const validationResult = qrlAddressValdidator.hexString(getAddress)
@@ -334,10 +334,10 @@ getBalance = (getAddress, callBack) => {
       const keysRemaining = totalSignatures - keysConsumed
 
       // Set keys remaining
-      LocalStore.set('otsKeysRemaining', keysRemaining)
+      Session.set('otsKeysRemaining', keysRemaining)
 
       // Store OTS Bitfield in LocalStorage
-      LocalStore.set('otsBitfield', res.ots.keys)
+      Session.set('otsBitfield', res.ots.keys)
 
       // Callback if set
       callBack()
@@ -358,14 +358,14 @@ loadAddressTransactions = (txArray) => {
     network: selectedNetwork(),
   }
 
-  LocalStore.set('addressTransactions', [])
+  Session.set('addressTransactions', [])
   $('#loadingTransactions').show()
   
   wrapMeteorCall('addressTransactions', request, (err, res) => {
     if (err) {
-      LocalStore.set('addressTransactions', { error: err })
+      Session.set('addressTransactions', { error: err })
     } else {
-      LocalStore.set('addressTransactions', res)
+      Session.set('addressTransactions', res)
       $('#loadingTransactions').hide()
       $('#noTransactionsFound').show()
     }
@@ -381,11 +381,11 @@ getTokenBalances = (getAddress, callback) => {
   wrapMeteorCall('getAddress', request, (err, res) => {
     if (err) {
       console.log('err: ',err)
-      LocalStore.set('transferFromBalance', 0)
-      LocalStore.set('transferFromTokenState', [])
-      LocalStore.set('address', 'Error')
-      LocalStore.set('otsKeyEstimate', 0)
-      LocalStore.set('otsKeysRemaining', 0)
+      Session.set('transferFromBalance', 0)
+      Session.set('transferFromTokenState', [])
+      Session.set('address', 'Error')
+      Session.set('otsKeyEstimate', 0)
+      Session.set('otsKeysRemaining', 0)
     } else {
       if (res.state.address !== '') {
         let tokensHeld = []
@@ -405,12 +405,12 @@ getTokenBalances = (getAddress, callback) => {
           wrapMeteorCall('getTxnHash', request, (err, res) => {
             if (err) {
               console.log('err:',err)
-              LocalStore.set('tokensHeld', [])
+              Session.set('tokensHeld', [])
             } else {
               // Check if this is a token hash.
               if (res.transaction.tx.transactionType !== "token") {
                 console.log('err: ',err)
-                LocalStore.set('tokensHeld', [])
+                Session.set('tokensHeld', [])
               } else {
                 let tokenDetails = res.transaction.tx.token
 
@@ -422,7 +422,7 @@ getTokenBalances = (getAddress, callback) => {
 
                 tokensHeld.push(thisToken)
 
-                LocalStore.set('tokensHeld', tokensHeld)
+                Session.set('tokensHeld', tokensHeld)
               }
             }
           })
@@ -444,17 +444,17 @@ updateBalanceField = () => {
 
   // Quanta Balances
   if(selectedType == 'quanta') {
-    LocalStore.set('balanceAmount', LocalStore.get('transferFromBalance'))
-    LocalStore.set('balanceSymbol', 'Quanta')
+    Session.set('balanceAmount', Session.get('transferFromBalance'))
+    Session.set('balanceSymbol', 'Quanta')
   } else {
     // First extract the token Hash
     tokenHash = selectedType.split('-')[1]
 
     // Now calculate the token balance.
-    _.each(LocalStore.get('tokensHeld'), (token) => {
+    _.each(Session.get('tokensHeld'), (token) => {
       if(token.hash == tokenHash) {
-        LocalStore.set('balanceAmount', token.balance)
-        LocalStore.set('balanceSymbol', token.symbol)
+        Session.set('balanceAmount', token.balance)
+        Session.set('balanceSymbol', token.symbol)
       }
     })
   }
@@ -466,12 +466,12 @@ refreshTransferPage = (callback) => {
   // Wait for QRLLIB to load
   waitForQRLLIB(function () {
     // Set transfer from address
-    LocalStore.set('transferFromAddress', getXMSSDetails().address)
+    Session.set('transferFromAddress', getXMSSDetails().address)
 
     // Get address balance
     getBalance(getXMSSDetails().address, function() {
       // Load Wallet Transactions
-      const addressState = LocalStore.get('address')
+      const addressState = Session.get('address')
       const numPages = Math.ceil(addressState.state.transactions.length / 10)
       const pages = []
       while (pages.length !== numPages) {
@@ -481,7 +481,7 @@ refreshTransferPage = (callback) => {
           to: ((pages.length + 1) * 10) + 10,
         })
       }
-      LocalStore.set('pages', pages)
+      Session.set('pages', pages)
       let txArray = addressState.state.transactions.reverse()
       if (txArray.length > 10) {
         txArray = txArray.slice(0, 10)
@@ -506,18 +506,18 @@ refreshTransferPage = (callback) => {
 
 // Reset wallet localstorage state
 resetLocalStorageState = () => {
-  LocalStore.set('address', '')
-  LocalStore.set('addressFormat', 'hex')
-  LocalStore.set('addressTransactions', '')
-  LocalStore.set('transferFromAddress', '')
-  LocalStore.set('transferFromBalance', '')
-  LocalStore.set('transferFromTokenState', '')
-  LocalStore.set('xmssHeight', '')
-  LocalStore.set('tokensHeld', '')
-  LocalStore.set('otsKeyEstimate', '')
-  LocalStore.set('balanceAmount', '')
-  LocalStore.set('balanceSymbol', '')
-  LocalStore.set('otsBitfield', '')
+  Session.set('address', '')
+  Session.set('addressFormat', 'hex')
+  Session.set('addressTransactions', '')
+  Session.set('transferFromAddress', '')
+  Session.set('transferFromBalance', '')
+  Session.set('transferFromTokenState', '')
+  Session.set('xmssHeight', '')
+  Session.set('tokensHeld', '')
+  Session.set('otsKeyEstimate', '')
+  Session.set('balanceAmount', '')
+  Session.set('balanceSymbol', '')
+  Session.set('otsBitfield', '')
 }
 
 function logRequestResponse(request, response) {
