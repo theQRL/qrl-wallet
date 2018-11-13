@@ -1,7 +1,6 @@
 import './tokenCreateConfirm.html'
 import helpers from '@theqrl/explorer-helpers'
 
-/* global LocalStore */
 /* global QRLLIB */
 /* global XMSS_OBJECT */
 /* global selectedNetwork */
@@ -9,10 +8,10 @@ import helpers from '@theqrl/explorer-helpers'
 /* global wrapMeteorCall */
 
 function confirmTokenCreation() {
-  const tx = LocalStore.get('tokenCreationConfirmationResponse')
+  const tx = Session.get('tokenCreationConfirmationResponse')
 
   // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenCreationConfirmation').otsKey))
+  XMSS_OBJECT.setIndex(parseInt(Session.get('tokenCreationConfirmation').otsKey))
 
   // Concatenate Uint8Arrays
   let tmptxnhash = concatenateTypedArrays(
@@ -73,11 +72,11 @@ function confirmTokenCreation() {
       $('#tokenCreationConfirmation').hide()
       $('#transactionFailed').show()
 
-      LocalStore.set('transactionFailed', res.error)
+      Session.set('transactionFailed', res.error)
     } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+      Session.set('transactionHash', txnHash)
+      Session.set('transactionSignature', res.response.signature)
+      Session.set('transactionRelayedThrough', res.relayed)
 
       // Send to result page.
       const params = { }
@@ -88,10 +87,10 @@ function confirmTokenCreation() {
 }
 
 function cancelTransaction() {
-  LocalStore.set('tokenCreationConfirmation', '')
-  LocalStore.set('tokenCreationConfirmationResponse', '')
+  Session.set('tokenCreationConfirmation', '')
+  Session.set('tokenCreationConfirmationResponse', '')
 
-  LocalStore.set('transactionFailed', 'User requested cancellation')
+  Session.set('transactionFailed', 'User requested cancellation')
 
   $('#tokenCreationConfirmation').hide()
   $('#transactionFailed').show()
@@ -113,22 +112,22 @@ Template.appTokenCreationConfirm.events({
 
 Template.appTokenCreationConfirm.helpers({
   bech32() {
-    if (LocalStore.get('addressFormat') == 'bech32') {
+    if (Session.get('addressFormat') == 'bech32') {
       return true
     }
     return false
   },
   tokenCreationConfirmation() {
-    const confirmation = LocalStore.get('tokenCreationConfirmation')
+    const confirmation = Session.get('tokenCreationConfirmation')
     return confirmation
   },
   transactionFailed() {
-    const failed = LocalStore.get('transactionFailed')
+    const failed = Session.get('transactionFailed')
     return failed
   },
   tokenHolders() {
-    const tokenHoldersRaw = LocalStore.get('tokenCreationConfirmation').initialBalances
-    const tokenDecimals = LocalStore.get('tokenCreationConfirmation').decimals
+    const tokenHoldersRaw = Session.get('tokenCreationConfirmation').initialBalances
+    const tokenDecimals = Session.get('tokenCreationConfirmation').decimals
     let tokenHolders = []
 
     for (var i = 0; i < tokenHoldersRaw.length; i++) {
@@ -143,9 +142,9 @@ Template.appTokenCreationConfirm.helpers({
     return tokenHolders
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
 })

@@ -108,17 +108,17 @@ try {
 // object based on its 'id' value.
 // eslint-disable-next-line no-unused-vars, no-undef
 findNetworkData = (array, key) => {
-  if((LocalStore.get('nodeId') == 'custom') && (LocalStore.get('nodeStatus') != 'connecting')) {
+  if((Session.get('nodeId') == 'custom') && (Session.get('nodeStatus') != 'connecting')) {
     const nodeData = {
       id: 'custom',
-      name: LocalStore.get('customNodeName'),
+      name: Session.get('customNodeName'),
       disabled: '',
-      explorerUrl: LocalStore.get('customNodeExplorerUrl'),
+      explorerUrl: Session.get('customNodeExplorerUrl'),
       type: 'both',
       nodes: [
         {
           id: 'custom',
-          grpc: LocalStore.get('customNodeGrpc'),
+          grpc: Session.get('customNodeGrpc'),
           state: false,
           height: 0,
         }

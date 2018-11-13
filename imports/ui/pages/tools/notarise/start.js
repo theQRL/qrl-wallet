@@ -1,6 +1,5 @@
 import './start.html'
 import CryptoJS from 'crypto-js';
-/* global LocalStore */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
 /* global DEFAULT_NETWORKS */
@@ -17,7 +16,7 @@ function createMessageTxn() {
   const otsKey = document.getElementById('otsKey').value
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
@@ -37,7 +36,7 @@ function createMessageTxn() {
 
   wrapMeteorCall('createMessageTxn', request, (err, res) => {
     if (err) {
-      LocalStore.set('documentNotarisationError', err)
+      Session.set('documentNotarisationError', err.reason)
       $('#documentNotarisationFailed').show()
       $('#notariseForm').hide()
     } else {
@@ -47,15 +46,15 @@ function createMessageTxn() {
         message_hex: bytesToHex(res.response.extended_transaction_unsigned.tx.message.message_hash),
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey: otsKey,
-        file_name: LocalStore.get('notaryDocumentName'),
-        hash_function: LocalStore.get('notaryHashFunction'),
-        hash: LocalStore.get('notaryFileHash'),
-        additional_text: LocalStore.get('notaryAdditionalText'),
+        file_name: Session.get('notaryDocumentName'),
+        hash_function: Session.get('notaryHashFunction'),
+        hash: Session.get('notaryFileHash'),
+        additional_text: Session.get('notaryAdditionalText'),
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createMessageTxn')) {
-        LocalStore.set('notariseCreationConfirmation', confirmation)
-        LocalStore.set('notariseCreationConfirmationResponse', res.response)
+        Session.set('notariseCreationConfirmation', confirmation)
+        Session.set('notariseCreationConfirmationResponse', res.response)
 
         // Send to confirm page.
         const params = { }
@@ -101,17 +100,17 @@ function notariseDocument() {
       document.getElementById('message').value = finalNotarisation
 
       // Set the filename in local store for later display in UI
-      LocalStore.set('notaryDocumentName', notaryDocument.name)
-      LocalStore.set('notaryAdditionalText', additional_text)
-      LocalStore.set('notaryHashFunction', hashFunction)
-      LocalStore.set('notaryFileHash', fileHash)
+      Session.set('notaryDocumentName', notaryDocument.name)
+      Session.set('notaryAdditionalText', additional_text)
+      Session.set('notaryHashFunction', hashFunction)
+      Session.set('notaryFileHash', fileHash)
 
       // Create a message txn with this data
       createMessageTxn()
     } catch (err) {
       console.log(err)
       // Invalid file format
-      LocalStore.set('documentNotarisationError', 'Unable to open Document - Are you sure you selected a document to notarise?')
+      Session.set('documentNotarisationError', 'Unable to open Document - Are you sure you selected a document to notarise?')
       $('#documentNotarisationFailed').show()
       $('#generating').hide()
     }
@@ -119,7 +118,7 @@ function notariseDocument() {
 
   // Verify user selected a document to notarise
   if (notaryDocument === undefined) {
-    LocalStore.set('documentNotarisationError', 'Unable to open Document - Are you sure you selected a document to notarise?')
+    Session.set('documentNotarisationError', 'Unable to open Document - Are you sure you selected a document to notarise?')
     $('#documentNotarisationFailed').show()
     $('#generating').hide()
   } else {
@@ -186,7 +185,7 @@ Template.appNotariseStart.onRendered(() => {
   // Get wallet balance
   getBalance(getXMSSDetails().address, function() {
     // Show warning is otsKeysRemaining is low
-    if(LocalStore.get('otsKeysRemaining') < 50) {
+    if(Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
@@ -214,42 +213,42 @@ Template.appNotariseStart.events({
 Template.appNotariseStart.helpers({
   transferFrom() {
     const transferFrom = {}
-    transferFrom.balance = LocalStore.get('transferFromBalance')
-    transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
+    transferFrom.balance = Session.get('transferFromBalance')
+    transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
     return transferFrom
   },
   transactionConfirmation() {
-    const confirmation = LocalStore.get('transactionConfirmation')
+    const confirmation = Session.get('transactionConfirmation')
     return confirmation
   },
   transactionConfirmationAmount() {
-    const confirmationAmount = LocalStore.get('transactionConfirmationAmount')
+    const confirmationAmount = Session.get('transactionConfirmationAmount')
     return confirmationAmount
   },
   transactionConfirmationFee() {
-    const transactionConfirmationFee = LocalStore.get('transactionConfirmationFee')
+    const transactionConfirmationFee = Session.get('transactionConfirmationFee')
     return transactionConfirmationFee
   },
   transactionGenerationError() {
-    const error = LocalStore.get('transactionGenerationError')
+    const error = Session.get('transactionGenerationError')
     return error
   },
   otsKeyEstimate() {
-    const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
+    const otsKeyEstimate = Session.get('otsKeyEstimate')
     return otsKeyEstimate
   },
   otsKeysRemaining() {
-    const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
+    const otsKeysRemaining = Session.get('otsKeysRemaining')
     return otsKeysRemaining
   },
   documentNotarisationError() {
-    const documentNotarisationError = LocalStore.get('documentNotarisationError')
+    const documentNotarisationError = Session.get('documentNotarisationError')
     return documentNotarisationError
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
 })

@@ -5,7 +5,7 @@ import './nodes.js'
 SHOR_PER_QUANTA=1000000000
 
 // qrl-wallet Version
-WALLET_VERSION="1.0.4"
+WALLET_VERSION="1.0.5"
 
 // qrl.proto sha256 sum for each release of QRL Node
 QRLPROTO_SHA256 = [
@@ -49,11 +49,21 @@ QRLPROTO_SHA256 = [
     protoSha256: "71a51e5222c50a7575f1a92c365f6674bae938cebae678416da80f22fa8327b9",
     objectSha256: "6589d425a16741104bbeceaa9ab2a1dbb33ff47453b90e29c3ee540dbad22df5",
   },
+  {
+    version: "1.1.7 python",
+    protoSha256: "71a51e5222c50a7575f1a92c365f6674bae938cebae678416da80f22fa8327b9",
+    objectSha256: "6589d425a16741104bbeceaa9ab2a1dbb33ff47453b90e29c3ee540dbad22df5",
+  },
+  {
+    version: "1.1.8 python",
+    protoSha256: "71a51e5222c50a7575f1a92c365f6674bae938cebae678416da80f22fa8327b9",
+    objectSha256: "6589d425a16741104bbeceaa9ab2a1dbb33ff47453b90e29c3ee540dbad22df5",
+  },
 ]
 
 // function to get shasum of qrl node version
 getQrlProtoShasum = (nodeVersion, callback) => {
-  let itemsProcessed
+  let itemsProcessed = 0
   QRLPROTO_SHA256.forEach((qrlnode, index, array) => {
     itemsProcessed++
     // Only look at health of userNetwork
