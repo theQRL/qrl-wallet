@@ -35,8 +35,8 @@ const checkNetworkHealth = (network, callback) => {
 const updateNetwork = (selectedNetwork) => {
   // If no network is selected, default to mainnet
   if(selectedNetwork === '') {
-    $('#networkDropdown').dropdown('set selected', 'mainnet')
-    selectedNetwork = 'mainnet'
+    $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
+    selectedNetwork = DEFAULT_NETWORKS[0].id
   }
 
   // Set node status to connecting
