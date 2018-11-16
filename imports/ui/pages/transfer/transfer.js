@@ -3,7 +3,6 @@ import helpers from '@theqrl/explorer-helpers'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
 import './transfer.html'
-/* global LocalStore */
 /* global QRLLIB */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
@@ -20,7 +19,7 @@ let tokensHeld = []
 
 function generateTransaction() {
   // Get to/amount details
-  const sendFrom = anyAddressToRawAddress(LocalStore.get('transferFromAddress'))
+  const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
@@ -45,7 +44,7 @@ function generateTransaction() {
   }
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
@@ -74,7 +73,7 @@ function generateTransaction() {
 
   wrapMeteorCall('transferCoins', request, (err, res) => {
     if (err) {
-      LocalStore.set('transactionGenerationError', err)
+      Session.set('transactionGenerationError', err.reason)
       $('#transactionGenFailed').show()
       $('#transferForm').hide()
     } else {
@@ -109,10 +108,10 @@ function generateTransaction() {
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'transferCoins')) {
-        LocalStore.set('transactionConfirmation', confirmation)
-        LocalStore.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
-        LocalStore.set('transactionConfirmationFee', confirmation.fee)
-        LocalStore.set('transactionConfirmationResponse', res.response)
+        Session.set('transactionConfirmation', confirmation)
+        Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+        Session.set('transactionConfirmationFee', confirmation.fee)
+        Session.set('transactionConfirmationResponse', res.response)
 
         // Show confirmation
         $('#generateTransactionArea').hide()
@@ -128,10 +127,10 @@ function generateTransaction() {
 }
 
 function confirmTransaction() {
-  const tx = LocalStore.get('transactionConfirmationResponse')
+  const tx = Session.get('transactionConfirmationResponse')
 
   // Set OTS Key Index
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('transactionConfirmation').otsKey))
+  XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey))
 
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
@@ -190,11 +189,11 @@ function confirmTransaction() {
       $('#transactionConfirmation').hide()
       $('#transactionFailed').show()
 
-      LocalStore.set('transactionFailed', res.error)
+      Session.set('transactionFailed', res.error)
     } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+      Session.set('transactionHash', txnHash)
+      Session.set('transactionSignature', res.response.signature)
+      Session.set('transactionRelayedThrough', res.relayed)
 
       // Show result
       $('#generateTransactionArea').hide()
@@ -202,18 +201,18 @@ function confirmTransaction() {
       $('#transactionResultArea').show()
       
       // Start polling this transcation
-      pollTransaction(LocalStore.get('transactionHash'), true)
+      pollTransaction(Session.get('transactionHash'), true)
     }
   })
 }
 
 function cancelTransaction() {
-  LocalStore.set('transactionConfirmation', '')
-  LocalStore.set('transactionConfirmationAmount', '')
-  LocalStore.set('transactionConfirmationFee', '')
-  LocalStore.set('transactionConfirmationResponse', '')
+  Session.set('transactionConfirmation', '')
+  Session.set('transactionConfirmationAmount', '')
+  Session.set('transactionConfirmationFee', '')
+  Session.set('transactionConfirmationResponse', '')
 
-  LocalStore.set('transactionFailed', 'User requested cancellation')
+  Session.set('transactionFailed', 'User requested cancellation')
 
   $('#generateTransactionArea').show()
   $('#confirmTransactionArea').hide()
@@ -222,7 +221,7 @@ function cancelTransaction() {
 
 function sendTokensTxnCreate(tokenHash, decimals) {
   // Get to/amount details
-  const sendFrom = anyAddressToRawAddress(LocalStore.get('transferFromAddress'))
+  const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   var sendTo = document.getElementsByName("to[]")
@@ -233,7 +232,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   const tokenHashBytes = stringToBytes(tokenHash)
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
@@ -269,13 +268,13 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 
   wrapMeteorCall('createTokenTransferTxn', request, (err, res) => {
     if (err) {
-      LocalStore.set('tokenTransferError', err)
+      Session.set('tokenTransferError', err.reason)
       $('#transactionGenFailed').show()
       $('#transferForm').hide()
     } else {
 
       let tokenDetails = {}
-      _.each(LocalStore.get('tokensHeld'), (token) => {
+      _.each(Session.get('tokensHeld'), (token) => {
         if(token.hash == tokenHash) {
           tokenDetails.symbol = token.symbol
           tokenDetails.name = token.symbol
@@ -317,10 +316,10 @@ function sendTokensTxnCreate(tokenHash, decimals) {
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createTokenTransferTxn', decimals)) {
-        LocalStore.set('tokenTransferConfirmation', confirmation)
-        LocalStore.set('tokenTransferConfirmationDetails', tokenDetails)
-        LocalStore.set('tokenTransferConfirmationResponse', res.response)
-        LocalStore.set('tokenTransferConfirmationAmount', totalTransferAmount / Math.pow(10, decimals))
+        Session.set('tokenTransferConfirmation', confirmation)
+        Session.set('tokenTransferConfirmationDetails', tokenDetails)
+        Session.set('tokenTransferConfirmationResponse', res.response)
+        Session.set('tokenTransferConfirmationAmount', totalTransferAmount / Math.pow(10, decimals))
 
         // Show confirmation
         $('#generateTransactionArea').hide()
@@ -333,10 +332,10 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 }
 
 function confirmTokenTransfer() {
-  const tx = LocalStore.get('tokenTransferConfirmationResponse')
+  const tx = Session.get('tokenTransferConfirmationResponse')
 
   // Set OTS Key Index in XMSS object
-  XMSS_OBJECT.setIndex(parseInt(LocalStore.get('tokenTransferConfirmation').otsKey))
+  XMSS_OBJECT.setIndex(parseInt(Session.get('tokenTransferConfirmation').otsKey))
 
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
@@ -396,11 +395,11 @@ function confirmTokenTransfer() {
       $('#tokenCreationConfirmation').hide()
       $('#transactionFailed').show()
 
-      LocalStore.set('transactionFailed', res.error)
+      Session.set('transactionFailed', res.error)
     } else {
-      LocalStore.set('transactionHash', txnHash)
-      LocalStore.set('transactionSignature', res.response.signature)
-      LocalStore.set('transactionRelayedThrough', res.relayed)
+      Session.set('transactionHash', txnHash)
+      Session.set('transactionSignature', res.response.signature)
+      Session.set('transactionRelayedThrough', res.relayed)
 
       // Show result
       $('#generateTransactionArea').hide()
@@ -408,14 +407,14 @@ function confirmTokenTransfer() {
       $('#tokenTransactionResultArea').show()
 
       // Start polling this transcation
-      pollTransaction(LocalStore.get('transactionHash'), true)
+      pollTransaction(Session.get('transactionHash'), true)
     }
   })
 }
 
 function setRawDetail() {
   try {
-    const myJSON = LocalStore.get('txhash').transaction
+    const myJSON = Session.get('txhash').transaction
     const formatter = new JSONFormatter(myJSON)
     $('#quantaJsonbox').html(formatter.render())
     $('#tokenJsonbox').html(formatter.render())
@@ -427,24 +426,24 @@ function setRawDetail() {
 // Checks the result of a stored txhash object, and polls again if not completed or failed.
 function checkResult(thisTxId, failureCount) {
   try {
-    if (LocalStore.get('txhash').transaction.header != null) {
+    if (Session.get('txhash').transaction.header != null) {
       // Complete
-      const userMessage = `Complete - Transaction ${thisTxId} is in block ${LocalStore.get('txhash').transaction.header.block_number} with 1 confirmation.`
-      LocalStore.set('txstatus', userMessage)
-      LocalStore.set('transactionConfirmed', "true")
+      const userMessage = `Complete - Transaction ${thisTxId} is in block ${Session.get('txhash').transaction.header.block_number} with 1 confirmation.`
+      Session.set('txstatus', userMessage)
+      Session.set('transactionConfirmed', "true")
       $('.loading').hide()
       $('#loadingHeader').hide()
       refreshTransferPage()
-    } else if (LocalStore.get('txhash').error != null) {
+    } else if (Session.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if(failureCount < 5) {
         failureCount += 1
         setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
       } else {
         // Transaction error - Give up
-        const errorMessage = `Error - ${LocalStore.get('txhash').error}`
-        LocalStore.set('txstatus', errorMessage)
-        LocalStore.set('transactionConfirmed', "false")
+        const errorMessage = `Error - ${Session.get('txhash').error}`
+        Session.set('txstatus', errorMessage)
+        Session.set('transactionConfirmed', "false")
         $('.loading').hide()
         $('#loadingHeader').hide()
       }
@@ -463,8 +462,8 @@ function checkResult(thisTxId, failureCount) {
       setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
     } else {
       // Transaction error - Give up
-      LocalStore.set('txstatus', 'Error')
-      LocalStore.set('transactionConfirmed', "false")
+      Session.set('txstatus', 'Error')
+      Session.set('transactionConfirmed', "false")
       $('.loading').hide()
       $('#loadingHeader').hide()
     }
@@ -475,11 +474,11 @@ function checkResult(thisTxId, failureCount) {
 function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   // Reset txhash on first poll.
   if (firstPoll === true) {
-    LocalStore.set('txhash', {})
+    Session.set('txhash', {})
   }
 
-  LocalStore.set('txstatus', 'Pending')
-  LocalStore.set('transactionConfirmed', "false")
+  Session.set('txstatus', 'Pending')
+  Session.set('transactionConfirmed', "false")
 
   const request = {
     query: thisTxId,
@@ -490,16 +489,16 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
     wrapMeteorCall('getTxnHash', request, (err, res) => {
       if (err) {
         if(failureCount < POLL_MAX_CHECKS) {
-          LocalStore.set('txhash', { })
-          LocalStore.set('txstatus', 'Pending')
+          Session.set('txhash', { })
+          Session.set('txstatus', 'Pending')
         } else {
-          LocalStore.set('txhash', { error: err, id: thisTxId })
-          LocalStore.set('txstatus', 'Error')
+          Session.set('txhash', { error: err, id: thisTxId })
+          Session.set('txstatus', 'Error')
         }
         checkResult(thisTxId, failureCount)
       } else {
         res.error = null
-        LocalStore.set('txhash', res)
+        Session.set('txhash', res)
         setRawDetail()
         checkResult(thisTxId, failureCount)
       }
@@ -599,7 +598,7 @@ function initialiseFormValidation() {
 
 Template.appTransfer.onCreated(() => {
   // Route to open wallet is already opened
-  if (LocalStore.get('walletStatus').unlocked === false) {
+  if (Session.get('walletStatus').unlocked === false) {
     const params = {}
     const path = FlowRouter.path('/open', params)
     FlowRouter.go(path)
@@ -619,14 +618,14 @@ Template.appTransfer.onRendered(() => {
   // Load transactions
   refreshTransferPage(function () {
     // Show warning is otsKeysRemaining is low
-    if(LocalStore.get('otsKeysRemaining') < 50) {
+    if(Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
   })
 
   Tracker.autorun(function () {
-    if(LocalStore.get('addressFormat') == 'bech32') {
+    if(Session.get('addressFormat') == 'bech32') {
       $('.qr-code-container').empty()
       $(".qr-code-container").qrcode({width:142, height:142, text: getXMSSDetails().addressB32})
     }
@@ -720,14 +719,14 @@ Template.appTransfer.events({
   },
   'click .pagination': (event) => {
     let b = 0
-    LocalStore.set('addressTransactions', {})
+    Session.set('addressTransactions', {})
     if (parseInt(event.target.text, 10)) {
       b = parseInt(event.target.text, 10)
-      LocalStore.set('active', b)
+      Session.set('active', b)
     } else {
       const a = event.target.getAttribute('qrl-data')
-      b = LocalStore.get('active')
-      const c = LocalStore.get('pages')
+      b = Session.get('active')
+      const c = Session.get('pages')
       if (a === 'forward') {
         b += 1
       }
@@ -742,10 +741,10 @@ Template.appTransfer.events({
       }
     }
     const startIndex = (b - 1) * 10
-    LocalStore.set('active', b)
-    const txArray = LocalStore.get('address').state.transactions.reverse().slice(startIndex, startIndex + 10)
+    Session.set('active', b)
+    const txArray = Session.get('address').state.transactions.reverse().slice(startIndex, startIndex + 10)
     $('#loadingTransactions').show()
-    // LocalStore.set('fetchedTx', false)
+    // Session.set('fetchedTx', false)
     loadAddressTransactions(txArray)
   },
   'click #showRecoverySeed': () => {
@@ -756,95 +755,95 @@ Template.appTransfer.events({
 Template.appTransfer.helpers({
   transferFrom() {
     const transferFrom = {}
-    transferFrom.balance = LocalStore.get('transferFromBalance')
-    transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
+    transferFrom.balance = Session.get('transferFromBalance')
+    transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
     return transferFrom
   },
   bech32() {
-    if (LocalStore.get('addressFormat') == 'bech32') {
+    if (Session.get('addressFormat') == 'bech32') {
       return true
     }
     return false
   },
   transactionConfirmation() {
-    const confirmation = LocalStore.get('transactionConfirmation')
+    const confirmation = Session.get('transactionConfirmation')
     return confirmation
   },
   transactionConfirmationAmount() {
-    const confirmationAmount = LocalStore.get('transactionConfirmationAmount')
+    const confirmationAmount = Session.get('transactionConfirmationAmount')
     return confirmationAmount
   },
   transactionConfirmationFee() {
     const transactionConfirmationFee = 
-      LocalStore.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
+      Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
   transactionGenerationError() {
-    const error = LocalStore.get('transactionGenerationError').message
+    const error = Session.get('transactionGenerationError')
     return error
   },
   otsKeyEstimate() {
-    const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
+    const otsKeyEstimate = Session.get('otsKeyEstimate')
     return otsKeyEstimate
   },
   otsKeysRemaining() {
-    const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
+    const otsKeysRemaining = Session.get('otsKeysRemaining')
     return otsKeysRemaining
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
   transactionFailed() {
-    const failed = LocalStore.get('transactionFailed')
+    const failed = Session.get('transactionFailed')
     return failed
   },
   transactionHash() {
-    const hash = LocalStore.get('transactionHash')
+    const hash = Session.get('transactionHash')
     return hash
   },
   transactionSignature() {
-    const hash = LocalStore.get('transactionSignature')
+    const hash = Session.get('transactionSignature')
     return hash
   },
   transactionStatus() {
-    const status = LocalStore.get('txstatus')
+    const status = Session.get('txstatus')
     return status
   },
   transactionRelayedThrough() {
-    const status = LocalStore.get('transactionRelayedThrough')
+    const status = Session.get('transactionRelayedThrough')
     return status
   },
   txDetail() {
-    let txDetail = LocalStore.get('txhash').transaction.tx.transfer
+    let txDetail = Session.get('txhash').transaction.tx.transfer
     txDetail.amount /= SHOR_PER_QUANTA
     txDetail.fee /= SHOR_PER_QUANTA
     return txDetail
   },
   tokenTransferConfirmation() {
-    const confirmation = LocalStore.get('tokenTransferConfirmation')
+    const confirmation = Session.get('tokenTransferConfirmation')
     confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
     return confirmation
   },
   tokenTransferConfirmationAmount() {
-    const amount = LocalStore.get('tokenTransferConfirmationAmount')
+    const amount = Session.get('tokenTransferConfirmationAmount')
     return amount
   },
   tokenDetails() {
-    const confirmation = LocalStore.get('tokenTransferConfirmationDetails')
+    const confirmation = Session.get('tokenTransferConfirmationDetails')
     return confirmation
   },
   otsKey() {
-    let otsKey = LocalStore.get('txhash').transaction.tx.signature
+    let otsKey = Session.get('txhash').transaction.tx.signature
     otsKey = parseInt(otsKey.substring(0,8), 16)
     return otsKey
   },
   addressTransactions() {
     const transactions = []
     const thisAddress = getXMSSDetails().address
-    _.each(LocalStore.get('addressTransactions'), (transaction) => {
+    _.each(Session.get('addressTransactions'), (transaction) => {
       const y = transaction
       
       // Update timestamp from unix epoch to human readable time/date.
@@ -870,7 +869,7 @@ Template.appTransfer.helpers({
     return transactions
   },
   addressHasTransactions() {
-    if(LocalStore.get('addressTransactions').length > 0) {
+    if(Session.get('addressTransactions').length > 0) {
       return true
     }
     return false
@@ -936,7 +935,7 @@ Template.appTransfer.helpers({
     return moment(x).format('HH:mm D MMM YYYY')
   },
   openedAddress() {
-    if(LocalStore.get('addressFormat') == 'bech32') {
+    if(Session.get('addressFormat') == 'bech32') {
       return getXMSSDetails().addressB32
     }
     else {
@@ -945,17 +944,17 @@ Template.appTransfer.helpers({
   },
   tokensHeld() {
     const tokens = []
-    _.each(LocalStore.get('tokensHeld'), (token) => {
+    _.each(Session.get('tokensHeld'), (token) => {
       token.shortHash = token.hash.slice(-5)
       tokens.push(token)
     })
     return tokens
   },
   balanceAmount() {
-    return LocalStore.get('balanceAmount')
+    return Session.get('balanceAmount')
   },
   balanceSymbol() {
-    return LocalStore.get('balanceSymbol')
+    return Session.get('balanceSymbol')
   },
   addressValidation() {
     const thisAddress = getXMSSDetails().address
@@ -972,9 +971,9 @@ Template.appTransfer.helpers({
   // Pagination for address transactions
   pages() {
     let ret = []
-    const active = LocalStore.get('active')
-    if (LocalStore.get('pages').length > 0) {
-      ret = LocalStore.get('pages')
+    const active = Session.get('active')
+    if (Session.get('pages').length > 0) {
+      ret = Session.get('pages')
       if ((active - 5) <= 0) {
         ret = ret.slice(0, 9)
       } else {
@@ -989,28 +988,28 @@ Template.appTransfer.helpers({
   },
   isActive() {
     let ret = ''
-    if (this.number === LocalStore.get('active')) {
+    if (this.number === Session.get('active')) {
       ret = 'active'
     }
     return ret
   },
   pback() {
     let ret = false
-    if (LocalStore.get('active') !== 1) {
+    if (Session.get('active') !== 1) {
       ret = true
     }
     return ret
   },
   pforward() {
     let ret = false
-    if (LocalStore.get('active') !== LocalStore.get('pages').length) {
+    if (Session.get('active') !== Session.get('pages').length) {
       ret = true
     }
     return ret
   },
   pagination() {
     let ret = false
-    if (LocalStore.get('pages').length > 1) {
+    if (Session.get('pages').length > 1) {
       ret = true
     }
     return ret

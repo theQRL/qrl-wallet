@@ -2,8 +2,6 @@
 import { QRLLIB } from 'qrllib/build/web-libjsqrl.js'
 import './routes.js'
 import './functions.js'
-/* global LocalStore */
-
 
 // Global to store XMSS object
 XMSS_OBJECT = null
@@ -20,5 +18,3 @@ console.log('qrl-wallet - ',WALLET_VERSION)
 console.log('We\'re hiring! https://angel.co/theqrl/jobs')
 console.log('Found a security bug? security@theqrl.org')
 console.log('Found a problem? https://github.com/theQRL/qrl-wallet/issues')
-
-

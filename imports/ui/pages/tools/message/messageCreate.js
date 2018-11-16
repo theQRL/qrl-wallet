@@ -1,5 +1,4 @@
 import './messageCreate.html'
-/* global LocalStore */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
 /* global DEFAULT_NETWORKS */
@@ -15,7 +14,7 @@ function createMessageTxn() {
   const otsKey = document.getElementById('otsKey').value
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
@@ -35,7 +34,7 @@ function createMessageTxn() {
 
   wrapMeteorCall('createMessageTxn', request, (err, res) => {
     if (err) {
-      LocalStore.set('messageCreationError', err)
+      Session.set('messageCreationError', err.reason)
       $('#messageCreationFailed').show()
       $('#messageCreateForm').hide()
     } else {
@@ -47,8 +46,8 @@ function createMessageTxn() {
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createMessageTxn')) {
-        LocalStore.set('messageCreationConfirmation', confirmation)
-        LocalStore.set('messageCreationConfirmationResponse', res.response)
+        Session.set('messageCreationConfirmation', confirmation)
+        Session.set('messageCreationConfirmationResponse', res.response)
 
         // Send to confirm page.
         const params = { }
@@ -123,7 +122,7 @@ Template.appMessageCreate.onRendered(() => {
   // Get wallet balance
   getBalance(getXMSSDetails().address, function() {
     // Show warning is otsKeysRemaining is low
-    if(LocalStore.get('otsKeysRemaining') < 50) {
+    if(Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
@@ -143,42 +142,42 @@ Template.appMessageCreate.events({
 Template.appMessageCreate.helpers({
   transferFrom() {
     const transferFrom = {}
-    transferFrom.balance = LocalStore.get('transferFromBalance')
-    transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
+    transferFrom.balance = Session.get('transferFromBalance')
+    transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
     return transferFrom
   },
   transactionConfirmation() {
-    const confirmation = LocalStore.get('transactionConfirmation')
+    const confirmation = Session.get('transactionConfirmation')
     return confirmation
   },
   transactionConfirmationAmount() {
-    const confirmationAmount = LocalStore.get('transactionConfirmationAmount')
+    const confirmationAmount = Session.get('transactionConfirmationAmount')
     return confirmationAmount
   },
   transactionConfirmationFee() {
-    const transactionConfirmationFee = LocalStore.get('transactionConfirmationFee')
+    const transactionConfirmationFee = Session.get('transactionConfirmationFee')
     return transactionConfirmationFee
   },
   transactionGenerationError() {
-    const error = LocalStore.get('transactionGenerationError')
+    const error = Session.get('transactionGenerationError')
     return error
   },
   otsKeyEstimate() {
-    const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
+    const otsKeyEstimate = Session.get('otsKeyEstimate')
     return otsKeyEstimate
   },
   otsKeysRemaining() {
-    const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
+    const otsKeysRemaining = Session.get('otsKeysRemaining')
     return otsKeysRemaining
   },
   messageCreationError() {
-    const messageCreationError = LocalStore.get('messageCreationError')
+    const messageCreationError = Session.get('messageCreationError')
     return messageCreationError
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
 })

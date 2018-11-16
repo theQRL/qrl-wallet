@@ -1,5 +1,4 @@
 /* eslint no-console:0 */
-/* global LocalStore */
 /* global findNetworkData */
 /* global DEFAULT_NETWORKS */
 /* global selectedNetwork */
@@ -32,27 +31,27 @@ const checkNetworkHealth = (network, callback) => {
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
   // Set node status to connecting
-  LocalStore.set('nodeStatus', 'connecting')
+  Session.set('nodeStatus', 'connecting')
   // Update local node connection details
   switch (selectedNetwork) {
     case 'add': {
       $('#addNode').modal({
         onDeny: () => {
-          LocalStore.set('modalEventTriggered', true)
+          Session.set('modalEventTriggered', true)
           $('#networkDropdown').dropdown('set selected', 'testnet')
         },
         onApprove: () => {
-          LocalStore.set('nodeId', 'custom')
-          LocalStore.set('nodeName', document.getElementById('customNodeName').value)
-          LocalStore.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
-          LocalStore.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          Session.set('nodeId', 'custom')
+          Session.set('nodeName', document.getElementById('customNodeName').value)
+          Session.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
+          Session.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
-          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          Session.set('customNodeName', document.getElementById('customNodeName').value)
+          Session.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
+          Session.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          LocalStore.set('customNodeCreated', true)
-          LocalStore.set('modalEventTriggered', true)
+          Session.set('customNodeCreated', true)
+          Session.set('modalEventTriggered', true)
 
           $('#networkDropdown').dropdown('refresh')
 
@@ -68,12 +67,12 @@ const updateNetwork = (selectedNetwork) => {
           // eg: pressing esc
 
           // If the modal is hidden without approval, revert to testnet-1 node.
-          if (LocalStore.get('modalEventTriggered') === false) {
+          if (Session.get('modalEventTriggered') === false) {
             $('#networkDropdown').dropdown('set selected', 'testnet-1')
           }
 
           // Reset modalEventTriggered
-          LocalStore.set('modalEventTriggered', false)
+          Session.set('modalEventTriggered', false)
         },
       }).modal('show')
       break
@@ -81,45 +80,45 @@ const updateNetwork = (selectedNetwork) => {
     case 'custom': {
       const nodeData = {
         id: 'custom',
-        name: LocalStore.get('customNodeName'),
+        name: Session.get('customNodeName'),
         disabled: '',
-        explorerUrl: LocalStore.get('customNodeExplorerUrl'),
+        explorerUrl: Session.get('customNodeExplorerUrl'),
         type: 'both',
-        grpc: LocalStore.get('customNodeGrpc'),
+        grpc: Session.get('customNodeGrpc'),
       }
 
-      LocalStore.set('nodeId', 'custom')
-      LocalStore.set('nodeName', LocalStore.get('customNodeName'))
-      LocalStore.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
-      LocalStore.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
+      Session.set('nodeId', 'custom')
+      Session.set('nodeName', Session.get('customNodeName'))
+      Session.set('nodeGrpc', Session.get('customNodeGrpc'))
+      Session.set('nodeExplorerUrl', Session.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
       connectToNode(nodeData.grpc, (err) => {
         if (err) {
           console.log('Error: ', err)
-          LocalStore.set('nodeStatus', 'failed')
+          Session.set('nodeStatus', 'failed')
         } else {
           console.log('Custom gRPC client loaded: ', nodeData.grpc)
-          LocalStore.set('nodeStatus', 'ok')
+          Session.set('nodeStatus', 'ok')
         }
       })
       break
     };
     default: {
       const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
-      LocalStore.set('nodeId', nodeData.id)
-      LocalStore.set('nodeName', nodeData.name)
-      LocalStore.set('nodeExplorerUrl', nodeData.explorerUrl)
-      LocalStore.set('nodeGrpc', nodeData.grpc)
+      Session.set('nodeId', nodeData.id)
+      Session.set('nodeName', nodeData.name)
+      Session.set('nodeExplorerUrl', nodeData.explorerUrl)
+      Session.set('nodeGrpc', nodeData.grpc)
 
       console.log('Connecting to network: ', nodeData.name)
       checkNetworkHealth(nodeData.id, (err, res) => {
         if (err) {
           console.log('the error: ', err)
-          LocalStore.set('nodeStatus', 'failed')
+          Session.set('nodeStatus', 'failed')
         } else {
           console.log('Connection to network is healthy: ', nodeData.id)
-          LocalStore.set('nodeStatus', 'ok')
+          Session.set('nodeStatus', 'ok')
         }
       })
       break
@@ -144,7 +143,7 @@ const tabHandler = (page) => {
     output.transfer = false
     output.tools = false
   }
-  if (LocalStore.get('walletStatus').unlocked === false && page === '/verify') {
+  if (Session.get('walletStatus').unlocked === false && page === '/verify') {
     output.create = true
     output.verify = true
     output.open = true
@@ -189,7 +188,7 @@ const adjustClasses = () => {
 }
 
 Template.mobile.onRendered(() => {
-  LocalStore.set('modalEventTriggered', false)
+  Session.set('modalEventTriggered', false)
   $('#networkDropdown').dropdown({ allowReselection: true })
   $('.small.modal').modal()
 
@@ -219,22 +218,22 @@ Template.mobile.helpers({
     return returnClass(numPages(tabHandler(FlowRouter.current().path)))
   },
   nodeId() {
-    if ((LocalStore.get('nodeId') === '') || (LocalStore.get('nodeId') === null)) {
+    if ((Session.get('nodeId') === '') || (Session.get('nodeId') === null)) {
       return DEFAULT_NETWORKS[0].id
     }
-    return LocalStore.get('nodeId')
+    return Session.get('nodeId')
   },
   nodeName() {
-    if ((LocalStore.get('nodeName') === '') || (LocalStore.get('nodeName') === null)) {
+    if ((Session.get('nodeName') === '') || (Session.get('nodeName') === null)) {
       return DEFAULT_NETWORKS[0].name
     }
-    return LocalStore.get('nodeName')
+    return Session.get('nodeName')
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
   defaultNetworks() {
     const visibleNodes = []
@@ -257,10 +256,10 @@ Template.mobile.helpers({
   },
   connectionStatus() {
     const status = {}
-    if (LocalStore.get('nodeStatus') === 'connecting') {
+    if (Session.get('nodeStatus') === 'connecting') {
       status.string = 'Connecting to'
       status.colour = 'yellow'
-    } else if (LocalStore.get('nodeStatus') === 'ok') {
+    } else if (Session.get('nodeStatus') === 'ok') {
       status.string = 'Connected to'
       status.colour = 'green'
     } else {
@@ -270,12 +269,12 @@ Template.mobile.helpers({
     return status
   },
   walletStatus() {
-    return LocalStore.get('walletStatus')
+    return Session.get('walletStatus')
   },
   customNodeCreated() {
-    return LocalStore.get('customNodeCreated')
+    return Session.get('customNodeCreated')
   },
   customNodeName() {
-    return LocalStore.get('customNodeName')
+    return Session.get('customNodeName')
   },
 })

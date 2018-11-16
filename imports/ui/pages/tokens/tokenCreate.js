@@ -1,7 +1,6 @@
 import './tokenCreate.html'
 import { BigNumber } from 'bignumber.js'
 import helpers from '@theqrl/explorer-helpers'
-/* global LocalStore */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
 /* global DEFAULT_NETWORKS */
@@ -22,7 +21,7 @@ function maxAllowedDecimals(tokenTotalSupply) {
 
 function createTokenTxn() {
   // Get to/amount details
-  const sendFrom = anyAddressToRawAddress(LocalStore.get('transferFromAddress'))
+  const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
   const owner = anyAddressToRawAddress(document.getElementById('owner').value)
   const symbol = document.getElementById('symbol').value
   const name = document.getElementById('name').value
@@ -33,7 +32,7 @@ function createTokenTxn() {
   let tokenHolders = []
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(LocalStore.get('otsBitfield'), otsKey)) {
+  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
@@ -66,8 +65,8 @@ function createTokenTxn() {
 
   // Fail token creation if decimals are too high for circulating supply
   if (parseInt(decimals) > maxAllowedDecimals(tokenTotalSupply)) {
-    LocalStore.set('maxDecimals', maxAllowedDecimals(tokenTotalSupply))
-    LocalStore.set('tokenTotalSupply', tokenTotalSupply)
+    Session.set('maxDecimals', maxAllowedDecimals(tokenTotalSupply))
+    Session.set('tokenTotalSupply', tokenTotalSupply)
     $('#generating').hide()
     $('#maxDecimalsReached').modal('show')
     return
@@ -92,7 +91,7 @@ function createTokenTxn() {
 
   wrapMeteorCall('createTokenTxn', request, (err, res) => {
     if (err) {
-      LocalStore.set('tokenCreationError', err)
+      Session.set('tokenCreationError', err.reason)
       $('#tokenCreationFailed').show()
       $('#tokenCreateForm').hide()
     } else {
@@ -113,8 +112,8 @@ function createTokenTxn() {
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createTokenTxn')) {
-        LocalStore.set('tokenCreationConfirmation', confirmation)
-        LocalStore.set('tokenCreationConfirmationResponse', res.response)
+        Session.set('tokenCreationConfirmation', confirmation)
+        Session.set('tokenCreationConfirmationResponse', res.response)
 
         // Send to confirm page.
         const params = { }
@@ -264,7 +263,7 @@ Template.appTokenCreate.onRendered(() => {
   // Get wallet balance
   getBalance(getXMSSDetails().address, function() {
     // Show warning is otsKeysRemaining is low
-    if(LocalStore.get('otsKeysRemaining') < 50) {
+    if(Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
@@ -327,46 +326,46 @@ Template.appTokenCreate.events({
 Template.appTokenCreate.helpers({
   transferFrom() {
     const transferFrom = {}
-    transferFrom.balance = LocalStore.get('transferFromBalance')
-    transferFrom.address = hexOrB32(LocalStore.get('transferFromAddress'))
+    transferFrom.balance = Session.get('transferFromBalance')
+    transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
     return transferFrom
   },
   transactionConfirmation() {
-    const confirmation = LocalStore.get('transactionConfirmation')
+    const confirmation = Session.get('transactionConfirmation')
     return confirmation
   },
   transactionConfirmationAmount() {
-    const confirmationAmount = LocalStore.get('transactionConfirmationAmount')
+    const confirmationAmount = Session.get('transactionConfirmationAmount')
     return confirmationAmount
   },
   transactionConfirmationFee() {
-    const transactionConfirmationFee = LocalStore.get('transactionConfirmationFee')
+    const transactionConfirmationFee = Session.get('transactionConfirmationFee')
     return transactionConfirmationFee
   },
   transactionGenerationError() {
-    const error = LocalStore.get('transactionGenerationError')
+    const error = Session.get('transactionGenerationError')
     return error
   },
   otsKeyEstimate() {
-    const otsKeyEstimate = LocalStore.get('otsKeyEstimate')
+    const otsKeyEstimate = Session.get('otsKeyEstimate')
     return otsKeyEstimate
   },
   otsKeysRemaining() {
-    const otsKeysRemaining = LocalStore.get('otsKeysRemaining')
+    const otsKeysRemaining = Session.get('otsKeysRemaining')
     return otsKeysRemaining
   },
   maxDecimals() {
-    const maxDecimals = LocalStore.get('maxDecimals')
+    const maxDecimals = Session.get('maxDecimals')
     return maxDecimals
   },
   tokenTotalSupply() {
-    const tokenTotalSupply = LocalStore.get('tokenTotalSupply')
+    const tokenTotalSupply = Session.get('tokenTotalSupply')
     return tokenTotalSupply
   },
   nodeExplorerUrl() {
-    if ((LocalStore.get('nodeExplorerUrl') === '') || (LocalStore.get('nodeExplorerUrl') === null)) {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
-    return LocalStore.get('nodeExplorerUrl')
+    return Session.get('nodeExplorerUrl')
   },
 })
