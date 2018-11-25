@@ -124,24 +124,7 @@
   </div>
 </div>
 
-<div class="small ui modal" id="recoverySeedModal">
-  <div class="header">Wallet Recovery Seed</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div>
-        <div class="header">
-          Warning: Keep this information private at all times!
-        </div>
-        <p class="wordBreak"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
-        <p class="wordBreak"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve red button">Close</div>
-  </div>
-</div>
+{{> recoverySeedModal }}
 
 <h3 class="ui header pageHeader">
   <div id="walletAddress" class="content wordBreak">
@@ -861,4 +844,26 @@
 </div>
 
 
+</template>
+<template name="recoverySeedModal">
+  <div class="small ui modal" id="recoverySeedModal">
+  <div class="header">Wallet Recovery Seed</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div>
+        <div class="header">
+          Warning: Keep this information private at all times!
+        </div>
+        <p class="wordBreak"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
+        <p class="wordBreak"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
+        <p class="wordBreak"><strong>Private key QR:</strong><div id="recQR" width="150" height="150"></div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve red button">Close</div>
+  </div>
+</div>
 </template>

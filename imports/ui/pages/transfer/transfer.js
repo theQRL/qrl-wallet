@@ -14,6 +14,7 @@ import './transfer.html'
 /* global countDecimals */
 /* global nodeReturnedValidResponse */
 /* global otsIndexUsed */
+/* global getXMSSDetails */
 
 let tokensHeld = []
 
@@ -633,6 +634,8 @@ Template.appTransfer.onRendered(() => {
       $('.qr-code-container').empty()
       $(".qr-code-container").qrcode({width:142, height:142, text: getXMSSDetails().address})
     }
+    $('#recQR').empty()
+    $('#recQR').qrcode({width:142, height:142, text: getXMSSDetails().hexseed})
   })
 })
 
@@ -1014,6 +1017,8 @@ Template.appTransfer.helpers({
     }
     return ret
   },
+})
+Template.recoverySeedModal.helpers({
   recoverySeed() {
     return getXMSSDetails()
   },
