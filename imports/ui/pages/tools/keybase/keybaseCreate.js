@@ -28,11 +28,13 @@ function createKeybaseTxn() {
     return
   }
 
-  const userMessage = hexToBytes(`0F0F0002${addorremove}`) + ' ' + keybase_id + ' ' + hexToBytes(sigHash)
+  const userMessage = hexToBytes(`0F0F0002${addorremove}`)
+  const kbid_bytes = Buffer.from(` ${keybase_id} `, 'utf8')
+  const sighash_bytes = hexToBytes(sigHash)
 
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
-  const messageBytes = stringToBytes(userMessage)
+  const messageBytes = Buffer.concat([userMessage, kbid_bytes, sighash_bytes])
 
   // Construct request
   const request = {
