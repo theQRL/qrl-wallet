@@ -31,6 +31,7 @@ const checkNetworkHealth = (network, callback) => {
   })
 }
 
+// TODO: refactor this -- duplicate code used in ../mobile/mobile.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
   // If no network is selected, default to mainnet

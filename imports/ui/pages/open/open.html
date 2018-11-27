@@ -12,14 +12,14 @@
     <div class="ui form">
       <div class="field">
         <label>Wallet Seed / File</label>
-        <div class="ui action center aligned input"  id="addressFields" style="width: 100%; margin-bottom: 20px;">
-          <input type="file" id="walletFile" accept="text/json" name="walletFile[]" />
-          <input type="text" id="walletCode" name="walletCode" autocomplete="off" style="display: none; max-width: 75%;" />
+        <div class="ui action center aligned input"  id="addressFields" style="margin-bottom: 20px;">
+          <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="width: 50%"/>
+          <input type="text" id="walletCode" name="walletCode" autocomplete="off" style="width: 50%;display: none;" />
 
-          <select id="walletType" class="ui compact selection dropdown">
-            <option value="file">Wallet File</option>
-            <option value="mnemonic">Mnemonic Phrase</option>
-            <option value="hexseed">Hexseed</option>
+          <select id="walletType" class="ui compact selection dropdown" style="width: 160px !important;">
+            <option value="file" style="width: 50%">Wallet File</option>
+            <option value="mnemonic" style="width: 50%">Mnemonic Phrase</option>
+            <option value="hexseed" style="width: 50%">Hexseed</option>
           </select>
         </div>
       </div>

@@ -28,8 +28,16 @@ const checkNetworkHealth = (network, callback) => {
   })
 }
 
+
+// TODO: refactor this -- duplicate code from ../body/body.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
+  // If no network is selected, default to mainnet
+  if(selectedNetwork === '') {
+    $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
+    selectedNetwork = DEFAULT_NETWORKS[0].id
+  }
+
   // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
   // Update local node connection details
@@ -38,7 +46,7 @@ const updateNetwork = (selectedNetwork) => {
       $('#addNode').modal({
         onDeny: () => {
           Session.set('modalEventTriggered', true)
-          $('#networkDropdown').dropdown('set selected', 'testnet')
+          $('#networkDropdown').dropdown('set selected', 'mainnet')
         },
         onApprove: () => {
           Session.set('nodeId', 'custom')
@@ -66,9 +74,9 @@ const updateNetwork = (selectedNetwork) => {
           // so that we only trigger when the modal is hidden without an approval or denial
           // eg: pressing esc
 
-          // If the modal is hidden without approval, revert to testnet-1 node.
+          // If the modal is hidden without approval, revert to mainnet
           if (Session.get('modalEventTriggered') === false) {
-            $('#networkDropdown').dropdown('set selected', 'testnet-1')
+            $('#networkDropdown').dropdown('set selected', 'mainnet')
           }
 
           // Reset modalEventTriggered
