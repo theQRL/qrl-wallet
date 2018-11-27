@@ -209,7 +209,7 @@ Template.mobile.onRendered(() => {
 })
 Template.mobile.events({
   click: () => {
-    console.log($(event.currentTarget).attr('href'))
+    // console.log($(event.currentTarget).attr('href'))
     adjustClasses()
   },
   'change #network': () => {

@@ -1,0 +1,70 @@
+<template name="appKeybaseConfirm">
+
+<h2 class="ui header pageHeader">
+  <i class="tiny envelope icon"></i>
+  <div class="content">
+    Keybase Confirmation
+  </div>
+</h2>
+
+<div id="messageCreationConfirmation" class="ui red segment pageSegment">
+
+  <h4 class="ui horizontal divider header">
+    <i class="envelope icon"></i>
+    Your Message
+  </h4>
+
+  <div class="ui items">
+    <div class="item">
+      <div class="content">
+        <a class="header">{{messageCreationConfirmation.message}}</a>
+      </div>
+    </div>
+  </div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="file icon"></i>
+    Transaction Details
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <span>From <a class="ui">{{transferFrom.address}}</a></span>
+      <br />
+      <span>Fee <a class="ui">{{messageCreationConfirmation.fee}}</a></span>
+      <br />
+      <span>OTS Key Index <a class="ui">{{messageCreationConfirmation.otsKey}}</a></span>
+    </div>
+  </div>
+
+  <div class="ui stackable two column grid">
+    <div class="column center aligned">
+      <button id="confirmMessage" class="ui huge primary button red">Confirm Message</button>
+    </div>
+    <div class="column center aligned">
+      <button id="cancelMessage" class="ui huge red button plain">Cancel Message</button>
+    </div>
+  </div>
+
+  <div id="relaying" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Just a moment
+      </div>
+      <p id="tokenRelayingMsg">Your message is being relayed into the QRL network...</p>
+    </div>
+  </div>
+
+</div>
+
+<div id="transactionFailed" class="ui red segment pageSegment" style="display: none;">
+  <h4>Transaction Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Error! Your message has failed to relay into the QRL network.<br />
+    Error message: {{transactionFailed}}
+  </p>
+</div>
+
+</template>

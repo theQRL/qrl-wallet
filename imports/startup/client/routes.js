@@ -19,6 +19,9 @@ import '../../ui/pages/tools/message/messageResult.js'
 import '../../ui/pages/tools/notarise/start.js'
 import '../../ui/pages/tools/notarise/confirm.js'
 import '../../ui/pages/tools/notarise/result.js'
+import '../../ui/pages/tools/keybase/keybaseCreate.js'
+import '../../ui/pages/tools/keybase/keybaseConfirm.js'
+import '../../ui/pages/tools/keybase/keybaseResult.js'
 
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
@@ -135,6 +138,36 @@ FlowRouter.route('/tools/message/create', {
       BlazeLayout.render('appBody', { main: 'appMessageCreate' })
     } else {
       BlazeLayout.render('mobile', { main: 'appMessageCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/keybase', {
+  name: 'App.keybaseCreate',
+  action() {
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appKeybaseCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appKeybaseCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/keybase/confirm', {
+  name: 'App.keybaseConfirm',
+  action() {
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appKeybaseConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appKeybaseConfirm' })
+    }
+  },
+})
+FlowRouter.route('/tools/keybase/result', {
+  name: 'App.keybaseResult',
+  action() {
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appKeybaseResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appKeybaseResult' })
     }
   },
 })
