@@ -59,13 +59,15 @@ const loadGrpcClient = (endpoint, callback) => {
           let allowUnchecksummedNodes = Meteor.settings.allowUnchecksummedNodes
           if (allowUnchecksummedNodes !== true) { allowUnchecksummedNodes = false }
           // Validate proto file matches node version
-          getQrlProtoShasum(res.version, (verifiedProtoSha256Hash) => {
+          getQrlProtoShasum(res.version, (verifiedProtoSha256HashEntry) => {
             // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
-            if ((verifiedProtoSha256Hash === null) && (allowUnchecksummedNodes === false)) {
+            if ((verifiedProtoSha256HashEntry === null) && (allowUnchecksummedNodes === false)) {
               console.log(`Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`)
               const myError = errorCallback(err, `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`, '**ERROR/connect**')
               callback(myError, null)
             } else {
+              let verifiedProtoSha256Hash = {}
+              if (verifiedProtoSha256HashEntry === null) { verifiedProtoSha256Hash.objectSha256 = '' } else { verifiedProtoSha256Hash = verifiedProtoSha256HashEntry }
               // Now read the saved qrl.proto file so we can calculate a hash from it
               fs.readFile(qrlProtoFilePath, (errR, contents) => {
                 if (fsErr) {
