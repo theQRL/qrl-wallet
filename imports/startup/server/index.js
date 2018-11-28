@@ -56,17 +56,18 @@ const loadGrpcClient = (endpoint, callback) => {
             console.log(fsErr)
             throw fsErr
           }
-
+          let allowUnchecksummedNodes = Meteor.settings.allowUnchecksummedNodes
+          if (allowUnchecksummedNodes !== true) { allowUnchecksummedNodes = false }
           // Validate proto file matches node version
           getQrlProtoShasum(res.version, (verifiedProtoSha256Hash) => {
             // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
-            if(verifiedProtoSha256Hash === null) {
+            if ((verifiedProtoSha256Hash === null) && (allowUnchecksummedNodes === false)) {
               console.log(`Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`)
               const myError = errorCallback(err, `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`, '**ERROR/connect**')
               callback(myError, null)
             } else {
               // Now read the saved qrl.proto file so we can calculate a hash from it
-              fs.readFile(qrlProtoFilePath, function(err, contents) {
+              fs.readFile(qrlProtoFilePath, (errR, contents) => {
                 if (fsErr) {
                   console.log(fsErr)
                   throw fsErr
@@ -75,25 +76,22 @@ const loadGrpcClient = (endpoint, callback) => {
                 // Calculate the hash of the qrl.proto file contents
                 const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
                 const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
-
                 // If the calculated qrl.proto hash matches the verified one for this version,
                 // continue to verify the grpc object loaded from the proto also matches the correct
                 // shasum.
-
-                if (calculatedProtoHash == verifiedProtoSha256Hash.protoSha256) {
-
+                if ((calculatedProtoHash === verifiedProtoSha256Hash.protoSha256) || (allowUnchecksummedNodes === true)) {
                   // Load gRPC object
                   const grpcObject = grpc.load(qrlProtoFilePath)
 
                   // Inspect the object and convert to string.
-                  const grpcObjectString = JSON.stringify(util.inspect(grpcObject, {showHidden: true, depth: 4}))
+                  const grpcObjectString = JSON.stringify(util.inspect(grpcObject, { showHidden: true, depth: 4 }))
 
                   // Calculate the hash of the grpc object string returned
                   const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
                   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
 
                   // If the grpc object shasum matches, establish the grpc connection.
-                  if (calculatedObjectHash == verifiedProtoSha256Hash.objectSha256) {
+                  if ((calculatedObjectHash === verifiedProtoSha256Hash.objectSha256) || (allowUnchecksummedNodes === true)) {
                     // Create the gRPC Connection
                     qrlClient[endpoint] =
                       new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
