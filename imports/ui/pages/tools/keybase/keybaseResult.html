@@ -11,8 +11,8 @@
 <div id="transactionComplete" class="ui red segment pageSegment">
 
   <h4 class="ui horizontal divider header">
-    <i class="envelope icon"></i>
-    Your Message
+    <i class="icon"><img src="/img/keybase.svg"></i>
+    Your Keybase operation
   </h4>
 
   <div class="ui items">
@@ -21,7 +21,12 @@
         {{> QRCode text=transactionHash size="128px"}}
       </div>
       <div class="content">
-        <a class="header">{{messageDetails.message}}</a>
+        <div class="header">Keybase action</div>
+        <div class="description"><p><div class="ui label">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
+        <div class="header">Keybase username</div>
+        <div class="description"><p>{{keybaseOperation.keybaseId}}</p><p>&nbsp;</p></div>
+        <div class="header">Keybase signature</div>
+        <div class="description"><p>{{keybaseOperation.sigHash}}</p><p>&nbsp;</p></div>
         <div class="meta">
           <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
@@ -36,7 +41,7 @@
 
   <div class="ui stackable one column grid">
     <div class="column">
-      <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
+      <p id="successMessage" style="overflow-wrap: break-word">
         Success! Your Keybase message has been relayed into the QRL network through the following nodes, and is pending validation.
       </p>
     </div>

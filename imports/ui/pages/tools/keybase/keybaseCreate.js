@@ -1,40 +1,37 @@
 import './keybaseCreate.html'
-/* global selectedNetwork */
-/* global XMSS_OBJECT */
-/* global DEFAULT_NETWORKS */
-/* global SHOR_PER_QUANTA */
-/* global wrapMeteorCall */
-/* global nodeReturnedValidResponse */
-/* global otsIndexUsed */
+
+/* global selectedNetwork, XMSS_OBJECT, DEFAULT_NETWORKS, SHOR_PER_QUANTA */
+/* global wrapMeteorCall, nodeReturnedValidResponse, otsIndexUsed */
+/* global hexToBytes, bytesToString, getBalance, getXMSSDetails, hexOrB32 */
 
 function createKeybaseTxn() {
   // Get transaction values from form
   const sigHash = document.getElementById('message').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
-  const keybase_id = document.getElementById('kb_username').value
-  
+  const keybaseId = document.getElementById('kb_username').value
+
   // fail if neither checkbox has value
   if (!$('#kb_add').prop('checked') && !$('#kb_remove').prop('checked')) { return }
   let addorremove = ''
-    // return message code for keybase action:
-    // AA = add, AF = remove
+  // return message code for keybase action:
+  // AA = add, AF = remove
   if ($('#kb_add').prop('checked')) { addorremove = 'AA' } else { addorremove = 'AF' }
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
   }
 
   const userMessage = hexToBytes(`0F0F0002${addorremove}`)
-  const kbid_bytes = Buffer.from(` ${keybase_id} `, 'utf8')
-  const sighash_bytes = hexToBytes(sigHash)
+  const kbidBytes = Buffer.from(` ${keybaseId} `, 'utf8')
+  const sighashBytes = hexToBytes(sigHash)
 
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
-  const messageBytes = Buffer.concat([userMessage, kbid_bytes, sighash_bytes])
+  const messageBytes = Buffer.concat([userMessage, kbidBytes, sighashBytes])
 
   // Construct request
   const request = {
@@ -43,6 +40,14 @@ function createKeybaseTxn() {
     xmssPk: pubKey,
     network: selectedNetwork(),
   }
+
+  // Store Session value of Keybase operation
+  const keybaseOperation = {
+    addorremove,
+    keybaseId,
+    sigHash,
+  }
+  Session.set('keybaseOperation', keybaseOperation)
 
   wrapMeteorCall('createKeybaseTxn', request, (err, res) => {
     if (err) {
@@ -54,7 +59,7 @@ function createKeybaseTxn() {
         hash: res.txnHash,
         message: bytesToString(res.response.extended_transaction_unsigned.tx.message.message_hash),
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-        otsKey: otsKey,
+        otsKey,
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createKeybaseTxn')) {
@@ -74,9 +79,9 @@ function createKeybaseTxn() {
 
 // Function to initialise form validation
 function initialiseFormValidation() {
-  let validationRules = {}
+  const validationRules = {}
 
-  validationRules['message'] = {
+  validationRules.message = {
     id: 'message',
     rules: [
       {
@@ -90,7 +95,7 @@ function initialiseFormValidation() {
     ],
   }
 
-  validationRules['kb_username'] = {
+  validationRules.kb_username = {
     id: 'kb_username',
     rules: [
       {
@@ -105,7 +110,7 @@ function initialiseFormValidation() {
   }
 
   // Now set fee and otskey validation rules
-  validationRules['fee'] = {
+  validationRules.fee = {
     id: 'fee',
     rules: [
       {
@@ -118,7 +123,7 @@ function initialiseFormValidation() {
       },
     ],
   }
-  validationRules['otsKey'] = {
+  validationRules.otsKey = {
     id: 'otsKey',
     rules: [
       {
@@ -131,12 +136,12 @@ function initialiseFormValidation() {
       },
     ],
   }
-  validationRules['kb_action'] = {
+  validationRules.kb_action = {
     id: 'kb_action',
     rules: [
       {
         type: 'checked',
-        prompt: 'You need to select a Keybase action'
+        prompt: 'You need to select a Keybase action',
       },
     ],
   }
@@ -155,9 +160,9 @@ Template.appKeybaseCreate.onRendered(() => {
   initialiseFormValidation()
 
   // Get wallet balance
-  getBalance(getXMSSDetails().address, function() {
+  getBalance(getXMSSDetails().address, () => {
     // Show warning is otsKeysRemaining is low
-    if(Session.get('otsKeysRemaining') < 50) {
+    if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
