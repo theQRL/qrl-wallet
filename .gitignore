@@ -8,3 +8,4 @@ public/web-libjsqrl.wasm
 .idea/
 localtests/
 local.json
+/.deploy

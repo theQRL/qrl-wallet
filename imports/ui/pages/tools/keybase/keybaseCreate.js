@@ -89,8 +89,8 @@ function initialiseFormValidation() {
         prompt: 'You must enter a message',
       },
       {
-        type: 'maxLength[66]',
-        prompt: 'The max length of a message is 80 bytes.',
+        type: 'regExp[/^[0-9a-fA-F]{66}$/]',
+        prompt: 'The sighash should be 66 characters long',
       },
     ],
   }
@@ -103,8 +103,8 @@ function initialiseFormValidation() {
         prompt: 'You must enter a Keybase username',
       },
       {
-        type: 'maxLength[16]',
-        prompt: 'The max length of a username is 16 characters.',
+        type: 'regExp[/^[a-z0-9_-]{1,16}$/]',
+        prompt: 'The max length of a Keybase username is 16 characters.',
       },
     ],
   }
