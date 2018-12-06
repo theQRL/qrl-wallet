@@ -15,6 +15,6 @@ resetWalletStatus()
 
 // Developer note
 console.log('qrl-wallet - ',WALLET_VERSION)
-console.log('We\'re hiring! https://angel.co/theqrl/jobs')
+console.log('We\'re hiring! jobs@theqrl.org')
 console.log('Found a security bug? security@theqrl.org')
 console.log('Found a problem? https://github.com/theQRL/qrl-wallet/issues')
