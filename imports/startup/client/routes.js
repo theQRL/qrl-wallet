@@ -102,6 +102,7 @@ FlowRouter.route('/close', {
 FlowRouter.route('/transfer', {
   name: 'App.transfer',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appTransfer' })
     } else {
@@ -112,6 +113,7 @@ FlowRouter.route('/transfer', {
 FlowRouter.route('/reloadTransfer', {
   name: 'App.reloadTransfer',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appReloadTransfer' })
     } else {
@@ -124,6 +126,7 @@ FlowRouter.route('/reloadTransfer', {
 FlowRouter.route('/tools', {
   name: 'App.tools',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appTools' })
     } else {
@@ -134,6 +137,7 @@ FlowRouter.route('/tools', {
 FlowRouter.route('/tools/message/create', {
   name: 'App.messageCreate',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appMessageCreate' })
     } else {
@@ -144,6 +148,7 @@ FlowRouter.route('/tools/message/create', {
 FlowRouter.route('/tools/keybase', {
   name: 'App.keybaseCreate',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appKeybaseCreate' })
     } else {
@@ -154,6 +159,7 @@ FlowRouter.route('/tools/keybase', {
 FlowRouter.route('/tools/keybase/confirm', {
   name: 'App.keybaseConfirm',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appKeybaseConfirm' })
     } else {
@@ -164,6 +170,7 @@ FlowRouter.route('/tools/keybase/confirm', {
 FlowRouter.route('/tools/keybase/result', {
   name: 'App.keybaseResult',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appKeybaseResult' })
     } else {
@@ -174,6 +181,7 @@ FlowRouter.route('/tools/keybase/result', {
 FlowRouter.route('/tools/message/confirm', {
   name: 'App.messageConfirm',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appMessageConfirm' })
     } else {
@@ -184,6 +192,7 @@ FlowRouter.route('/tools/message/confirm', {
 FlowRouter.route('/tools/message/result', {
   name: 'App.messageResult',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appMessageResult' })
     } else {
@@ -194,6 +203,7 @@ FlowRouter.route('/tools/message/result', {
 FlowRouter.route('/tools/notarise/start', {
   name: 'App.notariseStart',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appNotariseStart' })
     } else {
@@ -204,6 +214,7 @@ FlowRouter.route('/tools/notarise/start', {
 FlowRouter.route('/tools/notarise/confirm', {
   name: 'App.notariseConfirm',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appNotariseConfirm' })
     } else {
@@ -214,6 +225,7 @@ FlowRouter.route('/tools/notarise/confirm', {
 FlowRouter.route('/tools/notarise/result', {
   name: 'App.notariseResult',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appNotariseResult' })
     } else {
@@ -226,6 +238,7 @@ FlowRouter.route('/tools/notarise/result', {
 FlowRouter.route('/tokens/create', {
   name: 'App.tokensCreate',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appTokenCreate' })
     } else {
@@ -236,6 +249,7 @@ FlowRouter.route('/tokens/create', {
 FlowRouter.route('/tokens/create/confirm', {
   name: 'App.tokenCreationConfirm',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appTokenCreationConfirm' })
     } else {
@@ -246,6 +260,7 @@ FlowRouter.route('/tokens/create/confirm', {
 FlowRouter.route('/tokens/create/result', {
   name: 'App.tokenCreationResult',
   action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
     if (useMobile()) {
       BlazeLayout.render('appBody', { main: 'appTokenCreationResult' })
     } else {
