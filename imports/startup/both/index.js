@@ -29,9 +29,11 @@ QRLPROTO_SHA256 = [
     protoSha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892",
     objectSha256: "7e841e796be583d30066e33f8d9b344ffe8160eb02fecc6cb4df80f7823e932c",
   },
+  {
     version: "1.1.3",
     protoSha256: "9daaa59da125167ae825bf182a65c7f12a3af78f2cc351991a5faae03fb99892",
     objectSha256: "7e841e796be583d30066e33f8d9b344ffe8160eb02fecc6cb4df80f7823e932c",
+  },
   {
     version: "1.1.4",
     protoSha256: "71a51e5222c50a7575f1a92c365f6674bae938cebae678416da80f22fa8327b9",
