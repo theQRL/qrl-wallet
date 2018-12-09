@@ -33,3 +33,4 @@ jquery@1.11.10
 qrl:browser-policy
 steeve:jquery-qrcode
 underscore@1.0.10
+frozeman:storage

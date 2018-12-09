@@ -56,17 +56,20 @@ const loadGrpcClient = (endpoint, callback) => {
             console.log(fsErr)
             throw fsErr
           }
-
+          let allowUnchecksummedNodes = Meteor.settings.allowUnchecksummedNodes
+          if (allowUnchecksummedNodes !== true) { allowUnchecksummedNodes = false }
           // Validate proto file matches node version
-          getQrlProtoShasum(res.version, (verifiedProtoSha256Hash) => {
+          getQrlProtoShasum(res.version, (verifiedProtoSha256HashEntry) => {
             // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
-            if(verifiedProtoSha256Hash === null) {
+            if ((verifiedProtoSha256HashEntry === null) && (allowUnchecksummedNodes === false)) {
               console.log(`Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`)
               const myError = errorCallback(err, `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`, '**ERROR/connect**')
               callback(myError, null)
             } else {
+              let verifiedProtoSha256Hash = {}
+              if (verifiedProtoSha256HashEntry === null) { verifiedProtoSha256Hash.objectSha256 = '' } else { verifiedProtoSha256Hash = verifiedProtoSha256HashEntry }
               // Now read the saved qrl.proto file so we can calculate a hash from it
-              fs.readFile(qrlProtoFilePath, function(err, contents) {
+              fs.readFile(qrlProtoFilePath, (errR, contents) => {
                 if (fsErr) {
                   console.log(fsErr)
                   throw fsErr
@@ -75,23 +78,22 @@ const loadGrpcClient = (endpoint, callback) => {
                 // Calculate the hash of the qrl.proto file contents
                 const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
                 const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
-
                 // If the calculated qrl.proto hash matches the verified one for this version,
                 // continue to verify the grpc object loaded from the proto also matches the correct
                 // shasum.
-                if (calculatedProtoHash == verifiedProtoSha256Hash.protoSha256) {
+                if ((calculatedProtoHash === verifiedProtoSha256Hash.protoSha256) || (allowUnchecksummedNodes === true)) {
                   // Load gRPC object
                   const grpcObject = grpc.load(qrlProtoFilePath)
 
                   // Inspect the object and convert to string.
-                  const grpcObjectString = JSON.stringify(util.inspect(grpcObject, {showHidden: true, depth: 4}))
+                  const grpcObjectString = JSON.stringify(util.inspect(grpcObject, { showHidden: true, depth: 4 }))
 
                   // Calculate the hash of the grpc object string returned
                   const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
                   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
 
                   // If the grpc object shasum matches, establish the grpc connection.
-                  if (calculatedObjectHash == verifiedProtoSha256Hash.objectSha256) {
+                  if ((calculatedObjectHash === verifiedProtoSha256Hash.objectSha256) || (allowUnchecksummedNodes === true)) {
                     // Create the gRPC Connection
                     qrlClient[endpoint] =
                       new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
@@ -587,9 +589,35 @@ const createMessageTxn = (request, callback) => {
     fee: request.fee,
     xmss_pk: request.xmssPk,
     xmss_ots_index: request.xmssOtsKey,
-    network: request.network
+    network: request.network,
   }
 
+  qrlApi('getMessageTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
+// Create Keybase Txn
+const createKeybaseTxn = (request, callback) => {
+  const tx = {
+    // master_addr: request.addressFrom,
+    message: request.message,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+    network: request.network,
+  }
+  // uses message transaction internally
   qrlApi('getMessageTxn', tx, (err, response) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
@@ -783,7 +811,87 @@ const confirmMessageCreation = (request, callback) => {
   })
 }
 
+const confirmKeybaseCreation = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
 
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  confirmTxn.transaction_signed.message.message_hash =
+    toBuffer(confirmTxn.transaction_signed.message.message_hash)
+
+  confirmTxn.network = request.network
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try{
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          if (err) {
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+    /*
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          try{
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+                cb()
+              } else {
+                console.log(`Token Creation Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch (err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+            cb()
+          }
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('All token creation txns sent')
+        wfcb()
+      })
+    },
+    */
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
 // Function to call GetTransferTokenTxn API
 const createTokenTransferTxn = (request, callback) => {
   const tx = {
@@ -1140,10 +1248,22 @@ Meteor.methods({
     const response = Meteor.wrapAsync(createMessageTxn)(request)
     return response
   },
+  createKeybaseTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createKeybaseTxn)(request)
+    return response
+  },
   confirmMessageCreation(request) {
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(confirmMessageCreation)(request)
+    return response
+  },
+  confirmKeybaseCreation(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmKeybaseCreation)(request)
     return response
   },
   createTokenTxn(request) {

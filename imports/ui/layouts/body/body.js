@@ -1,4 +1,5 @@
 /* eslint no-console:0 */
+/* global LocalStore */
 /* global findNetworkData */
 /* global DEFAULT_NETWORKS */
 /* global selectedNetwork */
@@ -31,6 +32,7 @@ const checkNetworkHealth = (network, callback) => {
   })
 }
 
+// TODO: refactor this -- duplicate code used in ../mobile/mobile.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
   // If no network is selected, default to mainnet
@@ -55,11 +57,11 @@ const updateNetwork = (selectedNetwork) => {
           Session.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
           Session.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeName', document.getElementById('customNodeName').value)
-          Session.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-          Session.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
+          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
+          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeCreated', true)
+          LocalStore.set('customNodeCreated', true)
           Session.set('modalEventTriggered', true)
 
           $('#networkDropdown').dropdown('refresh')
@@ -89,17 +91,17 @@ const updateNetwork = (selectedNetwork) => {
     case 'custom': {
       const nodeData = {
         id: 'custom',
-        name: Session.get('customNodeName'),
+        name: LocalStore.get('customNodeName'),
         disabled: '',
-        explorerUrl: Session.get('customNodeExplorerUrl'),
+        explorerUrl: LocalStore.get('customNodeExplorerUrl'),
         type: 'both',
-        grpc: Session.get('customNodeGrpc'),
+        grpc: LocalStore.get('customNodeGrpc'),
       }
 
       Session.set('nodeId', 'custom')
-      Session.set('nodeName', Session.get('customNodeName'))
-      Session.set('nodeGrpc', Session.get('customNodeGrpc'))
-      Session.set('nodeExplorerUrl', Session.get('customNodeExplorerUrl'))
+      Session.set('nodeName', LocalStore.get('customNodeName'))
+      Session.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
+      Session.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
       connectToNode(nodeData.grpc, (err) => {
@@ -112,7 +114,7 @@ const updateNetwork = (selectedNetwork) => {
         }
       })
       break
-    };
+    }
     default: {
       const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
       Session.set('nodeId', nodeData.id)
@@ -137,7 +139,7 @@ const updateNetwork = (selectedNetwork) => {
 
 Template.appBody.onRendered(() => {
   Session.set('modalEventTriggered', false)
-  
+
   $('#networkDropdown').dropdown({ allowReselection: true })
   $('.small.modal').modal()
 
@@ -148,8 +150,8 @@ Template.appBody.onRendered(() => {
     $('#walletWarning').hide()
   } else {
     // Show walletWarning at top. This needs to be here twice or it doesn't work onload
-    $('#walletWarning').sticky({context: '#walletWarning'})
-    $('#walletWarning').sticky({context: '#walletWarning'})
+    $('#walletWarning').sticky({ context: '#walletWarning' })
+    $('#walletWarning').sticky({ context: '#walletWarning' })
   }
 
   /*
@@ -208,10 +210,10 @@ Template.appBody.events({
   'change #addressFormatCheckbox': () => {
     var checked = $('#addressFormatCheckbox').prop("checked")
     if(checked){
-      Session.set('addressFormat', 'bech32')
+      LocalStore.set('addressFormat', 'bech32')
     }
     else {
-      Session.set('addressFormat', 'hex')
+      LocalStore.set('addressFormat', 'hex')
     }
   },
   'click #sendAndReceiveButton': () => {
@@ -268,7 +270,7 @@ Template.appBody.events({
 
 Template.appBody.helpers({
   addressFormat() {
-    if(Session.get('addressFormat') == 'bech32'){
+    if(LocalStore.get('addressFormat') == 'bech32'){
       return 'BECH32'
     }
     else {
@@ -276,7 +278,7 @@ Template.appBody.helpers({
     }
   },
   addressFormatChecked() {
-    if(Session.get('addressFormat') == 'bech32'){
+    if(LocalStore.get('addressFormat') == 'bech32'){
       return 'checked'
     }
     else {
@@ -338,10 +340,10 @@ Template.appBody.helpers({
     return Session.get('walletStatus')
   },
   customNodeCreated() {
-    return Session.get('customNodeCreated')
+    return LocalStore.get('customNodeCreated')
   },
   customNodeName() {
-    return Session.get('customNodeName')
+    return LocalStore.get('customNodeName')
   },
 
   /* Active Menu Item Helpers */
@@ -400,12 +402,12 @@ Template.appBody.helpers({
 
 Template.customNode.helpers({
   customNodeName() {
-    return Session.get('customNodeName')
+    return LocalStore.get('customNodeName')
   },
   customNodeGrpc() {
-    return Session.get('customNodeGrpc')
+    return LocalStore.get('customNodeGrpc')
   },
   customNodeExplorer() {
-    return Session.get('customNodeExplorerUrl')
+    return LocalStore.get('customNodeExplorerUrl')
   }
 })

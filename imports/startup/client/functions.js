@@ -1,6 +1,8 @@
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
+/* global LocalStore */
+
 bech32 = require('bech32')
 /* global QRLLIB */
 /* global XMSS_OBJECT */
@@ -31,7 +33,7 @@ pkRawToB32Address = (pkRaw) => {
 
 // wrapper to decide if addresses should be converted to BECH32 for display
 hexOrB32 = (hexAddress) => {
-  if(Session.get('addressFormat') === 'bech32') {
+  if(LocalStore.get('addressFormat') === 'bech32') {
     return helpers.hexAddressToB32Address(hexAddress)
   }
   else {
@@ -41,7 +43,7 @@ hexOrB32 = (hexAddress) => {
 
 // wrapper to decide if addresses should be converted to BECH32 for display
 rawToHexOrB32 = (rawAddress) => {
-  if(Session.get('addressFormat') === 'bech32') {
+  if(LocalStore.get('addressFormat') === 'bech32') {
     return helpers.rawAddressToB32Address(rawAddress)
   }
   else {
@@ -284,13 +286,13 @@ supportedBrowser = () => {
 // Wrapper for Meteor.call
 wrapMeteorCall = (method, request, callback) => {
   // Modify network to gRPC endpoint for custom/localhost settings
-  if (request.network == "localhost") {
+  if (request.network === "localhost") {
     // Override network to localhost
     request.network = 'localhost:9009'
   }
-  if (request.network == "custom") {
+  if (request.network === "custom") {
     // Override network to localhost
-    request.network = Session.get('nodeGrpc')
+    request.network = LocalStore.get('nodeGrpc')
   }
 
   Meteor.call(method, request, (err, res) => {
@@ -697,7 +699,17 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
       console.log('Transaction Validation - Message mismatch')
       logRequestResponse(request, response)
       return false
-    }
+    } 
+
+    // If we got here, everything matches the request
+    return true
+  } else if (type === 'createKeybaseTxn') {
+    // Validate Message
+    if(bytesToString(request.message) !== response.message) {
+      console.log('Transaction Validation - Message mismatch')
+      logRequestResponse(request, response)
+      return false
+    } 
 
     // If we got here, everything matches the request
     return true

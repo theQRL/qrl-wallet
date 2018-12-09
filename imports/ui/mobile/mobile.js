@@ -1,4 +1,5 @@
 /* eslint no-console:0 */
+/* global LocalStore */
 /* global findNetworkData */
 /* global DEFAULT_NETWORKS */
 /* global selectedNetwork */
@@ -28,8 +29,16 @@ const checkNetworkHealth = (network, callback) => {
   })
 }
 
+
+// TODO: refactor this -- duplicate code from ../body/body.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
+  // If no network is selected, default to mainnet
+  if(selectedNetwork === '') {
+    $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
+    selectedNetwork = DEFAULT_NETWORKS[0].id
+  }
+
   // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
   // Update local node connection details
@@ -38,7 +47,7 @@ const updateNetwork = (selectedNetwork) => {
       $('#addNode').modal({
         onDeny: () => {
           Session.set('modalEventTriggered', true)
-          $('#networkDropdown').dropdown('set selected', 'testnet')
+          $('#networkDropdown').dropdown('set selected', 'mainnet')
         },
         onApprove: () => {
           Session.set('nodeId', 'custom')
@@ -46,11 +55,11 @@ const updateNetwork = (selectedNetwork) => {
           Session.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
           Session.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeName', document.getElementById('customNodeName').value)
-          Session.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-          Session.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
+          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
+          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeCreated', true)
+          LocalStore.set('customNodeCreated', true)
           Session.set('modalEventTriggered', true)
 
           $('#networkDropdown').dropdown('refresh')
@@ -66,9 +75,9 @@ const updateNetwork = (selectedNetwork) => {
           // so that we only trigger when the modal is hidden without an approval or denial
           // eg: pressing esc
 
-          // If the modal is hidden without approval, revert to testnet-1 node.
+          // If the modal is hidden without approval, revert to mainnet
           if (Session.get('modalEventTriggered') === false) {
-            $('#networkDropdown').dropdown('set selected', 'testnet-1')
+            $('#networkDropdown').dropdown('set selected', 'mainnet')
           }
 
           // Reset modalEventTriggered
@@ -80,17 +89,17 @@ const updateNetwork = (selectedNetwork) => {
     case 'custom': {
       const nodeData = {
         id: 'custom',
-        name: Session.get('customNodeName'),
+        name: LocalStore.get('customNodeName'),
         disabled: '',
-        explorerUrl: Session.get('customNodeExplorerUrl'),
+        explorerUrl: LocalStore.get('customNodeExplorerUrl'),
         type: 'both',
-        grpc: Session.get('customNodeGrpc'),
+        grpc: LocalStore.get('customNodeGrpc'),
       }
 
       Session.set('nodeId', 'custom')
-      Session.set('nodeName', Session.get('customNodeName'))
-      Session.set('nodeGrpc', Session.get('customNodeGrpc'))
-      Session.set('nodeExplorerUrl', Session.get('customNodeExplorerUrl'))
+      Session.set('nodeName', LocalStore.get('customNodeName'))
+      Session.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
+      Session.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
       connectToNode(nodeData.grpc, (err) => {
@@ -103,7 +112,7 @@ const updateNetwork = (selectedNetwork) => {
         }
       })
       break
-    };
+    }
     default: {
       const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
       Session.set('nodeId', nodeData.id)
@@ -201,7 +210,7 @@ Template.mobile.onRendered(() => {
 })
 Template.mobile.events({
   click: () => {
-    console.log($(event.currentTarget).attr('href'))
+    // console.log($(event.currentTarget).attr('href'))
     adjustClasses()
   },
   'change #network': () => {
@@ -272,9 +281,9 @@ Template.mobile.helpers({
     return Session.get('walletStatus')
   },
   customNodeCreated() {
-    return Session.get('customNodeCreated')
+    return LocalStore.get('customNodeCreated')
   },
   customNodeName() {
-    return Session.get('customNodeName')
+    return LocalStore.get('customNodeName')
   },
 })

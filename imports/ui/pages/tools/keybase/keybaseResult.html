@@ -1,0 +1,81 @@
+<template name="appKeybaseResult">
+
+<h2 class="ui header pageHeader">
+  <i class="icon"><img src="/img/keybase-w.svg"></i>
+  <div class="content">
+    Keybase Message Result
+  </div>
+</h2>
+
+
+<div id="transactionComplete" class="ui red segment pageSegment">
+
+  <h4 class="ui horizontal divider header">
+    <i class="icon"><img src="/img/keybase.svg"></i>
+    Your Keybase operation
+  </h4>
+
+  <div class="ui items">
+    <div class="item">
+      <div class="image">
+        {{> QRCode text=transactionHash size="128px"}}
+      </div>
+      <div class="content">
+        <div class="header">Keybase action</div>
+        <div class="description"><p><div class="ui label">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
+        <div class="header">Keybase username</div>
+        <div class="description"><p>{{keybaseOperation.keybaseId}}</p><p>&nbsp;</p></div>
+        <div class="header">Keybase signature</div>
+        <div class="description"><p>{{keybaseOperation.sigHash}}</p><p>&nbsp;</p></div>
+        <div class="meta">
+          <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="signal icon"></i>
+    Transaction Status
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <p id="successMessage" style="overflow-wrap: break-word">
+        Success! Your Keybase message has been relayed into the QRL network through the following nodes, and is pending validation.
+      </p>
+    </div>
+  </div>
+
+  <div class="ui mini horizontal divided list">
+  {{#each transactionRelayedThrough}}
+    <div class="item">
+      <i class="checkmark icon green"></i>
+      <div class="content">
+        <div class="header">{{this}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+  <div id="relaying" class="ui icon message">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div id="loadingHeader" class="header">
+        Just a moment
+      </div>
+      <p id="finalTxnStatus" style="word-break: break-word;">Transaction Status: {{transactionStatus}}</p>
+    </div>
+  </div>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
+      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+    </div>
+  </div>
+  
+</div>
+
+</template>
