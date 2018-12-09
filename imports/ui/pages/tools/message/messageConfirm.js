@@ -1,6 +1,7 @@
 import './messageConfirm.html'
 /* global QRLLIB */
 /* global XMSS_OBJECT */
+/* global LocalStore */
 /* global selectedNetwork */
 /* global DEFAULT_NETWORKS */
 /* global wrapMeteorCall */

@@ -1,4 +1,5 @@
 /* eslint no-console:0 */
+/* global LocalStore */
 /* global findNetworkData */
 /* global DEFAULT_NETWORKS */
 /* global selectedNetwork */
@@ -54,11 +55,11 @@ const updateNetwork = (selectedNetwork) => {
           Session.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
           Session.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeName', document.getElementById('customNodeName').value)
-          Session.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-          Session.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
+          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
+          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeCreated', true)
+          LocalStore.set('customNodeCreated', true)
           Session.set('modalEventTriggered', true)
 
           $('#networkDropdown').dropdown('refresh')
@@ -88,17 +89,17 @@ const updateNetwork = (selectedNetwork) => {
     case 'custom': {
       const nodeData = {
         id: 'custom',
-        name: Session.get('customNodeName'),
+        name: LocalStore.get('customNodeName'),
         disabled: '',
-        explorerUrl: Session.get('customNodeExplorerUrl'),
+        explorerUrl: LocalStore.get('customNodeExplorerUrl'),
         type: 'both',
-        grpc: Session.get('customNodeGrpc'),
+        grpc: LocalStore.get('customNodeGrpc'),
       }
 
       Session.set('nodeId', 'custom')
-      Session.set('nodeName', Session.get('customNodeName'))
-      Session.set('nodeGrpc', Session.get('customNodeGrpc'))
-      Session.set('nodeExplorerUrl', Session.get('customNodeExplorerUrl'))
+      Session.set('nodeName', LocalStore.get('customNodeName'))
+      Session.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
+      Session.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
       connectToNode(nodeData.grpc, (err) => {
@@ -111,7 +112,7 @@ const updateNetwork = (selectedNetwork) => {
         }
       })
       break
-    };
+    }
     default: {
       const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
       Session.set('nodeId', nodeData.id)
@@ -280,9 +281,9 @@ Template.mobile.helpers({
     return Session.get('walletStatus')
   },
   customNodeCreated() {
-    return Session.get('customNodeCreated')
+    return LocalStore.get('customNodeCreated')
   },
   customNodeName() {
-    return Session.get('customNodeName')
+    return LocalStore.get('customNodeName')
   },
 })

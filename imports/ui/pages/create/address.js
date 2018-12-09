@@ -1,6 +1,7 @@
 import aes256 from 'aes256'
 import './address.html'
 /* global getXMSSDetails */
+/* global LocalStore */
 
 let passphrase
 
@@ -68,7 +69,7 @@ Template.appCreateAddress.onRendered(() => {
   }).modal('show')
 
   Tracker.autorun(function () {
-    if (Session.get('addressFormat') == 'bech32') {
+    if (LocalStore.get('addressFormat') == 'bech32') {
       $('.qr-code-container').empty()
       $(".qr-code-container").qrcode({width:88, height:88, text: getXMSSDetails().addressB32})
     }
@@ -99,7 +100,7 @@ Template.appCreateAddress.events({
 
 Template.appCreateAddress.helpers({
   bech32() {
-    if (Session.get('addressFormat') == 'bech32') {
+    if (LocalStore.get('addressFormat') == 'bech32') {
       return true
     }
     return false

@@ -6,6 +6,7 @@ import './transfer.html'
 /* global QRLLIB */
 /* global selectedNetwork */
 /* global XMSS_OBJECT */
+/* global LocalStore */
 /* global DEFAULT_NETWORKS */
 /* global SHOR_PER_QUANTA */
 /* global POLL_TXN_RATE */
@@ -627,7 +628,7 @@ Template.appTransfer.onRendered(() => {
   })
 
   Tracker.autorun(function () {
-    if(Session.get('addressFormat') == 'bech32') {
+    if(LocalStore.get('addressFormat') == 'bech32') {
       $('.qr-code-container').empty()
       $(".qr-code-container").qrcode({width:142, height:142, text: getXMSSDetails().addressB32})
     }
@@ -764,7 +765,7 @@ Template.appTransfer.helpers({
     return transferFrom
   },
   bech32() {
-    if (Session.get('addressFormat') == 'bech32') {
+    if (LocalStore.get('addressFormat') == 'bech32') {
       return true
     }
     return false
@@ -939,7 +940,7 @@ Template.appTransfer.helpers({
     return moment(x).format('HH:mm D MMM YYYY')
   },
   openedAddress() {
-    if(Session.get('addressFormat') == 'bech32') {
+    if(LocalStore.get('addressFormat') == 'bech32') {
       return getXMSSDetails().addressB32
     }
     else {

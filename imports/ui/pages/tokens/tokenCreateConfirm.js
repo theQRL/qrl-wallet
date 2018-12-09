@@ -112,7 +112,7 @@ Template.appTokenCreationConfirm.events({
 
 Template.appTokenCreationConfirm.helpers({
   bech32() {
-    if (Session.get('addressFormat') == 'bech32') {
+    if (LocalStore.get('addressFormat') == 'bech32') {
       return true
     }
     return false
