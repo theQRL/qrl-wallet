@@ -6,6 +6,7 @@ import './open.html'
 /* global resetLocalStorageState */
 /* global getMnemonicOfFirstAddress */
 /* global isWalletFileDeprecated */
+/* global LocalStore */
 
 Template.appAddressOpen.onCreated(() => {
   Session.set('modalEventTriggered', false)
@@ -22,6 +23,22 @@ Template.appAddressOpen.onRendered(() => {
     const params = {}
     const path = FlowRouter.path('/transfer', params)
     FlowRouter.go(path)
+  }
+
+  // determine last used means of opening wallet from LocalStore
+  let openWalletPref = LocalStore.get('openWalletDefault')
+  if (!openWalletPref) {
+    openWalletPref = 'json'
+  }
+  if (openWalletPref === 'json') {
+    $('#walletCode').hide()
+    $('#walletFile').show()
+    $('#passphraseArea').show()
+  } else {
+    $('#walletCode').show()
+    $('#walletFile').hide()
+    $('#passphraseArea').hide()
+    $('#walletType').val(openWalletPref).change()
   }
 })
 
@@ -164,10 +181,12 @@ Template.appAddressOpen.events({
       $('#walletCode').hide()
       $('#walletFile').show()
       $('#passphraseArea').show()
+      LocalStore.set('openWalletDefault', 'json')
     } else {
       $('#walletCode').show()
       $('#walletFile').hide()
       $('#passphraseArea').hide()
+      LocalStore.set('openWalletDefault', $('#walletType :selected').val())
     }
   },
   'input #walletCode': () => {
@@ -181,4 +200,3 @@ Template.appAddressOpen.events({
     }
   },
 })
-

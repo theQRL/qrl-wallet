@@ -1,4 +1,5 @@
 // Import client startup through a single index entry point
+/* global LocalStore */
 import { QRLLIB } from 'qrllib/build/web-libjsqrl.js'
 import './routes.js'
 import './functions.js'
@@ -12,6 +13,10 @@ POLL_MAX_CHECKS = 120 // max 10 minutes checking status
 
 // Reset wallet status
 resetWalletStatus()
+const openWalletPref = LocalStore.get('openWalletDefault')
+if (!openWalletPref) {
+  LocalStore.set('openWalletDefault', 'json')
+}
 
 // Developer note
 console.log('qrl-wallet - ',WALLET_VERSION)
