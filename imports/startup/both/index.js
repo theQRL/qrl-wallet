@@ -5,7 +5,7 @@ import './nodes.js'
 SHOR_PER_QUANTA=1000000000
 
 // qrl-wallet Version
-WALLET_VERSION="1.0.6"
+WALLET_VERSION="1.0.7"
 
 // qrl.proto sha256 sum for each release of QRL Node
 QRLPROTO_SHA256 = [
