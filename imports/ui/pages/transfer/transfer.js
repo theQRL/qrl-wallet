@@ -133,7 +133,7 @@ function confirmTransaction() {
   const tx = Session.get('transactionConfirmationResponse')
 
   // Set OTS Key Index for seed wallets
-  if(getXMSSDetails().walletType == 'seed') {
+  if (getXMSSDetails().walletType == 'seed') {
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey))
   }
 
@@ -176,7 +176,7 @@ function confirmTransaction() {
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
   // Sign the transaction and relay into network.
-  if(getXMSSDetails().walletType == 'seed') {
+  if (getXMSSDetails().walletType == 'seed') {
     tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
     // Calculate transaction hash
@@ -216,7 +216,7 @@ function confirmTransaction() {
         pollTransaction(Session.get('transactionHash'), true)
       }
     })
-  } else if(getXMSSDetails().walletType == 'ledger') {
+  } else if (getXMSSDetails().walletType == 'ledger') {
 
     // Create a transaction
     const source_addr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
