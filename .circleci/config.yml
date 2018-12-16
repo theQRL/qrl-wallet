@@ -56,9 +56,9 @@ jobs:
           name: Run selenium tests
           command: |
             until curl --max-time 300 http://localhost:3000/; do sleep 1; done
-            npm install -g chimp
-            npm install -g selenium-standalone
-            /usr/local/Cellar/node/8.6.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
+            #npm install -g chimp
+            #npm install -g selenium-standalone
+            #/usr/local/Cellar/node/8.6.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
 
       # Create package on master
       - deploy:
