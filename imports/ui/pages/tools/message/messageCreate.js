@@ -21,7 +21,7 @@ function createMessageTxn() {
   }
 
   // Convert strings to bytes
-  const pubKey = hexToBytes(XMSS_OBJECT.getPK())
+  const pubKey = hexToBytes(getXMSSDetails().pk)
   const messageBytes = stringToBytes(userMessage)
 
   // Construct request

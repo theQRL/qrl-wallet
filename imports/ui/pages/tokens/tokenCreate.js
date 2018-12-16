@@ -251,6 +251,9 @@ function initialiseFormValidation() {
 }
 
 Template.appTokenCreate.onRendered(() => {
+  // Ledger Nano not supported here
+  ledgerHasNoTokenSupport()
+
   // Initialise dropdowns
   $('.ui.dropdown').dropdown()
 

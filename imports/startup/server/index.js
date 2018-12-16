@@ -412,7 +412,7 @@ const getAddressState = (request, callback) => {
       response.ots.keys = newOtsBitfield
       response.ots.nextKey = lowestUnusedOtsKey
       response.ots.keysConsumed = totalKeysConsumed
-
+     
       callback(null, response)
     }
   })
