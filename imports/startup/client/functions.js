@@ -85,29 +85,59 @@ getMnemonicOfFirstAddress = (walletObject, passphrase) => {
   return handleVersion0()
 }
 
-// Fetchs XMSS details from the global XMSS_OBJECT variable
+// Fetchs XMSS details from the global XMSS_OBJECT variable or saved ledger values
 getXMSSDetails = () => {
-  const thisAddress = XMSS_OBJECT.getAddress()
-  const thisPkRaw = XMSS_OBJECT.getPKRaw()
-  const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+  const walletStatus = Session.get('walletStatus')
+  
+  let xmssDetail
 
-  const thisPk = XMSS_OBJECT.getPK()
-  const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
-  const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
-  const thisHeight = XMSS_OBJECT.getHeight()
-  const thisHexSeed = XMSS_OBJECT.getHexSeed()
-  const thisMnemonic = XMSS_OBJECT.getMnemonic()
+  if(walletStatus.walletType == 'ledger') {
+    const thisAddress = walletStatus.address
+    const thisPk = walletStatus.pubkey
+    // TODO - ledger-qrl-js does not provide raw pk.
+    // const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+    const thisAddressB32 = 'N/A on Ledger'
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = QRLLIB.getHeight(thisAddress)
+    const thisHexSeed = null
+    const thisMnemonic = null
 
-  const xmssDetail = {
-    address: thisAddress,
-    addressB32: thisAddressB32,
-    pk: thisPk,
-    hexseed: thisHexSeed,
-    mnemonic: thisMnemonic,
-    height: thisHeight,
-    hashFunction: thisHashFunction,
-    signatureType: thisSignatureType,
-    index: 0
+    xmssDetail = {
+      address: thisAddress,
+      addressB32: thisAddressB32,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: walletStatus.xmss_index,
+      walletType: 'ledger',
+    }
+  } else {
+    const thisAddress = XMSS_OBJECT.getAddress()
+    const thisPk = XMSS_OBJECT.getPK()
+    const thisPkRaw = XMSS_OBJECT.getPKRaw()
+    const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = XMSS_OBJECT.getHeight()
+    const thisHexSeed = XMSS_OBJECT.getHexSeed()
+    const thisMnemonic = XMSS_OBJECT.getMnemonic()
+    
+    xmssDetail = {
+      address: thisAddress,
+      addressB32: thisAddressB32,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: 0,
+      walletType: 'seed',
+    }
   }
 
   return xmssDetail
@@ -144,6 +174,9 @@ resetWalletStatus = () => {
   status.colour = 'red'
   status.string = 'No wallet has been opened.'
   status.address = ''
+  status.pubkey = ''
+  status.xmss_index = 0
+  status.walletType = ''
   status.unlocked = false
   status.menuHidden = 'display: none'
   status.menuHiddenInverse = ''
@@ -220,7 +253,7 @@ binaryToQrlAddress = (binary) => {
 }
 
 // Take input and convert to unsigned uint64 bigendian bytes
-toBigendianUint64BytesUnsigned = (input) => {
+toBigendianUint64BytesUnsigned = (input, bufferResponse = false) => {
   if(!Number.isInteger(input)) {
     input = parseInt(input)
   }
@@ -235,8 +268,13 @@ toBigendianUint64BytesUnsigned = (input) => {
 
   byteArray.reverse()
 
-  const result = new Uint8Array(byteArray)
-  return result
+  if(bufferResponse == true) {
+    let result = Buffer.from(byteArray)
+    return result
+  } else {
+    let result = new Uint8Array(byteArray)
+    return result
+  }
 }
 
 toUint8Vector = (arr) => {
@@ -326,23 +364,42 @@ getBalance = (getAddress, callBack) => {
         Session.set('transferFromBalance', 0)
       }
 
-      // Collect next OTS key
-      Session.set('otsKeyEstimate', res.ots.nextKey)
+      if(getXMSSDetails().walletType == 'seed') {
+        // Collect next OTS key
+        Session.set('otsKeyEstimate', res.ots.nextKey)
 
-      // Get remaining OTS Keys
-      const validationResult = qrlAddressValdidator.hexString(getAddress)
-      const { keysConsumed } = res.ots
-      const totalSignatures = validationResult.sig.number
-      const keysRemaining = totalSignatures - keysConsumed
+        // Get remaining OTS Keys
+        const validationResult = qrlAddressValdidator.hexString(getAddress)
+        const { keysConsumed } = res.ots
+        const totalSignatures = validationResult.sig.number
+        const keysRemaining = totalSignatures - keysConsumed
 
-      // Set keys remaining
-      Session.set('otsKeysRemaining', keysRemaining)
+        // Set keys remaining
+        Session.set('otsKeysRemaining', keysRemaining)
 
-      // Store OTS Bitfield in LocalStorage
-      Session.set('otsBitfield', res.ots.keys)
+        // Store OTS Bitfield in session
+        Session.set('otsBitfield', res.ots.keys)
 
-      // Callback if set
-      callBack()
+        // Callback if set
+        callBack()
+      } else if(getXMSSDetails().walletType == 'ledger') {
+        // Collect next OTS key from Ledger Device
+        // Whilst technically we may have unused ones - we prefer to rely on state tracked in ledger device
+        QrlLedger.get_state().then(data => {
+          Session.set('otsKeyEstimate', data.xmss_index)
+          // Get remaining OTS Keys
+          const validationResult = qrlAddressValdidator.hexString(getAddress)
+          const totalSignatures = validationResult.sig.number
+          const keysRemaining = totalSignatures - data.xmss_index
+          // Set keys remaining
+          Session.set('otsKeysRemaining', keysRemaining)
+
+          // Store OTS Bitfield in session
+          Session.set('otsBitfield', res.ots.keys)
+
+          callBack()
+        })
+      }
     }
   })
 }

@@ -14,8 +14,8 @@ POLL_MAX_CHECKS = 120 // max 10 minutes checking status
 // Reset wallet status
 resetWalletStatus()
 const openWalletPref = LocalStore.get('openWalletDefault')
-if (!openWalletPref) {
-  LocalStore.set('openWalletDefault', 'json')
+if ((!openWalletPref) || (openWalletPref === 'undefined')) {
+  LocalStore.set('openWalletDefault', 'file')
 }
 
 // Developer note
