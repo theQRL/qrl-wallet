@@ -985,7 +985,7 @@ Template.appTransfer.helpers({
   },
   isMyAddress(address) {
     a = Buffer.from(anyAddressToRawAddress(address))
-    b = Buffer.from(binaryToBytes(XMSS_OBJECT.getAddressRaw()))
+    b = Buffer.from(anyAddressToRawAddress(getXMSSDetails().address))
     if(a.equals(b)) {
       return true
     }

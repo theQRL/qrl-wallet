@@ -94,9 +94,7 @@ getXMSSDetails = () => {
   if(walletStatus.walletType == 'ledger') {
     const thisAddress = walletStatus.address
     const thisPk = walletStatus.pubkey
-    // TODO - ledger-qrl-js does not provide raw pk.
-    // const thisAddressB32 = pkRawToB32Address(thisPkRaw)
-    const thisAddressB32 = 'N/A on Ledger'
+    const thisAddressB32 = pkRawToB32Address(QRLLIB.hstr2bin(thisPk))
     const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
     const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
     const thisHeight = QRLLIB.getHeight(thisAddress)
