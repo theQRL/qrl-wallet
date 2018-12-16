@@ -726,6 +726,11 @@ Template.appTransfer.onRendered(() => {
     }
   })
 
+  // Warn if user is has opened the 0 byte address (test mode on Ledger)
+  if (getXMSSDetails().address === 'Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd') {
+    $('#zeroBytesAddressWarning').modal('transition', 'disable').modal('show')
+  }
+
   Tracker.autorun(function () {
     if(LocalStore.get('addressFormat') == 'bech32') {
       $('.qr-code-container').empty()
