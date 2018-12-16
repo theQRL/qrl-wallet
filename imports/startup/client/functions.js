@@ -561,6 +561,30 @@ refreshTransferPage = (callback) => {
   })
 }
 
+ledgerHasNoTokenSupport = () => {
+  // Ledger Nano not supported here.
+  if (getXMSSDetails().walletType === 'ledger') {
+    $('#ledgerNotSupported').modal('transition', 'disable')
+    .modal({
+      onApprove: () => {
+        //$('#ledgerNotSupported').modal('transition', 'disable').modal('hide')
+        const reloadPath = FlowRouter.path('/transfer', {})
+        FlowRouter.go(reloadPath)
+      },
+      onHide: () => {
+        //$('#ledgerNotSupported').modal('transition', 'disable').modal('hide')
+        const reloadPath = FlowRouter.path('/transfer', {})
+        FlowRouter.go(reloadPath)
+      },
+      onDeny: () => {
+        //$('#ledgerNotSupported').modal('transition', 'disable').modal('hide')
+        const reloadPath = FlowRouter.path('/transfer', {})
+        FlowRouter.go(reloadPath)
+      },
+    }).modal('show')
+  }
+}
+
 // Reset wallet localstorage state
 resetLocalStorageState = () => {
   Session.set('address', '')

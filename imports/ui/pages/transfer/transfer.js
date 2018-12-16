@@ -284,6 +284,12 @@ function cancelTransaction() {
 }
 
 function sendTokensTxnCreate(tokenHash, decimals) {
+  // No Token Support for Ledger Nano
+  if (getXMSSDetails().walletType === 'ledger') {
+    ledgerHasNoTokenSupport()
+    return
+  }
+
   // Get to/amount details
   const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
@@ -396,6 +402,12 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 }
 
 function confirmTokenTransfer() {
+  // No Token Support for Ledger Nano
+  if (getXMSSDetails().walletType === 'ledger') {
+    ledgerHasNoTokenSupport()
+    return
+  }
+
   const tx = Session.get('tokenTransferConfirmationResponse')
 
   // Set OTS Key Index for seed wallets
@@ -479,38 +491,7 @@ function confirmTokenTransfer() {
       }
     })
   } else if(getXMSSDetails().walletType == 'ledger') {
-    // Sign the shasum with ledger
-    signWithLedger(shaSum, (response) => {
-      tx.extended_transaction_unsigned.tx.signature = response
-      // Calculate transaction hash
-      let txnHashConcat = concatenateTypedArrays(
-        Uint8Array,
-          binaryToBytes(shaSum),
-          tx.extended_transaction_unsigned.tx.signature,
-          hexToBytes(getXMSSDetails().pk)
-      )
-      const txnHashableBytes = toUint8Vector(txnHashConcat)
-      let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
-      console.log('Txn Hash: ', txnHash)
-      tx.network = selectedNetwork()
-      wrapMeteorCall('confirmTokenTransfer', tx, (err, res) => {
-        if (res.error) {
-          $('#tokenCreationConfirmation').hide()
-          $('#transactionFailed').show()
-          Session.set('transactionFailed', res.error)
-        } else {
-          Session.set('transactionHash', txnHash)
-          Session.set('transactionSignature', res.response.signature)
-          Session.set('transactionRelayedThrough', res.relayed)
-          // Show result
-          $('#generateTransactionArea').hide()
-          $('#confirmTokenTransactionArea').hide()
-          $('#tokenTransactionResultArea').show()
-          // Start polling this transcation
-          pollTransaction(Session.get('transactionHash'), true)
-        }
-      })
-    })
+    // TODO When Supported
   }
 }
 
