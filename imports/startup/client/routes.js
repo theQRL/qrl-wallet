@@ -23,6 +23,8 @@ import '../../ui/pages/tools/keybase/keybaseCreate.js'
 import '../../ui/pages/tools/keybase/keybaseConfirm.js'
 import '../../ui/pages/tools/keybase/keybaseResult.js'
 
+import '../../ui/pages/tools/xmssindex/update.js'
+
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
 import '../../ui/pages/tokens/tokenCreateResult.js'
@@ -230,6 +232,19 @@ FlowRouter.route('/tools/notarise/result', {
       BlazeLayout.render('appBody', { main: 'appNotariseResult' })
     } else {
       BlazeLayout.render('mobile', { main: 'appNotariseResult' })
+    }
+  },
+})
+
+// Ledger Nano XMSS Index Update
+FlowRouter.route('/tools/xmssindex/update', {
+  name: 'App.xmssIndexUpdate',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appXmssIndexUpdate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appXmssIndexUpdate' })
     }
   },
 })
