@@ -59,24 +59,24 @@ Template.appXmssIndexUpdate.helpers({
     return currentLedgerXMSSIndex
   },
   suggestedXMSSIndex() {
-  	const bitfield = Session.get('otsBitfield')
-  	// Identify the largest OTS Key utilised in the bitfield
-  	let largestIndex = 0
-  	for (let i in bitfield) {
-  		if (bitfield[i] == 1) {
-  			largestIndex = i
-  		}
-  		// Only 255 indexs in Ledger bitfields
-  		if(i >= 255) {
-  			break;
-  		}
-  	}
+    const bitfield = Session.get('otsBitfield')
+    // Identify the largest OTS Key utilised in the bitfield
+    let largestIndex = 0
+    for (let i in bitfield) {
+      if (bitfield[i] == 1) {
+        largestIndex = i
+      }
+      // Only 255 indexs in Ledger bitfields
+      if(i >= 255) {
+        break;
+      }
+    }
     // Suggested XMSS Index is largestedIndex + 1
     return parseInt(largestIndex) + 1
   },
   ledgerAppVersion() {
-  	const appVersion = Session.get('ledgerDetailsAppVersion')
-  	return appVersion
+    const appVersion = Session.get('ledgerDetailsAppVersion')
+    return appVersion
   },
   transferFrom() {
     const transferFrom = {}
