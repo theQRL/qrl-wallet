@@ -1104,11 +1104,6 @@ Template.appTransfer.helpers({
     }
     return ret
   },
-})
-Template.recoverySeedModal.helpers({
-  recoverySeed() {
-    return getXMSSDetails()
-  },
   ledgerWalletDisabled() {
     if (getXMSSDetails().walletType == 'ledger') {
       return 'disabled'
@@ -1120,5 +1115,10 @@ Template.recoverySeedModal.helpers({
       return true
     }
     return false
+  },
+})
+Template.recoverySeedModal.helpers({
+  recoverySeed() {
+    return getXMSSDetails()
   },
 })
