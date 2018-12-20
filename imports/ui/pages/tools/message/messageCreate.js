@@ -180,4 +180,16 @@ Template.appMessageCreate.helpers({
     }
     return Session.get('nodeExplorerUrl')
   },
+  ledgerWalletDisabled() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return 'disabled'
+    }
+    return ''
+  },
+  isLedgerWallet() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return true
+    }
+    return false
+  },
 })
