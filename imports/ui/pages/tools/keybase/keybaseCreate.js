@@ -19,9 +19,13 @@ function createKeybaseTxn() {
   if ($('#kb_add').prop('checked')) { addorremove = 'AA' } else { addorremove = 'AF' }
 
   // Fail if OTS Key reuse is detected
-  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    $('#otsKeyReuseDetected').modal('show')
+    if(getXMSSDetails().walletType == 'ledger'){
+      $('#ledgerOtsKeyReuseDetected').modal('show')
+    } else {
+      $('#otsKeyReuseDetected').modal('show')
+    }
     return
   }
 

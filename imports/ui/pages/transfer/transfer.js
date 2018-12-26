@@ -55,7 +55,11 @@ function generateTransaction() {
   // Fail if OTS Key reuse is detected
   if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    $('#otsKeyReuseDetected').modal('show')
+    if(getXMSSDetails().walletType == 'ledger'){
+      $('#ledgerOtsKeyReuseDetected').modal('show')
+    } else {
+      $('#otsKeyReuseDetected').modal('show')
+    }
     return
   }
 
@@ -872,7 +876,7 @@ Template.appTransfer.events({
   },
   'click #showRecoverySeed': () => {
     $('#recoverySeedModal').modal('show')
-  }
+  },
 })
 
 Template.appTransfer.helpers({
