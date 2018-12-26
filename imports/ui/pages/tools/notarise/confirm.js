@@ -28,6 +28,9 @@ function confirmMessageCreation() {
   let shaSum = QRLLIB.sha2_256(hashableBytes)
 
   if (getXMSSDetails().walletType == 'seed') {
+    // Show relaying message
+    $('#relaying').show()
+
     // Sign the sha sum
     tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
@@ -65,50 +68,69 @@ function confirmMessageCreation() {
       }
     })
   } else if (getXMSSDetails().walletType == 'ledger') {
+    // Show message to sign transaction on Ledger
+    $('#signOnLedger').show()
+
     // Create a transaction
     const source_addr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
     QrlLedger.createMessageTx(source_addr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash)).then(txn => {
-      console.log(txn)
+      QrlLedger.retrieveSignature(txn).then(sigResponse => {
 
-      QrlLedger.retrieveSignature(txn).then(sig => {
-        tx.extended_transaction_unsigned.tx.signature = sig.signature
+        console.log('got retrieveSignature res')
+        console.log(sigResponse)
 
-        // Calculate transaction hash
-        let txnHashConcat = concatenateTypedArrays(
-          Uint8Array,
-            binaryToBytes(shaSum),
-            tx.extended_transaction_unsigned.tx.signature,
-            hexToBytes(getXMSSDetails().pk)
-        )
+        // Check if ledger rejected transaction
+        if(sigResponse.return_code == 27014) {
+          $('#signOnLedger').hide()
+          $('#signOnLedgerRejected').show()
+        // Check if the the request timed out waiting for response on ledger
+        } else if(sigResponse.return_code == 14) {
+          $('#signOnLedger').hide()
+          $('#signOnLedgerTimeout').show()
+        } else {
+          // Hide ledger sign message, and show relaying message
+          $('#signOnLedger').hide()
+          $('#relaying').show()
 
-        const txnHashableBytes = toUint8Vector(txnHashConcat)
+          tx.extended_transaction_unsigned.tx.signature = sigResponse.signature
 
-        let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+          // Calculate transaction hash
+          let txnHashConcat = concatenateTypedArrays(
+            Uint8Array,
+              binaryToBytes(shaSum),
+              tx.extended_transaction_unsigned.tx.signature,
+              hexToBytes(getXMSSDetails().pk)
+          )
 
-        console.log('Txn Hash: ', txnHash)
+          const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-        // Prepare gRPC call
-        tx.network = selectedNetwork()
+          let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
-        wrapMeteorCall('confirmMessageCreation', tx, (err, res) => {
-          if (res.error) {
-            $('#notariseCreationConfirmation').hide()
-            $('#transactionFailed').show()
+          console.log('Txn Hash: ', txnHash)
 
-            Session.set('transactionFailed', res.error)
-          } else {
-            Session.set('transactionHash', txnHash)
-            Session.set('transactionSignature', res.response.signature)
-            Session.set('transactionRelayedThrough', res.relayed)
+          // Prepare gRPC call
+          tx.network = selectedNetwork()
 
-            // Send to result page.
-            const params = { }
-            const path = FlowRouter.path('/tools/notarise/result', params)
-            FlowRouter.go(path)
-          }
-        })
+          wrapMeteorCall('confirmMessageCreation', tx, (err, res) => {
+            if (res.error) {
+              $('#notariseCreationConfirmation').hide()
+              $('#transactionFailed').show()
+
+              Session.set('transactionFailed', res.error)
+            } else {
+              Session.set('transactionHash', txnHash)
+              Session.set('transactionSignature', res.response.signature)
+              Session.set('transactionRelayedThrough', res.relayed)
+
+              // Send to result page.
+              const params = { }
+              const path = FlowRouter.path('/tools/notarise/result', params)
+              FlowRouter.go(path)
+            }
+          })
+        }
       })
     })
   }
@@ -130,7 +152,8 @@ Template.appNotariseConfirm.onRendered(() => {
 
 Template.appNotariseConfirm.events({
   'click #confirmMessage': () => {
-    $('#relaying').show()
+    $('#signOnLedgerRejected').hide()
+    $('#signOnLedgerTimeout').hide()
     setTimeout(() => { confirmMessageCreation() }, 200)
   },
   'click #cancelMessage': () => {
@@ -158,5 +181,21 @@ Template.appNotariseConfirm.helpers({
       return DEFAULT_NETWORKS[0].explorerUrl
     }
     return Session.get('nodeExplorerUrl')
+  },
+  isSeedWallet() {
+    if (getXMSSDetails().walletType == 'seed') {
+      return true
+    }
+    return false
+  },
+  isLedgerWallet() {
+    if (getXMSSDetails().walletType == 'ledger') {
+      return true
+    }
+    return false
+  },
+  ledgerVerificationMessage() {
+    const message = Session.get('notariseCreationConfirmation').message_hex
+    return message
   },
 })

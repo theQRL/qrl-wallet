@@ -58,6 +58,7 @@ function createKeybaseTxn() {
       const confirmation = {
         hash: res.txnHash,
         message: bytesToString(res.response.extended_transaction_unsigned.tx.message.message_hash),
+        message_hex: bytesToHex(res.response.extended_transaction_unsigned.tx.message.message_hash),
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey,
       }

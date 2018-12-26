@@ -22,6 +22,21 @@
     </div>
   </div>
 
+  {{#if isLedgerWallet}}
+  <br />
+  <h4 class="ui horizontal divider header">
+    <i class="envelope icon"></i>
+    Message as displayed on your Ledger Nano for verification
+  </h4>
+  <div class="ui items">
+    <div class="item">
+      <div class="content">
+        <p style="word-wrap: break-word; word-break: break-all;">{{ledgerVerificationMessage}}</p>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
   <h4 class="ui horizontal divider header">
     <i class="file icon"></i>
     Transaction Details
@@ -39,10 +54,49 @@
 
   <div class="ui stackable two column grid">
     <div class="column center aligned">
-      <button id="confirmMessage" class="ui huge primary button red">Confirm Message</button>
+      <button id="confirmMessage" class="ui huge primary button red">
+        {{#if isSeedWallet}}
+          Confirm Message
+        {{else}}
+          Sign with Ledger
+        {{/if}}
+      </button>
     </div>
     <div class="column center aligned">
       <button id="cancelMessage" class="ui huge red button plain">Cancel Message</button>
+    </div>
+  </div>
+
+  <div id="signOnLedger" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Verify the transaction on Ledger Nano
+      </div>
+      <p id="transferLedgerWaitingMsg">Verify the transaction details are correct on your Ledger and press Sign Transaction...</p>
+    </div>
+  </div>
+
+  <div id="signOnLedgerRejected" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="exclamation icon"></i>
+    <div class="content">
+      <div class="header">
+        Transaction Rejected
+      </div>
+      <p id="transferLedgerCancelledMsg">The transaction has been rejected on Ledger Nano.</p>
+    </div>
+  </div>
+
+  <div id="signOnLedgerTimeout" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="exclamation icon"></i>
+    <div class="content">
+      <div class="header">
+        Timeout Reached
+      </div>
+      <p id="transferLedgerTimeoutMsg">Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</p>
     </div>
   </div>
 
