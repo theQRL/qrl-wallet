@@ -46,6 +46,12 @@ function generateTransaction() {
     this_addresses_to.push(anyAddressToRawAddress(thisAddress))
   }
 
+  // Fail if more than 3 recipients using Ledger
+  if((this_addresses_to.length > 3) && (getXMSSDetails().walletType == 'ledger')) {
+    $('#generating').hide()
+    $('#maxThreeRecipientsLedger').modal('show')
+  }
+
   // Fail if OTS Key reuse is detected
   if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
@@ -177,6 +183,9 @@ function confirmTransaction() {
 
   // Sign the transaction and relay into network.
   if (getXMSSDetails().walletType == 'seed') {
+    // Show relaying message
+    $('#relaying').show()
+
     tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
     // Calculate transaction hash
@@ -217,55 +226,73 @@ function confirmTransaction() {
       }
     })
   } else if (getXMSSDetails().walletType == 'ledger') {
+    // Show message to sign transaction on Ledger
+    $('#signOnLedger').show()
 
     // Create a transaction
     const source_addr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
     QrlLedger.createTx(source_addr, fee, dest_addr, dest_amount).then(txn => {
-      console.log(txn)
+      QrlLedger.retrieveSignature(txn).then(sigResponse => {
 
-      QrlLedger.retrieveSignature(txn).then(sig => {
-        tx.extended_transaction_unsigned.tx.signature = sig.signature
+        console.log('got retrieveSignature res')
+        console.log(sigResponse)
 
-        // Calculate transaction hash
-        let txnHashConcat = concatenateTypedArrays(
-          Uint8Array,
-            binaryToBytes(shaSum),
-            tx.extended_transaction_unsigned.tx.signature,
-            hexToBytes(getXMSSDetails().pk)
-        )
+        // Check if ledger rejected transaction
+        if(sigResponse.return_code == 27014) {
+          $('#signOnLedger').hide()
+          $('#signOnLedgerRejected').show()
+        // Check if the the request timed out waiting for response on ledger
+        } else if(sigResponse.return_code == 14) {
+          $('#signOnLedger').hide()
+          $('#signOnLedgerTimeout').show()
+        } else {
+          // Hide ledger sign message, and show relaying message
+          $('#signOnLedger').hide()
+          $('#relaying').show()
 
-        const txnHashableBytes = toUint8Vector(txnHashConcat)
+          tx.extended_transaction_unsigned.tx.signature = sigResponse.signature
 
-        let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+          // Calculate transaction hash
+          let txnHashConcat = concatenateTypedArrays(
+            Uint8Array,
+              binaryToBytes(shaSum),
+              tx.extended_transaction_unsigned.tx.signature,
+              hexToBytes(getXMSSDetails().pk)
+          )
 
-        console.log('Txn Hash: ', txnHash)
+          const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-        // Prepare gRPC call
-        tx.network = selectedNetwork()
+          let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
-        wrapMeteorCall('confirmTransaction', tx, (err, res) => {
-          if (res.error) {
-            $('#transactionConfirmation').hide()
-            $('#transactionFailed').show()
+          console.log('Txn Hash: ', txnHash)
 
-            Session.set('transactionFailed', res.error)
-          } else {
-            Session.set('transactionHash', txnHash)
-            Session.set('transactionSignature', res.response.signature)
-            Session.set('transactionRelayedThrough', res.relayed)
+          // Prepare gRPC call
+          tx.network = selectedNetwork()
 
-            // Show result
-            $('#generateTransactionArea').hide()
-            $('#confirmTransactionArea').hide()
-            $('#transactionResultArea').show()
-            
-            // Start polling this transcation
-            pollTransaction(Session.get('transactionHash'), true)
-          }
-        })
-      })
+          wrapMeteorCall('confirmTransaction', tx, (err, res) => {
+            if (res.error) {
+              $('#transactionConfirmation').hide()
+              $('#transactionFailed').show()
+
+              Session.set('transactionFailed', res.error)
+            } else {
+              Session.set('transactionHash', txnHash)
+              Session.set('transactionSignature', res.response.signature)
+              Session.set('transactionRelayedThrough', res.relayed)
+
+              // Show result
+              $('#generateTransactionArea').hide()
+              $('#confirmTransactionArea').hide()
+              $('#transactionResultArea').show()
+              
+              // Start polling this transcation
+              pollTransaction(Session.get('transactionHash'), true)
+            }
+          })
+        }
+      }) // retrieveSignature
     })
   }
 }
@@ -746,7 +773,8 @@ Template.appTransfer.events({
     }, 200)
   },
   'click #confirmTransaction': () => {
-    $('#relaying').show()
+    $('#signOnLedgerRejected').hide()
+    $('#signOnLedgerTimeout').hide()
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #confirmTokenTransaction': () => {
@@ -775,27 +803,32 @@ Template.appTransfer.events({
     event.preventDefault()
     event.stopPropagation()
 
-    // Increment count of recipients
-    const nextRecipientId = Math.max(...getRecipientIds()) + 1
+    // Prevent adding more than 2 additional recipients when using Ledger Nano
+    if((getRecipientIds().length > 2) && (getXMSSDetails().walletType == 'ledger')) {
+      $('#maxRecipientsReached').modal('show')
+    } else {
+      // Increment count of recipients
+      const nextRecipientId = Math.max(...getRecipientIds()) + 1
 
-    const newTransferRecipient = `
-      <div>
-        <div class="field">
-          <label>Additional Recipient</label>
-          <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-            <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
-            <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
-            <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+      const newTransferRecipient = `
+        <div>
+          <div class="field">
+            <label>Additional Recipient</label>
+            <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
+              <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
+              <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
+              <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Append newTransferRecipient to transferRecipients div
-    $('#transferRecipients').append(newTransferRecipient)
+      // Append newTransferRecipient to transferRecipients div
+      $('#transferRecipients').append(newTransferRecipient)
 
-    // Initialise form validation
-    initialiseFormValidation()
+      // Initialise form validation
+      initialiseFormValidation()
+    }
   },
   'click .removeTransferRecipient': (event) => {
     event.preventDefault()
@@ -1112,6 +1145,12 @@ Template.appTransfer.helpers({
   },
   isLedgerWallet() {
     if (getXMSSDetails().walletType == 'ledger') {
+      return true
+    }
+    return false
+  },
+  isSeedWallet() {
+    if (getXMSSDetails().walletType == 'seed') {
       return true
     }
     return false
