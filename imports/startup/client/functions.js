@@ -324,11 +324,11 @@ wrapMeteorCall = (method, request, callback) => {
   // Modify network to gRPC endpoint for custom/localhost settings
   if (request.network === "localhost") {
     // Override network to localhost
-    request.network = 'localhost:9009'
+    request.network = 'localhost:19009'
   }
   if (request.network === "custom") {
     // Override network to localhost
-    request.network = LocalStore.get('nodeGrpc')
+    request.network = LocalStore.get('customNodeGrpc')
   }
 
   Meteor.call(method, request, (err, res) => {
