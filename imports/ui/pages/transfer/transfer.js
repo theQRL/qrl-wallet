@@ -230,8 +230,49 @@ function confirmTransaction() {
       }
     })
   } else if (getXMSSDetails().walletType == 'ledger') {
-    // Show message to sign transaction on Ledger
-    $('#signOnLedger').show()
+    // Reset ledger sign modal view state
+    $('#awaitingLedgerConfirmation').show()
+    $('#signOnLedgerRejected').hide()
+    $('#signOnLedgerTimeout').hide()
+    $('#ledgerHasConfirmed').hide()
+    $('#relayLedgerTxnButton').hide()
+
+    // Show ledger sign modal
+    $("#ledgerConfirmationModal").modal({
+      closable: false,
+      onDeny: () => {
+        // Clear session state for transaction
+        Session.set('ledgerTransaction', '')
+        Session.set('ledgerTransactionHash', '')
+      },
+      onApprove: () => {
+        // Hide modal, and show relaying message
+        $('#ledgerConfirmationModal').modal('hide')
+        $('#relaying').show()
+
+        // Relay the transaction
+        wrapMeteorCall('confirmTransaction', Session.get('ledgerTransaction'), (err, res) => {
+          if (res.error) {
+            $('#transactionConfirmation').hide()
+            $('#transactionFailed').show()
+
+            Session.set('transactionFailed', res.error)
+          } else {
+            Session.set('transactionHash', Session.get('ledgerTransactionHash'))
+            Session.set('transactionSignature', res.response.signature)
+            Session.set('transactionRelayedThrough', res.relayed)
+
+            // Show result
+            $('#generateTransactionArea').hide()
+            $('#confirmTransactionArea').hide()
+            $('#transactionResultArea').show()
+
+            // Start polling this transcation
+            pollTransaction(Session.get('transactionHash'), true)
+          }
+        })
+      }
+    }).modal('show')
 
     // Create a transaction
     const source_addr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
@@ -239,22 +280,18 @@ function confirmTransaction() {
 
     QrlLedger.createTx(source_addr, fee, dest_addr, dest_amount).then(txn => {
       QrlLedger.retrieveSignature(txn).then(sigResponse => {
-
-        console.log('got retrieveSignature res')
-        console.log(sigResponse)
+        // Hide the awaiting ledger confirmation spinner
+        $('#awaitingLedgerConfirmation').hide()
 
         // Check if ledger rejected transaction
         if(sigResponse.return_code == 27014) {
-          $('#signOnLedger').hide()
           $('#signOnLedgerRejected').show()
         // Check if the the request timed out waiting for response on ledger
         } else if(sigResponse.return_code == 14) {
-          $('#signOnLedger').hide()
           $('#signOnLedgerTimeout').show()
         } else {
-          // Hide ledger sign message, and show relaying message
-          $('#signOnLedger').hide()
-          $('#relaying').show()
+          // Show confirmation message
+          $('#ledgerHasConfirmed').show()
 
           tx.extended_transaction_unsigned.tx.signature = sigResponse.signature
 
@@ -275,26 +312,12 @@ function confirmTransaction() {
           // Prepare gRPC call
           tx.network = selectedNetwork()
 
-          wrapMeteorCall('confirmTransaction', tx, (err, res) => {
-            if (res.error) {
-              $('#transactionConfirmation').hide()
-              $('#transactionFailed').show()
+          // Set session values for later relaying
+          Session.set('ledgerTransaction', tx)
+          Session.set('ledgerTransactionHash', txnHash)
 
-              Session.set('transactionFailed', res.error)
-            } else {
-              Session.set('transactionHash', txnHash)
-              Session.set('transactionSignature', res.response.signature)
-              Session.set('transactionRelayedThrough', res.relayed)
-
-              // Show result
-              $('#generateTransactionArea').hide()
-              $('#confirmTransactionArea').hide()
-              $('#transactionResultArea').show()
-              
-              // Start polling this transcation
-              pollTransaction(Session.get('transactionHash'), true)
-            }
-          })
+          // Show relay button
+          $('#relayLedgerTxnButton').show()
         }
       }) // retrieveSignature
     })
@@ -777,8 +800,6 @@ Template.appTransfer.events({
     }, 200)
   },
   'click #confirmTransaction': () => {
-    $('#signOnLedgerRejected').hide()
-    $('#signOnLedgerTimeout').hide()
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #confirmTokenTransaction': () => {
