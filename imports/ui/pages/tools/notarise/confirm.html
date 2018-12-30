@@ -1,5 +1,65 @@
 <template name="appNotariseConfirm">
 
+<div class="small ui modal" id="ledgerConfirmationModal">
+  <div class="header">Send Document Notarisation Transaction?</div>
+  <div class="content">
+    <div class="ui stackable grid">
+      <div class="four wide column">
+        <img class="svg" src="/img/ledger-nano.svg" />
+      </div>
+      <div class="twelve wide column">
+        <div class="description pl-10">
+          <p>Your transaction requires confirmation on your Ledger Nano S device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
+          <div class="ui container">
+            <table class="ui stackable table">
+              <tr>
+                <td>
+                  <div class="ui label fw">FROM</div>
+                </td>
+                <td class="no-wrap">{{transferFrom.address}}</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">MESSAGE</div>
+                </td>
+                <td class="no-wrap">
+                  {{ledgerVerificationMessage}}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">FEE</div>
+                </td>
+                <td class="no-wrap">{{transactionConfirmationFee}} Quanta</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div id="awaitingLedgerConfirmation" class="ui inverted segment">
+      <h3>Awaiting confirmation on Ledger device
+        <div class="ui active inline loader"></div>
+      </h3>
+    </div>
+
+    <div id="signOnLedgerRejected" class="ui inverted segment" style="display: none;">
+      <h3>The Transaction has been rejected on Ledger device</h3>
+    </div>
+
+    <div id="signOnLedgerTimeout" class="ui inverted segment" style="display: none;">
+      <h3>Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
+    </div>
+
+    <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <i class="ui check icon"></i></p>
+
+    <div class="ui positive confirm button" id="relayLedgerTxnButton" style="display:none;">Send transaction</div>
+    <div class="ui negative button">Cancel</div>
+  </div>
+</div>
+
 <h2 class="ui header pageHeader">
   <i class="tiny edit icon"></i>
   <div class="content">
@@ -70,39 +130,6 @@
     </div>
     <div class="column center aligned">
       <button id="cancelMessage" class="ui huge red button plain">Cancel Document Notarisation</button>
-    </div>
-  </div>
-
-  <div id="signOnLedger" class="ui icon message" style="display: none;">
-    <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div class="header">
-        Verify the transaction on Ledger Nano
-      </div>
-      <p id="transferLedgerWaitingMsg">Verify the transaction details are correct on your Ledger and press Sign Transaction...</p>
-    </div>
-  </div>
-
-  <div id="signOnLedgerRejected" class="ui icon message" style="display: none;">
-    <br /><br />
-    <i class="exclamation icon"></i>
-    <div class="content">
-      <div class="header">
-        Transaction Rejected
-      </div>
-      <p id="transferLedgerCancelledMsg">The transaction has been rejected on Ledger Nano.</p>
-    </div>
-  </div>
-
-  <div id="signOnLedgerTimeout" class="ui icon message" style="display: none;">
-    <br /><br />
-    <i class="exclamation icon"></i>
-    <div class="content">
-      <div class="header">
-        Timeout Reached
-      </div>
-      <p id="transferLedgerTimeoutMsg">Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</p>
     </div>
   </div>
 

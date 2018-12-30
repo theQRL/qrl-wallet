@@ -69,8 +69,46 @@ function confirmMessageCreation() {
       }
     })
   } else if (getXMSSDetails().walletType == 'ledger') {
-    // Show message to sign transaction on Ledger
-    $('#signOnLedger').show()
+    // Reset ledger sign modal view state
+    $('#awaitingLedgerConfirmation').show()
+    $('#signOnLedgerRejected').hide()
+    $('#signOnLedgerTimeout').hide()
+    $('#ledgerHasConfirmed').hide()
+    $('#relayLedgerTxnButton').hide()
+
+    // Show ledger sign modal
+    $("#ledgerConfirmationModal").modal({
+      closable: false,
+      onDeny: () => {
+        // Clear session state for transaction
+        Session.set('ledgerTransaction', '')
+        Session.set('ledgerTransactionHash', '')
+      },
+      onApprove: () => {
+        // Hide modal, and show relaying message
+        $('#ledgerConfirmationModal').modal('hide')
+        $('#relaying').show()
+
+        // Relay the transaction
+        wrapMeteorCall('confirmMessageCreation', Session.get('ledgerTransaction'), (err, res) => {
+          if (res.error) {
+            $('#messageCreationConfirmation').hide()
+            $('#transactionFailed').show()
+
+            Session.set('transactionFailed', res.error)
+          } else {
+            Session.set('transactionHash', Session.get('ledgerTransactionHash'))
+            Session.set('transactionSignature', res.response.signature)
+            Session.set('transactionRelayedThrough', res.relayed)
+
+            // Send to result page.
+            const params = { }
+            const path = FlowRouter.path('/tools/message/result', params)
+            FlowRouter.go(path)
+          }
+        })
+      }
+    }).modal('show')
 
     // Create a transaction
     const source_addr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
@@ -78,23 +116,18 @@ function confirmMessageCreation() {
 
     QrlLedger.createMessageTx(source_addr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash)).then(txn => {
       QrlLedger.retrieveSignature(txn).then(sigResponse => {
-
-        console.log('got retrieveSignature res')
-        console.log(sigResponse)
+        // Hide the awaiting ledger confirmation spinner
+        $('#awaitingLedgerConfirmation').hide()
 
         // Check if ledger rejected transaction
         if(sigResponse.return_code == 27014) {
-          $('#signOnLedger').hide()
           $('#signOnLedgerRejected').show()
         // Check if the the request timed out waiting for response on ledger
         } else if(sigResponse.return_code == 14) {
-          $('#signOnLedger').hide()
           $('#signOnLedgerTimeout').show()
         } else {
-          // Hide ledger sign message, and show relaying message
-          $('#signOnLedger').hide()
-          $('#relaying').show()
-
+          // Show confirmation message
+          $('#ledgerHasConfirmed').show()
 
           tx.extended_transaction_unsigned.tx.signature = sigResponse.signature
 
@@ -115,23 +148,12 @@ function confirmMessageCreation() {
           // Prepare gRPC call
           tx.network = selectedNetwork()
 
-          wrapMeteorCall('confirmMessageCreation', tx, (err, res) => {
-            if (res.error) {
-              $('#messageCreationConfirmation').hide()
-              $('#transactionFailed').show()
+          // Set session values for later relaying
+          Session.set('ledgerTransaction', tx)
+          Session.set('ledgerTransactionHash', txnHash)
 
-              Session.set('transactionFailed', res.error)
-            } else {
-              Session.set('transactionHash', txnHash)
-              Session.set('transactionSignature', res.response.signature)
-              Session.set('transactionRelayedThrough', res.relayed)
-
-              // Send to result page.
-              const params = { }
-              const path = FlowRouter.path('/tools/message/result', params)
-              FlowRouter.go(path)
-            }
-          })
+          // Show relay button
+          $('#relayLedgerTxnButton').show()
         }
       })
     })
@@ -154,8 +176,6 @@ Template.appMessageConfirm.onRendered(() => {
 
 Template.appMessageConfirm.events({
   'click #confirmMessage': () => {
-    $('#signOnLedgerRejected').hide()
-    $('#signOnLedgerTimeout').hide()
     setTimeout(() => { confirmMessageCreation() }, 200)
   },
   'click #cancelMessage': () => {
