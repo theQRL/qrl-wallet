@@ -1318,4 +1318,4 @@ Meteor.setInterval(() => {
 
   // Maintain state of connections to all nodes
   connectNodes()
-}, 20000)
+}, 60000)
