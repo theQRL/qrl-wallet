@@ -738,7 +738,6 @@ function initialiseFormValidation() {
       const rawAddress = anyAddressToRawAddress(value)
       const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
       const isValid = qrlAddressValdidator.hexString(thisAddress)
-      console.log(isValid)
       return isValid.result
     } catch(e) {
       return false
