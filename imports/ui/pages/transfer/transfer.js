@@ -43,7 +43,7 @@ function generateTransaction() {
       return
     }
 
-    this_addresses_to.push(anyAddressToRawAddress(thisAddress))
+    this_addresses_to.push(anyAddressToRawAddress(thisAddress.trim()))
   }
 
   // Fail if more than 3 recipients using Ledger
@@ -367,9 +367,10 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   let this_amounts = []
 
   for (var i = 0; i < sendTo.length; i++) {
-    this_addresses_to.push(anyAddressToRawAddress(sendTo[i].value))
+    const thisAddress = sendTo[i].value
+    this_addresses_to.push(anyAddressToRawAddress(thisAddress.trim()))
   }
-   for (var i = 0; i < sendAmounts.length; i++) {
+  for (var i = 0; i < sendAmounts.length; i++) {
     let convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     let thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber()
     this_amounts.push(thisAmount)
@@ -668,6 +669,10 @@ function initialiseFormValidation() {
           type: 'empty',
           prompt: 'Please enter the QRL address you wish to send to',
         },
+        {
+          type: 'qrlAddressValid',
+          prompt: 'Please enter a valid QRL address',
+        }
       ],
     };
 
@@ -725,6 +730,18 @@ function initialiseFormValidation() {
   // Max of 9 decimals
   $.fn.form.settings.rules.maxDecimals = function(value) {
     return (countDecimals(value) <= 9)
+  }
+
+  // Address Validation
+  $.fn.form.settings.rules.qrlAddressValid = function(value) {
+    try {
+      const rawAddress = anyAddressToRawAddress(value)
+      const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
+      const isValid = qrlAddressValdidator.hexString(thisAddress)
+      return isValid.result
+    } catch(e) {
+      return false
+    }
   }
 
   // Initliase the form validation
