@@ -1,14 +1,14 @@
-import './start.html'
-import CryptoJS from 'crypto-js';
-/* global selectedNetwork */
-/* global XMSS_OBJECT */
-/* global DEFAULT_NETWORKS */
-/* global SHOR_PER_QUANTA */
-/* global wrapMeteorCall */
-/* global nodeReturnedValidResponse */
-/* global otsIndexUsed */
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-let additional_text_max_length_value = 45
+import './start.html'
+import CryptoJS from 'crypto-js'
+
+let additionalTextMaxLengthValue = 45
 
 function createMessageTxn() {
   const finalNotarisation = document.getElementById('message').value
@@ -16,9 +16,9 @@ function createMessageTxn() {
   const otsKey = document.getElementById('otsKey').value
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    if(getXMSSDetails().walletType == 'ledger'){
+    if (getXMSSDetails().walletType === 'ledger') {
       $('#ledgerOtsKeyReuseDetected').modal('show')
     } else {
       $('#otsKeyReuseDetected').modal('show')
@@ -49,10 +49,10 @@ function createMessageTxn() {
         message: bytesToString(res.response.extended_transaction_unsigned.tx.message.message_hash),
         message_hex: bytesToHex(res.response.extended_transaction_unsigned.tx.message.message_hash),
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-        otsKey: otsKey,
+        otsKey: otsKey, // eslint-disable-line
         file_name: Session.get('notaryDocumentName'),
         hash_function: Session.get('notaryHashFunction'),
-        hash: Session.get('notaryFileHash'),
+        fileHash: Session.get('notaryFileHash'),
         additional_text: Session.get('notaryAdditionalText'),
       }
 
@@ -74,38 +74,38 @@ function createMessageTxn() {
 function notariseDocument() {
   $('#documentNotarisationFailed').hide()
 
-  let notaryDocuments = $('#notaryDocument').prop('files')
+  const notaryDocuments = $('#notaryDocument').prop('files')
   const notaryDocument = notaryDocuments[0]
   const hashFunction = document.getElementById('hashFunction').value
-  const additional_text = document.getElementById('additional_text').value
+  const additionalText = document.getElementById('additional_text').value
 
   const reader = new FileReader()
-  reader.onloadend = function() {
+  reader.onloadend = function () {
     try {
       let notarisation = 'AFAFA'
       let fileHash
 
       // Convert FileReader ArrayBuffer to WordArray first
-      var resultWordArray = CryptoJS.lib.WordArray.create(reader.result);
+      const resultWordArray = CryptoJS.lib.WordArray.create(reader.result)
 
-      if(hashFunction == "SHA256") {
-        fileHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex);
+      if (hashFunction === 'SHA256') {
+        fileHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex)
         notarisation = notarisation + '2' + fileHash
       }
 
       // Convert free form text to hex
-      var additionalTextBytes = stringToBytes(additional_text)
-      var additionalTextHex = bytesToHex(additionalTextBytes)
+      const additionalTextBytes = stringToBytes(additionalText)
+      const additionalTextHex = bytesToHex(additionalTextBytes)
 
       // Construct final hex string for notarisation
-      var finalNotarisation = notarisation + additionalTextHex
+      const finalNotarisation = notarisation + additionalTextHex
 
       // Set message field to document notarisation string
       document.getElementById('message').value = finalNotarisation
 
       // Set the filename in local store for later display in UI
       Session.set('notaryDocumentName', notaryDocument.name)
-      Session.set('notaryAdditionalText', additional_text)
+      Session.set('notaryAdditionalText', additionalText)
       Session.set('notaryHashFunction', hashFunction)
       Session.set('notaryFileHash', fileHash)
 
@@ -133,14 +133,14 @@ function notariseDocument() {
 
 // Function to initialise form validation
 function initialiseFormValidation() {
-  let validationRules = {}
+  const validationRules = {}
 
   validationRules['additional_text'] = {
     id: 'additional_text',
     rules: [
       {
-        type: 'maxLength[' + additional_text_max_length_value + ']',
-        prompt: 'The max length of the additional message is ' + additional_text_max_length_value + ' bytes.',
+        type: 'maxLength[' + additionalTextMaxLengthValue + ']',
+        prompt: 'The max length of the additional message is ' + additionalTextMaxLengthValue + ' bytes.',
       },
     ],
   }
@@ -187,9 +187,9 @@ Template.appNotariseStart.onRendered(() => {
   initialiseFormValidation()
 
   // Get wallet balance
-  getBalance(getXMSSDetails().address, function() {
+  getBalance(getXMSSDetails().address, function () {
     // Show warning is otsKeysRemaining is low
-    if(Session.get('otsKeysRemaining') < 50) {
+    if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
@@ -204,14 +204,14 @@ Template.appNotariseStart.events({
 
     setTimeout(() => { notariseDocument() }, 200)
   },
-  'change #hashFunction': (event) => {
+  'change #hashFunction': () => {
     const selectedFunction = document.getElementById('hashFunction').value
-    if(selectedFunction == "SHA256") {
-      additional_text_max_length_value = 45
+    if (selectedFunction === 'SHA256') {
+      additionalTextMaxLengthValue = 45
       document.getElementById('additional_text_max_length').innerHTML = '(Max Length: 45)'
     }
     initialiseFormValidation()
-  }
+  },
 })
 
 Template.appNotariseStart.helpers({
@@ -256,13 +256,13 @@ Template.appNotariseStart.helpers({
     return Session.get('nodeExplorerUrl')
   },
   ledgerWalletDisabled() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return 'disabled'
     }
     return ''
   },
   isLedgerWallet() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return true
     }
     return false

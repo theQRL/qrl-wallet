@@ -1,8 +1,11 @@
-import './keybaseCreate.html'
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-/* global selectedNetwork, XMSS_OBJECT, DEFAULT_NETWORKS, SHOR_PER_QUANTA */
-/* global wrapMeteorCall, nodeReturnedValidResponse, otsIndexUsed */
-/* global hexToBytes, bytesToString, getBalance, getXMSSDetails, hexOrB32 */
+import './keybaseCreate.html'
 
 function createKeybaseTxn() {
   // Get transaction values from form
@@ -19,9 +22,9 @@ function createKeybaseTxn() {
   if ($('#kb_add').prop('checked')) { addorremove = 'AA' } else { addorremove = 'AF' }
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    if(getXMSSDetails().walletType == 'ledger'){
+    if (getXMSSDetails().walletType === 'ledger') {
       $('#ledgerOtsKeyReuseDetected').modal('show')
     } else {
       $('#otsKeyReuseDetected').modal('show')
@@ -226,13 +229,13 @@ Template.appKeybaseCreate.helpers({
     return Session.get('nodeExplorerUrl')
   },
   ledgerWalletDisabled() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return 'disabled'
     }
     return ''
   },
   isLedgerWallet() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return true
     }
     return false

@@ -1,11 +1,11 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import './messageCreate.html'
-/* global selectedNetwork */
-/* global XMSS_OBJECT */
-/* global DEFAULT_NETWORKS */
-/* global SHOR_PER_QUANTA */
-/* global wrapMeteorCall */
-/* global nodeReturnedValidResponse */
-/* global otsIndexUsed */
 
 function createMessageTxn() {
   // Get to/amount details
@@ -14,9 +14,9 @@ function createMessageTxn() {
   const otsKey = document.getElementById('otsKey').value
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    if(getXMSSDetails().walletType == 'ledger'){
+    if (getXMSSDetails().walletType === 'ledger') {
       $('#ledgerOtsKeyReuseDetected').modal('show')
     } else {
       $('#otsKeyReuseDetected').modal('show')
@@ -46,7 +46,7 @@ function createMessageTxn() {
         hash: res.txnHash,
         message: bytesToString(res.response.extended_transaction_unsigned.tx.message.message_hash),
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-        otsKey: otsKey,
+        otsKey: otsKey, // eslint-disable-line
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createMessageTxn')) {
@@ -66,7 +66,7 @@ function createMessageTxn() {
 
 // Function to initialise form validation
 function initialiseFormValidation() {
-  let validationRules = {}
+  const validationRules = {}
 
   validationRules['message'] = {
     id: 'message',
@@ -124,9 +124,9 @@ Template.appMessageCreate.onRendered(() => {
   initialiseFormValidation()
 
   // Get wallet balance
-  getBalance(getXMSSDetails().address, function() {
+  getBalance(getXMSSDetails().address, function () {
     // Show warning is otsKeysRemaining is low
-    if(Session.get('otsKeysRemaining') < 50) {
+    if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
@@ -185,13 +185,13 @@ Template.appMessageCreate.helpers({
     return Session.get('nodeExplorerUrl')
   },
   ledgerWalletDisabled() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return 'disabled'
     }
     return ''
   },
   isLedgerWallet() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return true
     }
     return false

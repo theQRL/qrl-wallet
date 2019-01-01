@@ -1,8 +1,12 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import JSONFormatter from 'json-formatter-js'
 import './keybaseResult.html'
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, selectedNetwork, wrapMeteorCall */
-/* global bytesToString */
-/* eslint no-console:0, no-use-before-define:0, no-param-reassign:0 */
 
 function setRawDetail() {
   const myJSON = Session.get('txhash').transaction
@@ -23,8 +27,8 @@ function checkResult(thisTxId, failureCount) {
     } else if (Session.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if (failureCount < 5) {
-        failureCount += 1
-        setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
+        // eslint-disable-next-line no-use-before-define
+        setTimeout(() => { pollTransaction(thisTxId, false, failureCount + 1) }, POLL_TXN_RATE)
       } else {
         // Transaction error - Give up
         const errorMessage = `Error - ${Session.get('txhash').error}`
@@ -34,6 +38,7 @@ function checkResult(thisTxId, failureCount) {
       }
     } else {
       // Poll again
+      // eslint-disable-next-line no-use-before-define
       setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
     }
   } catch (err) {
@@ -43,8 +48,8 @@ function checkResult(thisTxId, failureCount) {
 
     // Continue to check the txn status until POLL_MAX_CHECKS is reached in failureCount
     if (failureCount < POLL_MAX_CHECKS) {
-      failureCount += 1
-      setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
+      // eslint-disable-next-line no-use-before-define
+      setTimeout(() => { pollTransaction(thisTxId, false, failureCount + 1) }, POLL_TXN_RATE)
     } else {
       // Transaction error - Give up
       Session.set('txstatus', 'Error')

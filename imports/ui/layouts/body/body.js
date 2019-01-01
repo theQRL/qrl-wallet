@@ -1,10 +1,9 @@
 /* eslint no-console:0 */
-/* global LocalStore */
-/* global findNetworkData */
-/* global DEFAULT_NETWORKS */
-/* global selectedNetwork */
-/* global isElectrified */
-/* global WALLET_VERSION */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import './body.html'
 import './customNode.html'
@@ -35,16 +34,18 @@ const checkNetworkHealth = (network, callback) => {
 // TODO: refactor this -- duplicate code used in ../mobile/mobile.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
+  let userNetwork = selectedNetwork
+
   // If no network is selected, default to mainnet
-  if(selectedNetwork === '') {
+  if (selectedNetwork === '') {
     $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
-    selectedNetwork = DEFAULT_NETWORKS[0].id
+    userNetwork = DEFAULT_NETWORKS[0].id
   }
 
   // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
   // Update local node connection details
-  switch (selectedNetwork) {
+  switch (userNetwork) {
     case 'add': {
       $('#addNode').modal({
         onDeny: () => {
@@ -87,7 +88,7 @@ const updateNetwork = (selectedNetwork) => {
         },
       }).modal('show')
       break
-    };
+    }
     case 'custom': {
       const nodeData = {
         id: 'custom',
@@ -116,7 +117,7 @@ const updateNetwork = (selectedNetwork) => {
       break
     }
     default: {
-      const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
+      const nodeData = findNetworkData(DEFAULT_NETWORKS, userNetwork)
       Session.set('nodeId', nodeData.id)
       Session.set('nodeName', nodeData.name)
       Session.set('nodeExplorerUrl', nodeData.explorerUrl)
@@ -157,36 +158,35 @@ Template.appBody.onRendered(() => {
   /*
    * Replace all SVG images with inline SVG
    */
-  jQuery('img.svg').each(function(){
-    var $img = jQuery(this)
-    var imgID = $img.attr('id')
-    var imgClass = $img.attr('class')
-    var imgURL = $img.attr('src')
+  jQuery('img.svg').each(function () {
+    const $img = jQuery(this)
+    const imgID = $img.attr('id')
+    const imgClass = $img.attr('class')
+    const imgURL = $img.attr('src')
 
-    jQuery.get(imgURL, function(data) {
-        // Get the SVG tag, ignore the rest
-        var $svg = jQuery(data).find('svg')
+    jQuery.get(imgURL, function (data) {
+      // Get the SVG tag, ignore the rest
+      let $svg = jQuery(data).find('svg')
 
-        // Add replaced image's ID to the new SVG
-        if(typeof imgID !== 'undefined') {
-            $svg = $svg.attr('id', imgID)
-        }
-        // Add replaced image's classes to the new SVG
-        if(typeof imgClass !== 'undefined') {
-            $svg = $svg.attr('class', imgClass+' replaced-svg')
-        }
+      // Add replaced image's ID to the new SVG
+      if (typeof imgID !== 'undefined') {
+        $svg = $svg.attr('id', imgID)
+      }
+      // Add replaced image's classes to the new SVG
+      if (typeof imgClass !== 'undefined') {
+        $svg = $svg.attr('class', imgClass+' replaced-svg')
+      }
 
-        // Remove any invalid XML tags as per http://validator.w3.org
-        $svg = $svg.removeAttr('xmlns:a')
+      // Remove any invalid XML tags as per http://validator.w3.org
+      $svg = $svg.removeAttr('xmlns:a')
 
-        // Check if the viewport is set, if the viewport is not set the SVG wont't scale.
-        if(!$svg.attr('viewBox') && $svg.attr('height') && $svg.attr('width')) {
-            $svg.attr('viewBox', '0 0 ' + $svg.attr('height') + ' ' + $svg.attr('width'))
-        }
+      // Check if the viewport is set, if the viewport is not set the SVG wont't scale.
+      if (!$svg.attr('viewBox') && $svg.attr('height') && $svg.attr('width')) {
+        $svg.attr('viewBox', '0 0 ' + $svg.attr('height') + ' ' + $svg.attr('width'))
+      }
 
-        // Replace image with new SVG
-        $img.replaceWith($svg)
-
+      // Replace image with new SVG
+      $img.replaceWith($svg)
     }, 'xml')
   })
 
@@ -194,7 +194,7 @@ Template.appBody.onRendered(() => {
   console.log('Web Assembly Supported: ', supportedBrowser())
 
   // Show warning if web assembly is not supported.
-  if(!supportedBrowser()) {
+  if (!supportedBrowser()) {
     $('#webassemblyWarning').modal('show')
   }
 })
@@ -208,11 +208,10 @@ Template.appBody.events({
     updateNetwork(selectedNetwork())
   },
   'change #addressFormatCheckbox': () => {
-    var checked = $('#addressFormatCheckbox').prop("checked")
-    if(checked){
+    const checked = $('#addressFormatCheckbox').prop('checked')
+    if (checked) {
       LocalStore.set('addressFormat', 'bech32')
-    }
-    else {
+    } else {
       LocalStore.set('addressFormat', 'hex')
     }
   },
@@ -226,64 +225,59 @@ Template.appBody.events({
     const tokenTransactionResultAreaVisible = $('#tokenTransactionResultArea').is(':visible')
     const transactionResultAreaVisible = $('#transactionResultArea').is(':visible')
 
-    if(FlowRouter.getRouteName() == "App.transfer") {
-      if(
-        (transactionGenerateFieldVisible == false) &&
-        (tokenBalancesTabVisible == false) && 
-        (receiveTabVisible == false)) {
+    if (FlowRouter.getRouteName() === 'App.transfer') {
+      if (
+        (transactionGenerateFieldVisible === false)
+        && (tokenBalancesTabVisible === false)
+        && (receiveTabVisible === false)) {
         // If the user has completed the transaction, go back to send form.
-        if(
-          (tokenTransactionResultAreaVisible == true) ||
-          (transactionResultAreaVisible == true)
-          ) {
+        if (
+          (tokenTransactionResultAreaVisible === true)
+          || (transactionResultAreaVisible === true)) {
           // Check if the trasaction is confirmed on the network.
           const transactionConfirmed = Session.get('transactionConfirmed')
-          if(transactionConfirmed == "true") {
+          if (transactionConfirmed === 'true') {
             const reloadPath = FlowRouter.path('/reloadTransfer', {})
             FlowRouter.go(reloadPath)
           } else {
             $('#cancelWaitingForTransactionWarning').modal('transition', 'disable')
-            .modal({
-              onApprove: () => {
-                $('#cancelWaitingForTransactionWarning').modal('transition', 'disable').modal('hide')
-                const reloadPath = FlowRouter.path('/reloadTransfer', {})
-                FlowRouter.go(reloadPath)
-              },
-            }).modal('show')
+              .modal({
+                onApprove: () => {
+                  $('#cancelWaitingForTransactionWarning').modal('transition', 'disable').modal('hide')
+                  const reloadPath = FlowRouter.path('/reloadTransfer', {})
+                  FlowRouter.go(reloadPath)
+                },
+              }).modal('show')
           }
         } else {
           // Confirm with user they will loose progress of this transaction if they proceeed.
           $('#cancelTransactionGenerationWarning').modal('transition', 'disable')
-          .modal({
-            onApprove: () => {
-              $('#cancelTransactionGenerationWarning').modal('transition', 'disable').modal('hide')
-              const reloadPath = FlowRouter.path('/reloadTransfer', {})
-              FlowRouter.go(reloadPath)
-            },
-          }).modal('show')
+            .modal({
+              onApprove: () => {
+                $('#cancelTransactionGenerationWarning').modal('transition', 'disable').modal('hide')
+                const reloadPath = FlowRouter.path('/reloadTransfer', {})
+                FlowRouter.go(reloadPath)
+              },
+            }).modal('show')
         }
       }
     }
-  }
+  },
 })
 
 
 Template.appBody.helpers({
   addressFormat() {
-    if(LocalStore.get('addressFormat') == 'bech32'){
+    if (LocalStore.get('addressFormat') === 'bech32') {
       return 'BECH32'
     }
-    else {
-      return 'Hex'
-    }
+    return 'Hex'
   },
   addressFormatChecked() {
-    if(LocalStore.get('addressFormat') == 'bech32'){
+    if (LocalStore.get('addressFormat') === 'bech32') {
       return 'checked'
     }
-    else {
-      return ''
-    }
+    return ''
   },
   nodeId() {
     if ((Session.get('nodeId') === '') || (Session.get('nodeId') === null)) {
@@ -348,56 +342,55 @@ Template.appBody.helpers({
 
   /* Active Menu Item Helpers */
   menuNewWalletActive() {
-    if(
-      (FlowRouter.getRouteName() == "App.home") ||
-      (FlowRouter.getRouteName() == "App.create") || 
-      (FlowRouter.getRouteName() == "App.createAddress")
-      ) {
+    if (
+      (FlowRouter.getRouteName() === 'App.home')
+      || (FlowRouter.getRouteName() === 'App.create')
+      || (FlowRouter.getRouteName() === 'App.createAddress')) {
       return 'active'
     }
+    return ''
   },
   menuOpenWalletActive() {
-    if(
-      (FlowRouter.getRouteName() == "App.open") ||
-      (FlowRouter.getRouteName() == "App.opened")
-      ) {
+    if (
+      (FlowRouter.getRouteName() === 'App.open')
+      || (FlowRouter.getRouteName() === 'App.opened')) {
       return 'active'
     }
+    return ''
   },
   menuTransferActive() {
-    if(
-      (FlowRouter.getRouteName() == "App.transfer")
-      ) {
+    if (
+      (FlowRouter.getRouteName() === 'App.transfer')) {
       return 'active'
     }
+    return ''
   },
   menuTokensActive() {
-    if(
-      (FlowRouter.getRouteName() == "App.tokens") ||
-      (FlowRouter.getRouteName() == "App.tokensView") ||
-      (FlowRouter.getRouteName() == "App.tokensCreate") ||
-      (FlowRouter.getRouteName() == "App.tokenCreationConfirm") ||
-      (FlowRouter.getRouteName() == "App.tokenCreationResult") ||
-      (FlowRouter.getRouteName() == "App.tokensTransfer") ||
-      (FlowRouter.getRouteName() == "App.tokensTransferLoad") ||
-      (FlowRouter.getRouteName() == "App.tokensTransferConfirm") ||
-      (FlowRouter.getRouteName() == "App.tokensTransferResult")
-      ) {
+    if (
+      (FlowRouter.getRouteName() === 'App.tokens')
+      || (FlowRouter.getRouteName() === 'App.tokensView')
+      || (FlowRouter.getRouteName() === 'App.tokensCreate')
+      || (FlowRouter.getRouteName() === 'App.tokenCreationConfirm')
+      || (FlowRouter.getRouteName() === 'App.tokenCreationResult')
+      || (FlowRouter.getRouteName() === 'App.tokensTransfer')
+      || (FlowRouter.getRouteName() === 'App.tokensTransferLoad')
+      || (FlowRouter.getRouteName() === 'App.tokensTransferConfirm')
+      || (FlowRouter.getRouteName() === 'App.tokensTransferResult')) {
       return 'active'
     }
+    return ''
   },
   menuVerifyActive() {
-    if(
-      (FlowRouter.getRouteName() == "App.verify") ||
-      (FlowRouter.getRouteName() == "App.verifytxid")
-      
-      ) {
+    if (
+      (FlowRouter.getRouteName() === 'App.verify')
+      || (FlowRouter.getRouteName() === 'App.verifytxid')) {
       return 'active'
     }
+    return ''
   },
   qrlWalletVersion() {
     return WALLET_VERSION
-  }
+  },
 })
 
 Template.customNode.helpers({
@@ -409,5 +402,5 @@ Template.customNode.helpers({
   },
   customNodeExplorer() {
     return LocalStore.get('customNodeExplorerUrl')
-  }
+  },
 })

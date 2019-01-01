@@ -1,13 +1,13 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import aes256 from 'aes256'
 import async from 'async'
 import './open.html'
-
-/* global QRLLIB */
-/* global XMSS_OBJECT */
-/* global resetLocalStorageState */
-/* global getMnemonicOfFirstAddress */
-/* global isWalletFileDeprecated */
-/* global LocalStore */
 
 const LEDGER_TIMEOUT = 10000
 
@@ -33,9 +33,10 @@ function getLedgerPubkey(callback) {
   console.log('-- Getting QRL Ledger Nano Public Key --')
   QrlLedger.publickey().then(data => {
     // Convert Uint to hex
-    let pkHex = Buffer.from(data.public_key).toString('hex')
+    const pkHex = Buffer.from(data.public_key).toString('hex')
     // Get address from pk
-    let ledgerQAddress = 'Q'+QRLLIB.getAddress(pkHex)
+    const qAddress = QRLLIB.getAddress(pkHex)
+    const ledgerQAddress = `Q${qAddress}`
     Session.set('ledgerDetailsAddress', ledgerQAddress)
     Session.set('ledgerDetailsPkHex', pkHex)
     $('#walletCode').val(ledgerQAddress)
@@ -44,15 +45,15 @@ function getLedgerPubkey(callback) {
 }
 
 // Wrap ledger calls in async.timeout
-var getLedgerStateWrapper = async.timeout(getLedgerState, LEDGER_TIMEOUT)
-var getLedgerPubkeyWrapper = async.timeout(getLedgerPubkey, LEDGER_TIMEOUT)
+const getLedgerStateWrapper = async.timeout(getLedgerState, LEDGER_TIMEOUT)
+const getLedgerPubkeyWrapper = async.timeout(getLedgerPubkey, LEDGER_TIMEOUT)
 
 function refreshLedger() {
   // Clear Ledger State
   clearLedgerDetails()
 
-  getLedgerStateWrapper(function(err, data) {
-    if(err) {
+  getLedgerStateWrapper(function (err, data) {
+    if (err) {
       // We timed out requesting data from ledger
       $('#readingLedger').hide()
       $('#ledgerReadError').show()
@@ -60,11 +61,11 @@ function refreshLedger() {
       // We were able to connect to Ledger Device and get state
       const ledgerDeviceState = data.state
       const ledgerDeviceXmssIndex = data.xmss_index
-      if(ledgerDeviceState == 0) {
+      if (ledgerDeviceState === 0) {
         // Uninitialised Device - prompt user to init device in QRL ledger app
         $('#readingLedger').hide()
         $('#ledgerUninitialisedError').show()
-      } else if(ledgerDeviceState == 1) {
+      } else if (ledgerDeviceState === 1) {
         // Device is in key generation state - prompt user to continue generating keys
         // and show progress on screen
         $('#readingLedger').hide()
@@ -73,18 +74,18 @@ function refreshLedger() {
         async.during(
           // Truth function - check if current generation height < 256
           function (callback) {
-            getLedgerStateWrapper(function(err, data) {
-              if(err) {
+            getLedgerStateWrapper(function (stateErr, stateData) { //eslint-disable-line
+              if (stateErr) {
                 // Device unplugged?
                 $('#ledgerKeysGeneratingError').hide()
                 $('#ledgerKeysGeneratingDeviceError').show()
               } else {
                 // Update progress bar status
-                const percentCompleted = (data.xmss_index / 256) * 100
+                const percentCompleted = (stateData.xmss_index / 256) * 100
                 $('#ledgerKeyGenerationProgressBar').progress({
-                  percent: percentCompleted
+                  percent: percentCompleted,
                 })
-                return callback(null, data.xmss_index < 256)
+                return callback(null, stateData.xmss_index < 256)
               }
             })
           },
@@ -96,17 +97,17 @@ function refreshLedger() {
             // The device has generated all keys
             $('#ledgerKeysGeneratingError').hide()
             $('#ledgerKeysGeneratingComplete').show()
-          }
+          } // eslint-disable-line
         )
-      } else if(ledgerDeviceState == 2) {
+      } else if (ledgerDeviceState === 2) {
         // Initialised Device - ready to proceed opening ledger
         // Ensure QRLLIB is available before proceeding
         waitForQRLLIB(function () {
           async.waterfall([
             // Get the public key from the ledger so we can determine Q address
-            function(cb) {
-              getLedgerPubkeyWrapper(function(err, data) {
-                if(err) {
+            function (cb) {
+              getLedgerPubkeyWrapper(function (pubErr, pubData) { // eslint-disable-line
+                if (pubErr) {
                   // We timed out requesting data from ledger
                   $('#readingLedger').hide()
                   $('#ledgerReadError').show()
@@ -116,16 +117,16 @@ function refreshLedger() {
               })
             },
             // Get the Ledger Device app version
-            function(cb) {
-              QrlLedger.app_version().then(data => {
-                Session.set('ledgerDetailsAppVersion', data.major+'.'+data.minor+'.'+data.patch)
+            function (cb) {
+              QrlLedger.app_version().then(verData => {
+                Session.set('ledgerDetailsAppVersion', verData.major + '.' + verData.minor + '.' + verData.patch)
                 cb()
               })
             },
             // Get the local QrlLedger JS library version
-            function(cb) {
-              QrlLedger.library_version().then(data => {
-                Session.set('ledgerDetailsLibraryVersion', data)
+            function (cb) {
+              QrlLedger.library_version().then(libData => {
+                Session.set('ledgerDetailsLibraryVersion', libData)
                 cb()
               })
             },
@@ -177,7 +178,7 @@ function updateWalletType() {
 
     $('#walletCode').show()
     $('#ledgerArea').show()
-    $("#walletCode").prop('disabled', true);
+    $('#walletCode').prop('disabled', true)
     $('#ledgerRefreshButton').show()
     LocalStore.set('openWalletDefault', $('#walletType :selected').val())
   } else {
@@ -187,7 +188,7 @@ function updateWalletType() {
     $('#ledgerRefreshButton').hide()
 
     $('#walletCode').show()
-    $("#walletCode").prop('disabled', false);
+    $('#walletCode').prop('disabled', false)
     $('#unlockButton').show()
     LocalStore.set('openWalletDefault', $('#walletType :selected').val())
   }
@@ -219,8 +220,10 @@ function openWallet(walletType, walletCode) {
   try {
     // Create XMSS object from seed
     if (walletType === 'hexseed') {
+      // eslint-disable-next-line no-global-assign
       XMSS_OBJECT = QRLLIB.Xmss.fromHexSeed(walletCode)
     } else if (walletType === 'mnemonic') {
+      // eslint-disable-next-line no-global-assign
       XMSS_OBJECT = QRLLIB.Xmss.fromMnemonic(walletCode)
     }
 
@@ -270,22 +273,25 @@ function triggerOpen(walletJson, passphrase) {
 }
 
 function unlockWallet() {
-  let walletType = document.getElementById('walletType').value
-  let walletCode = document.getElementById('walletCode').value
-  let walletFiles = $('#walletFile').prop('files')
-  let passphrase = document.getElementById('passphrase').value
+  const walletType = document.getElementById('walletType').value
+  const walletCode = document.getElementById('walletCode').value
+  const walletFiles = $('#walletFile').prop('files')
+  const passphrase = document.getElementById('passphrase').value
 
   // Read file locally, extract mnemonic and open wallet
   if (walletType === 'file') {
     const walletFile = walletFiles[0]
     const reader = new FileReader()
-    reader.onload = (function(theFile) {
-      return function(e) {
+
+    // eslint-disable-next-line
+    reader.onload = (function (theFile) {
+      // eslint-disable-next-line
+      return function (e) {
         try {
           const walletDetail = JSON.parse(e.target.result)
 
           // Check if wallet file is deprecated
-          if(isWalletFileDeprecated(walletDetail)) {
+          if (isWalletFileDeprecated(walletDetail)) {
             $('#updateWalletFileFormat').modal({
               onApprove: () => {
                 Session.set('modalEventTriggered', true)
@@ -304,8 +310,8 @@ function unlockWallet() {
 
                 // Reset the state of the open wallet page.
                 $('#unlocking').hide()
-                $("#walletFile").val('')
-                $("#passphrase").val('')
+                $('#walletFile').val('')
+                $('#passphrase').val('')
               },
               onDeny: () => {
                 Session.set('modalEventTriggered', true)
