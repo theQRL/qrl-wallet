@@ -236,6 +236,7 @@ function confirmTransaction() {
     $('#signOnLedgerTimeout').hide()
     $('#ledgerHasConfirmed').hide()
     $('#relayLedgerTxnButton').hide()
+    $('#noRemainingSignatures').hide()
 
     // Show ledger sign modal
     $("#ledgerConfirmationModal").modal({
@@ -286,6 +287,10 @@ function confirmTransaction() {
         // Check if ledger rejected transaction
         if(sigResponse.return_code == 27014) {
           $('#signOnLedgerRejected').show()
+          // Show no signatures remaining message if there are none remaining.
+          if(Session.get('transactionConfirmation').otsKey >= 256) {
+            $('#noRemainingSignatures').show()
+          }
         // Check if the the request timed out waiting for response on ledger
         } else if(sigResponse.return_code == 14) {
           $('#signOnLedgerTimeout').show()
