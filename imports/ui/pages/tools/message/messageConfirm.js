@@ -1,34 +1,34 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import './messageConfirm.html'
-/* global QRLLIB */
-/* global XMSS_OBJECT */
-/* global LocalStore */
-/* global selectedNetwork */
-/* global DEFAULT_NETWORKS */
-/* global wrapMeteorCall */
 
 function confirmMessageCreation() {
   const tx = Session.get('messageCreationConfirmationResponse')
 
   // Set OTS Key Index for seed wallets
-  if (getXMSSDetails().walletType == 'seed') {
-    XMSS_OBJECT.setIndex(parseInt(Session.get('messageCreationConfirmation').otsKey))
+  if (getXMSSDetails().walletType === 'seed') {
+    XMSS_OBJECT.setIndex(parseInt(Session.get('messageCreationConfirmation').otsKey, 10))
   }
 
   // Concatenate Uint8Arrays
-  let tmptxnhash = concatenateTypedArrays(
+  const tmptxnhash = concatenateTypedArrays(
     Uint8Array,
-      // tx.extended_transaction_unsigned.addr_from,
-      toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
-      tx.extended_transaction_unsigned.tx.message.message_hash
+    toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+    tx.extended_transaction_unsigned.tx.message.message_hash // eslint-disable-line
   )
 
   // Convert Uint8Array to VectorUChar
-  let hashableBytes = toUint8Vector(tmptxnhash)
+  const hashableBytes = toUint8Vector(tmptxnhash)
 
   // Create sha256 sum of hashableBytes
-  let shaSum = QRLLIB.sha2_256(hashableBytes)
+  const shaSum = QRLLIB.sha2_256(hashableBytes)
 
-  if (getXMSSDetails().walletType == 'seed') {
+  if (getXMSSDetails().walletType === 'seed') {
     // Show relaying message
     $('#relaying').show()
 
@@ -36,16 +36,16 @@ function confirmMessageCreation() {
     tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
     // Calculate transaction hash
-    let txnHashConcat = concatenateTypedArrays(
+    const txnHashConcat = concatenateTypedArrays(
       Uint8Array,
-        binaryToBytes(shaSum),
-        tx.extended_transaction_unsigned.tx.signature,
-        hexToBytes(XMSS_OBJECT.getPK())
+      binaryToBytes(shaSum),
+      tx.extended_transaction_unsigned.tx.signature,
+      hexToBytes(XMSS_OBJECT.getPK()) // eslint-disable-line
     )
 
     const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-    let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+    const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
     console.log('Txn Hash: ', txnHash)
 
@@ -68,7 +68,7 @@ function confirmMessageCreation() {
         FlowRouter.go(path)
       }
     })
-  } else if (getXMSSDetails().walletType == 'ledger') {
+  } else if (getXMSSDetails().walletType === 'ledger') {
     // Reset ledger sign modal view state
     $('#awaitingLedgerConfirmation').show()
     $('#signOnLedgerRejected').hide()
@@ -78,7 +78,7 @@ function confirmMessageCreation() {
     $('#noRemainingSignatures').hide()
 
     // Show ledger sign modal
-    $("#ledgerConfirmationModal").modal({
+    $('#ledgerConfirmationModal').modal({
       closable: false,
       onDeny: () => {
         // Clear session state for transaction
@@ -108,27 +108,28 @@ function confirmMessageCreation() {
             FlowRouter.go(path)
           }
         })
-      }
+      },
     }).modal('show')
 
     // Create a transaction
-    const source_addr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
+    const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
-    QrlLedger.createMessageTx(source_addr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash)).then(txn => {
+    // eslint-disable-next-line max-len
+    QrlLedger.createMessageTx(sourceAddr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash)).then(txn => {
       QrlLedger.retrieveSignature(txn).then(sigResponse => {
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
 
         // Check if ledger rejected transaction
-        if(sigResponse.return_code == 27014) {
+        if (sigResponse.return_code === 27014) {
           $('#signOnLedgerRejected').show()
           // Show no signatures remaining message if there are none remaining.
-          if(Session.get('transactionConfirmation').otsKey >= 256) {
+          if (Session.get('transactionConfirmation').otsKey >= 256) {
             $('#noRemainingSignatures').show()
           }
         // Check if the the request timed out waiting for response on ledger
-        } else if(sigResponse.return_code == 14) {
+        } else if (sigResponse.return_code === 14) {
           $('#signOnLedgerTimeout').show()
         } else {
           // Show confirmation message
@@ -137,16 +138,16 @@ function confirmMessageCreation() {
           tx.extended_transaction_unsigned.tx.signature = sigResponse.signature
 
           // Calculate transaction hash
-          let txnHashConcat = concatenateTypedArrays(
+          const txnHashConcat = concatenateTypedArrays(
             Uint8Array,
-              binaryToBytes(shaSum),
-              tx.extended_transaction_unsigned.tx.signature,
-              hexToBytes(getXMSSDetails().pk)
+            binaryToBytes(shaSum),
+            tx.extended_transaction_unsigned.tx.signature,
+            hexToBytes(getXMSSDetails().pk) // eslint-disable-line
           )
 
           const txnHashableBytes = toUint8Vector(txnHashConcat)
 
-          let txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+          const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
 
           console.log('Txn Hash: ', txnHash)
 
@@ -222,8 +223,8 @@ Template.appMessageConfirm.helpers({
     return false
   },
   ledgerVerificationMessage() {
-    const message = Session.get('messageCreationConfirmation').message
-    const hexMessage = new Buffer(message).toString('hex')
+    const message = Session.get('messageCreationConfirmation').message // eslint-disable-line
+    const hexMessage = new Buffer(message).toString('hex') // eslint-disable-line
     return hexMessage
   },
 })

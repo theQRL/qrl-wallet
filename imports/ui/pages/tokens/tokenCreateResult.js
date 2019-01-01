@@ -1,11 +1,13 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import JSONFormatter from 'json-formatter-js'
 import './tokenCreateResult.html'
-/* global POLL_TXN_RATE */
-/* global POLL_MAX_CHECKS */
-/* global DEFAULT_NETWORKS */
-/* global selectedNetwork */
-/* global wrapMeteorCall */
-/* eslint no-console:0 */
+
 
 function setRawDetail() {
   const myJSON = Session.get('txhash').transaction
@@ -25,9 +27,9 @@ function checkResult(thisTxId, failureCount) {
       $('#loadingHeader').hide()
     } else if (Session.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
-      if(failureCount < 5) {
-        failureCount += 1
-        setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
+      if (failureCount < 5) {
+        // eslint-disable-next-line no-use-before-define
+        setTimeout(() => { pollTransaction(thisTxId, false, failureCount + 1) }, POLL_TXN_RATE)
       } else {
         // Transaction error - Give up
         const errorMessage = `Error - ${Session.get('txhash').error}`
@@ -37,17 +39,18 @@ function checkResult(thisTxId, failureCount) {
       }
     } else {
       // Poll again
+      // eslint-disable-next-line no-use-before-define
       setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
     }
   } catch (err) {
-    // Most likely is that the mempool is not replying the transaction. We attempt to find it ongoing
-    // For a while
+    // Most likely is that the mempool is not replying the transaction.
+    // We attempt to find it ongoing for a while
     console.log(`Caught Error: ${err}`)
 
     // Continue to check the txn status until POLL_MAX_CHECKS is reached in failureCount
-    if(failureCount < POLL_MAX_CHECKS) {
-      failureCount += 1
-      setTimeout(() => { pollTransaction(thisTxId, false, failureCount) }, POLL_TXN_RATE)
+    if (failureCount < POLL_MAX_CHECKS) {
+      // eslint-disable-next-line no-use-before-define
+      setTimeout(() => { pollTransaction(thisTxId, false, failureCount + 1) }, POLL_TXN_RATE)
     } else {
       // Transaction error - Give up
       Session.set('txstatus', 'Error')
@@ -74,7 +77,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
   if (thisTxId) {
     wrapMeteorCall('getTxnHash', request, (err, res) => {
       if (err) {
-        if(failureCount < 60) {
+        if (failureCount < 60) {
           Session.set('txhash', { })
           Session.set('txstatus', 'Pending')
         } else {
@@ -118,7 +121,7 @@ Template.appTokenCreationResult.helpers({
     return status
   },
   tokenDetails() {
-    let details = Session.get('txhash').transaction.tx.token
+    const details = Session.get('txhash').transaction.tx.token
     details.owner = rawToHexOrB32(Buffer.from(details.owner))
     details.symbol = bytesToString(details.symbol)
     details.name = bytesToString(details.name)
@@ -127,11 +130,11 @@ Template.appTokenCreationResult.helpers({
   tokenHolders() {
     const tokenHoldersRaw = Session.get('txhash').transaction.tx.token.initial_balances
     const tokenDecimals = Session.get('txhash').transaction.tx.token.decimals
-    let tokenHolders = []
-    for (var i = 0; i < tokenHoldersRaw.length; i++) {
+    const tokenHolders = []
+    for (let i = 0; i < tokenHoldersRaw.length; i += 1) {
       const thisHolder = {
         address: rawToHexOrB32(Buffer.from(tokenHoldersRaw[i].address)),
-        amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals)
+        amount: tokenHoldersRaw[i].amount / Math.pow(10, tokenDecimals), // eslint-disable-line
       }
       tokenHolders.push(thisHolder)
     }

@@ -1,10 +1,10 @@
 /* eslint no-console:0 */
-/* global LocalStore */
-/* global findNetworkData */
-/* global DEFAULT_NETWORKS */
-/* global selectedNetwork */
-/* global isElectrified */
-/* global WALLET_VERSION */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import './mobile.html'
 
 BlazeLayout.setRoot('body')
@@ -33,16 +33,18 @@ const checkNetworkHealth = (network, callback) => {
 // TODO: refactor this -- duplicate code from ../body/body.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
+  let userNetwork = selectedNetwork
+
   // If no network is selected, default to mainnet
-  if(selectedNetwork === '') {
+  if (selectedNetwork === '') {
     $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
-    selectedNetwork = DEFAULT_NETWORKS[0].id
+    userNetwork = DEFAULT_NETWORKS[0].id
   }
 
   // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
   // Update local node connection details
-  switch (selectedNetwork) {
+  switch (userNetwork) {
     case 'add': {
       $('#addNode').modal({
         onDeny: () => {
@@ -85,7 +87,7 @@ const updateNetwork = (selectedNetwork) => {
         },
       }).modal('show')
       break
-    };
+    }
     case 'custom': {
       const nodeData = {
         id: 'custom',
@@ -114,7 +116,7 @@ const updateNetwork = (selectedNetwork) => {
       break
     }
     default: {
-      const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
+      const nodeData = findNetworkData(DEFAULT_NETWORKS, userNetwork)
       Session.set('nodeId', nodeData.id)
       Session.set('nodeName', nodeData.name)
       Session.set('nodeExplorerUrl', nodeData.explorerUrl)
