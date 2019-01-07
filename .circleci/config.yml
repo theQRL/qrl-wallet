@@ -58,7 +58,7 @@ jobs:
             until curl --max-time 300 http://localhost:3000/; do sleep 1; done
             #npm install -g chimp
             #npm install -g selenium-standalone
-            #/usr/local/Cellar/node/8.6.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
+            #/usr/local/Cellar/node/8.7.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
 
       # Create package on master
       - deploy:
@@ -68,7 +68,7 @@ jobs:
               mkdir .electrify/.dist
               npm install -g electrify-qrl
               meteor npm install --unsafe-perm
-              /usr/local/Cellar/node/8.6.0/bin/electrify package -o .electrify/.dist/
+              /usr/local/Cellar/node/8.7.0/bin/electrify package -o .electrify/.dist/
               cd .electrify/.dist/ && zip -r QRL-Wallet-Macos.zip QRLWallet-darwin-x64
               rm -rf QRLWallet-darwin-x64
             fi
