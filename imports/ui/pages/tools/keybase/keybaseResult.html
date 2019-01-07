@@ -1,17 +1,18 @@
-<template name="appNotariseResult">
+<template name="appKeybaseResult">
 
 <h2 class="ui header pageHeader">
-  <i class="tiny edit icon"></i>
+  <i class="icon"><img src="/img/keybase-w.svg"></i>
   <div class="content">
-    Document Notarisation Result
+    Keybase Message Result
   </div>
 </h2>
+
 
 <div id="transactionComplete" class="ui red segment pageSegment">
 
   <h4 class="ui horizontal divider header">
-    <i class="edit icon"></i>
-    Notarisation Details
+    <i class="icon"><img src="/img/keybase.svg"></i>
+    Your Keybase operation
   </h4>
 
   <div class="ui items">
@@ -20,22 +21,15 @@
         {{> QRCode text=transactionHash size="128px"}}
       </div>
       <div class="content">
-
-        <span>Notary <a class="ui">{{transferFrom.address}}</a></span>
-        <br />
-        <span>File Name (Not saved on chain) <a class="ui">{{notariseCreationConfirmation.file_name}}</a></span>
-        <br />
-        <span>File Hash <a class="ui">{{notariseCreationConfirmation.fileHash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
-        <br />
-        <span>Additional Text <a class="ui">{{notariseCreationConfirmation.additional_text}}</a></span>
-
+        <div class="header">Keybase action</div>
+        <div class="description"><p><div class="ui label">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
+        <div class="header">Keybase username</div>
+        <div class="description"><p>{{keybaseOperation.keybaseId}}</p><p>&nbsp;</p></div>
+        <div class="header">Keybase signature</div>
+        <div class="description"><p>{{keybaseOperation.sigHash}}</p><p>&nbsp;</p></div>
         <div class="meta">
           <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
-        <br /><br />
-        If someone has shared the file '{{notariseCreationConfirmation.file_name}}' with you, you can send them the transaction hash link above to prove you have notarised this document.
-        <br /><br />
-        Alternatively, you can send them the file and the transaction hash link to prove you have notarised this document. When viewing the transaction hash on the QRL block explorer, the user can upload the document to verify the notarisation is valid for that particular file, or they can hash the file locally themselves.
       </div>
     </div>
   </div>
@@ -47,8 +41,8 @@
 
   <div class="ui stackable one column grid">
     <div class="column">
-      <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
-        Success! Your notarisation has been relayed into the QRL network through the following nodes, and is pending validation.
+      <p id="successMessage" style="overflow-wrap: break-word">
+        Success! Your Keybase message has been relayed into the QRL network through the following nodes, and is pending validation.
       </p>
     </div>
   </div>
@@ -71,7 +65,7 @@
       <div id="loadingHeader" class="header">
         Just a moment
       </div>
-      <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
+      <p id="finalTxnStatus" style="word-break: break-word;">Transaction Status: {{transactionStatus}}</p>
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-<template name="appNotariseStart">
+<template name="appKeybaseCreate">
 
 <div class="small ui modal" id="lowOtsKeyWarning">
   <div class="header">OTS Keys Running Low!</div>
@@ -82,57 +82,55 @@
   </div>
 </div>
 
-<h4 class="ui header pageHeader">
-  <i class="edit icon"></i>
+<h2 class="ui header pageHeader">
+  <i class="icon"><img src="/img/keybase-w.svg"></i>
   <div class="content">
-    Notarise Document
+    Keybase ID
   </div>
-</h4>
+</h2>
 
 <div class="ui left aligned segment pageSegment" id="messageCreateForm">
 
-  <form id="notariseForm" class="ui form">
+  <form id="generateMessageForm" class="ui form">
 
-    <h4 class="ui dividing header">Notary</h4>
+    <h4 class="ui dividing header">Add or remove Keybase identity</h4>
 
     <h4 id="transferFormFromAddress" class="breakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
     <h4 class="breakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
-    <br />
-    <div class="field">
-      This function will save a hash of the selected document permanently on the QRL network, and will be associated with your QRL address. You can share the resultant transaction hash with someone to prove you have notarised the document.
-    </div>
-
     <h4 class="ui horizontal divider header">
-      <i class="edit icon"></i>
-      Document Notarisation
-    </h4>
-    <input type="hidden" id="message" autocomplete="off">
-
-    <div class="field">
-      <label>Select Document</label>
-      <input type="file" id="notaryDocument" accept="text/json" name="notaryDocument[]" />
-    </div>
-
-    <div class="field">
-      <label>Notarisation Hash Function</label>
-      <select id="hashFunction" class="ui compact selection dropdown">
-        <option value="SHA256">SHA256</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Additional Text <i id="additional_text_max_length">(Max Length: 45)</i></label>
-      <input type="text" id="additional_text" autocomplete="off">
-    </div>
-
-    <h4 class="ui horizontal divider header">
-      <i class="send icon"></i>
-      Transaction
+      <img src="/img/keybase.svg">
+      Keybase ID
     </h4>
 
+      <div class="grouped fields">
+    <label>Keybase action</label>
     <div class="field">
-      <label>Notarisation Fee (In Quanta)</label>
+      <div class="ui radio checkbox">
+        <input type="radio" name="kb_action" id="kb_add">
+        <label>Add</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="kb_action" id="kb_remove">
+        <label>Remove</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Keybase Username</label>
+    <input type="text" id="kb_username" autocomplete="off">
+  </div>
+
+    <div class="field">
+      <label>Keybase Sighash</label>
+      <input type="text" id="message" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Keybase ID Creation Fee (In Quanta)</label>
       <input type="text" id="fee" value="0.25" autocomplete="off">
     </div>
 
@@ -158,7 +156,7 @@
     </div>
 
     <div class="field">
-      <button id="createMessage" class="ui huge primary button red" style="float: left;">Notarise Document</button>
+      <button id="createMessage" class="ui huge primary button red" style="float: left;">Create Keybase Transaction</button>
       <br />
     </div>
 
@@ -170,7 +168,7 @@
           <div class="header">
             Just one moment
           </div>
-          <p>Notarising document...</p>
+          <p>Generating your new message transaction...</p>
         </div>
       </div>
     </div>   
@@ -178,9 +176,9 @@
   </form>
 </div>
 
-<div id="documentNotarisationFailed" class="ui red segment pageSegment" style="display: none;">
-  <h4>Document Notarisation Failed</h4>
-  <p style="word-wrap: break-word; word-break: break-all;">Error: {{documentNotarisationError}}</p>
+<div id="messageCreationFailed" class="ui red segment pageSegment" style="display: none;">
+  <h4>Message Creation Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">Error: {{messageCreationError}}</p>
 </div>
 
 </template>

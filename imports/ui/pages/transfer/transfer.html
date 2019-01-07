@@ -58,6 +58,24 @@
   </div>
 </div>
 
+<div class="small ui modal" id="zeroBytesAddressWarning">
+  <div class="header">You are using a test address!</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Warning: Never send mainnet Quanta to this address!
+        </div>
+        <p>The address you have opened is used for testing Ledger Nano devices, and is not securely seeded. Do not use this address to store or transact with any Quanta.</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button">I understand, I won't use this address!</div>
+  </div>
+</div>
+
 <div class="small ui modal" id="invalidAddress0x">
   <div class="header">Invalid Address</div>
   <div class="content">
@@ -102,6 +120,66 @@
   </div>
 </div>
 
+<div class="small ui modal" id="ledgerOtsKeyReuseDetected">
+  <div class="header">OTS Key Reuse</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
+          <br /><br />
+          You need to update your Ledgers XMSS Index in Tools -> Set XMSS Index.
+        </div>
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button">Okay</div>
+  </div>
+</div>
+
+<div class="small ui modal" id="maxThreeRecipientsLedger">
+  <div class="header">Max of 3 Recipients</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Ledger Nanos can only sign up to three recipients per transaction.
+          <br /><br />
+          Please remove some recipients so that you only have up to three per transaction.
+        </div>
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button">Okay</div>
+  </div>
+</div>
+
+<div class="small ui modal" id="maxRecipientsReached">
+  <div class="header">Max of 3 Recipients</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div class="content">
+        <div class="header">
+          Ledger Nanos can only sign up to three recipients per transaction.
+          <br /><br />
+          You cannot add any more recipients to this transaction.
+        </div>
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve green button">Okay</div>
+  </div>
+</div>
+
 <div class="small ui modal" id="invalidNodeResponse">
   <div class="header">WARNING - Bad Response</div>
   <div class="content">
@@ -124,24 +202,94 @@
   </div>
 </div>
 
-<div class="small ui modal" id="recoverySeedModal">
-  <div class="header">Wallet Recovery Seed</div>
+<div class="small ui modal" id="ledgerNotSupported">
+  <div class="header">Ledger Not Supported</div>
   <div class="content">
     <div class="ui warning icon message">
       <i class="warning icon"></i>
-      <div>
+      <div class="content">
         <div class="header">
-          Warning: Keep this information private at all times!
+          Ledger Nano not Supported for Tokens
         </div>
-        <p class="wordBreak"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
-        <p class="wordBreak"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
+        <p>Sorry, Ledger Nano support for Token Creation and Token Transfers is still being developed and tested. We will enable this functionality at a later stage.</p>
       </div>
     </div>
   </div>
   <div class="actions">
-    <div class="ui approve red button">Close</div>
+    <div class="ui approve green button">Okay</div>
   </div>
 </div>
+
+<div class="small ui modal" id="ledgerConfirmationModal">
+  <div class="header">Send {{transactionConfirmationAmount}} Quanta?</div>
+  <div class="content">
+    <div class="ui stackable grid">
+      <div class="four wide column">
+        <img class="svg" src="/img/ledger-nano.svg" />
+      </div>
+      <div class="twelve wide column">
+        <div class="description pl-10">
+          <p>Your transaction requires confirmation on your Ledger Nano S device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
+          <div class="ui container">
+            <table class="ui stackable table">
+              <tr>
+                <td>
+                  <div class="ui label fw">FROM</div>
+                </td>
+                <td class="no-wrap">{{transferFrom.address}}</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">TO</div>
+                </td>
+                <td class="no-wrap">
+                  {{#each transactionConfirmation.outputs}}
+                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                  {{/each}}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">TOTAL</div>
+                </td>
+                <td class="no-wrap">{{transactionConfirmationAmount}} Quanta</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">FEE</div>
+                </td>
+                <td class="no-wrap">{{transactionConfirmationFee}} Quanta</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div id="awaitingLedgerConfirmation" class="ui inverted segment">
+      <h3>Awaiting confirmation on Ledger device
+        <div class="ui active inline loader"></div>
+      </h3>
+    </div>
+
+    <div id="signOnLedgerRejected" class="ui inverted segment" style="display: none;">
+      <h3>The Transaction has been rejected on Ledger device</h3>
+      <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
+    </div>
+
+    <div id="signOnLedgerTimeout" class="ui inverted segment" style="display: none;">
+      <h3>Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
+    </div>
+
+    <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <i class="ui check icon"></i></p>
+
+    <div class="ui positive confirm button" id="relayLedgerTxnButton" style="display:none;">Send transaction</div>
+    <div class="ui negative button">Cancel</div>
+  </div>
+</div>
+
+{{> recoverySeedModal }}
 
 <h3 class="ui header pageHeader">
   <div id="walletAddress" class="content wordBreak">
@@ -200,15 +348,15 @@
               </button>
             </div>
 
-
             <div class="field">
               <label>Fee (In Quanta)</label>
               <input type="text" id="fee" value="0.001" autocomplete="off">
             </div>
             <div class="field">
               <label>OTS Key Index</label>
-              <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off">
+              <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}}>
             </div>
+
 
             <div class="field">
               <div class="ui warning icon message" style="display: inline-flex;">
@@ -217,7 +365,11 @@
                   <div class="header">
                     OTS Key Index Warning
                   </div>
+                  {{#if isLedgerWallet}}
+                  <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is based on data provided by your Ledger Device. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. As you are using a Ledger Device, you can rest assured your Device will keep track of all used signatures for you. As a result, you cannot change the OTS Key that will be used to sign this transaction as the Ledger Device will automatically use the next one in line.</p>
+                  {{else}}
                   <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected to. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+                  {{/if}}
                 </div>
               </div>
             </div>
@@ -286,10 +438,16 @@
 
           <div class="ui stackable one column grid">
             <div class="column center aligned">
-              <button id="confirmTransaction" class="ui huge primary button red"  style="width: 100%">Click to Send</button>
+              <button id="confirmTransaction" class="ui huge primary button red"  style="width: 100%">
+                {{#if isSeedWallet}}
+                  Click to Send
+                {{else}}
+                  Sign with Ledger
+                {{/if}}
+              </button>
             </div>
           </div>
-          
+
           <div id="relaying" class="ui icon message" style="display: none;">
             <br /><br />
             <i class="notched circle loading icon"></i>
@@ -300,8 +458,6 @@
               <p id="transferRelayingMsg">Your transaction is being relayed into the QRL network...</p>
             </div>
           </div>
-
-
         </div>
 
 
@@ -581,7 +737,7 @@
               <br /><br />
             </div>
           </div>
-
+          {{#if isSeedWallet}}
           <div class="ui stackable grid">
             <div class="sixteen wide column left aligned">
               <h4>View Recovery Seed</h4>
@@ -590,6 +746,7 @@
               </div>
             </div>
           </div>
+          {{/if}}
       </div>
 
       <!-- Token Balances -->
@@ -861,4 +1018,26 @@
 </div>
 
 
+</template>
+<template name="recoverySeedModal">
+  <div class="small ui modal" id="recoverySeedModal">
+  <div class="header">Wallet Recovery Seed</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div>
+        <div class="header">
+          Warning: Keep this information private at all times!
+        </div>
+        <p class="wordBreak"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
+        <p class="wordBreak"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
+        <p class="wordBreak"><strong>Private key QR:</strong><div id="recQR" width="150" height="150"></div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve red button">Close</div>
+  </div>
+</div>
 </template>

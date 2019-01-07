@@ -1,9 +1,10 @@
 /* eslint no-console:0 */
-/* global findNetworkData */
-/* global DEFAULT_NETWORKS */
-/* global selectedNetwork */
-/* global isElectrified */
-/* global WALLET_VERSION */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import './mobile.html'
 
 BlazeLayout.setRoot('body')
@@ -28,17 +29,27 @@ const checkNetworkHealth = (network, callback) => {
   })
 }
 
+
+// TODO: refactor this -- duplicate code from ../body/body.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
+  let userNetwork = selectedNetwork
+
+  // If no network is selected, default to mainnet
+  if (selectedNetwork === '') {
+    $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
+    userNetwork = DEFAULT_NETWORKS[0].id
+  }
+
   // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
   // Update local node connection details
-  switch (selectedNetwork) {
+  switch (userNetwork) {
     case 'add': {
       $('#addNode').modal({
         onDeny: () => {
           Session.set('modalEventTriggered', true)
-          $('#networkDropdown').dropdown('set selected', 'testnet')
+          $('#networkDropdown').dropdown('set selected', 'mainnet')
         },
         onApprove: () => {
           Session.set('nodeId', 'custom')
@@ -46,11 +57,11 @@ const updateNetwork = (selectedNetwork) => {
           Session.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
           Session.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeName', document.getElementById('customNodeName').value)
-          Session.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-          Session.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
+          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
+          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
+          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
 
-          Session.set('customNodeCreated', true)
+          LocalStore.set('customNodeCreated', true)
           Session.set('modalEventTriggered', true)
 
           $('#networkDropdown').dropdown('refresh')
@@ -66,9 +77,9 @@ const updateNetwork = (selectedNetwork) => {
           // so that we only trigger when the modal is hidden without an approval or denial
           // eg: pressing esc
 
-          // If the modal is hidden without approval, revert to testnet-1 node.
+          // If the modal is hidden without approval, revert to mainnet
           if (Session.get('modalEventTriggered') === false) {
-            $('#networkDropdown').dropdown('set selected', 'testnet-1')
+            $('#networkDropdown').dropdown('set selected', 'mainnet')
           }
 
           // Reset modalEventTriggered
@@ -76,21 +87,21 @@ const updateNetwork = (selectedNetwork) => {
         },
       }).modal('show')
       break
-    };
+    }
     case 'custom': {
       const nodeData = {
         id: 'custom',
-        name: Session.get('customNodeName'),
+        name: LocalStore.get('customNodeName'),
         disabled: '',
-        explorerUrl: Session.get('customNodeExplorerUrl'),
+        explorerUrl: LocalStore.get('customNodeExplorerUrl'),
         type: 'both',
-        grpc: Session.get('customNodeGrpc'),
+        grpc: LocalStore.get('customNodeGrpc'),
       }
 
       Session.set('nodeId', 'custom')
-      Session.set('nodeName', Session.get('customNodeName'))
-      Session.set('nodeGrpc', Session.get('customNodeGrpc'))
-      Session.set('nodeExplorerUrl', Session.get('customNodeExplorerUrl'))
+      Session.set('nodeName', LocalStore.get('customNodeName'))
+      Session.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
+      Session.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
       connectToNode(nodeData.grpc, (err) => {
@@ -103,9 +114,9 @@ const updateNetwork = (selectedNetwork) => {
         }
       })
       break
-    };
+    }
     default: {
-      const nodeData = findNetworkData(DEFAULT_NETWORKS, selectedNetwork)
+      const nodeData = findNetworkData(DEFAULT_NETWORKS, userNetwork)
       Session.set('nodeId', nodeData.id)
       Session.set('nodeName', nodeData.name)
       Session.set('nodeExplorerUrl', nodeData.explorerUrl)
@@ -201,7 +212,7 @@ Template.mobile.onRendered(() => {
 })
 Template.mobile.events({
   click: () => {
-    console.log($(event.currentTarget).attr('href'))
+    // console.log($(event.currentTarget).attr('href'))
     adjustClasses()
   },
   'change #network': () => {
@@ -272,9 +283,9 @@ Template.mobile.helpers({
     return Session.get('walletStatus')
   },
   customNodeCreated() {
-    return Session.get('customNodeCreated')
+    return LocalStore.get('customNodeCreated')
   },
   customNodeName() {
-    return Session.get('customNodeName')
+    return LocalStore.get('customNodeName')
   },
 })

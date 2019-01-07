@@ -1,5 +1,66 @@
 <template name="appNotariseConfirm">
 
+<div class="small ui modal" id="ledgerConfirmationModal">
+  <div class="header">Send Document Notarisation Transaction?</div>
+  <div class="content">
+    <div class="ui stackable grid">
+      <div class="four wide column">
+        <img class="svg" src="/img/ledger-nano.svg" />
+      </div>
+      <div class="twelve wide column">
+        <div class="description pl-10">
+          <p>Your transaction requires confirmation on your Ledger Nano S device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
+          <div class="ui container">
+            <table class="ui stackable table">
+              <tr>
+                <td>
+                  <div class="ui label fw">FROM</div>
+                </td>
+                <td class="no-wrap">{{transferFrom.address}}</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">MESSAGE</div>
+                </td>
+                <td class="no-wrap">
+                  {{ledgerVerificationMessage}}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="ui label fw">FEE</div>
+                </td>
+                <td class="no-wrap">{{transactionConfirmationFee}} Quanta</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div id="awaitingLedgerConfirmation" class="ui inverted segment">
+      <h3>Awaiting confirmation on Ledger device
+        <div class="ui active inline loader"></div>
+      </h3>
+    </div>
+
+    <div id="signOnLedgerRejected" class="ui inverted segment" style="display: none;">
+      <h3>The Transaction has been rejected on Ledger device</h3>
+      <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
+    </div>
+
+    <div id="signOnLedgerTimeout" class="ui inverted segment" style="display: none;">
+      <h3>Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
+    </div>
+
+    <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <i class="ui check icon"></i></p>
+
+    <div class="ui positive confirm button" id="relayLedgerTxnButton" style="display:none;">Send transaction</div>
+    <div class="ui negative button">Cancel</div>
+  </div>
+</div>
+
 <h2 class="ui header pageHeader">
   <i class="tiny edit icon"></i>
   <div class="content">
@@ -21,12 +82,27 @@
         <br />
         <span>File Name (Not saved on chain) <a class="ui">{{notariseCreationConfirmation.file_name}}</a></span>
         <br />
-        <span>File Hash <a class="ui">{{notariseCreationConfirmation.hash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
+        <span>File Hash <a class="ui">{{notariseCreationConfirmation.fileHash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
         <br />
         <span>Additional Text <a class="ui">{{notariseCreationConfirmation.additional_text}}</a></span>
       </div>
     </div>
   </div>
+
+  {{#if isLedgerWallet}}
+  <br />
+  <h4 class="ui horizontal divider header">
+    <i class="envelope icon"></i>
+    Message as displayed on your Ledger Nano for verification
+  </h4>
+  <div class="ui items">
+    <div class="item">
+      <div class="content">
+        <p style="word-wrap: break-word; word-break: break-all;">{{ledgerVerificationMessage}}</p>
+      </div>
+    </div>
+  </div>
+  {{/if}}
 
   <h4 class="ui horizontal divider header">
     <i class="file icon"></i>
@@ -45,7 +121,13 @@
 
   <div class="ui stackable two column grid">
     <div class="column center aligned">
-      <button id="confirmMessage" class="ui huge primary button red">Confirm Document Notarisation</button>
+      <button id="confirmMessage" class="ui huge primary button red">
+        {{#if isSeedWallet}}
+          Confirm Document Notarisation
+        {{else}}
+          Sign with Ledger
+        {{/if}}
+      </button>
     </div>
     <div class="column center aligned">
       <button id="cancelMessage" class="ui huge red button plain">Cancel Document Notarisation</button>

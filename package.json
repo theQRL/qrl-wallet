@@ -1,10 +1,10 @@
 {
   "name": "qrl-wallet",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "QRL Wallet",
   "main": "index.js",
   "dependencies": {
-    "@babel/runtime": "7.0.0-beta.55",
+    "@babel/runtime": "^7.2.0",
     "@theqrl/explorer-helpers": "0.0.7",
     "@theqrl/validate-qrl-address": "^1.1.0",
     "aes256": "^1.0.2",
@@ -17,6 +17,7 @@
     "fibers": "^3.0.0",
     "grpc": "^1.14.0",
     "json-formatter-js": "^2.2.0",
+    "ledger-qrl-js": "0.3.0",
     "mathjs": "4.0.1",
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
@@ -47,9 +48,9 @@
     "dev": "meteor",
     "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
     "postinstall": "run-script-os",
-    "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\",
-    "install:darwin": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/",
-    "install:linux": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/",
+    "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\ && copy node_modules\\ledger-qrl-js\\browser\\ledger.js public\\ && copy node_modules\\ledger-qrl-js\\wallet\\qrl-ledger-library.js public\\",
+    "install:darwin": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
+    "install:linux": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"
   },
