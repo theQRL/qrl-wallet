@@ -1,9 +1,16 @@
+/* eslint no-console:0 */
+/* eslint no-global-assign: 0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
-bech32 = require('bech32')
-/* global QRLLIB */
-/* global XMSS_OBJECT */
+
+bech32 = require('bech32') // eslint-disable-line
 
 // Client side function to detmine if running within Electron
 isElectrified = () => {
@@ -23,35 +30,31 @@ selectedNetwork = () => {
 // BECH32 Address is built from the extended PK
 // bech32(descr + sha2(ePK))
 pkRawToB32Address = (pkRaw) => {
-  rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
-  ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw))  // Uint8Vector -> Uint8Array conversion
-  descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
+  const rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
+  const ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw)) // Uint8Vector -> Uint8Array conversion
+  const descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
   return helpers.b32Encode(descriptorAndHash)
 }
 
 // wrapper to decide if addresses should be converted to BECH32 for display
 hexOrB32 = (hexAddress) => {
-  if(Session.get('addressFormat') === 'bech32') {
+  if (LocalStore.get('addressFormat') === 'bech32') {
     return helpers.hexAddressToB32Address(hexAddress)
   }
-  else {
-    return hexAddress
-  }
+  return hexAddress
 }
 
 // wrapper to decide if addresses should be converted to BECH32 for display
 rawToHexOrB32 = (rawAddress) => {
-  if(Session.get('addressFormat') === 'bech32') {
+  if (LocalStore.get('addressFormat') === 'bech32') {
     return helpers.rawAddressToB32Address(rawAddress)
   }
-  else {
-    return helpers.rawAddressToHexAddress(rawAddress)
-  }
+  return helpers.rawAddressToHexAddress(rawAddress)
 }
 
 // A Template helper cannot access the helpers for some reason, so this has to stay in qrl-wallet
 anyAddressToRawAddress = (address) => {
-  if ( address[0] === 'q') {
+  if (address[0] === 'q') {
     return helpers.b32AddressToRawAddress(address)
   }
   return helpers.hexAddressToRawAddress(address)
@@ -64,7 +67,7 @@ getMnemonicOfFirstAddress = (walletObject, passphrase) => {
     if (walletObject.encrypted === true) {
       mnemonic = aes256.decrypt(passphrase, walletObject.addresses[0].mnemonic)
     } else {
-      mnemonic = walletObject.addresses[0].mnemonic
+      mnemonic = walletObject.addresses[0].mnemonic // eslint-disable-line
     }
     return mnemonic
   }
@@ -73,7 +76,7 @@ getMnemonicOfFirstAddress = (walletObject, passphrase) => {
     if (walletObject[0].encrypted === true) {
       mnemonic = aes256.decrypt(passphrase, walletObject[0].mnemonic)
     } else {
-      mnemonic = walletObject[0].mnemonic
+      mnemonic = walletObject[0].mnemonic // eslint-disable-line
     }
     return mnemonic
   }
@@ -83,29 +86,57 @@ getMnemonicOfFirstAddress = (walletObject, passphrase) => {
   return handleVersion0()
 }
 
-// Fetchs XMSS details from the global XMSS_OBJECT variable
+// Fetchs XMSS details from the global XMSS_OBJECT variable or saved ledger values
 getXMSSDetails = () => {
-  const thisAddress = XMSS_OBJECT.getAddress()
-  const thisPkRaw = XMSS_OBJECT.getPKRaw()
-  const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+  const walletStatus = Session.get('walletStatus')
 
-  const thisPk = XMSS_OBJECT.getPK()
-  const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
-  const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
-  const thisHeight = XMSS_OBJECT.getHeight()
-  const thisHexSeed = XMSS_OBJECT.getHexSeed()
-  const thisMnemonic = XMSS_OBJECT.getMnemonic()
+  let xmssDetail
 
-  const xmssDetail = {
-    address: thisAddress,
-    addressB32: thisAddressB32,
-    pk: thisPk,
-    hexseed: thisHexSeed,
-    mnemonic: thisMnemonic,
-    height: thisHeight,
-    hashFunction: thisHashFunction,
-    signatureType: thisSignatureType,
-    index: 0
+  if (walletStatus.walletType === 'ledger') {
+    const thisAddress = walletStatus.address
+    const thisPk = walletStatus.pubkey
+    const thisAddressB32 = pkRawToB32Address(QRLLIB.hstr2bin(thisPk))
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = QRLLIB.getHeight(thisAddress)
+    const thisHexSeed = null
+    const thisMnemonic = null
+
+    xmssDetail = {
+      address: thisAddress,
+      addressB32: thisAddressB32,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: walletStatus.xmss_index,
+      walletType: 'ledger',
+    }
+  } else {
+    const thisAddress = XMSS_OBJECT.getAddress()
+    const thisPk = XMSS_OBJECT.getPK()
+    const thisPkRaw = XMSS_OBJECT.getPKRaw()
+    const thisAddressB32 = pkRawToB32Address(thisPkRaw)
+    const thisHashFunction = QRLLIB.getHashFunction(thisAddress)
+    const thisSignatureType = QRLLIB.getSignatureType(thisAddress)
+    const thisHeight = XMSS_OBJECT.getHeight()
+    const thisHexSeed = XMSS_OBJECT.getHexSeed()
+    const thisMnemonic = XMSS_OBJECT.getMnemonic()
+
+    xmssDetail = {
+      address: thisAddress,
+      addressB32: thisAddressB32,
+      pk: thisPk,
+      hexseed: thisHexSeed,
+      mnemonic: thisMnemonic,
+      height: thisHeight,
+      hashFunction: thisHashFunction,
+      signatureType: thisSignatureType,
+      index: 0,
+      walletType: 'seed',
+    }
   }
 
   return xmssDetail
@@ -122,17 +153,15 @@ isWalletFileDeprecated = (wallet) => {
   // We can determine if they are unencrypted by checking their lengths.
   // If addressB32 field is 64 characters in length, and pk field is 134 characters in length.
   if (
-      (typeof wallet[0].encrypted !== 'undefined') &&
-      (typeof wallet[0].addressB32 !== 'undefined') &&
-      (typeof wallet[0].pk !== 'undefined')
-    ) {
-      if (
-        (wallet[0].encrypted === true) &&
-        (wallet[0].addressB32.length === 64) &&
-        (wallet[0].pk.length === 134)
-      ) {
-        return true
-      }
+    (typeof wallet[0].encrypted !== 'undefined')
+    && (typeof wallet[0].addressB32 !== 'undefined')
+    && (typeof wallet[0].pk !== 'undefined')) {
+    if (
+      (wallet[0].encrypted === true)
+      && (wallet[0].addressB32.length === 64)
+      && (wallet[0].pk.length === 134)) {
+      return true
+    }
   }
   return false
 }
@@ -142,6 +171,9 @@ resetWalletStatus = () => {
   status.colour = 'red'
   status.string = 'No wallet has been opened.'
   status.address = ''
+  status.pubkey = ''
+  status.xmss_index = 0
+  status.walletType = ''
   status.unlocked = false
   status.menuHidden = 'display: none'
   status.menuHiddenInverse = ''
@@ -150,7 +182,7 @@ resetWalletStatus = () => {
 
 passwordPolicyValid = (password) => {
   // If password length >=8, and password contains a digit and password contains a letter
-  if((password.length >= 8) && (/\d/.test(password)) && (/[a-zA-Z]+/.test(password))) {
+  if ((password.length >= 8) && (/\d/.test(password)) && (/[a-zA-Z]+/.test(password))) {
     return true
   }
   return false
@@ -158,10 +190,10 @@ passwordPolicyValid = (password) => {
 
 // Wait for QRLLIB to load before running specified callback function
 waitForQRLLIB = (callBack) => {
-  setTimeout(() => {
+  setTimeout(() => { // eslint-disable-line
     // Test the QRLLIB object has the str2bin function.
     // This is sufficient to tell us QRLLIB has loaded.
-    if(typeof QRLLIB.str2bin === "function") {
+    if (typeof QRLLIB.str2bin === 'function') {
       callBack()
     } else {
       return waitForQRLLIB(callBack)
@@ -187,59 +219,62 @@ binaryToBytes = (convertMe) => {
 }
 
 // Convert bytes to string
-bytesToString = (buf) => {
+bytesToString = (buf) => { // eslint-disable-line
   return String.fromCharCode.apply(null, new Uint8Array(buf))
 }
 
 // Convert bytes to hex
-bytesToHex = (byteArray) => {
-  return Array.from(byteArray, function(byte) {
-    return ('00' + (byte & 0xFF).toString(16)).slice(-2)
+bytesToHex = (byteArray) => { // eslint-disable-line
+  return Array.from(byteArray, function (byte) {
+    return ('00' + (byte & 0xFF).toString(16)).slice(-2) // eslint-disable-line no-bitwise
   }).join('')
 }
 
 // Convert hex to bytes
-hexToBytes = (hex) => {
+hexToBytes = (hex) => { // eslint-disable-line
   return Buffer.from(hex, 'hex')
 }
 
 // Returns an address ready to send to gRPC API
-addressForAPI = (address) => {
+addressForAPI = (address) => { // eslint-disable-line
   return Buffer.from(address.substring(1), 'hex')
 }
 
 // Create human readable QRL Address from API Binary response
 binaryToQrlAddress = (binary) => {
-  if(binary === null) {
+  if (binary === null) {
     return null
-  } else {
-    return 'Q' + Buffer.from(binary).toString('hex')
   }
+  return 'Q' + Buffer.from(binary).toString('hex')
 }
 
 // Take input and convert to unsigned uint64 bigendian bytes
-toBigendianUint64BytesUnsigned = (input) => {
-  if(!Number.isInteger(input)) {
-    input = parseInt(input)
+toBigendianUint64BytesUnsigned = (input, bufferResponse = false) => {
+  if (!Number.isInteger(input)) {
+    input = parseInt(input, 10) // eslint-disable-line
   }
 
   const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
 
-  for ( let index = 0; index < byteArray.length; index ++ ) {
-    const byte = input & 0xff
+  for (let index = 0; index < byteArray.length; index += 1) {
+    const byte = input & 0xff // eslint-disable-line no-bitwise
     byteArray[index] = byte
-    input = (input - byte) / 256
+    input = (input - byte) / 256 // eslint-disable-line
   }
 
   byteArray.reverse()
 
+  if (bufferResponse === true) {
+    const result = Buffer.from(byteArray)
+    return result
+  }
   const result = new Uint8Array(byteArray)
   return result
 }
 
 toUint8Vector = (arr) => {
-  let vec = new QRLLIB.Uint8Vector()
-  for (let i = 0; i < arr.length; i++) {
+  const vec = new QRLLIB.Uint8Vector()
+  for (let i = 0; i < arr.length; i += 1) {
     vec.push_back(arr[i])
   }
   return vec
@@ -247,50 +282,51 @@ toUint8Vector = (arr) => {
 
 // Concatenates multiple typed arrays into one.
 concatenateTypedArrays = (resultConstructor, ...arrays) => {
-    let totalLength = 0
-    for (let arr of arrays) {
-      totalLength += arr.length
-    }
-    let result = new resultConstructor(totalLength)
-    let offset = 0
-    for (let arr of arrays) {
-      result.set(arr, offset)
-      offset += arr.length
-    }
-    return result
+  let totalLength = 0
+  for (let arr of arrays) { // eslint-disable-line
+    totalLength += arr.length
+  }
+  const result = new resultConstructor(totalLength) // eslint-disable-line
+  let offset = 0
+  for (let arr of arrays) { // eslint-disable-line
+    result.set(arr, offset)
+    offset += arr.length
+  }
+  return result
 }
 
 // Count decimals in value
 countDecimals = (value) => {
-  if(Math.floor(value) === Number(value)) return 0
-  return value.toString().split(".")[1].length || 0
+  if (Math.floor(value) === Number(value)) return 0
+  return value.toString().split('.')[1].length || 0
 }
 
 // Check if users web browser supports Web Assemblies
 supportedBrowser = () => {
   try {
-    if (typeof WebAssembly === "object"
-      && typeof WebAssembly.instantiate === "function") {
-      const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00))
-      if (module instanceof WebAssembly.Module)
-          return new WebAssembly.Instance(module) instanceof WebAssembly.Instance
+    if (typeof WebAssembly === 'object'
+      && typeof WebAssembly.instantiate === 'function') {
+      const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)) // eslint-disable-line
+      if (module instanceof WebAssembly.Module) {
+        return new WebAssembly.Instance(module) instanceof WebAssembly.Instance
+      }
     }
   } catch (e) {
+    return false
   }
   return false
 }
 
-
 // Wrapper for Meteor.call
 wrapMeteorCall = (method, request, callback) => {
   // Modify network to gRPC endpoint for custom/localhost settings
-  if (request.network == "localhost") {
+  if (request.network === 'localhost') {
     // Override network to localhost
-    request.network = 'localhost:9009'
+    request.network = 'localhost:19009'
   }
-  if (request.network == "custom") {
+  if (request.network === 'custom') {
     // Override network to localhost
-    request.network = Session.get('nodeGrpc')
+    request.network = LocalStore.get('customNodeGrpc')
   }
 
   Meteor.call(method, request, (err, res) => {
@@ -307,7 +343,7 @@ getBalance = (getAddress, callBack) => {
 
   wrapMeteorCall('getAddress', request, (err, res) => {
     if (err) {
-      console.log('err: ',err)
+      console.log('err: ', err)
       Session.set('transferFromBalance', 0)
       Session.set('transferFromTokenState', [])
       Session.set('address', 'Error')
@@ -324,29 +360,49 @@ getBalance = (getAddress, callBack) => {
         Session.set('transferFromBalance', 0)
       }
 
-      // Collect next OTS key
-      Session.set('otsKeyEstimate', res.ots.nextKey)
+      if (getXMSSDetails().walletType === 'seed') {
+        // Collect next OTS key
+        Session.set('otsKeyEstimate', res.ots.nextKey)
 
-      // Get remaining OTS Keys
-      const validationResult = qrlAddressValdidator.hexString(getAddress)
-      const { keysConsumed } = res.ots
-      const totalSignatures = validationResult.sig.number
-      const keysRemaining = totalSignatures - keysConsumed
+        // Get remaining OTS Keys
+        const validationResult = qrlAddressValdidator.hexString(getAddress)
+        const { keysConsumed } = res.ots
+        const totalSignatures = validationResult.sig.number
+        const keysRemaining = totalSignatures - keysConsumed
 
-      // Set keys remaining
-      Session.set('otsKeysRemaining', keysRemaining)
+        // Set keys remaining
+        Session.set('otsKeysRemaining', keysRemaining)
 
-      // Store OTS Bitfield in LocalStorage
-      Session.set('otsBitfield', res.ots.keys)
+        // Store OTS Bitfield in session
+        Session.set('otsBitfield', res.ots.keys)
 
-      // Callback if set
-      callBack()
+        // Callback if set
+        callBack()
+      } else if (getXMSSDetails().walletType === 'ledger') {
+        // Collect next OTS key from Ledger Device
+        // Whilst technically we may have unused ones - we
+        // prefer to rely on state tracked in ledger device
+        QrlLedger.get_state().then(data => {
+          Session.set('otsKeyEstimate', data.xmss_index)
+          // Get remaining OTS Keys
+          const validationResult = qrlAddressValdidator.hexString(getAddress)
+          const totalSignatures = validationResult.sig.number
+          const keysRemaining = totalSignatures - data.xmss_index
+          // Set keys remaining
+          Session.set('otsKeysRemaining', keysRemaining)
+
+          // Store OTS Bitfield in session
+          Session.set('otsBitfield', res.ots.keys)
+
+          callBack()
+        })
+      }
     }
   })
 }
 
 otsIndexUsed = (otsBitfield, index) => {
-  if(otsBitfield[index] === 1) {
+  if (otsBitfield[index] === 1) {
     return true
   }
   return false
@@ -360,7 +416,7 @@ loadAddressTransactions = (txArray) => {
 
   Session.set('addressTransactions', [])
   $('#loadingTransactions').show()
-  
+
   wrapMeteorCall('addressTransactions', request, (err, res) => {
     if (err) {
       Session.set('addressTransactions', { error: err })
@@ -380,44 +436,44 @@ getTokenBalances = (getAddress, callback) => {
 
   wrapMeteorCall('getAddress', request, (err, res) => {
     if (err) {
-      console.log('err: ',err)
+      console.log('err: ', err)
       Session.set('transferFromBalance', 0)
       Session.set('transferFromTokenState', [])
       Session.set('address', 'Error')
       Session.set('otsKeyEstimate', 0)
       Session.set('otsKeysRemaining', 0)
     } else {
-      if (res.state.address !== '') {
-        let tokensHeld = []
-        
+      if (res.state.address !== '') { // eslint-disable-line
+        const tokensHeld = []
+
         // Now for each res.state.token we find, go discover token name and symbol
-        for (let i in res.state.tokens) {
+        for (let i in res.state.tokens) { // eslint-disable-line
           const tokenHash = i
           const tokenBalance = res.state.tokens[i]
 
-          let thisToken = {}
+          const thisToken = {}
 
-          const request = {
+          const txnRequest = {
             query: tokenHash,
             network: selectedNetwork(),
           }
 
-          wrapMeteorCall('getTxnHash', request, (err, res) => {
+          wrapMeteorCall('getTxnHash', txnRequest, (err, res) => { // eslint-disable-line
             if (err) {
-              console.log('err:',err)
+              console.log('err:', err)
               Session.set('tokensHeld', [])
             } else {
               // Check if this is a token hash.
-              if (res.transaction.tx.transactionType !== "token") {
-                console.log('err: ',err)
+              if (res.transaction.tx.transactionType !== 'token') { // eslint-disable-line
+                console.log('err: ', err)
                 Session.set('tokensHeld', [])
               } else {
-                let tokenDetails = res.transaction.tx.token
+                const tokenDetails = res.transaction.tx.token
 
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
                 thisToken.symbol = bytesToString(tokenDetails.symbol)
-                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals)
+                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals) // eslint-disable-line
                 thisToken.decimals = tokenDetails.decimals
 
                 tokensHeld.push(thisToken)
@@ -443,16 +499,16 @@ updateBalanceField = () => {
   const selectedType = document.getElementById('amountType').value
 
   // Quanta Balances
-  if(selectedType == 'quanta') {
+  if (selectedType === 'quanta') {
     Session.set('balanceAmount', Session.get('transferFromBalance'))
     Session.set('balanceSymbol', 'Quanta')
   } else {
     // First extract the token Hash
-    tokenHash = selectedType.split('-')[1]
+    const tokenHash = selectedType.split('-')[1]
 
     // Now calculate the token balance.
     _.each(Session.get('tokensHeld'), (token) => {
-      if(token.hash == tokenHash) {
+      if (token.hash === tokenHash) {
         Session.set('balanceAmount', token.balance)
         Session.set('balanceSymbol', token.symbol)
       }
@@ -469,7 +525,7 @@ refreshTransferPage = (callback) => {
     Session.set('transferFromAddress', getXMSSDetails().address)
 
     // Get address balance
-    getBalance(getXMSSDetails().address, function() {
+    getBalance(getXMSSDetails().address, function () {
       // Load Wallet Transactions
       const addressState = Session.get('address')
       const numPages = Math.ceil(addressState.state.transactions.length / 10)
@@ -492,16 +548,37 @@ refreshTransferPage = (callback) => {
     })
 
     // Get Tokens and Balances
-    getTokenBalances(getXMSSDetails().address, function() {
+    getTokenBalances(getXMSSDetails().address, function () {
       // Update balance field
       updateBalanceField()
-      
+
       $('#tokenBalancesLoading').hide()
-      
+
       // Render dropdown
       $('.ui.dropdown').dropdown()
     })
   })
+}
+
+ledgerHasNoTokenSupport = () => {
+  // Ledger Nano not supported here.
+  if (getXMSSDetails().walletType === 'ledger') {
+    $('#ledgerNotSupported').modal('transition', 'disable')
+      .modal({
+        onApprove: () => {
+          const reloadPath = FlowRouter.path('/transfer', {})
+          FlowRouter.go(reloadPath)
+        },
+        onHide: () => {
+          const reloadPath = FlowRouter.path('/transfer', {})
+          FlowRouter.go(reloadPath)
+        },
+        onDeny: () => {
+          const reloadPath = FlowRouter.path('/transfer', {})
+          FlowRouter.go(reloadPath)
+        },
+      }).modal('show')
+  }
 }
 
 // Reset wallet localstorage state
@@ -518,6 +595,8 @@ resetLocalStorageState = () => {
   Session.set('balanceAmount', '')
   Session.set('balanceSymbol', '')
   Session.set('otsBitfield', '')
+  Session.set('active', 1)
+  Session.set('pages', [])
 }
 
 function logRequestResponse(request, response) {
@@ -542,7 +621,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // Validate that the request payload matches the response data for a standard transaction
   if (type === 'transferCoins') {
     // Validate From address
-    if(!Buffer.from(request.fromAddress).equals(Buffer.from(response.from))) {
+    if (!Buffer.from(request.fromAddress).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
       logRequestResponse(request, response)
       return false
@@ -550,30 +629,30 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Validate output (to addresses and amounts)
     // Modify structure of request payload to match response payload
-    let request_outputs = []
-    for (var i = 0; i < request.addresses_to.length; i++) {
+    const requestOutputs = []
+    for (let i = 0; i < request.addresses_to.length; i += 1) {
       const thisOutput = {
         address: request.addresses_to[i],
-        amount: request.amounts[i] / SHOR_PER_QUANTA
+        amount: request.amounts[i] / SHOR_PER_QUANTA,
       }
-      request_outputs.push(thisOutput)
+      requestOutputs.push(thisOutput)
     }
 
     // Now check count of outputs on request and response matches
-    if (request_outputs.length !== response.outputs.length) {
+    if (requestOutputs.length !== response.outputs.length) {
       console.log('Transaction Validation - Outputs length mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Now check that all outputs are identical
-    for (var i = 0; i < request_outputs.length; i++) {
-      if (!Buffer.from(request_outputs[i].address).equals(Buffer.from(response.outputs[i].address))) {
+    for (let i = 0; i < requestOutputs.length; i += 1) {
+      if (!Buffer.from(requestOutputs[i].address).equals(Buffer.from(response.outputs[i].address))) { // eslint-disable-line
         console.log('Transaction Validation - Output address mismatch')
         logRequestResponse(request, response)
         return false
       }
-      if (request_outputs[i].amount !== response.outputs[i].amount) {
+      if (requestOutputs[i].amount !== response.outputs[i].amount) {
         console.log('Transaction Validation - Output amount mismatch')
         logRequestResponse(request, response)
         return false
@@ -583,9 +662,9 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // If we got here, everything matches the request
     return true
   // Validate that the request payload matches the response data for a token transfer transaction
-  } else if (type === 'createTokenTransferTxn') {
+  } else if (type === 'createTokenTransferTxn') { // eslint-disable-line
     // Validate From address
-    if(!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
+    if (!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
       logRequestResponse(request, response)
       return false
@@ -600,30 +679,30 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Validate output (to addresses and amounts)
     // Modify structure of request payload to match response payload
-    let request_outputs = []
-    for (var i = 0; i < request.addresses_to.length; i++) {
+    const requestOutputs = []
+    for (let i = 0; i < request.addresses_to.length; i += 1) {
       const thisOutput = {
         address: request.addresses_to[i],
-        amount: request.amounts[i] / Math.pow(10, tokenDecimals)
+        amount: request.amounts[i] / Math.pow(10, tokenDecimals), // eslint-disable-line
       }
-      request_outputs.push(thisOutput)
+      requestOutputs.push(thisOutput)
     }
 
     // Now check count of outputs on request and response matches
-    if (request_outputs.length !== response.outputs.length) {
+    if (requestOutputs.length !== response.outputs.length) {
       console.log('Transaction Validation - Outputs length mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Now check that all outputs are identical
-    for (var i = 0; i < request_outputs.length; i++) {
-      if (!Buffer.from(request_outputs[i].address).equals(Buffer.from(response.outputs[i].address))) {
+    for (let i = 0; i < requestOutputs.length; i += 1) {
+      if (!Buffer.from(requestOutputs[i].address).equals(Buffer.from(response.outputs[i].address))) { // eslint-disable-line
         console.log('Transaction Validation - Output address mismatch')
         logRequestResponse(request, response)
         return false
       }
-      if (request_outputs[i].amount !== response.outputs[i].amount) {
+      if (requestOutputs[i].amount !== response.outputs[i].amount) {
         console.log('Transaction Validation - Output amount mismatch')
         logRequestResponse(request, response)
         return false
@@ -634,35 +713,35 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // Validate that the request payload matches the response data for a token creation transaction
   } else if (type === 'createTokenTxn') {
     // Validate From address
-    if(!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
+    if (!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Validate Owner address
-    if(!Buffer.from(request.owner).equals(Buffer.from(response.owner))) {
+    if (!Buffer.from(request.owner).equals(Buffer.from(response.owner))) {
       console.log('Transaction Validation - Owner address mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Validate Token Symbol
-    if(bytesToString(request.symbol) !== response.symbol) {
+    if (bytesToString(request.symbol) !== response.symbol) {
       console.log('Transaction Validation - Token symbol mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Validate Token Name
-    if(bytesToString(request.name) !== response.name) {
+    if (bytesToString(request.name) !== response.name) {
       console.log('Transaction Validation - Token name mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // Validate Token decimals
-    if(request.decimals !== response.decimals) {
+    if (request.decimals !== response.decimals) {
       console.log('Transaction Validation - Token decimals mismatch')
       logRequestResponse(request, response)
       return false
@@ -676,13 +755,13 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
 
     // Now check that all initial balances  are identical
-    for (var i = 0; i < request.initialBalances.length; i++) {
-      if (!Buffer.from(request.initialBalances[i].address).equals(Buffer.from(response.initialBalances[i].address))) {
+    for (let i = 0; i < request.initialBalances.length; i += 1) {
+      if (!Buffer.from(request.initialBalances[i].address).equals(Buffer.from(response.initialBalances[i].address))) { //eslint-disable-line
         console.log('Transaction Validation - Initial balance address mismatch')
         logRequestResponse(request, response)
         return false
       }
-      if (request.initialBalances[i].amount !== parseInt(response.initialBalances[i].amount)) {
+      if (request.initialBalances[i].amount !== parseInt(response.initialBalances[i].amount, 10)) {
         console.log('Transaction Validation - Initial balance amount mismatch')
         logRequestResponse(request, response)
         return false
@@ -693,7 +772,17 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     return true
   } else if (type === 'createMessageTxn') {
     // Validate Message
-    if(bytesToString(request.message) !== response.message) {
+    if (bytesToString(request.message) !== response.message) {
+      console.log('Transaction Validation - Message mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // If we got here, everything matches the request
+    return true
+  } else if (type === 'createKeybaseTxn') {
+    // Validate Message
+    if (bytesToString(request.message) !== response.message) {
       console.log('Transaction Validation - Message mismatch')
       logRequestResponse(request, response)
       return false

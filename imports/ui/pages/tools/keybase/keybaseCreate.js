@@ -5,13 +5,21 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import './messageCreate.html'
+import './keybaseCreate.html'
 
-function createMessageTxn() {
-  // Get to/amount details
-  const userMessage = document.getElementById('message').value
+function createKeybaseTxn() {
+  // Get transaction values from form
+  const sigHash = document.getElementById('message').value
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
+  const keybaseId = document.getElementById('kb_username').value
+
+  // fail if neither checkbox has value
+  if (!$('#kb_add').prop('checked') && !$('#kb_remove').prop('checked')) { return }
+  let addorremove = ''
+  // return message code for keybase action:
+  // AA = add, AF = remove
+  if ($('#kb_add').prop('checked')) { addorremove = 'AA' } else { addorremove = 'AF' }
 
   // Fail if OTS Key reuse is detected
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
@@ -24,9 +32,13 @@ function createMessageTxn() {
     return
   }
 
+  const userMessage = hexToBytes(`0F0F0002${addorremove}`)
+  const kbidBytes = Buffer.from(` ${keybaseId} `, 'utf8')
+  const sighashBytes = hexToBytes(sigHash)
+
   // Convert strings to bytes
   const pubKey = hexToBytes(getXMSSDetails().pk)
-  const messageBytes = stringToBytes(userMessage)
+  const messageBytes = Buffer.concat([userMessage, kbidBytes, sighashBytes])
 
   // Construct request
   const request = {
@@ -36,7 +48,15 @@ function createMessageTxn() {
     network: selectedNetwork(),
   }
 
-  wrapMeteorCall('createMessageTxn', request, (err, res) => {
+  // Store Session value of Keybase operation
+  const keybaseOperation = {
+    addorremove,
+    keybaseId,
+    sigHash,
+  }
+  Session.set('keybaseOperation', keybaseOperation)
+
+  wrapMeteorCall('createKeybaseTxn', request, (err, res) => {
     if (err) {
       Session.set('messageCreationError', err.reason)
       $('#messageCreationFailed').show()
@@ -45,17 +65,18 @@ function createMessageTxn() {
       const confirmation = {
         hash: res.txnHash,
         message: bytesToString(res.response.extended_transaction_unsigned.tx.message.message_hash),
+        message_hex: bytesToHex(res.response.extended_transaction_unsigned.tx.message.message_hash),
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-        otsKey: otsKey, // eslint-disable-line
+        otsKey,
       }
 
-      if (nodeReturnedValidResponse(request, confirmation, 'createMessageTxn')) {
+      if (nodeReturnedValidResponse(request, confirmation, 'createKeybaseTxn')) {
         Session.set('messageCreationConfirmation', confirmation)
         Session.set('messageCreationConfirmationResponse', res.response)
 
         // Send to confirm page.
         const params = { }
-        const path = FlowRouter.path('/tools/message/confirm', params)
+        const path = FlowRouter.path('/tools/keybase/confirm', params)
         FlowRouter.go(path)
       } else {
         $('#invalidNodeResponse').modal('show')
@@ -68,7 +89,7 @@ function createMessageTxn() {
 function initialiseFormValidation() {
   const validationRules = {}
 
-  validationRules['message'] = {
+  validationRules.message = {
     id: 'message',
     rules: [
       {
@@ -76,14 +97,28 @@ function initialiseFormValidation() {
         prompt: 'You must enter a message',
       },
       {
-        type: 'maxLength[80]',
-        prompt: 'The max length of a message is 80 bytes.',
+        type: 'regExp[/^[0-9a-fA-F]{66}$/]',
+        prompt: 'The sighash should be 66 characters long',
+      },
+    ],
+  }
+
+  validationRules.kb_username = {
+    id: 'kb_username',
+    rules: [
+      {
+        type: 'empty',
+        prompt: 'You must enter a Keybase username',
+      },
+      {
+        type: 'regExp[/^[a-z0-9_-]{1,16}$/]',
+        prompt: 'The max length of a Keybase username is 16 characters.',
       },
     ],
   }
 
   // Now set fee and otskey validation rules
-  validationRules['fee'] = {
+  validationRules.fee = {
     id: 'fee',
     rules: [
       {
@@ -96,7 +131,7 @@ function initialiseFormValidation() {
       },
     ],
   }
-  validationRules['otsKey'] = {
+  validationRules.otsKey = {
     id: 'otsKey',
     rules: [
       {
@@ -109,6 +144,15 @@ function initialiseFormValidation() {
       },
     ],
   }
+  validationRules.kb_action = {
+    id: 'kb_action',
+    rules: [
+      {
+        type: 'checked',
+        prompt: 'You need to select a Keybase action',
+      },
+    ],
+  }
 
   // Initliase the form validation
   $('.ui.form').form({
@@ -116,7 +160,7 @@ function initialiseFormValidation() {
   })
 }
 
-Template.appMessageCreate.onRendered(() => {
+Template.appKeybaseCreate.onRendered(() => {
   // Initialise dropdowns
   $('.ui.dropdown').dropdown()
 
@@ -124,7 +168,7 @@ Template.appMessageCreate.onRendered(() => {
   initialiseFormValidation()
 
   // Get wallet balance
-  getBalance(getXMSSDetails().address, function () {
+  getBalance(getXMSSDetails().address, () => {
     // Show warning is otsKeysRemaining is low
     if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
@@ -133,17 +177,17 @@ Template.appMessageCreate.onRendered(() => {
   })
 })
 
-Template.appMessageCreate.events({
+Template.appKeybaseCreate.events({
   'submit #generateMessageForm': (event) => {
     event.preventDefault()
     event.stopPropagation()
     $('#generating').show()
 
-    setTimeout(() => { createMessageTxn() }, 200)
+    setTimeout(() => { createKeybaseTxn() }, 200)
   },
 })
 
-Template.appMessageCreate.helpers({
+Template.appKeybaseCreate.helpers({
   transferFrom() {
     const transferFrom = {}
     transferFrom.balance = Session.get('transferFromBalance')

@@ -1,9 +1,12 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import JSONFormatter from 'json-formatter-js'
 import './tx.html'
-/* global selectedNetwork */
-/* global SHOR_PER_QUANTA */
-/* global DEFAULT_NETWORKS */
-/* global wrapMeteorCall */
 
 Template.appVerifyTxid.onRendered(() => {
   this.$('.value').popup()
@@ -48,13 +51,13 @@ Template.appVerifyTxid.onRendered(() => {
 
 Template.appVerifyTxid.helpers({
   tx() {
-    let txhash = Session.get('txhash').transaction
-    let signature = txhash.tx.signature
+    const txhash = Session.get('txhash').transaction
+    const signature = txhash.tx.signature // eslint-disable-line
     txhash.tx.ots_key = parseInt(signature.substring(0, 8), 16)
     return txhash
   },
   bech32() {
-    if (Session.get('addressFormat') == 'bech32') {
+    if (Session.get('addressFormat') === 'bech32') {
       return true
     }
     return false
@@ -189,4 +192,3 @@ Template.appVerifyTxid.events({
     $('.jsonbox').toggle()
   },
 })
-

@@ -1,13 +1,13 @@
+/* eslint no-console:0 */
+/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
+/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+
 import './tokenCreate.html'
 import { BigNumber } from 'bignumber.js'
 import helpers from '@theqrl/explorer-helpers'
-/* global selectedNetwork */
-/* global XMSS_OBJECT */
-/* global DEFAULT_NETWORKS */
-/* global SHOR_PER_QUANTA */
-/* global wrapMeteorCall */
-/* global nodeReturnedValidResponse */
-/* global otsIndexUsed */
 
 let countRecipientsForValidation = 1
 
@@ -16,7 +16,7 @@ function getBaseLog(x, y) {
 }
 
 function maxAllowedDecimals(tokenTotalSupply) {
-  return Math.max(Math.floor(19 - getBaseLog(10, tokenTotalSupply)) ,0)
+  return Math.max(Math.floor(19 - getBaseLog(10, tokenTotalSupply)), 0)
 }
 
 function createTokenTxn() {
@@ -29,10 +29,10 @@ function createTokenTxn() {
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
 
-  let tokenHolders = []
+  const tokenHolders = []
 
   // Fail if OTS Key reuse is detected
-  if(otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     $('#otsKeyReuseDetected').modal('show')
     return
@@ -44,27 +44,27 @@ function createTokenTxn() {
   const nameBytes = stringToBytes(name)
 
   // Collect Token Holders and create payload
-  var initialBalancesAddress = document.getElementsByName("initialBalancesAddress[]")
-  var initialBalancesAddressAmount = document.getElementsByName("initialBalancesAddressAmount[]")
+  const initialBalancesAddress = document.getElementsByName('initialBalancesAddress[]')
+  const initialBalancesAddressAmount = document.getElementsByName('initialBalancesAddressAmount[]')
   let tokenTotalSupply = 0
 
-  for (var i = 0; i < initialBalancesAddress.length; i++) {
-    let convertAmountToBigNumber = new BigNumber(initialBalancesAddressAmount[i].value)
-    let thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber()
+  for (let i = 0; i < initialBalancesAddress.length; i += 1) {
+    const convertAmountToBigNumber = new BigNumber(initialBalancesAddressAmount[i].value)
+    const thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber() // eslint-disable-line
 
     const thisHolder = {
       address: anyAddressToRawAddress(initialBalancesAddress[i].value),
-      amount: thisAmount
+      amount: thisAmount,
     }
 
     tokenHolders.push(thisHolder)
 
     // Update total supply
-    tokenTotalSupply += parseInt(initialBalancesAddressAmount[i].value)
+    tokenTotalSupply += parseInt(initialBalancesAddressAmount[i].value, 10)
   }
 
   // Fail token creation if decimals are too high for circulating supply
-  if (parseInt(decimals) > maxAllowedDecimals(tokenTotalSupply)) {
+  if (parseInt(decimals, 10) > maxAllowedDecimals(tokenTotalSupply)) {
     Session.set('maxDecimals', maxAllowedDecimals(tokenTotalSupply))
     Session.set('tokenTotalSupply', tokenTotalSupply)
     $('#generating').hide()
@@ -73,16 +73,16 @@ function createTokenTxn() {
   }
 
   // Calculate txn fee
-  let convertFeeToBigNumber = new BigNumber(txnFee)
-  let thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+  const convertFeeToBigNumber = new BigNumber(txnFee)
+  const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
 
   // Construct request
   const request = {
     addressFrom: sendFrom,
-    owner: owner,
+    owner: owner, // eslint-disable-line
     symbol: symbolBytes,
     name: nameBytes,
-    decimals: decimals,
+    decimals: decimals, // eslint-disable-line
     initialBalances: tokenHolders,
     fee: thisTxnFee,
     xmssPk: pubKey,
@@ -98,17 +98,17 @@ function createTokenTxn() {
       const confirmation = {
         hash: res.txnHash,
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
-        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
-        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
+        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
         symbol: bytesToString(res.response.extended_transaction_unsigned.tx.token.symbol),
         name: bytesToString(res.response.extended_transaction_unsigned.tx.token.name),
         owner: Buffer.from(res.response.extended_transaction_unsigned.tx.token.owner),
-        owner_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.tx.token.owner),
-        owner_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.tx.token.owner),
+        owner_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.tx.token.owner), // eslint-disable-line
+        owner_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.tx.token.owner), // eslint-disable-line
         decimals: res.response.extended_transaction_unsigned.tx.token.decimals,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.extended_transaction_unsigned.tx.token.initial_balances,
-        otsKey: otsKey,
+        otsKey: otsKey, // eslint-disable-line
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createTokenTxn')) {
@@ -131,22 +131,22 @@ function createTokenTxn() {
 
 // Function to initialise form validation
 function initialiseFormValidation() {
-  let validationRules = {}
+  const validationRules = {}
 
   // Calculate validation fields based on countRecipientsForValidation for to/amount fields
-  for(let i = 1; i <= countRecipientsForValidation; i++) {
-     validationRules['initialBalancesAddress' + i] = {
-      identifier: 'initialBalancesAddress_'+i,
+  for (let i = 1; i <= countRecipientsForValidation; i += 1) {
+    validationRules['initialBalancesAddress' + i] = {
+      identifier: 'initialBalancesAddress_' + i,
       rules: [
         {
           type: 'empty',
           prompt: 'Please enter the QRL address you wish to allocate funds to',
         },
       ],
-    };
+    }
 
     validationRules['initialBalancesAddressAmount' + i] = {
-      identifier: 'initialBalancesAddressAmount_'+i,
+      identifier: 'initialBalancesAddressAmount_' + i,
       rules: [
         {
           type: 'empty',
@@ -158,7 +158,7 @@ function initialiseFormValidation() {
         },
         {
           type: 'maxDecimals',
-          prompt: 'You can only enter up to 9 decimal places in the amount field'
+          prompt: 'You can only enter up to 9 decimal places in the amount field',
         },
       ],
     }
@@ -221,7 +221,7 @@ function initialiseFormValidation() {
       },
       {
         type: 'maxDecimals',
-        prompt: 'You can only enter up to 9 decimal places in the fee field'
+        prompt: 'You can only enter up to 9 decimal places in the fee field',
       },
     ],
   }
@@ -240,7 +240,7 @@ function initialiseFormValidation() {
   }
 
   // Max of 9 decimals
-  $.fn.form.settings.rules.maxDecimals = function(value) {
+  $.fn.form.settings.rules.maxDecimals = function (value) {
     return (countDecimals(value) <= 9)
   }
 
@@ -251,19 +251,22 @@ function initialiseFormValidation() {
 }
 
 Template.appTokenCreate.onRendered(() => {
+  // Ledger Nano not supported here
+  ledgerHasNoTokenSupport()
+
   // Initialise dropdowns
   $('.ui.dropdown').dropdown()
 
   // Set default transfer recipients to 1
   countRecipientsForValidation = 1
-  
+
   // Initialise Form Validation
   initialiseFormValidation()
 
   // Get wallet balance
-  getBalance(getXMSSDetails().address, function() {
+  getBalance(getXMSSDetails().address, function () {
     // Show warning is otsKeysRemaining is low
-    if(Session.get('otsKeysRemaining') < 50) {
+    if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
@@ -293,7 +296,7 @@ Template.appTokenCreate.events({
           </div>
         </div>
       </div>
-    `;
+    `
 
     // Append newTokenHolderHtml to tokenHolders div
     $('#tokenHolders').append(newTokenHolderHtml)
@@ -309,7 +312,8 @@ Template.appTokenCreate.events({
     countRecipientsForValidation -= 1
 
     // Remove the token holder
-    $(event.currentTarget).parent().parent().parent().remove()
+    $(event.currentTarget).parent().parent().parent()
+      .remove()
 
     // Initialise Form Validation
     initialiseFormValidation()

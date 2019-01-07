@@ -12,12 +12,13 @@
     <div class="ui form">
       <div class="field">
         <label>Wallet Seed / File</label>
-        <div class="ui action center aligned input"  id="addressFields" style="width: 100%; margin-bottom: 20px;">
-          <input type="file" id="walletFile" accept="text/json" name="walletFile[]" />
-          <input type="text" id="walletCode" name="walletCode" autocomplete="off" style="display: none; max-width: 75%;" />
+        <div class="ui action center aligned input"  id="addressFields" style="margin-bottom: 20px;">
+          <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="width: 50%"/>
+          <input type="text" id="walletCode" name="walletCode" autocomplete="off" style="width: 50%;display: none;" />
 
-          <select id="walletType" class="ui compact selection dropdown">
+          <select id="walletType" class="ui compact selection dropdown" style="width: 160px !important;">
             <option value="file">Wallet File</option>
+            <!-- <option value="ledgernano">Ledger Nano (Preview)</option> -->
             <option value="mnemonic">Mnemonic Phrase</option>
             <option value="hexseed">Hexseed</option>
           </select>
@@ -36,6 +37,10 @@
         <br />
       </div>
 
+      <div id="ledgerArea" style="display: none;">
+        <div id="ledgerRefreshButton" class="ui huge primary button red">Open Ledger</div>
+      </div>
+
       <div id="unlockButton" class="ui huge primary button red">Unlock Wallet</div>
     </div>
   </div>
@@ -52,6 +57,18 @@
     </div>
   </div>
 
+  <div id="readingLedger" style="display: none;">
+    <div class="ui icon message">
+      <i class="notched circle loading icon"></i>
+      <div class="content">
+        <div class="header">
+          Just a moment
+        </div>
+        <p>Reading from Ledger Device...</p>
+      </div>
+    </div>
+  </div>
+
   <div id="unlockError" style="display: none;">
     <div class="ui red segment">
       <h4>Error!</h4>
@@ -63,6 +80,47 @@
     <div class="ui red segment">
       <h4>Error!</h4>
       <p>Either your wallet file is invalid or it is encrypted and you forgot to enter its passphrase.</p>
+    </div>
+  </div>
+
+  <div id="ledgerReadError" style="display: none;">
+    <div class="ui red segment">
+      <h4>Error!</h4>
+      <p>There was an error connecting to your Ledger device. Please reconnect your device to your computer, unlock it, open the QRL app and try again.</p>
+    </div>
+  </div>
+
+  <div id="ledgerUninitialisedError" style="display: none;">
+    <div class="ui yellow segment">
+      <h4>Device Uninitialised!</h4>
+      <p>You have not initialised your QRL XMSS tree on your Ledger device yet! In the QRL App on your Ledger Device, scroll down to 'Init Device' and press both buttons. This will generate an address and associated XMSS tree on your device. This process takes approximately 45 minutes. You can track the progress on your Ledger Device. When complete, ensure you have the QRL App on your Ledger Device opened and come back here and click Open Ledger again.</p>
+    </div>
+  </div>
+
+  <div id="ledgerKeysGeneratingError" style="display: none;">
+    <div class="ui yellow segment">
+      <h4>Device Generating Keys!</h4>
+      <p>Your Ledger Device is currently generating an XMSS tree. You cannot use the wallet until this process has completed. You can track the progress both your Ledger Device and below.</p>
+      <div class="ui active progress" id="ledgerKeyGenerationProgressBar">
+        <div class="bar">
+          <div class="progress"></div>
+        </div>
+        <div class="label">Generating Keys</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ledgerKeysGeneratingComplete" style="display: none;">
+    <div class="ui green segment">
+      <h4>Device Ready!</h4>
+      <p>Your Ledger Device is ready! Click Open Device to view you wallet.</p>
+    </div>
+  </div>
+
+  <div id="ledgerKeysGeneratingDeviceError" style="display: none;">
+    <div class="ui yellow segment">
+      <h4>Error Generating Keys!</h4>
+      <p>There was a problem while monitoring the Ledger devices key generation process, possibly the device was disconnected. Please reconnect the device, unlock it, open the QRL app, rerun the 'Init Device' function and click Open Ledger again.</p>
     </div>
   </div>
 

@@ -509,3 +509,6 @@ margin-right: 5% !important;
 .mobile-wallet > div.extra {
   word-wrap: break-word; 
 }
+.ui.segment {
+  border-radius: 0px
+}

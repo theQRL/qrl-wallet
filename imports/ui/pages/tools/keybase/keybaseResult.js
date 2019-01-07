@@ -6,7 +6,7 @@
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import JSONFormatter from 'json-formatter-js'
-import './result.html'
+import './keybaseResult.html'
 
 function setRawDetail() {
   const myJSON = Session.get('txhash').transaction
@@ -42,8 +42,8 @@ function checkResult(thisTxId, failureCount) {
       setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
     }
   } catch (err) {
-    // Most likely is that the mempool is not replying the transaction.
-    // We attempt to find it ongoing for a while
+  // Most likely is that the mempool is not replying the transaction. We attempt to find it ongoing
+  // For a while
     console.log(`Caught Error: ${err}`)
 
     // Continue to check the txn status until POLL_MAX_CHECKS is reached in failureCount
@@ -95,27 +95,17 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 }
 
 
-Template.appNotariseResult.onRendered(() => {
+Template.appKeybaseResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   // Start polling this transcation
   pollTransaction(Session.get('transactionHash'), true)
 })
 
-Template.appNotariseResult.helpers({
-  transferFrom() {
-    const transferFrom = {}
-    transferFrom.balance = Session.get('transferFromBalance')
-    transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
-    return transferFrom
-  },
+Template.appKeybaseResult.helpers({
   transactionHash() {
     const hash = Session.get('transactionHash')
     return hash
-  },
-  notariseCreationConfirmation() {
-    const confirmation = Session.get('notariseCreationConfirmation')
-    return confirmation
   },
   transactionSignature() {
     const signature = Session.get('transactionSignature')
@@ -140,9 +130,15 @@ Template.appNotariseResult.helpers({
     }
     return Session.get('nodeExplorerUrl')
   },
+  keybaseOperation() {
+    const keybaseOperation = Session.get('keybaseOperation')
+    if (keybaseOperation.addorremove === 'AA') { keybaseOperation.addorremove = 'ADD' }
+    if (keybaseOperation.addorremove === 'AF') { keybaseOperation.addorremove = 'REMOVE' }
+    return keybaseOperation
+  },
 })
 
-Template.appNotariseResult.events({
+Template.appMessageResult.events({
   'click .jsonclick': () => {
     if (!($('.json').html())) {
       setRawDetail()
