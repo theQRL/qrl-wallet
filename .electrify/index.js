@@ -16,7 +16,6 @@ app.on('ready', function() {
 
   // Electrify Start
   electrify.start(function(meteor_root_url) {
-
     // Show the main QRL Wallet Window
     window = new BrowserWindow({
       width: 1300, height: 720,
@@ -106,4 +105,4 @@ app.on('window-all-closed', function terminate_and_quit(event) {
 //   Electrify.call(...);
 // });
 // 
-// =============================================================================
+// ============================================================================
