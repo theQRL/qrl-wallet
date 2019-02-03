@@ -7,9 +7,22 @@
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
+import async from 'async'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 import './transfer.html'
+
+const LEDGER_TIMEOUT = 10000
+
+function verifyLedgerNanoAddress(callback) {
+  console.log('-- Verify Ledger Nano S Address --')
+  QrlLedger.viewAddress().then(data => {
+    callback(null, data)
+  })
+}
+
+// Wrap ledger calls in async.timeout
+const verifyLedgerNanoAddressWrapper = async.timeout(verifyLedgerNanoAddress, LEDGER_TIMEOUT)
 
 function generateTransaction() {
   // Get to/amount details
@@ -910,6 +923,10 @@ Template.appTransfer.events({
   },
   'click #showRecoverySeed': () => {
     $('#recoverySeedModal').modal('show')
+  },
+  'click #verifyLedgerNanoAddress': () => {
+    $('#verifyLedgerNanoAddressModal').modal('show')
+    verifyLedgerNanoAddressWrapper(function () {})
   },
 })
 
