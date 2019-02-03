@@ -11,3 +11,4 @@ public/qrl-ledger-library.js
 localtests/
 local.json
 /.deploy
+.DS_Store
