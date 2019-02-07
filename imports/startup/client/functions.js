@@ -382,20 +382,40 @@ getBalance = (getAddress, callBack) => {
         // Collect next OTS key from Ledger Device
         // Whilst technically we may have unused ones - we
         // prefer to rely on state tracked in ledger device
-        QrlLedger.get_state().then(data => {
-          Session.set('otsKeyEstimate', data.xmss_index)
-          // Get remaining OTS Keys
-          const validationResult = qrlAddressValdidator.hexString(getAddress)
-          const totalSignatures = validationResult.sig.number
-          const keysRemaining = totalSignatures - data.xmss_index
-          // Set keys remaining
-          Session.set('otsKeysRemaining', keysRemaining)
+        console.log('-- Getting QRL Ledger Nano App State --')
+        if (isElectrified()) {
+          Meteor.call('ledgerGetState', [], (err, data) => {
+            console.log('> Got Ledger Nano State from USB')
+            Session.set('otsKeyEstimate', data.xmss_index)
+            // Get remaining OTS Keys
+            const validationResult = qrlAddressValdidator.hexString(getAddress)
+            const totalSignatures = validationResult.sig.number
+            const keysRemaining = totalSignatures - data.xmss_index
+            // Set keys remaining
+            Session.set('otsKeysRemaining', keysRemaining)
 
-          // Store OTS Bitfield in session
-          Session.set('otsBitfield', res.ots.keys)
+            // Store OTS Bitfield in session
+            Session.set('otsBitfield', res.ots.keys)
 
-          callBack()
-        })
+            callBack()
+          })
+        } else {
+          QrlLedger.get_state().then(data => {
+            console.log('> Got Ledger Nano State from U2F')
+            Session.set('otsKeyEstimate', data.xmss_index)
+            // Get remaining OTS Keys
+            const validationResult = qrlAddressValdidator.hexString(getAddress)
+            const totalSignatures = validationResult.sig.number
+            const keysRemaining = totalSignatures - data.xmss_index
+            // Set keys remaining
+            Session.set('otsKeysRemaining', keysRemaining)
+
+            // Store OTS Bitfield in session
+            Session.set('otsBitfield', res.ots.keys)
+
+            callBack()
+          })
+        }
       }
     }
   })
