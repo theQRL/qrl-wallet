@@ -12,17 +12,63 @@ import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 import './transfer.html'
 
-const LEDGER_TIMEOUT = 10000
-
 function verifyLedgerNanoAddress(callback) {
   console.log('-- Verify Ledger Nano S Address --')
-  QrlLedger.viewAddress().then(data => {
-    callback(null, data)
-  })
+  if (isElectrified()) {
+    Meteor.call('ledgerVerifyAddress', [], (err, data) => {
+      console.log('> Got Ledger Nano address verification from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.viewAddress().then(data => {
+      console.log('> Got Ledger Nano address verification from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+
+function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
+  console.log('-- Getting QRL Ledger Nano App createTx --')
+  console.log('1: sourceAddr: ',sourceAddr,' - fee: ', fee,' - destAddr: ',destAddr, ' - destAmount: ', destAmount)
+
+  if (isElectrified()) {
+    Meteor.call('ledgerCreateTx', sourceAddr, fee, destAddr, destAmount, (err, data) => {
+      console.log('> Got Ledger Nano createTx from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(data => {
+      console.log('> Got Ledger Nano createTx from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+function getLedgerRetrieveSignature(request, callback) {
+  console.log('-- Getting QRL Ledger Nano App Signature --')
+  if (isElectrified()) {
+    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+      console.log('> Got Ledger Nano retrieveSignature from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.retrieveSignature(request).then(data => {
+      console.log('> Got Ledger Nano retrieveSignature from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
 }
 
 // Wrap ledger calls in async.timeout
 const verifyLedgerNanoAddressWrapper = async.timeout(verifyLedgerNanoAddress, LEDGER_TIMEOUT)
+const getLedgerCreateTxWrapper = async.timeout(getLedgerCreateTx, LEDGER_TIMEOUT)
+const getLedgerRetrieveSignatureWrapper = async.timeout(getLedgerRetrieveSignature, LEDGER_TIMEOUT)
+
 
 function generateTransaction() {
   // Get to/amount details
@@ -284,8 +330,11 @@ function confirmTransaction() {
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
-    QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(txn => {
-      QrlLedger.retrieveSignature(txn).then(sigResponse => {
+    getLedgerCreateTxWrapper(sourceAddr, fee, destAddr, destAmount, function(err, txn) {
+      getLedgerRetrieveSignatureWrapper(txn, function(err, sigResponse) {
+    //QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(txn => {
+      // QrlLedger.retrieveSignature(txn).then(sigResponse => {
+
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
 
@@ -330,7 +379,7 @@ function confirmTransaction() {
           $('#relayLedgerTxnButton').show()
         }
       }) // retrieveSignature
-    })
+    }) // getLedgerCreateTx
   }
 }
 

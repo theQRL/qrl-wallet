@@ -13,11 +13,11 @@
     "bignumber.js": "^7.2.1",
     "crypto-browserify": "^3.11.1",
     "crypto-js": "^3.1.9-1",
-    "electrify-qrl": "0.2.0",
+    "electrify-qrl": "0.2.3",
     "fibers": "^3.0.0",
     "grpc": "^1.14.0",
     "json-formatter-js": "^2.2.0",
-    "ledger-qrl-js": "0.3.3",
+    "ledger-qrl-js": "0.3.6",
     "mathjs": "4.0.1",
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
@@ -42,15 +42,16 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
+    "electron-rebuild": "^1.8.4",
     "gulp-chimp": "^2.2.1"
   },
   "scripts": {
     "dev": "meteor",
     "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
     "postinstall": "run-script-os",
-    "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\ && copy node_modules\\ledger-qrl-js\\browser\\ledger.js public\\ && copy node_modules\\ledger-qrl-js\\wallet\\qrl-ledger-library.js public\\",
-    "install:darwin": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
-    "install:linux": "sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
+    "install:win32": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\ && copy node_modules\\ledger-qrl-js\\browser\\ledger.js public\\ && copy node_modules\\ledger-qrl-js\\wallet\\qrl-ledger-library.js public\\",
+    "install:darwin": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
+    "install:linux": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"
   },
