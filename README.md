@@ -17,7 +17,7 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v8.9.3
+[NodeJS](https://nodejs.org/en/) v8.11.4
 
 [Meteor](https://www.meteor.com/install)
 
@@ -25,43 +25,56 @@ The following dependencies are required for a functional local development envir
 
 	npm install -g electrify-qrl
 
-[chimp](https://github.com/xolvio/chimp)
+[node-gyp](https://github.com/nodejs/node-gyp)
 
-	npm install -g chimp
+	npm install -g node-gyp
 
 Windows Only - [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2017)
 
-
-Windows Only - [node-gyp](https://github.com/nodejs/node-gyp)
-
-	npm install -g node-gyp
+Windows Only - [Wix Toolset Build Tools](http://wixtoolset.org/releases/)
 
 
 ## Install qrl-wallet
 
 	git clone https://github.com/theQRL/qrl-wallet.git
 	cd qrl-wallet
-	meteor npm install --unsafe-perm
-	cd .electrify
 	npm install
-	cd ..
 
-## Run Meteor
+## Run QRL Wallet
 
-	meteor
+	npm run dev
 
 ## Run Tests
 
-Note: meteor must already be running for this to work!
+Note: QRL Wallet must already be running for this to work!
 
-	chimp --ddp=http://localhost:3000 --watch --path=tests
+	npm run test
 
-## Run Electron Client
+## Run Electron Client (Dev Mode)
 
-	electrify
+	npm run electron
 
 ## Package Electron Client
 
-	mkdir .electrify/.dist
-	electrify package -o .electrify/.dist/
+1. Clean the dist folder
+
+> MacOS and Linux
+
+	npm run cleanDist
+
+> Windows
+
+	npm run win:remove_dist
+	npm run win:create_dist
+
+2. Package Electron App
+
+> MacOS, Linux and Windows
+
+	npm run prepare
+	npm run build
+
+## Build Installer
+	
+	npm run installer
 

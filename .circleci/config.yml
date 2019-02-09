@@ -68,11 +68,29 @@ jobs:
               mkdir .electrify/.dist
               npm install -g electrify-qrl
               meteor npm install --unsafe-perm
-              /usr/local/Cellar/node/8.7.0/bin/electrify package -o .electrify/.dist/
-              cd .electrify/.dist/ && zip -r QRL-Wallet-Macos.zip QRLWallet-darwin-x64
-              rm -rf QRLWallet-darwin-x64
+              export NODEPATH=/usr/local/Cellar/node/8.7.0
+              export PATH="$NODEPATH/bin:$PATH"
+              # Package Electron App
+              npm run packageElectron
+              # Build Macos DMG
+              npm run buildMacosDmg
+              # Clear Electron build folder
+              rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
             fi
-
+            if [ "${CIRCLE_BRANCH}" == "devnet" ]; then
+              rm -rf .electrify/.dist/
+              mkdir .electrify/.dist
+              npm install -g electrify-qrl
+              meteor npm install --unsafe-perm
+              export NODEPATH=/usr/local/Cellar/node/8.7.0
+              export PATH="$NODEPATH/bin:$PATH"
+              # Package Electron App
+              npm run packageElectron
+              # Build Macos DMG
+              npm run buildMacosDmg
+              # Clear Electron build folder
+              rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
+            fi
       # Save artifacts
       - store_artifacts:
           path: .electrify/.dist/
