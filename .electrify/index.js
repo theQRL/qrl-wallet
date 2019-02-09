@@ -61,24 +61,25 @@ app.on('ready', function() {
   });
 });
 
-app.on('window-all-closed', function terminate_and_quit(event) {
-  // if electrify is up, cancel exiting with `preventDefault`,
-  // so we can terminate electrify gracefully without leaving child
-  // processes hanging in background
-
-  // if(electrify.isup() && event) {
-
-    // holds electron termination
+app.on('will-quit', function terminate_and_quit(event) {
+  if(electrify.isup() && event) {
     event.preventDefault();
-
-    // gracefully stops electrify 
     electrify.stop(function(){
-      // and then finally quit app
+      console.log('electrify stop done')
       app.quit();
     });
-  
-  // }
+  }
+})
 
+app.on('window-all-closed', function terminate_and_quit(event) {
+  console.log('window-all-closed')
+  if(electrify.isup() && event) {
+    event.preventDefault();
+    electrify.stop(function(){
+      console.log('electrify stop done')
+      app.quit();
+    });
+  }
 });
 
 // Defining Methods on the Electron side
