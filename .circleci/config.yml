@@ -9,15 +9,15 @@ jobs:
       - checkout
 
       # Save/Restore cache
-      - save_cache:
-          key: wallet_cache
-          paths:
-            - node_modules
-            - ~/.npm
-            - ~/.meteor
+      #- save_cache:
+      #    key: wallet_cache
+      #    paths:
+      #      - node_modules
+      #      - ~/.npm
+      #      - ~/.meteor
 
-      - restore_cache:
-          key: wallet_cache
+      #- restore_cache:
+      #    key: wallet_cache
       
       # Install dependencies
       - run:
@@ -43,21 +43,21 @@ jobs:
             meteor node -e 'console.log("I am Node.js %s!", process.version);'
 
       # Start meteor in background
-      - run:
-          name: Start Meteor
-          command: |
-            meteor npm install --unsafe-perm
-            npm run dev
-          background: true
+      #- run:
+      #    name: Start Meteor
+      #    command: |
+      #      meteor npm install --unsafe-perm
+      #      npm run dev
+      #    background: true
 
       # Run unit tests
-      - run:
-          name: Run selenium tests
-          command: |
-            until curl --max-time 300 http://localhost:3000/; do sleep 1; done
-            #npm install -g chimp
-            #npm install -g selenium-standalone
-            #/usr/local/Cellar/node/8.7.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
+      #- run:
+      #    name: Run selenium tests
+      #    command: |
+      #      until curl --max-time 300 http://localhost:3000/; do sleep 1; done
+      #      #npm install -g chimp
+      #      #npm install -g selenium-standalone
+      #      #/usr/local/Cellar/node/8.7.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
 
       # Create package on master
       - deploy:
