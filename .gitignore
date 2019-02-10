@@ -12,3 +12,4 @@ localtests/
 local.json
 /.deploy
 .DS_Store
+.snap
