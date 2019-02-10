@@ -69,7 +69,7 @@ jobs:
               export PATH="$NODEPATH/bin:$PATH"
               # Package Electron App
               npm run cleanDist
-              npm run prepare
+              npm run releaseready
               npm run build
               # Build Macos DMG
               npm run installer
@@ -83,7 +83,7 @@ jobs:
               export PATH="$NODEPATH/bin:$PATH"
               # Package Electron App
               npm run cleanDist
-              npm run prepare
+              npm run releaseready
               npm run build
               # Build Macos DMG
               npm run installer
