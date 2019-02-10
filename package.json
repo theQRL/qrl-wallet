@@ -2,7 +2,8 @@
   "name": "qrl-wallet",
   "version": "1.0.8",
   "description": "QRL Wallet",
-  "main": "index.js",
+  "author": "Scott Donald, JP Lomas and The QRL Team",
+  "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.2.0",
     "@theqrl/explorer-helpers": "0.0.7",
@@ -17,7 +18,7 @@
     "fibers": "^3.0.0",
     "grpc": "^1.14.0",
     "json-formatter-js": "^2.2.0",
-    "ledger-qrl-js": "0.3.6",
+    "ledger-qrl-js": "0.4.2",
     "mathjs": "4.0.1",
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
@@ -26,7 +27,7 @@
     "snyk": "^1.88.0",
     "tmp": "0.0.33"
   },
-  "private": true,
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/theQRL/qrl-wallet.git"
@@ -35,25 +36,45 @@
     "QRL",
     "blockchain"
   ],
-  "author": "see AUTHORS.md",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/theQRL/qrl-wallet/issues"
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
+    "chimp": "^0.51.1",
+    "electrify-qrl": "0.2.3",
     "electron-rebuild": "^1.8.4",
     "gulp-chimp": "^2.2.1"
+  },
+  "optionalDependencies": {
+    "electron-installer-debian": "^1.1.0",
+    "electron-installer-dmg": "^2.0.0",
+    "electron-wix-msi-qrl": "2.1.2"
   },
   "scripts": {
     "dev": "meteor",
     "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
     "postinstall": "run-script-os",
-    "install:win32": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\ && copy node_modules\\ledger-qrl-js\\browser\\ledger.js public\\ && copy node_modules\\ledger-qrl-js\\wallet\\qrl-ledger-library.js public\\",
+    "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\ && copy node_modules\\ledger-qrl-js\\browser\\ledger.js public\\ && copy node_modules\\ledger-qrl-js\\wallet\\qrl-ledger-library.js public\\",
     "install:darwin": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
     "install:linux": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
     "snyk-protect": "snyk protect",
-    "prepare": "npm run snyk-protect"
+    "prepare": "npm run snyk-protect",
+    "cleanDist": "run-script-os",
+    "cleanDist:darwin": "rm -rf ./.electrify/.dist && mkdir -p ./.electrify/.dist",
+    "cleanDist:linux": "rm -rf ./.electrify/.dist && mkdir -p ./.electrify/.dist",
+    "win:remove_dist": "if exist .electrify\\dist rmdir /s /q .electrify\\dist",
+    "win:create_dist": "if not exist .electrify\\dist mkdir .electrify\\dist",
+    "electron": "electrify",
+    "releaseready": "meteor lint",
+    "build": "run-script-os",
+    "build:darwin": "electrify package -o .electrify/.dist/",
+    "build:linux": "electrify package -o .electrify/.dist/",
+    "build:win32": "electrify package -o .electrify\\dist\\",
+    "installer": "run-script-os",
+    "installer:darwin": "node build-dmg.js",
+    "installer:linux": "node build-deb.js",
+    "installer:win32": "node build-msi.js"
   },
   "snyk": true
 }

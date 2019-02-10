@@ -29,6 +29,17 @@ app.on('ready', function() {
     // Load meteor site in new BrowserWindow
     window.loadURL(meteor_root_url);
 
+    // Set About menu for MacOS
+    if (process.platform === 'darwin') {
+      app.setAboutPanelOptions({
+        applicationName: "QRL Wallet",
+        applicationVersion: "1.0.8",
+        version: "Electron 1.8.8",
+        copyright: "DIE QRL STIFTUNG, Zug Switzerland",
+        credits: "Scott Donald, JP Lomas and The QRL Team"
+      });
+    }
+
     // Setup content menu, and enable copy/paste actions
     window.webContents.on('contextmenu', () => {
         menu.popup(window);
@@ -37,13 +48,13 @@ app.on('ready', function() {
     // Prevent drag and drop links from opening in electron window
     window.webContents.on('will-navigate', ev => {
       ev.preventDefault()
-    })
+    });
 
     var template = [{
         label: "Application",
         submenu: [
-            // { label: "About QRL Wallet", selector: "orderFrontStandardAboutPanel:" },
-            // { type: "separator" },
+            { label: "About QRL Wallet", selector: "orderFrontStandardAboutPanel:" },
+            { type: "separator" },
             { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
         ]}, {
         label: "Edit",

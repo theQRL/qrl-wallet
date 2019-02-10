@@ -1,0 +1,4 @@
+build-msi.js
+build-deb.js
+build-dmg.js
+build-conf.js
