@@ -5,7 +5,7 @@ const buildConfig = require('./build-conf.js')
 const msiCreator = new MSICreator({
   appDirectory: buildConfig.windows.electronPath,
   description: buildConfig.name,
-  exe: buildConfig.safeName,
+  exe: buildConfig.windows.exeName,
   name: buildConfig.name,
   manufacturer: buildConfig.manufacturer,
   version: buildConfig.version,
