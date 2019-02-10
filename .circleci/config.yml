@@ -9,15 +9,15 @@ jobs:
       - checkout
 
       # Save/Restore cache
-      - save_cache:
-          key: wallet_cache
-          paths:
-            - node_modules
-            - ~/.npm
-            - ~/.meteor
+      #- save_cache:
+      #    key: wallet_cache
+      #    paths:
+      #      - node_modules
+      #      - ~/.npm
+      #      - ~/.meteor
 
-      - restore_cache:
-          key: wallet_cache
+      #- restore_cache:
+      #    key: wallet_cache
       
       # Install dependencies
       - run:
