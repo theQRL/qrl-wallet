@@ -24,7 +24,7 @@ jobs:
           name: Install dependencies
           command: |
             npm install -g n
-            sudo n 8.11.1
+            sudo n 8.11.4
             brew update
             brew cleanup
             brew cask install google-chrome
@@ -39,8 +39,7 @@ jobs:
             npm install -g chimp
             npm install -g selenium-standalone
             npm install -g electrify-qrl
-            cd .electrify && npm install
-            meteor npm install --unsafe-perm
+            npm install
             meteor node -e 'console.log("I am Node.js %s!", process.version);'
 
       # Start meteor in background
@@ -64,30 +63,30 @@ jobs:
       - deploy:
           command:  |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              rm -rf .electrify/.dist/
-              mkdir .electrify/.dist
               npm install -g electrify-qrl
-              meteor npm install --unsafe-perm
+              npm install
               export NODEPATH=/usr/local/Cellar/node/8.7.0
               export PATH="$NODEPATH/bin:$PATH"
               # Package Electron App
-              npm run packageElectron
+              npm run cleanDist
+              npm run prepare
+              npm run build
               # Build Macos DMG
-              npm run buildMacosDmg
+              npm run installer
               # Clear Electron build folder
               rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
             fi
             if [ "${CIRCLE_BRANCH}" == "devnet" ]; then
-              rm -rf .electrify/.dist/
-              mkdir .electrify/.dist
               npm install -g electrify-qrl
-              meteor npm install --unsafe-perm
+              npm install
               export NODEPATH=/usr/local/Cellar/node/8.7.0
               export PATH="$NODEPATH/bin:$PATH"
               # Package Electron App
-              npm run packageElectron
+              npm run cleanDist
+              npm run prepare
+              npm run build
               # Build Macos DMG
-              npm run buildMacosDmg
+              npm run installer
               # Clear Electron build folder
               rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
             fi
