@@ -13,6 +13,7 @@ const config = {
     outPath: path.resolve('.electrify/dist'),
     installFolderName: 'QRL',
     icon: path.resolve('.electrify/assets/qrl.ico'),
+    exeName: 'QRLWallet',
   },
   macos: {
     electronPath: path.resolve('.electrify/.dist/QRLWallet-darwin-x64/QRLWallet.app'),
