@@ -66,7 +66,7 @@
     "win:remove_dist": "if exist .electrify\\dist rmdir /s /q .electrify\\dist",
     "win:create_dist": "if not exist .electrify\\dist mkdir .electrify\\dist",
     "electron": "electrify",
-    "prepare": "meteor lint",
+    "releaseready": "meteor lint",
     "build": "run-script-os",
     "build:darwin": "electrify package -o .electrify/.dist/",
     "build:linux": "electrify package -o .electrify/.dist/",

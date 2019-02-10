@@ -71,7 +71,7 @@ Note: QRL Wallet must already be running for this to work!
 
 > MacOS, Linux and Windows
 
-	npm run prepare
+	npm run releaseready
 	npm run build
 
 ## Build Installer
