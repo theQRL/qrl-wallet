@@ -5,7 +5,6 @@ let window;
 let loading;
 
 app.on('ready', function() {
-  
   // Create the loading screen
   loading = new BrowserWindow({
     width: 830, height: 310,
@@ -92,29 +91,3 @@ app.on('window-all-closed', function terminate_and_quit(event) {
     });
   }
 });
-
-// Defining Methods on the Electron side
-//
-// electrify.methods({
-//   'method.name': function(name, done) {
-//     // do things... and call done(err, arg1, ..., argN)
-//     done(null);
-//   }
-// });
-//
-// =============================================================================
-// Created methods can be called seamlessly with help of the
-// meteor-electrify-client package from your Meteor's
-// client and server code, using:
-// 
-//    Electrify.call('methodname', [..args..], callback);
-// 
-// ATTENTION:
-//    From meteor, you can only call these methods after electrify is fully
-//    started, use the Electrify.startup() convenience method for this
-//
-// Electrify.startup(function(){
-//   Electrify.call(...);
-// });
-// 
-// ============================================================================
