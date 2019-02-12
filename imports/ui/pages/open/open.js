@@ -3,13 +3,11 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
 
 import aes256 from 'aes256'
 import async from 'async'
 import './open.html'
-
-const LEDGER_TIMEOUT = 10000
 
 Template.appAddressOpen.onCreated(() => {
   Session.set('modalEventTriggered', false)
@@ -21,32 +19,93 @@ function clearLedgerDetails() {
   Session.set('ledgerDetailsLibraryVersion', '')
   Session.set('ledgerDetailsPkHex', '')
 }
+
 function getLedgerState(callback) {
   console.log('-- Getting QRL Ledger Nano App State --')
-  QrlLedger.get_state().then(data => {
-    console.log('> Got Ledger Nano State')
-    console.log(data)
-    callback(null, data)
-  })
+  if (isElectrified()) {
+    Meteor.call('ledgerGetState', [], (err, data) => {
+      console.log('> Got Ledger Nano State from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.get_state().then(data => {
+      console.log('> Got Ledger Nano State from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
 }
 function getLedgerPubkey(callback) {
   console.log('-- Getting QRL Ledger Nano Public Key --')
-  QrlLedger.publickey().then(data => {
-    // Convert Uint to hex
-    const pkHex = Buffer.from(data.public_key).toString('hex')
-    // Get address from pk
-    const qAddress = QRLLIB.getAddress(pkHex)
-    const ledgerQAddress = `Q${qAddress}`
-    Session.set('ledgerDetailsAddress', ledgerQAddress)
-    Session.set('ledgerDetailsPkHex', pkHex)
-    $('#walletCode').val(ledgerQAddress)
-    callback(null, data)
-  })
+  if (isElectrified()) {
+    Meteor.call('ledgerPublicKey', [], (err, data) => {
+      console.log('> Got Ledger Public Key from USB')
+      // Convert Uint to hex
+      const pkHex = Buffer.from(data.public_key).toString('hex')
+      // Get address from pk
+      const qAddress = QRLLIB.getAddress(pkHex)
+      const ledgerQAddress = `Q${qAddress}`
+      Session.set('ledgerDetailsAddress', ledgerQAddress)
+      Session.set('ledgerDetailsPkHex', pkHex)
+      $('#walletCode').val(ledgerQAddress)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.publickey().then(data => {
+      console.log('> Got Ledger Public Key from U2F')
+      // Convert Uint to hex
+      const pkHex = Buffer.from(data.public_key).toString('hex')
+      // Get address from pk
+      const qAddress = QRLLIB.getAddress(pkHex)
+      const ledgerQAddress = `Q${qAddress}`
+      Session.set('ledgerDetailsAddress', ledgerQAddress)
+      Session.set('ledgerDetailsPkHex', pkHex)
+      $('#walletCode').val(ledgerQAddress)
+      callback(null, data)
+    })
+  }
+}
+
+function getLedgerVersion(callback) {
+  console.log('-- Getting QRL Ledger Nano App Version --')
+  if (isElectrified()) {
+    Meteor.call('ledgerAppVersion', [], (err, data) => {
+      console.log('> Got Ledger App Version from USB')
+      Session.set('ledgerDetailsAppVersion', data.major + '.' + data.minor + '.' + data.patch)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.app_version().then(data => {
+      console.log('> Got Ledger App Version from U2F')
+      Session.set('ledgerDetailsAppVersion', data.major + '.' + data.minor + '.' + data.patch)
+      callback()
+    })
+  }
+}
+
+function getLedgerLibraryVersion(callback) {
+  if (isElectrified()) {
+    Meteor.call('ledgerAppVersion', [], (err, data) => {
+      console.log('> Got Ledger Library Version from USB')
+      Session.set('ledgerDetailsLibraryVersion', data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.library_version().then(data => {
+      console.log('> Got Ledger Library Version from U2F')
+      Session.set('ledgerDetailsLibraryVersion', data)
+      callback(data)
+    })
+  }
 }
 
 // Wrap ledger calls in async.timeout
 const getLedgerStateWrapper = async.timeout(getLedgerState, LEDGER_TIMEOUT)
 const getLedgerPubkeyWrapper = async.timeout(getLedgerPubkey, LEDGER_TIMEOUT)
+const getLedgerVersionWrapper = async.timeout(getLedgerVersion, LEDGER_TIMEOUT)
+const getLedgerLibraryVersionWrapper = async.timeout(getLedgerLibraryVersion, LEDGER_TIMEOUT)
+
 
 function refreshLedger() {
   // Clear Ledger State
@@ -118,15 +177,13 @@ function refreshLedger() {
             },
             // Get the Ledger Device app version
             function (cb) {
-              QrlLedger.app_version().then(verData => {
-                Session.set('ledgerDetailsAppVersion', verData.major + '.' + verData.minor + '.' + verData.patch)
+              getLedgerVersionWrapper(function (data) {
                 cb()
               })
             },
             // Get the local QrlLedger JS library version
             function (cb) {
-              QrlLedger.library_version().then(libData => {
-                Session.set('ledgerDetailsLibraryVersion', libData)
+              getLedgerLibraryVersionWrapper(function(data) {
                 cb()
               })
             },

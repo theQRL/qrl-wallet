@@ -1,5 +1,23 @@
 <template name="appTransfer">
 
+<div class="small ui modal" id="verifyLedgerNanoAddressModal">
+  <div class="header">Ledger Nano S Address Verification</div>
+  <div class="content">
+    <div class="ui warning icon message">
+      <i class="warning icon"></i>
+      <div>
+        <div class="header">
+          The address below should be displayed on your Ledger Nano S device.
+        </div>
+        <p class="wordBreak"><strong>Address:</strong> {{transferFrom.address}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui approve red button">Close</div>
+  </div>
+</div>
+
 <div class="small ui modal" id="cancelTransactionGenerationWarning">
   <div class="header">Whoa there buddy!!</div>
   <div class="content">
@@ -746,6 +764,15 @@
               </div>
             </div>
           </div>
+          {{else}}
+          <div class="ui stackable grid">
+            <div class="sixteen wide column left aligned">
+              <h4>Verify Ledger Nano S Address</h4>
+              <div class="column center aligned">
+                <button id="verifyLedgerNanoAddress" class="ui huge primary button red" style="width: 100%">Click to Verify</button>
+              </div>
+            </div>
+          </div>
           {{/if}}
       </div>
 
@@ -1017,8 +1044,8 @@
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
 </div>
 
-
 </template>
+
 <template name="recoverySeedModal">
   <div class="small ui modal" id="recoverySeedModal">
   <div class="header">Wallet Recovery Seed</div>
@@ -1041,3 +1068,4 @@
   </div>
 </div>
 </template>
+

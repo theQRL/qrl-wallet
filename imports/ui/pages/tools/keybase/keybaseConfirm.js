@@ -3,9 +3,47 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
 
+import async from 'async'
 import './keybaseConfirm.html'
+
+function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
+  console.log('-- Getting QRL Ledger Nano App createMessageTx --')
+  if (isElectrified()) {
+    Meteor.call('ledgerCreateMessageTx', sourceAddr, fee, message, (err, data) => {
+      console.log('> Got Ledger Nano createMessageTx from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.createMessageTx(sourceAddr, fee, message).then(data => {
+      console.log('> Got Ledger Nano createMessageTx from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+function getLedgerRetrieveSignature(request, callback) {
+  console.log('-- Getting QRL Ledger Nano App Signature --')
+  if (isElectrified()) {
+    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+      console.log('> Got Ledger Nano retrieveSignature from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.retrieveSignature(request).then(data => {
+      console.log('> Got Ledger Nano retrieveSignature from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+
+// Wrap ledger calls in async.timeout
+const getLedgerCreateMessageTxWrapper = async.timeout(getLedgerCreateMessageTx, LEDGER_TIMEOUT)
+const getLedgerRetrieveSignatureWrapper = async.timeout(getLedgerRetrieveSignature, LEDGER_TIMEOUT)
 
 function confirmKeybaseCreation() {
   const tx = Session.get('messageCreationConfirmationResponse')
@@ -124,8 +162,8 @@ function confirmKeybaseCreation() {
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
     // eslint-disable-next-line max-len
-    QrlLedger.createMessageTx(sourceAddr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash)).then(txn => {
-      QrlLedger.retrieveSignature(txn).then(sigResponse => {
+    getLedgerCreateMessageTxWrapper(sourceAddr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash), function (err, txn) {
+      getLedgerRetrieveSignatureWrapper(txn, function (err, sigResponse) {
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
 

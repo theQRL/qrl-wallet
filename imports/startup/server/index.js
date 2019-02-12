@@ -3,7 +3,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -15,6 +15,8 @@ import fs from 'fs'
 import async from 'async'
 import CryptoJS from 'crypto-js'
 import util from 'util'
+import * as HID from 'node-hid'
+import QrlLedger from '/node_modules/ledger-qrl-js/wallet/qrl-ledger-library-src.js'
 
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
@@ -1020,6 +1022,68 @@ const apiCall = (apiUrl, callback) => {
   }
 }
 
+// Ledger Nano S Integration for Electron Desktop Apps
+const ledgerGetState = (request, cb) => {
+  QrlLedger.get_state().then(data => {
+    cb(null, data)
+  })
+}
+const ledgerPublicKey = (request, cb) => {
+  QrlLedger.publickey().then(data => {
+    cb(null, data)
+  })
+}
+const ledgerAppVersion = (request, cb) => {
+  QrlLedger.app_version().then(data => {
+    cb(null, data)
+  })
+}
+const ledgerLibraryVersion = (request, cb) => {
+  QrlLedger.library_version().then(data => {
+    cb(null, data)
+  })
+}
+const ledgerVerifyAddress = (request, cb) => {
+  QrlLedger.viewAddress().then(data => {
+    cb(null, data)
+  })
+}
+const ledgerCreateTx = (sourceAddr, fee, destAddr, destAmount, cb) => {
+  sourceAddr = Buffer.from(sourceAddr)
+  fee = Buffer.from(fee)
+
+  const destAddrFinal = []
+  const destAmountFinal = []
+  for (let i = 0; i < destAddr.length; i += 1) {
+    destAddrFinal.push(Buffer.from(destAddr[i]))
+    destAmountFinal.push(Buffer.from(destAmount[i]))
+  }
+
+  QrlLedger.createTx(sourceAddr, fee, destAddrFinal, destAmountFinal).then(data => {
+    cb(null, data)
+  })
+}
+const ledgerRetrieveSignature = (txn, cb) => {
+  QrlLedger.retrieveSignature(txn).then(data => {
+    cb(null, data)
+  })
+}
+const ledgerSetIdx = (otsKey, cb) => {
+  QrlLedger.setIdx(otsKey).then(idxResponse => {
+    cb(null, idxResponse)
+  })
+}
+const ledgerCreateMessageTx = (sourceAddr, fee, message, cb) => {
+  sourceAddr = Buffer.from(sourceAddr)
+  fee = Buffer.from(fee)
+  message = Buffer.from(message)
+
+  QrlLedger.createMessageTx(sourceAddr, fee, message).then(data => {
+    cb(null, data)
+  })
+}
+
+
 // Define Meteor Methods
 Meteor.methods({
   connectToNode(request) {
@@ -1300,6 +1364,70 @@ Meteor.methods({
     const responseUSD = Meteor.wrapAsync(apiCall)(apiUrlUSD)
     const usd = response.result[0].Last * responseUSD.result[0].Last
     return usd
+  },
+  ledgerGetState(request) {
+    this.unblock()
+    check(request, Array)
+    const response = Meteor.wrapAsync(ledgerGetState)(request)
+    console.log('res')
+    console.log(response)
+    return response
+  },
+  ledgerPublicKey(request) {
+    this.unblock()
+    check(request, Array)
+    const response = Meteor.wrapAsync(ledgerPublicKey)(request)
+    return response
+  },
+  ledgerAppVersion(request) {
+    this.unblock()
+    check(request, Array)
+    const response = Meteor.wrapAsync(ledgerAppVersion)(request)
+    return response
+  },
+  ledgerLibraryVersion(request) {
+    this.unblock()
+    check(request, Array)
+    const response = Meteor.wrapAsync(ledgerLibraryVersion)(request)
+    return response
+  },
+  ledgerVerifyAddress(request) {
+    this.unblock()
+    check(request, Array)
+    const response = Meteor.wrapAsync(ledgerVerifyAddress)(request)
+    return response
+  },
+  ledgerCreateTx(sourceAddr, fee, destAddr, destAmount) {
+    this.unblock()
+    check(sourceAddr, Match.Any)
+    check(fee, Match.Any)
+    check(destAddr, Match.Any)
+    check(destAmount, Match.Any)
+
+    console.log('2: sourceAddr: ',sourceAddr,' - fee: ', fee,' - destAddr: ',destAddr, ' - destAmount: ', destAmount)
+
+    const response = Meteor.wrapAsync(ledgerCreateTx)(sourceAddr, fee, destAddr, destAmount)
+    return response
+  },
+  ledgerCreateMessageTx(sourceAddr, fee, message) {
+    this.unblock()
+    check(sourceAddr, Match.Any)
+    check(fee, Match.Any)
+    check(message, Match.Any)
+    const response = Meteor.wrapAsync(ledgerCreateMessageTx)(sourceAddr, fee, message)
+    return response
+  },
+  ledgerRetrieveSignature(request) {
+    this.unblock()
+    check(request, Match.Any)
+    const response = Meteor.wrapAsync(ledgerRetrieveSignature)(request)
+    return response
+  },
+  ledgerSetIdx(request) {
+    this.unblock()
+    check(request, Match.Any)
+    const response = Meteor.wrapAsync(ledgerSetIdx)(request)
+    return response
   },
 })
 

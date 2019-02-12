@@ -3,13 +3,72 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
+import async from 'async'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 import './transfer.html'
+
+function verifyLedgerNanoAddress(callback) {
+  console.log('-- Verify Ledger Nano S Address --')
+  if (isElectrified()) {
+    Meteor.call('ledgerVerifyAddress', [], (err, data) => {
+      console.log('> Got Ledger Nano address verification from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.viewAddress().then(data => {
+      console.log('> Got Ledger Nano address verification from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+
+function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
+  console.log('-- Getting QRL Ledger Nano App createTx --')
+  console.log('1: sourceAddr: ',sourceAddr,' - fee: ', fee,' - destAddr: ',destAddr, ' - destAmount: ', destAmount)
+
+  if (isElectrified()) {
+    Meteor.call('ledgerCreateTx', sourceAddr, fee, destAddr, destAmount, (err, data) => {
+      console.log('> Got Ledger Nano createTx from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(data => {
+      console.log('> Got Ledger Nano createTx from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+function getLedgerRetrieveSignature(request, callback) {
+  console.log('-- Getting QRL Ledger Nano App Signature --')
+  if (isElectrified()) {
+    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+      console.log('> Got Ledger Nano retrieveSignature from USB')
+      console.log(data)
+      callback(null, data)
+    })
+  } else {
+    QrlLedger.retrieveSignature(request).then(data => {
+      console.log('> Got Ledger Nano retrieveSignature from U2F')
+      console.log(data)
+      callback(null, data)
+    })
+  }
+}
+
+// Wrap ledger calls in async.timeout
+const verifyLedgerNanoAddressWrapper = async.timeout(verifyLedgerNanoAddress, LEDGER_TIMEOUT)
+const getLedgerCreateTxWrapper = async.timeout(getLedgerCreateTx, LEDGER_TIMEOUT)
+const getLedgerRetrieveSignatureWrapper = async.timeout(getLedgerRetrieveSignature, LEDGER_TIMEOUT)
+
 
 function generateTransaction() {
   // Get to/amount details
@@ -271,8 +330,11 @@ function confirmTransaction() {
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
-    QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(txn => {
-      QrlLedger.retrieveSignature(txn).then(sigResponse => {
+    getLedgerCreateTxWrapper(sourceAddr, fee, destAddr, destAmount, function(err, txn) {
+      getLedgerRetrieveSignatureWrapper(txn, function(err, sigResponse) {
+    //QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(txn => {
+      // QrlLedger.retrieveSignature(txn).then(sigResponse => {
+
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
 
@@ -317,7 +379,7 @@ function confirmTransaction() {
           $('#relayLedgerTxnButton').show()
         }
       }) // retrieveSignature
-    })
+    }) // getLedgerCreateTx
   }
 }
 
@@ -910,6 +972,10 @@ Template.appTransfer.events({
   },
   'click #showRecoverySeed': () => {
     $('#recoverySeedModal').modal('show')
+  },
+  'click #verifyLedgerNanoAddress': () => {
+    $('#verifyLedgerNanoAddressModal').modal('show')
+    verifyLedgerNanoAddressWrapper(function () {})
   },
 })
 
