@@ -3,7 +3,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import aes256 from 'aes256'
 import async from 'async'
@@ -100,18 +100,11 @@ function getLedgerLibraryVersion(callback) {
   }
 }
 
-// Wrap ledger calls in async.timeout
-const getLedgerStateWrapper = async.timeout(getLedgerState, LEDGER_TIMEOUT)
-const getLedgerPubkeyWrapper = async.timeout(getLedgerPubkey, LEDGER_TIMEOUT)
-const getLedgerVersionWrapper = async.timeout(getLedgerVersion, LEDGER_TIMEOUT)
-const getLedgerLibraryVersionWrapper = async.timeout(getLedgerLibraryVersion, LEDGER_TIMEOUT)
-
-
 function refreshLedger() {
   // Clear Ledger State
   clearLedgerDetails()
 
-  getLedgerStateWrapper(function (err, data) {
+  getLedgerState(function (err, data) {
     if (err) {
       // We timed out requesting data from ledger
       $('#readingLedger').hide()
@@ -133,7 +126,7 @@ function refreshLedger() {
         async.during(
           // Truth function - check if current generation height < 256
           function (callback) {
-            getLedgerStateWrapper(function (stateErr, stateData) { //eslint-disable-line
+            getLedgerState(function (stateErr, stateData) { //eslint-disable-line
               if (stateErr) {
                 // Device unplugged?
                 $('#ledgerKeysGeneratingError').hide()
@@ -165,7 +158,7 @@ function refreshLedger() {
           async.waterfall([
             // Get the public key from the ledger so we can determine Q address
             function (cb) {
-              getLedgerPubkeyWrapper(function (pubErr, pubData) { // eslint-disable-line
+              getLedgerPubkey(function (pubErr, pubData) { // eslint-disable-line
                 if (pubErr) {
                   // We timed out requesting data from ledger
                   $('#readingLedger').hide()
@@ -177,13 +170,13 @@ function refreshLedger() {
             },
             // Get the Ledger Device app version
             function (cb) {
-              getLedgerVersionWrapper(function (data) {
+              getLedgerVersion(function (data) {
                 cb()
               })
             },
             // Get the local QrlLedger JS library version
             function (cb) {
-              getLedgerLibraryVersionWrapper(function(data) {
+              getLedgerLibraryVersion(function(data) {
                 cb()
               })
             },
@@ -212,7 +205,7 @@ function refreshLedger() {
         }) // waitForQRLLIB
       } // device state check
     } // if(err) else
-  }) // getLedgerStateWrapper
+  }) // getLedgerState
 }
 
 function updateWalletType() {
