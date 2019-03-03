@@ -3,7 +3,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import async from 'async'
 import './update.html'
@@ -22,9 +22,6 @@ function updateLedgerIdx(otsKey, callback) {
   }
 }
 
-// Wrap ledger calls in async.timeout
-const updateLedgerIdxWrapper = async.timeout(updateLedgerIdx, LEDGER_TIMEOUT)
-
 function updateLedgerOtsKeyIndex() {
   // Get OTS Index
   const otsKey = parseInt(document.getElementById('otsKey').value, 10)
@@ -39,7 +36,7 @@ function updateLedgerOtsKeyIndex() {
   // Attempt to set IDX
   console.log('Setting Ledger Nano XMSS Index to: ', otsKey)
   // QrlLedger.setIdx(otsKey).then(idxResponse => {
-  updateLedgerIdxWrapper(otsKey, function (err, idxResponse) {
+  updateLedgerIdx(otsKey, function (err, idxResponse) {
     $('#updatingLedger').hide()
     console.log('Ledger Response')
     console.log(idxResponse)

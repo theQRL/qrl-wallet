@@ -3,7 +3,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import async from 'async'
 import './messageConfirm.html'
@@ -40,10 +40,6 @@ function getLedgerRetrieveSignature(request, callback) {
     })
   }
 }
-
-// Wrap ledger calls in async.timeout
-const getLedgerCreateMessageTxWrapper = async.timeout(getLedgerCreateMessageTx, LEDGER_TIMEOUT)
-const getLedgerRetrieveSignatureWrapper = async.timeout(getLedgerRetrieveSignature, LEDGER_TIMEOUT)
 
 function confirmMessageCreation() {
   const tx = Session.get('messageCreationConfirmationResponse')
@@ -111,6 +107,7 @@ function confirmMessageCreation() {
     $('#awaitingLedgerConfirmation').show()
     $('#signOnLedgerRejected').hide()
     $('#signOnLedgerTimeout').hide()
+    $('#signOnLedgerError').hide()
     $('#ledgerHasConfirmed').hide()
     $('#relayLedgerTxnButton').hide()
     $('#noRemainingSignatures').hide()
@@ -154,8 +151,8 @@ function confirmMessageCreation() {
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
     // eslint-disable-next-line max-len
-    getLedgerCreateMessageTxWrapper(sourceAddr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash), function (err, txn) {
-      getLedgerRetrieveSignatureWrapper(txn, function (err, sigResponse) {
+    getLedgerCreateMessageTx(sourceAddr, fee, Buffer.from(tx.extended_transaction_unsigned.tx.message.message_hash), function (err, txn) {
+      getLedgerRetrieveSignature(txn, function (err, sigResponse) {
 
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
@@ -170,6 +167,9 @@ function confirmMessageCreation() {
         // Check if the the request timed out waiting for response on ledger
         } else if (sigResponse.return_code === 14) {
           $('#signOnLedgerTimeout').show()
+        // Check for unknown errors
+        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == "Unknown error code")) {
+          $('#signOnLedgerError').show()
         } else {
           // Show confirmation message
           $('#ledgerHasConfirmed').show()
