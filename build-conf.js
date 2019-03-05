@@ -5,7 +5,7 @@ const config = {
   name: 'QRL Wallet',
   safeName: 'qrl-wallet',
   description: 'QRL Wallet',
-  version: '1.1.0',
+  version: '1.1.1',
   manufacturer: 'DIE QRL STIFTUNG, Zug Switzerland',
   homepage: 'https://www.theqrl.org/',
   windows: {
