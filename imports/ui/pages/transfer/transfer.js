@@ -3,7 +3,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256, LEDGER_TIMEOUT,  */
+/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
@@ -31,8 +31,6 @@ function verifyLedgerNanoAddress(callback) {
 
 function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
   console.log('-- Getting QRL Ledger Nano App createTx --')
-  console.log('1: sourceAddr: ',sourceAddr,' - fee: ', fee,' - destAddr: ',destAddr, ' - destAmount: ', destAmount)
-
   if (isElectrified()) {
     Meteor.call('ledgerCreateTx', sourceAddr, fee, destAddr, destAmount, (err, data) => {
       console.log('> Got Ledger Nano createTx from USB')
@@ -63,12 +61,6 @@ function getLedgerRetrieveSignature(request, callback) {
     })
   }
 }
-
-// Wrap ledger calls in async.timeout
-const verifyLedgerNanoAddressWrapper = async.timeout(verifyLedgerNanoAddress, LEDGER_TIMEOUT)
-const getLedgerCreateTxWrapper = async.timeout(getLedgerCreateTx, LEDGER_TIMEOUT)
-const getLedgerRetrieveSignatureWrapper = async.timeout(getLedgerRetrieveSignature, LEDGER_TIMEOUT)
-
 
 function generateTransaction() {
   // Get to/amount details
@@ -284,6 +276,7 @@ function confirmTransaction() {
     $('#awaitingLedgerConfirmation').show()
     $('#signOnLedgerRejected').hide()
     $('#signOnLedgerTimeout').hide()
+    $('#signOnLedgerError').hide()
     $('#ledgerHasConfirmed').hide()
     $('#relayLedgerTxnButton').hide()
     $('#noRemainingSignatures').hide()
@@ -330,10 +323,8 @@ function confirmTransaction() {
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
-    getLedgerCreateTxWrapper(sourceAddr, fee, destAddr, destAmount, function(err, txn) {
-      getLedgerRetrieveSignatureWrapper(txn, function(err, sigResponse) {
-    //QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(txn => {
-      // QrlLedger.retrieveSignature(txn).then(sigResponse => {
+    getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, function(err, txn) {
+      getLedgerRetrieveSignature(txn, function(err, sigResponse) {
 
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
@@ -348,6 +339,9 @@ function confirmTransaction() {
         // Check if the the request timed out waiting for response on ledger
         } else if (sigResponse.return_code === 14) {
           $('#signOnLedgerTimeout').show()
+        // Check for unknown errors
+        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == "Unknown error code")) {
+          $('#signOnLedgerError').show()
         } else {
           // Show confirmation message
           $('#ledgerHasConfirmed').show()
@@ -975,7 +969,7 @@ Template.appTransfer.events({
   },
   'click #verifyLedgerNanoAddress': () => {
     $('#verifyLedgerNanoAddressModal').modal('show')
-    verifyLedgerNanoAddressWrapper(function () {})
+    verifyLedgerNanoAddress(function () {})
   },
 })
 
