@@ -1,11 +1,12 @@
 // Defines build configuration that is for each platform build.
 const path = require('path')
+const pjson = require('./package.json')
 
 const config = {
   name: 'QRL Wallet',
   safeName: 'qrl-wallet',
   description: 'QRL Wallet',
-  version: '1.1.0',
+  version: pjson.version,
   manufacturer: 'DIE QRL STIFTUNG, Zug Switzerland',
   homepage: 'https://www.theqrl.org/',
   windows: {
