@@ -636,6 +636,32 @@ const createKeybaseTxn = (request, callback) => {
   })
 }
 
+// Create Github Txn
+const createGithubTxn = (request, callback) => {
+  const tx = {
+    // master_addr: request.addressFrom,
+    message: request.message,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+    network: request.network,
+  }
+  // uses message transaction internally
+  qrlApi('getMessageTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
 const confirmTokenCreation = (request, callback) => {
   const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
   const relayedThrough = []
@@ -895,6 +921,89 @@ const confirmKeybaseCreation = (request, callback) => {
     callback(null, txnResponse)
   })
 }
+
+const confirmGithubCreation = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  confirmTxn.transaction_signed.message.message_hash =
+    toBuffer(confirmTxn.transaction_signed.message.message_hash)
+
+  confirmTxn.network = request.network
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try{
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          if (err) {
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+    /*
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          try{
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+                cb()
+              } else {
+                console.log(`Token Creation Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch (err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+            cb()
+          }
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('All token creation txns sent')
+        wfcb()
+      })
+    },
+    */
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
 // Function to call GetTransferTokenTxn API
 const createTokenTransferTxn = (request, callback) => {
   const tx = {
@@ -1319,6 +1428,12 @@ Meteor.methods({
     const response = Meteor.wrapAsync(createKeybaseTxn)(request)
     return response
   },
+  createGithubTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createGithubTxn)(request)
+    return response
+  },
   confirmMessageCreation(request) {
     this.unblock()
     check(request, Object)
@@ -1329,6 +1444,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(confirmKeybaseCreation)(request)
+    return response
+  },
+  confirmGithubCreation(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmGithubCreation)(request)
     return response
   },
   createTokenTxn(request) {
