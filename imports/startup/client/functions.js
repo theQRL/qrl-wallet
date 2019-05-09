@@ -800,6 +800,16 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // If we got here, everything matches the request
     return true
+  } else if (type === 'createGithubTxn') {
+    // Validate Message
+    if (bytesToString(request.message) !== response.message) {
+      console.log('Transaction Validation - Message mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+
+    // If we got here, everything matches the request
+    return true
   } else if (type === 'createKeybaseTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
