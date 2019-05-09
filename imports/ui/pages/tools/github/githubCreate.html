@@ -1,4 +1,4 @@
-<template name="appKeybaseCreate">
+<template name="appGithubCreate">
 
 <div class="small ui modal" id="lowOtsKeyWarning">
   <div class="header">OTS Keys Running Low!</div>
@@ -83,9 +83,9 @@
 </div>
 
 <h2 class="ui header pageHeader">
-  <i class="icon"><img src="/img/keybase-w.svg"></i>
+  <i class="icon"><img src="/img/github-w.svg"></i>
   <div class="content">
-    Keybase ID
+    Github ID
   </div>
 </h2>
 
@@ -93,44 +93,49 @@
 
   <form id="generateMessageForm" class="ui form">
 
-    <h4 class="ui dividing header">Add or remove Keybase identity</h4>
+    <h4 class="ui dividing header">Add or remove Github identity</h4>
 
     <h4 id="transferFormFromAddress" class="breakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
     <h4 class="breakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
     <h4 class="ui horizontal divider header">
-      <img src="/img/keybase.svg">
-      Keybase ID
+      <img src="/img/github.svg">
+      Github ID
     </h4>
 
       <div class="grouped fields">
-    <label>Keybase action</label>
+    <label>Github action</label>
     <div class="field">
       <div class="ui radio checkbox">
-        <input type="radio" name="kb_action" id="kb_add" checked>
+        <input type="radio" name="gh_action" id="gh_add" checked>
         <label>Add</label>
       </div>
     </div>
     <div class="field">
       <div class="ui radio checkbox">
-        <input type="radio" name="kb_action" id="kb_remove">
+        <input type="radio" name="gh_action" id="gh_remove">
         <label>Remove</label>
       </div>
     </div>
   </div>
 
   <div class="field">
-    <label>Keybase Username</label>
-    <input type="text" id="kb_username" autocomplete="off">
+    <label>Github Username</label>
+    <div class="ui action input"><input type="text" id="gh_username" autocomplete="off"><button class="ui red button" id="lookupID">Lookup ID <span class="ui tiny inverted inline loader" id="lookupInProgress"></span></button></div>
   </div>
 
     <div class="field">
-      <label>Keybase Signature hash</label>
+      <label>Github ID</label>
+      <input type="text" id="ghID" autocomplete="off" disabled value="{{ghID}}">
+    </div>
+
+    <div class="field">
+      <label>Delegated public key</label>
       <input type="text" id="message" autocomplete="off">
     </div>
 
     <div class="field">
-      <label>Keybase ID Creation Fee (In Quanta)</label>
+      <label>Github ID Creation Fee (In Quanta)</label>
       <input type="text" id="fee" value="0.25" autocomplete="off">
     </div>
 
@@ -156,7 +161,7 @@
     </div>
 
     <div class="field">
-      <button id="createMessage" class="ui huge primary button red" style="float: left;">Create Keybase Transaction</button>
+      <button id="createMessage" class="ui huge primary button red" style="float: left;" {{createButtonDisabled}}>Create Github Transaction</button>
       <br />
     </div>
 

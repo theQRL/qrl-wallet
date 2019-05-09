@@ -22,6 +22,9 @@ import '../../ui/pages/tools/notarise/result.js'
 import '../../ui/pages/tools/keybase/keybaseCreate.js'
 import '../../ui/pages/tools/keybase/keybaseConfirm.js'
 import '../../ui/pages/tools/keybase/keybaseResult.js'
+import '../../ui/pages/tools/github/githubCreate.js'
+import '../../ui/pages/tools/github/githubConfirm.js'
+import '../../ui/pages/tools/github/githubResult.js'
 
 import '../../ui/pages/tools/xmssindex/update.js'
 
@@ -177,6 +180,39 @@ FlowRouter.route('/tools/keybase/result', {
       BlazeLayout.render('appBody', { main: 'appKeybaseResult' })
     } else {
       BlazeLayout.render('mobile', { main: 'appKeybaseResult' })
+    }
+  },
+})
+FlowRouter.route('/tools/github', {
+  name: 'App.githubCreate',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appGithubCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appGithubCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/github/confirm', {
+  name: 'App.githubConfirm',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appGithubConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appGithubConfirm' })
+    }
+  },
+})
+FlowRouter.route('/tools/github/result', {
+  name: 'App.githubResult',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appGithubResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appGithubResult' })
     }
   },
 })
