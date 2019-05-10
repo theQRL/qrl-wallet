@@ -6,7 +6,7 @@
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import JSONFormatter from 'json-formatter-js'
-import './keybaseResult.html'
+import './githubResult.html'
 
 function setRawDetail() {
   const myJSON = Session.get('txhash').transaction
@@ -24,6 +24,10 @@ function checkResult(thisTxId, failureCount) {
       Session.set('txstatus', userMessage)
       $('.loading').hide()
       $('#loadingHeader').hide()
+      // show gist instructions if adding
+      const x = Session.get('githubOperation')
+      if (x.addorremove === 'AA') { $('#githubInstructions').show() }
+    
     } else if (Session.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if (failureCount < 5) {
@@ -95,17 +99,24 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 }
 
 
-Template.appKeybaseResult.onRendered(() => {
+Template.appGithubResult.onRendered(() => {
   $('.ui.dropdown').dropdown()
 
   // Start polling this transcation
   pollTransaction(Session.get('transactionHash'), true)
 })
 
-Template.appKeybaseResult.helpers({
+Template.appGithubResult.helpers({
   transactionHash() {
     const hash = Session.get('transactionHash')
     return hash
+  },
+  gist() {
+    const x = Session.get('githubOperation')
+    const res = {}
+    res.QRLaddress = x.QRLaddress
+    res.dpk = x.sigHash
+    return JSON.stringify(res)
   },
   transactionSignature() {
     const signature = Session.get('transactionSignature')
@@ -130,15 +141,15 @@ Template.appKeybaseResult.helpers({
     }
     return Session.get('nodeExplorerUrl')
   },
-  keybaseOperation() {
-    const keybaseOperation = Session.get('keybaseOperation')
-    if (keybaseOperation.addorremove === 'AA') { keybaseOperation.addorremove = 'ADD' }
-    if (keybaseOperation.addorremove === 'AF') { keybaseOperation.addorremove = 'REMOVE' }
-    return keybaseOperation
+  githubOperation() {
+    const githubOperation = Session.get('githubOperation')
+    if (githubOperation.addorremove === 'AA') { githubOperation.addorremove = 'ADD' }
+    if (githubOperation.addorremove === 'AF') { githubOperation.addorremove = 'REMOVE' }
+    return githubOperation
   },
 })
 
-Template.appKeybaseResult.events({
+Template.appGithubResult.events({
   'click .jsonclick': () => {
     if (!($('.json').html())) {
       setRawDetail()
