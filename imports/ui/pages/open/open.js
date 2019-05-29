@@ -105,7 +105,7 @@ function refreshLedger() {
   clearLedgerDetails()
 
   getLedgerState(function (err, data) {
-    if (err) {
+    if (err || data.return_code === 14) {
       // We timed out requesting data from ledger
       $('#readingLedger').hide()
       $('#ledgerReadError').show()
