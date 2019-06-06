@@ -1,0 +1,85 @@
+<template name="appMultisigCreationConfirm">
+
+<h4 class="ui header pageHeader">
+  <i class="tiny tags icon"></i>
+  <div class="content">
+    Create Multi Sig Address Confirmation
+  </div>
+</h4>
+
+<div id="multisigCreationConfirmation" class="ui red segment pageSegment">
+  <h4 class="ui horizontal divider header">
+    <i class="users icon"></i>
+    Signatories
+  </h4>
+
+  <div class="ui relaxed divided list">
+  {{#each signatories}}
+    <div class="item">
+      <i class="large user middle aligned icon"></i>
+      <div class="content">
+        <a class="header wordBreak">{{#if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}</a>
+        <div class="description">{{this.weight}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+
+  <div class="ui items">
+    <div class="item">
+      <div class="content">
+        <div class="extra wordBreak">
+          Threshold: {{multisigCreationConfirmation.threshold}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <h4 class="ui horizontal divider header">
+    <i class="file icon"></i>
+    Transaction Details
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <span>Fee <a class="ui">{{multisigCreationConfirmation.fee}}</a></span>
+      <br />
+      <span>OTS Key Index <a class="ui">{{multisigCreationConfirmation.otsKey}}</a></span>
+    </div>
+  </div>
+
+  <div class="ui stackable two column grid">
+    <div class="column center aligned">
+      <button id="confirmMultisig" class="ui huge primary button red">Confirm Multisig Address Creation</button>
+    </div>
+    <div class="column center aligned">
+      <button id="cancelMultisig" class="ui huge red button plain">Cancel Multisig Address Creation</button>
+    </div>
+  </div>
+
+
+  <div id="relaying" class="ui icon message" style="display: none;">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div class="header">
+        Just a moment
+      </div>
+      <p id="multisigRelayingMsg">Your multisig address is being relayed into the QRL network...</p>
+    </div>
+  </div>
+
+
+</div>
+
+<div id="transactionFailed" class="ui red segment pageSegment" style="display: none;">
+  <h4>Transaction Failed</h4>
+  <p style="word-wrap: break-word; word-break: break-all;">
+    Error! Your multisig address has failed to relay into the QRL network.<br />
+    Error message: {{transactionFailed}}
+  </p>
+</div>
+
+</template>

@@ -9,7 +9,9 @@ import aes256 from 'aes256'
 import async from 'async'
 import './open.html'
 
+
 Template.appAddressOpen.onCreated(() => {
+
   Session.set('modalEventTriggered', false)
 })
 
@@ -245,7 +247,6 @@ function updateWalletType() {
 }
 Template.appAddressOpen.onRendered(() => {
   $('.ui.dropdown').dropdown()
-
   clearLedgerDetails()
 
   // Restore local storage state
