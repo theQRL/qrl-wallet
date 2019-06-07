@@ -126,7 +126,8 @@ async function getLedgerVersion(callback) {
     const QrlLedger = await createTransport()
     QrlLedger.get_version().then(data => {
       console.log('> Got Ledger App Version from WebUSB')
-      Session.set('ledgerDetailsAppVersion', data.major + '.' + data.minor + '.' + data.patch)
+      Session.set('ledgerDetailsAppVersion', data.version)
+      console.log(data)
       callback()
     })
   }
@@ -142,8 +143,8 @@ async function getLedgerLibraryVersion(callback) {
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.get_version().then(data => {
-      console.log('> Got Ledger Library Version from U2F')
-      Session.set('ledgerDetailsLibraryVersion', data)
+      console.log('> Got Ledger Library Version from WebUSB')
+      Session.set('ledgerDetailsLibraryVersion', data.version)
       callback(data)
     })
   }
