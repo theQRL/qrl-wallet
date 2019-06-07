@@ -10,9 +10,10 @@ import { BigNumber } from 'bignumber.js'
 import async from 'async'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
+import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'
 import './transfer.html'
 
-function verifyLedgerNanoAddress(callback) {
+async function verifyLedgerNanoAddress(callback) {
   console.log('-- Verify Ledger Nano S Address --')
   if (isElectrified()) {
     Meteor.call('ledgerVerifyAddress', [], (err, data) => {
@@ -21,15 +22,16 @@ function verifyLedgerNanoAddress(callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.viewAddress().then(data => {
-      console.log('> Got Ledger Nano address verification from U2F')
+      console.log('> Got Ledger Nano address verification from WebUSB')
       console.log(data)
       callback(null, data)
     })
   }
 }
 
-function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
+async function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
   console.log('-- Getting QRL Ledger Nano App createTx --')
   if (isElectrified()) {
     Meteor.call('ledgerCreateTx', sourceAddr, fee, destAddr, destAmount, (err, data) => {
@@ -38,14 +40,15 @@ function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(data => {
-      console.log('> Got Ledger Nano createTx from U2F')
+      console.log('> Got Ledger Nano createTx from WebUSB')
       console.log(data)
       callback(null, data)
     })
   }
 }
-function getLedgerRetrieveSignature(request, callback) {
+async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
     Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
@@ -54,8 +57,9 @@ function getLedgerRetrieveSignature(request, callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.retrieveSignature(request).then(data => {
-      console.log('> Got Ledger Nano retrieveSignature from U2F')
+      console.log('> Got Ledger Nano retrieveSignature from WebUSB')
       console.log(data)
       callback(null, data)
     })

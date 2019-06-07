@@ -8,6 +8,7 @@
 import './body.html'
 import './customNode.html'
 import '../../stylesheets/overrides.css'
+import { isElectrified } from '../../../startup/client/functions'
 
 BlazeLayout.setRoot('body')
 
