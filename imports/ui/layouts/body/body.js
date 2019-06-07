@@ -201,12 +201,19 @@ Template.appBody.onRendered(() => {
 })
 
 Template.appBody.events({
+  'click .main-content-warning .right .item': () => {
+    $('.main-content-wrapper').css('padding-top', '0')
+    $('.main-content-warning').hide('slow')
+  },
   'click #hamburger': (event) => {
     event.preventDefault()
     $('.sidebar').sidebar('show')
   },
   'change #network': () => {
     updateNetwork(selectedNetwork())
+    // reload to update balances/Txs if on different network
+    window.Reload._reload()
+    FlowRouter.reload()
   },
   'change #addressFormatCheckbox': () => {
     const checked = $('#addressFormatCheckbox').prop('checked')
