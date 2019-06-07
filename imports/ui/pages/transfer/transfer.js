@@ -840,15 +840,22 @@ Template.appTransfer.onRendered(() => {
   }
 
   Tracker.autorun(function () {
-    if (LocalStore.get('addressFormat') === 'bech32') {
-      $('.qr-code-container').empty()
-      $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().addressB32 })
-    } else {
-      $('.qr-code-container').empty()
-      $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().address })
+    if (Session.get('walletStatus') !== undefined) {
+      if (Session.get('walletStatus').unlocked !== false) {
+        const xmss = getXMSSDetails()
+        if (xmss !== null) {
+          if (LocalStore.get('addressFormat') === 'bech32') {
+            $('.qr-code-container').empty()
+            $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().addressB32 })
+          } else {
+            $('.qr-code-container').empty()
+            $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().address })
+          }
+          $('#recQR').empty()
+          $('#recQR').qrcode({ width: 142, height: 142, text: xmss.hexseed })
+        }
+      }
     }
-    $('#recQR').empty()
-    $('#recQR').qrcode({ width: 142, height: 142, text: getXMSSDetails().hexseed })
   })
 })
 
@@ -999,6 +1006,7 @@ Template.appTransfer.helpers({
     return confirmationAmount
   },
   transactionConfirmationFee() {
+    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
     const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
@@ -1041,6 +1049,7 @@ Template.appTransfer.helpers({
     return status
   },
   txDetail() {
+    if (Session.get('txhash') === undefined) { return false }
     const txDetail = Session.get('txhash').transaction.tx.transfer
     txDetail.amount /= SHOR_PER_QUANTA
     txDetail.fee /= SHOR_PER_QUANTA
@@ -1048,7 +1057,9 @@ Template.appTransfer.helpers({
   },
   tokenTransferConfirmation() {
     const confirmation = Session.get('tokenTransferConfirmation')
-    confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+    if (confirmation !== undefined) {
+      confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+    }
     return confirmation
   },
   tokenTransferConfirmationAmount() {

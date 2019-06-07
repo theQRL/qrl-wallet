@@ -302,12 +302,13 @@ Template.appAddressOpen.onRendered(() => {
   resetLocalStorageState()
 
   // Route to transfer if wallet is already opened
-  if (Session.get('walletStatus').unlocked === true) {
-    const params = {}
-    const path = FlowRouter.path('/transfer', params)
-    FlowRouter.go(path)
+  if (Session.get('walletStatus') !== undefined) {
+    if (Session.get('walletStatus').unlocked === true) {
+      const params = {}
+      const path = FlowRouter.path('/transfer', params)
+      FlowRouter.go(path)
+    }
   }
-
   // determine last used means of opening wallet from LocalStore
   let openWalletPref = LocalStore.get('openWalletDefault')
   if ((!openWalletPref) || (openWalletPref === 'undefined')) {
