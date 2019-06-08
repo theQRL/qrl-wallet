@@ -5,18 +5,20 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
+import { isElectrified,  createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
 import async from 'async'
 import './update.html'
 
-function updateLedgerIdx(otsKey, callback) {
+async function updateLedgerIdx(otsKey, callback) {
   if (isElectrified()) {
     Meteor.call('ledgerSetIdx', otsKey, (err, data) => {
       console.log('> Set Ledger OTS Key via USB')
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.setIdx(otsKey).then(idxResponse => {
-      console.log('> Set Ledger OTS Key via U2F')
+      console.log('> Set Ledger OTS Key via WebUSB')
       callback(null, idxResponse)
     })
   }
@@ -41,7 +43,7 @@ function updateLedgerOtsKeyIndex() {
     console.log('Ledger Response')
     console.log(idxResponse)
 
-    if (idxResponse.return_code === 36864) {
+    if (!ledgerReturnedError(idxResponse)) {
       // Success
       $('#otsKeyUpdated').show()
     } else {

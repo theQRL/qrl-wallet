@@ -126,7 +126,8 @@ async function getLedgerVersion(callback) {
     const QrlLedger = await createTransport()
     QrlLedger.get_version().then(data => {
       console.log('> Got Ledger App Version from WebUSB')
-      Session.set('ledgerDetailsAppVersion', data.major + '.' + data.minor + '.' + data.patch)
+      Session.set('ledgerDetailsAppVersion', data.version)
+      console.log(data)
       callback()
     })
   }
@@ -142,8 +143,8 @@ async function getLedgerLibraryVersion(callback) {
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.get_version().then(data => {
-      console.log('> Got Ledger Library Version from U2F')
-      Session.set('ledgerDetailsLibraryVersion', data)
+      console.log('> Got Ledger Library Version from WebUSB')
+      Session.set('ledgerDetailsLibraryVersion', data.version)
       callback(data)
     })
   }
@@ -301,12 +302,13 @@ Template.appAddressOpen.onRendered(() => {
   resetLocalStorageState()
 
   // Route to transfer if wallet is already opened
-  if (Session.get('walletStatus').unlocked === true) {
-    const params = {}
-    const path = FlowRouter.path('/transfer', params)
-    FlowRouter.go(path)
+  if (Session.get('walletStatus') !== undefined) {
+    if (Session.get('walletStatus').unlocked === true) {
+      const params = {}
+      const path = FlowRouter.path('/transfer', params)
+      FlowRouter.go(path)
+    }
   }
-
   // determine last used means of opening wallet from LocalStore
   let openWalletPref = LocalStore.get('openWalletDefault')
   if ((!openWalletPref) || (openWalletPref === 'undefined')) {
