@@ -213,7 +213,6 @@ Template.appBody.events({
     updateNetwork(selectedNetwork())
     // reload to update balances/Txs if on different network
     window.Reload._reload()
-    FlowRouter.reload()
   },
   'change #addressFormatCheckbox': () => {
     const checked = $('#addressFormatCheckbox').prop('checked')

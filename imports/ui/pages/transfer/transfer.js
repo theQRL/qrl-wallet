@@ -7,7 +7,7 @@
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
-import async from 'async'
+
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'

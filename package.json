@@ -47,6 +47,9 @@
     "electrify-qrl": "0.2.3",
     "electron-rebuild": "^1.8.4",
     "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-meteor": "^5.1.0",
     "gulp-chimp": "^2.2.1"
   },
   "optionalDependencies": {
