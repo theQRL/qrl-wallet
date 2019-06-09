@@ -1120,6 +1120,255 @@ const confirmTokenTransfer = (request, callback) => {
   })
 }
 
+
+// Function to call GetTokenTxn API
+const createMultisigCreateTxn = (request, callback) => {
+  const tx = {
+    // master_addr: request.addressFrom,
+    signatories: request.signatories,
+    weights: request.weights,
+    threshold: request.threshold,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+    network: request.network
+  }
+
+  qrlApi('getMultiSigCreateTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+
+      console.log(response)
+
+      const transferResponse = {
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
+const confirmMultisigCreation = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  const signatories = confirmTxn.transaction_signed.multi_sig_create.signatories
+  signatoriesFormatted = []
+  signatories.forEach (function (signatory) {
+    signatoriesFormatted.push(toBuffer(signatory))
+  })
+
+  // Overwrite inital_balances with our updated one
+  confirmTxn.transaction_signed.multi_sig_create.signatories = signatoriesFormatted
+  confirmTxn.network = request.network
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try{
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          if (err) {
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+const createMultisigSpendTxn = (request, callback) => {
+  const tx = {
+    multi_sig_address: request.multi_sig_address,
+    addrs_to: request.addrs_to,
+    amounts: request.amounts,
+    expiry_block_number: request.expiry_block_number,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+    network: request.network
+  }
+
+  qrlApi('getMultiSigSpendTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
+const confirmMultisigSpend = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  confirmTxn.transaction_signed.multi_sig_spend.multi_sig_address = 
+    toBuffer(confirmTxn.transaction_signed.multi_sig_spend.multi_sig_address)
+
+  const addrs_to = confirmTxn.transaction_signed.multi_sig_spend.addrs_to
+  addressesFormatted = []
+  addrs_to.forEach (function (address) {
+    addressesFormatted.push(toBuffer(address))
+  })
+
+  // Overwrite inital_balances with our updated one
+  confirmTxn.transaction_signed.multi_sig_spend.addrs_to = addressesFormatted
+  confirmTxn.network = request.network
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try{
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          if (err) {
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+const createMultisigVoteTxn = (request, callback) => {
+  const tx = {
+    shared_key: request.shared_key,
+    unvote: request.unvote,
+    xmss_pk: request.xmssPk,
+    xmss_ots_index: request.xmssOtsKey,
+    network: request.network
+  }
+
+  qrlApi('getMultiSigVoteTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        txnHash: Buffer.from(response.extended_transaction_unsigned.tx.transaction_hash).toString('hex'),
+        response,
+      }
+
+      callback(null, transferResponse)
+    }
+  })
+}
+
+const confirmMultisigVote = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change ArrayBuffer
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.transaction_hash =
+    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  confirmTxn.transaction_signed.multi_sig_vote.shared_key = 
+    toBuffer(confirmTxn.transaction_signed.multi_sig_vote.shared_key)
+
+  confirmTxn.network = request.network
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try{
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          if (err) {
+            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Caught Error:  ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+
+
 const apiCall = (apiUrl, callback) => {
   try {
     const response = HTTP.get(apiUrl).data
@@ -1476,6 +1725,46 @@ Meteor.methods({
     const response = Meteor.wrapAsync(confirmTokenTransfer)(request)
     return response
   },
+
+
+  createMultisigCreateTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createMultisigCreateTxn)(request)
+    return response
+  },
+  confirmMultisigCreation(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMultisigCreation)(request)
+    return response
+  },
+  createMultisigSpendTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createMultisigSpendTxn)(request)
+    return response
+  },
+  confirmMultisigSpend(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMultisigSpend)(request)
+    return response
+  },
+  createMultisigVoteTxn(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createMultisigVoteTxn)(request)
+    return response
+  },
+  confirmMultisigVote(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMultisigVote)(request)
+    return response
+  },
+
+
   QRLvalue() {
     this.unblock()
     const apiUrl = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-qrl'

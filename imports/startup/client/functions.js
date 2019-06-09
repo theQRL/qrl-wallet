@@ -580,6 +580,49 @@ refreshTransferPage = (callback) => {
   })
 }
 
+/*
+  def generate_multi_sig_address(creation_tx_hash: bytes) -> bytes:
+      desc = bytes(hstr2bin('110000'))
+      prev_hash = bytes(sha2_256(desc + creation_tx_hash))
+      new_hash = bytes(sha2_256(desc + prev_hash))[-4:]
+      return desc + prev_hash + new_hash
+*/
+
+generateMultiSigAddress = (transactionHashHex) => {
+  const descriptor = hexToBytes('110000')
+  const txnHash = hexToBytes(transactionHashHex)
+
+  let tempHash = concatenateTypedArrays(
+    Uint8Array,
+    descriptor,
+    txnHash // eslint-disable-line
+  )
+
+  tempHash = binaryToBytes(QRLLIB.sha2_256(toUint8Vector(tempHash)))
+
+  let tempHash2 = concatenateTypedArrays(
+    Uint8Array,
+    descriptor,
+    tempHash // eslint-disable-line
+  )
+
+  tempHash2 = binaryToBytes(QRLLIB.sha2_256(toUint8Vector(tempHash2)))
+
+  let tempHash3 = tempHash2.buffer.slice(-4)
+  var tempHash4 = new Uint8Array(tempHash3)
+
+  let result = concatenateTypedArrays(
+    Uint8Array,
+    descriptor,
+    tempHash,
+    tempHash4 // eslint-disable-line
+  )
+
+  console.log('MultiSig Address - ', binaryToQrlAddress(result))
+  
+  return result
+}
+
 ledgerHasNoTokenSupport = () => {
   // Ledger Nano not supported here.
   if (getXMSSDetails().walletType === 'ledger') {

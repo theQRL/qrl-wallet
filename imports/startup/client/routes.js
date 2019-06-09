@@ -32,6 +32,18 @@ import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
 import '../../ui/pages/tokens/tokenCreateResult.js'
 
+import '../../ui/pages/tools/multisig/create.js'
+import '../../ui/pages/tools/multisig/createConfirm.js'
+import '../../ui/pages/tools/multisig/createResult.js'
+
+import '../../ui/pages/tools/multisig/spend.js'
+import '../../ui/pages/tools/multisig/spendConfirm.js'
+import '../../ui/pages/tools/multisig/spendResult.js'
+
+import '../../ui/pages/tools/multisig/vote.js'
+import '../../ui/pages/tools/multisig/voteConfirm.js'
+import '../../ui/pages/tools/multisig/voteResult.js'
+
 import '../../ui/pages/verify/verify.js'
 import '../../ui/pages/verify/tx.js'
 
@@ -216,6 +228,113 @@ FlowRouter.route('/tools/github/result', {
     }
   },
 })
+
+FlowRouter.route('/tools/multisig/create', {
+  name: 'App.multisigCreate',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/confirm', {
+  name: 'App.multisigConfirm',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigCreationConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigCreationConfirm' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/result', {
+  name: 'App.multisigResult',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigCreationResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigCreationResult' })
+    }
+  },
+})
+
+
+
+FlowRouter.route('/tools/multisig/spend', {
+  name: 'App.multisigSpend',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigSpend' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigSpend' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/spend-confirm', {
+  name: 'App.multisigSpendConfirm',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigSpendConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigSpendConfirm' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/spend-result', {
+  name: 'App.multisigSpendResult',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigSpendResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigSpendResult' })
+    }
+  },
+})
+
+
+FlowRouter.route('/tools/multisig/vote', {
+  name: 'App.multisigVote',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigVote' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigVote' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/vote-confirm', {
+  name: 'App.multisigVoteConfirm',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigVoteConfirm' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigVoteConfirm' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/vote-result', {
+  name: 'App.multisigVoteResult',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigVoteResult' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigVoteResult' })
+    }
+  },
+})
+
+
 FlowRouter.route('/tools/message/confirm', {
   name: 'App.messageConfirm',
   action() {

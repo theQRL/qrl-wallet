@@ -1,0 +1,89 @@
+<template name="appMultisigSpendResult">
+
+<h4 class="ui header pageHeader">
+  <i class="tiny tags icon"></i>
+  <div class="content">
+    MultiSig Spend Result
+  </div>
+</h4>
+
+<div id="transactionComplete" class="ui red segment pageSegment">
+
+  <h3 class="ui horizontal wordBreak">
+    <i class="users icon"></i>
+    MultiSig Address - {{multiSigAddress}}
+  </h3>
+
+
+  <h4 class="ui horizontal divider header">
+    <i class="users icon"></i>
+    Recipients
+  </h4>
+
+  <div class="ui relaxed divided list">
+  {{#each recipients}}
+    <div class="item">
+      <i class="large user middle aligned icon"></i>
+      <div class="content">
+        <a class="header wordBreak">{{#if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}</a>
+        <div class="description">{{this.amount}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+  <div class="ui items">
+    <div class="item">
+      <div class="content">
+        <div class="extra wordBreak">
+          Expiry Block Number: {{multisigSpendConfirmation.expiry_block_number}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4 class="ui horizontal divider header">
+    <i class="signal icon"></i>
+    Transaction Status
+  </h4>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
+        Success! Your multisig spend transaction has been relayed into the QRL network through the following nodes, and is pending validation.
+      </p>
+    </div>
+  </div>
+
+  <div class="ui mini horizontal divided list">
+  {{#each transactionRelayedThrough}}
+    <div class="item">
+      <i class="checkmark icon green"></i>
+      <div class="content">
+        <div class="header">{{this}}</div>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+
+  <div id="relaying" class="ui icon message">
+    <br /><br />
+    <i class="notched circle loading icon"></i>
+    <div class="content">
+      <div id="loadingHeader" class="header">
+        Just a moment
+      </div>
+      <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
+    </div>
+  </div>
+
+  <div class="ui stackable one column grid">
+    <div class="column">
+      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
+      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+    </div>
+  </div>
+  
+</div>
+
+</template>
