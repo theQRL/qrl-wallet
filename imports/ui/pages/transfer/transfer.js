@@ -66,6 +66,11 @@ async function getLedgerRetrieveSignature(request, callback) {
   }
 }
 
+function enableSendButton() {
+  $('#confirmTransaction').attr('disabled', false)
+  $('#confirmTransaction').html('Click to Send')
+}
+
 function generateTransaction() {
   // Get to/amount details
   const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
@@ -268,6 +273,7 @@ function confirmTransaction() {
         // Show result
         $('#generateTransactionArea').hide()
         $('#confirmTransactionArea').hide()
+        enableSendButton()
         $('#transactionResultArea').show()
 
         // Start polling this transcation
@@ -313,6 +319,7 @@ function confirmTransaction() {
             // Show result
             $('#generateTransactionArea').hide()
             $('#confirmTransactionArea').hide()
+            enableSendButton()
             $('#transactionResultArea').show()
 
             // Start polling this transcation
@@ -391,6 +398,7 @@ function cancelTransaction() {
 
   $('#generateTransactionArea').show()
   $('#confirmTransactionArea').hide()
+  enableSendButton()
   $('#transactionResultArea').hide()
 }
 
@@ -879,6 +887,8 @@ Template.appTransfer.events({
     }, 200)
   },
   'click #confirmTransaction': () => {
+    $('#confirmTransaction').attr('disabled', true)
+    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #confirmTokenTransaction': () => {
