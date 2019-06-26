@@ -9,6 +9,8 @@ import aes256 from 'aes256'
 import async from 'async'
 import './open.html'
 
+import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'
+
 Template.appAddressOpen.onCreated(() => {
   Session.set('modalEventTriggered', false)
 })
@@ -20,7 +22,12 @@ function clearLedgerDetails() {
   Session.set('ledgerDetailsPkHex', '')
 }
 
-function getLedgerState(callback) {
+function showError() {
+  $('#readingLedger').hide()
+  $('#ledgerReadError').show()
+}
+
+async function getLedgerState(callback) {
   console.log('-- Getting QRL Ledger Nano App State --')
   if (isElectrified()) {
     Meteor.call('ledgerGetState', [], (err, data) => {
@@ -29,14 +36,34 @@ function getLedgerState(callback) {
       callback(null, data)
     })
   } else {
-    QrlLedger.get_state().then(data => {
-      console.log('> Got Ledger Nano State from U2F')
-      console.log(data)
-      callback(null, data)
+    createTransport().then(QrlLedger => {
+      QrlLedger.get_state().then(data => {
+        console.log('> Got Ledger Nano State from WebUSB')
+        console.log(data)
+        if (ledgerReturnedError()) {
+          console.log(`-- Ledger error: ${error} --`)
+          showError()
+        } else {
+          callback(null, data)
+        }
+      }, e => {
+        ledgerReturnedError()
+        showError()
+      }
+      ).catch(e => {
+        console.log(`-- Ledger error: ${e} --`)
+        showError()
+      }).catch(e => {
+        console.log(`-- Ledger error: ${e} --`)
+        showError()
+      })
+    }, e => {
+      ledgerReturnedError()
+      showError()
     })
   }
 }
-function getLedgerPubkey(callback) {
+async function getLedgerPubkey(callback) {
   console.log('-- Getting QRL Ledger Nano Public Key --')
   if (isElectrified()) {
     Meteor.call('ledgerPublicKey', [], (err, data) => {
@@ -52,22 +79,42 @@ function getLedgerPubkey(callback) {
       callback(null, data)
     })
   } else {
-    QrlLedger.publickey().then(data => {
-      console.log('> Got Ledger Public Key from U2F')
-      // Convert Uint to hex
-      const pkHex = Buffer.from(data.public_key).toString('hex')
-      // Get address from pk
-      const qAddress = QRLLIB.getAddress(pkHex)
-      const ledgerQAddress = `Q${qAddress}`
-      Session.set('ledgerDetailsAddress', ledgerQAddress)
-      Session.set('ledgerDetailsPkHex', pkHex)
-      $('#walletCode').val(ledgerQAddress)
-      callback(null, data)
-    })
+    createTransport().then(QrlLedger => {
+      QrlLedger.publickey().then(data => {
+        if (ledgerReturnedError()) {
+          console.log(`-- Ledger error: ${error} --`)
+          showError()
+        } else {
+          console.log('> Got Ledger Public Key from WebUSB')
+          // Convert Uint to hex
+          const pkHex = Buffer.from(data.public_key).toString('hex')
+          // Get address from pk
+           const qAddress = QRLLIB.getAddress(pkHex)
+           const ledgerQAddress = `Q${qAddress}`
+           Session.set('ledgerDetailsAddress', ledgerQAddress)
+           Session.set('ledgerDetailsPkHex', pkHex)
+           $('#walletCode').val(ledgerQAddress)
+           callback(null, data)
+          }
+        }, e => {
+          ledgerReturnedError()
+          showError()
+        }
+        ).catch(e => {
+          console.log(`-- Ledger error: ${e} --`)
+          showError()
+        }).catch(e => {
+          console.log(`-- Ledger error: ${e} --`)
+          showError()
+        })
+      }, e => {
+        ledgerReturnedError()
+        showError()
+      })
   }
 }
 
-function getLedgerVersion(callback) {
+async function getLedgerVersion(callback) {
   console.log('-- Getting QRL Ledger Nano App Version --')
   if (isElectrified()) {
     Meteor.call('ledgerAppVersion', [], (err, data) => {
@@ -76,15 +123,17 @@ function getLedgerVersion(callback) {
       callback(null, data)
     })
   } else {
-    QrlLedger.app_version().then(data => {
-      console.log('> Got Ledger App Version from U2F')
-      Session.set('ledgerDetailsAppVersion', data.major + '.' + data.minor + '.' + data.patch)
+    const QrlLedger = await createTransport()
+    QrlLedger.get_version().then(data => {
+      console.log('> Got Ledger App Version from WebUSB')
+      Session.set('ledgerDetailsAppVersion', data.version)
+      console.log(data)
       callback()
     })
   }
 }
 
-function getLedgerLibraryVersion(callback) {
+async function getLedgerLibraryVersion(callback) {
   if (isElectrified()) {
     Meteor.call('ledgerAppVersion', [], (err, data) => {
       console.log('> Got Ledger Library Version from USB')
@@ -92,9 +141,10 @@ function getLedgerLibraryVersion(callback) {
       callback(null, data)
     })
   } else {
-    QrlLedger.library_version().then(data => {
-      console.log('> Got Ledger Library Version from U2F')
-      Session.set('ledgerDetailsLibraryVersion', data)
+    const QrlLedger = await createTransport()
+    QrlLedger.get_version().then(data => {
+      console.log('> Got Ledger Library Version from WebUSB')
+      Session.set('ledgerDetailsLibraryVersion', data.version)
       callback(data)
     })
   }
@@ -105,7 +155,7 @@ function refreshLedger() {
   clearLedgerDetails()
 
   getLedgerState(function (err, data) {
-    if (err) {
+    if (err || data.return_code === 14) {
       // We timed out requesting data from ledger
       $('#readingLedger').hide()
       $('#ledgerReadError').show()
@@ -252,12 +302,13 @@ Template.appAddressOpen.onRendered(() => {
   resetLocalStorageState()
 
   // Route to transfer if wallet is already opened
-  if (Session.get('walletStatus').unlocked === true) {
-    const params = {}
-    const path = FlowRouter.path('/transfer', params)
-    FlowRouter.go(path)
+  if (Session.get('walletStatus') !== undefined) {
+    if (Session.get('walletStatus').unlocked === true) {
+      const params = {}
+      const path = FlowRouter.path('/transfer', params)
+      FlowRouter.go(path)
+    }
   }
-
   // determine last used means of opening wallet from LocalStore
   let openWalletPref = LocalStore.get('openWalletDefault')
   if ((!openWalletPref) || (openWalletPref === 'undefined')) {
