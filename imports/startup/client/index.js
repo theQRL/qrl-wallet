@@ -6,7 +6,8 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import { QRLLIB } from 'qrllib/build/web-libjsqrl.js' // eslint-disable-line
+// import { QRLLIB } from 'qrllib/build/web-libjsqrl.js' // eslint-disable-line
+import { QRLLIBmodule } from 'qrllib/build/offline-libjsqrl'
 import './routes.js'
 import './functions.js'
 
