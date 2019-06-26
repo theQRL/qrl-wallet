@@ -10,10 +10,43 @@ import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 
+import 'babel-polyfill'
+import Qrl from '@theqrl/hw-app-qrl'
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+
+
 bech32 = require('bech32') // eslint-disable-line
 
+export function ledgerReturnedError(e) {
+  let r = false;
+  try {
+    if (e instanceof DOMException) {
+      // DOMException will be thrown if WebUSB device is unplugged during Ledger UI event
+      r = true;
+    }
+  } catch (e) {
+    r = false;
+  }
+  try {
+    if (e.name === 'TransportStatusError' || e instanceof TransportStatusError || e.name === 'TransportOpenUserCancelled') {
+      r = true;
+    }
+  } catch (e) {
+    r = false;
+  }
+  return r;
+}
+
+export async function createTransport() {
+  var transport = null;
+  transport = await TransportWebUSB.create();
+  console.log('USING WEBUSB');
+  var qrl = await new Qrl(transport);
+  return qrl
+}
+
 // Client side function to detmine if running within Electron
-isElectrified = () => {
+export function isElectrified () {
   const userAgent = navigator.userAgent.toLowerCase()
   if (userAgent.indexOf(' electron/') > -1) {
     return true
@@ -341,7 +374,7 @@ getBalance = (getAddress, callBack) => {
     network: selectedNetwork(),
   }
 
-  wrapMeteorCall('getAddress', request, (err, res) => {
+  wrapMeteorCall('getAddress', request, async (err, res) => {
     if (err) {
       console.log('err: ', err)
       Session.set('transferFromBalance', 0)
@@ -400,8 +433,9 @@ getBalance = (getAddress, callBack) => {
             callBack()
           })
         } else {
+          const QrlLedger = await createTransport()
           QrlLedger.get_state().then(data => {
-            console.log('> Got Ledger Nano State from U2F')
+            console.log('> Got Ledger Nano State from WebUSB')
             Session.set('otsKeyEstimate', data.xmss_index)
             // Get remaining OTS Keys
             const validationResult = qrlAddressValdidator.hexString(getAddress)

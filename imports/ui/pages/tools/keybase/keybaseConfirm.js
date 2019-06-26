@@ -5,10 +5,10 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import async from 'async'
+import { isElectrified,  createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
 import './keybaseConfirm.html'
 
-function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
+async function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
   console.log('-- Getting QRL Ledger Nano App createMessageTx --')
   if (isElectrified()) {
     Meteor.call('ledgerCreateMessageTx', sourceAddr, fee, message, (err, data) => {
@@ -17,6 +17,7 @@ function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.createMessageTx(sourceAddr, fee, message).then(data => {
       console.log('> Got Ledger Nano createMessageTx from U2F')
       console.log(data)
@@ -24,7 +25,7 @@ function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
     })
   }
 }
-function getLedgerRetrieveSignature(request, callback) {
+async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
     Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
@@ -33,6 +34,7 @@ function getLedgerRetrieveSignature(request, callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.retrieveSignature(request).then(data => {
       console.log('> Got Ledger Nano retrieveSignature from U2F')
       console.log(data)

@@ -7,12 +7,13 @@
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
-import async from 'async'
+
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
+import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'
 import './transfer.html'
 
-function verifyLedgerNanoAddress(callback) {
+async function verifyLedgerNanoAddress(callback) {
   console.log('-- Verify Ledger Nano S Address --')
   if (isElectrified()) {
     Meteor.call('ledgerVerifyAddress', [], (err, data) => {
@@ -21,15 +22,16 @@ function verifyLedgerNanoAddress(callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.viewAddress().then(data => {
-      console.log('> Got Ledger Nano address verification from U2F')
+      console.log('> Got Ledger Nano address verification from WebUSB')
       console.log(data)
       callback(null, data)
     })
   }
 }
 
-function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
+async function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
   console.log('-- Getting QRL Ledger Nano App createTx --')
   if (isElectrified()) {
     Meteor.call('ledgerCreateTx', sourceAddr, fee, destAddr, destAmount, (err, data) => {
@@ -38,14 +40,15 @@ function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(data => {
-      console.log('> Got Ledger Nano createTx from U2F')
+      console.log('> Got Ledger Nano createTx from WebUSB')
       console.log(data)
       callback(null, data)
     })
   }
 }
-function getLedgerRetrieveSignature(request, callback) {
+async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
     Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
@@ -54,12 +57,18 @@ function getLedgerRetrieveSignature(request, callback) {
       callback(null, data)
     })
   } else {
+    const QrlLedger = await createTransport()
     QrlLedger.retrieveSignature(request).then(data => {
-      console.log('> Got Ledger Nano retrieveSignature from U2F')
+      console.log('> Got Ledger Nano retrieveSignature from WebUSB')
       console.log(data)
       callback(null, data)
     })
   }
+}
+
+function enableSendButton() {
+  $('#confirmTransaction').attr('disabled', false)
+  $('#confirmTransaction').html('Click to Send')
 }
 
 function generateTransaction() {
@@ -264,6 +273,7 @@ function confirmTransaction() {
         // Show result
         $('#generateTransactionArea').hide()
         $('#confirmTransactionArea').hide()
+        enableSendButton()
         $('#transactionResultArea').show()
 
         // Start polling this transcation
@@ -309,6 +319,7 @@ function confirmTransaction() {
             // Show result
             $('#generateTransactionArea').hide()
             $('#confirmTransactionArea').hide()
+            enableSendButton()
             $('#transactionResultArea').show()
 
             // Start polling this transcation
@@ -387,6 +398,7 @@ function cancelTransaction() {
 
   $('#generateTransactionArea').show()
   $('#confirmTransactionArea').hide()
+  enableSendButton()
   $('#transactionResultArea').hide()
 }
 
@@ -836,15 +848,22 @@ Template.appTransfer.onRendered(() => {
   }
 
   Tracker.autorun(function () {
-    if (LocalStore.get('addressFormat') === 'bech32') {
-      $('.qr-code-container').empty()
-      $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().addressB32 })
-    } else {
-      $('.qr-code-container').empty()
-      $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().address })
+    if (Session.get('walletStatus') !== undefined) {
+      if (Session.get('walletStatus').unlocked !== false) {
+        const xmss = getXMSSDetails()
+        if (xmss !== null) {
+          if (LocalStore.get('addressFormat') === 'bech32') {
+            $('.qr-code-container').empty()
+            $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().addressB32 })
+          } else {
+            $('.qr-code-container').empty()
+            $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().address })
+          }
+          $('#recQR').empty()
+          $('#recQR').qrcode({ width: 142, height: 142, text: xmss.hexseed })
+        }
+      }
     }
-    $('#recQR').empty()
-    $('#recQR').qrcode({ width: 142, height: 142, text: getXMSSDetails().hexseed })
   })
 })
 
@@ -868,6 +887,8 @@ Template.appTransfer.events({
     }, 200)
   },
   'click #confirmTransaction': () => {
+    $('#confirmTransaction').attr('disabled', true)
+    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #confirmTokenTransaction': () => {
@@ -995,6 +1016,7 @@ Template.appTransfer.helpers({
     return confirmationAmount
   },
   transactionConfirmationFee() {
+    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
     const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
@@ -1037,6 +1059,7 @@ Template.appTransfer.helpers({
     return status
   },
   txDetail() {
+    if (Session.get('txhash') === undefined) { return false }
     const txDetail = Session.get('txhash').transaction.tx.transfer
     txDetail.amount /= SHOR_PER_QUANTA
     txDetail.fee /= SHOR_PER_QUANTA
@@ -1044,7 +1067,9 @@ Template.appTransfer.helpers({
   },
   tokenTransferConfirmation() {
     const confirmation = Session.get('tokenTransferConfirmation')
-    confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+    if (confirmation !== undefined) {
+      confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+    }
     return confirmation
   },
   tokenTransferConfirmationAmount() {
