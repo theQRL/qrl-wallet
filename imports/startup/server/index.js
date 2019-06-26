@@ -23,6 +23,7 @@ BrowserPolicy.content.disallowInlineScripts()
 BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
 BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
 BrowserPolicy.content.allowFontDataUrl()
+BrowserPolicy.content.allowDataUrlForAll()
 
 // An array of grpc connections and associated proto file paths
 const qrlClient = []

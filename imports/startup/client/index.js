@@ -7,7 +7,7 @@
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 // import { QRLLIB } from 'qrllib/build/web-libjsqrl.js' // eslint-disable-line
-import { QRLLIBmodule } from 'qrllib/build/offline-libjsqrl'
+import { QRLLIBmodule } from 'qrllib/build/offline-libjsqrl' // eslint-disable-line
 import './routes.js'
 import './functions.js'
 
@@ -29,6 +29,6 @@ if ((!openWalletPref) || (openWalletPref === 'undefined')) {
 
 // Developer note
 console.log('qrl-wallet - ', WALLET_VERSION)
-console.log('We\'re hiring! jobs@theqrl.org')
+console.log('Work with us! jobs@theqrl.org')
 console.log('Found a security bug? security@theqrl.org')
 console.log('Found a problem? https://github.com/theQRL/qrl-wallet/issues')
