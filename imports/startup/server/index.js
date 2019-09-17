@@ -354,17 +354,21 @@ const getAddressState = (request, callback) => {
       console.log(`Error: ${err.message}`)
       callback(err, null)
     } else {
-      response.state.txcount = response.state.transaction_hashes.length
+      console.log(response.state)
+      // HARD FORK TODO: need to get Tx list as per new explorer here
+      // response.state.txcount = response.state.transaction_hashes.length
       response.state.transactions = []
-      response.state.transaction_hashes.forEach((value) => {
-        response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
-      })
+      // response.state.transaction_hashes.forEach((value) => {
+      //   response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
+      // })
+      // END HARDFORKTODO
 
       // Parse OTS Bitfield, and grab the lowest unused key
       const newOtsBitfield = {}
       let lowestUnusedOtsKey = -1
       let otsBitfieldLength = 0
 
+      /* HARDFORK TODO: OTS has changed
       const thisOtsBitfield = response.state.ots_bitfield
       thisOtsBitfield.forEach((item, index) => {
         const thisDecimal = new Uint8Array(item)[0]
@@ -387,7 +391,7 @@ const getAddressState = (request, callback) => {
           otsBitfieldLength += 1
         }
       })
-
+      */
       // If all keys in bitfield are used, lowest key will be what is shown in ots_counter + 1
       if (lowestUnusedOtsKey === -1) {
         if (response.state.ots_counter === '0') {
