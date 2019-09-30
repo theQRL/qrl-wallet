@@ -13,8 +13,11 @@
       <div class="field">
         <label>Wallet Seed / File</label>
         <div class="ui action center aligned input"  id="addressFields" style="margin-bottom: 20px;">
+          <button id="eye" class="ui grey icon button">
+              <i class="eye icon"></i>
+            </button>
           <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="width: 50%"/>
-          <input type="text" id="walletCode" name="walletCode" autocomplete="off" style="width: 50%;display: none;" />
+          <input type="password" id="walletCode" name="walletCode" autocomplete="off" style="width: 50%;display: none;" />
 
           <select id="walletType" class="ui compact selection dropdown" style="width: 160px !important;">
             <option value="file">Wallet File</option>
