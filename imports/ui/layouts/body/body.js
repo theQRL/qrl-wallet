@@ -212,7 +212,7 @@ Template.appBody.events({
   'change #network': () => {
     updateNetwork(selectedNetwork())
     // reload to update balances/Txs if on different network
-    window.Reload._reload()
+    // window.Reload._reload() // FIXME: this causes problems when adding nodes
   },
   'change #addressFormatCheckbox': () => {
     const checked = $('#addressFormatCheckbox').prop('checked')
