@@ -1,8 +1,8 @@
 {
   "name": "qrl-wallet",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "QRL Wallet",
-  "author": "Scott Donald, JP Lomas and The QRL Team",
+  "author": "The QRL Contributors",
   "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.4.3",
