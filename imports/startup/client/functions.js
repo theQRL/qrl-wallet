@@ -374,7 +374,7 @@ getBalance = (getAddress, callBack) => {
     network: selectedNetwork(),
   }
 
-  wrapMeteorCall('getAddress', request, async (err, res) => {
+  wrapMeteorCall('getAddressState', request, async (err, res) => {
     if (err) {
       console.log('err: ', err)
       Session.set('transferFromBalance', 0)
@@ -463,20 +463,26 @@ otsIndexUsed = (otsBitfield, index) => {
   return false
 }
 
-loadAddressTransactions = (txArray) => {
+loadAddressTransactions = (a, p) => {
+  const addresstx = Buffer.from(a.substring(1), 'hex')
   const request = {
-    tx: txArray,
+    address: addresstx,
     network: selectedNetwork(),
+    item_per_page: 10,
+    page_number: p,
   }
 
   Session.set('addressTransactions', [])
   Session.set('loadingTransactions', true)
 
-  wrapMeteorCall('addressTransactions', request, (err, res) => {
+  wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
+    console.log('err:', err)
+    console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
       Session.set('errorLoadingTransactions', true)
     } else {
+      Session.set('active', p)
       Session.set('addressTransactions', res)
       Session.set('loadingTransactions', false)
       Session.set('errorLoadingTransactions', false)
@@ -491,7 +497,7 @@ getTokenBalances = (getAddress, callback) => {
     network: selectedNetwork(),
   }
 
-  wrapMeteorCall('getAddress', request, (err, res) => {
+  wrapMeteorCall('getAddressState', request, (err, res) => {
     if (err) {
       console.log('err: ', err)
       Session.set('transferFromBalance', 0)
@@ -586,7 +592,7 @@ refreshTransferPage = (callback) => {
     getBalance(getXMSSDetails().address, function () {
       // Load Wallet Transactions
       const addressState = Session.get('address')
-      const numPages = Math.ceil(addressState.state.transactions.length / 10)
+      const numPages = Math.ceil(addressState.state.transaction_hash_count / 10)
       const pages = []
       while (pages.length !== numPages) {
         pages.push({
@@ -596,12 +602,9 @@ refreshTransferPage = (callback) => {
         })
       }
       Session.set('pages', pages)
-      let txArray = addressState.state.transactions.reverse()
-      if (txArray.length > 10) {
-        txArray = txArray.slice(0, 10)
-      }
-      loadAddressTransactions(txArray)
-
+      Session.set('active', 1)
+      Session.set('fetchedTx', false)
+      loadAddressTransactions(getXMSSDetails().address, 1)
       callback()
     })
 

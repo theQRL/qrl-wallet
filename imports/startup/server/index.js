@@ -347,83 +347,139 @@ const getStats = (request, callback) => {
   }
 }
 
+const helpersaddressTransactions = (response) => {
+  const output = []
+  console.log(response)
+  _.each(response.transactions_detail, (tx) => {
+    const txEdited = tx
+    console.log('tx.transfer', tx.transfer)
+    if (tx.tx.transfer) {
+      const hexlified = []
+      _.each(tx.tx.transfer.addrs_to, (txOutput) => {
+        console.log('formatting: ', txOutput)
+        hexlified.push(`Q${Buffer.from(txOutput).toString('hex')}`)
+      })
+      txEdited.tx.transfer.addrs_to = hexlified
+    }
+    if (tx.tx.coinbase) {
+      if (tx.tx.coinbase.addr_to) {
+        txEdited.tx.coinbase.addr_to = `Q${Buffer.from(txEdited.tx.coinbase.addr_to).toString('hex')}`
+      }
+    }
+    if (tx.tx.transaction_hash) {
+      txEdited.tx.transaction_hash = Buffer.from(txEdited.tx.transaction_hash).toString('hex')
+    }
+    if (tx.tx.master_addr) {
+      txEdited.tx.master_addr = Buffer.from(txEdited.tx.master_addr).toString('hex')
+    }
+    if (tx.tx.public_key) {
+      txEdited.tx.public_key = Buffer.from(txEdited.tx.public_key).toString('hex')
+    }
+    if (tx.tx.signature) {
+      txEdited.tx.signature = Buffer.from(txEdited.tx.signature).toString('hex')
+    }
+    if (tx.block_header_hash) {
+      txEdited.block_header_hash = Buffer.from(txEdited.block_header_hash).toString('hex')
+    }
+    txEdited.addr_from = `Q${Buffer.from(txEdited.addr_from).toString('hex')}`
+    output.push(txEdited)
+  })
+  return response
+}
+
+export const getTransactionsByAddress = (request, callback) => {
+  try {
+    qrlApi('GetTransactionsByAddress', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetTransactionsByAddress', '**ERROR/GetTransactionsByAddress**')
+        callback(myError, null)
+      } else {
+        // console.log(response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetTransactionsByAddress', '**ERROR/GetTransactionsByAddress**')
+    callback(myError, null)
+  }
+}
+
 // Function to call getAddressState API
 const getAddressState = (request, callback) => {
-  qrlApi('getAddressState', request, (err, response) => {
-    if (err) {
-      console.log(`Error: ${err.message}`)
-      callback(err, null)
-    } else {
-      console.log(response.state)
-      // HARD FORK TODO: need to get Tx list as per new explorer here
-      // response.state.txcount = response.state.transaction_hashes.length
-      response.state.transactions = []
-      // response.state.transaction_hashes.forEach((value) => {
-      //   response.state.transactions.push({ txhash: Buffer.from(value).toString('hex') })
-      // })
-      // END HARDFORKTODO
+  try {
+    qrlApi('GetAddressState', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetAddressState', '**ERROR/getAddressState** ')
+        callback(myError, null)
+      } else {
+        // Parse OTS Bitfield, and grab the lowest unused key
+        const newOtsBitfield = {}
+        let lowestUnusedOtsKey = -1
+        let otsBitfieldLength = 0
+        let thisOtsBitfield = []
+        // console.log('response.state.ots_bitfield=', response.state.ots_bitfield)
+        if (response.state.ots_bitfield !== undefined) { thisOtsBitfield = response.state.ots_bitfield }
+        thisOtsBitfield.forEach((item, index) => {
+          const thisDecimal = new Uint8Array(item)[0]
+          const thisBinary = decimalToBinary(thisDecimal).reverse()
+          const startIndex = index * 8
 
-      // Parse OTS Bitfield, and grab the lowest unused key
-      const newOtsBitfield = {}
-      let lowestUnusedOtsKey = -1
-      let otsBitfieldLength = 0
+          for (let i = 0; i < 8; i += 1) {
+            const thisOtsIndex = startIndex + i
 
-      /* HARDFORK TODO: OTS has changed
-      const thisOtsBitfield = response.state.ots_bitfield
-      thisOtsBitfield.forEach((item, index) => {
-        const thisDecimal = new Uint8Array(item)[0]
-        const thisBinary = decimalToBinary(thisDecimal).reverse()
-        const startIndex = index * 8
+            // Add to parsed array
+            newOtsBitfield[thisOtsIndex] = thisBinary[i]
 
-        for (let i = 0; i < 8; i += 1) {
-          const thisOtsIndex = startIndex + i
+            // Check if this is lowest unused key
+            if ((thisBinary[i] === 0) && ((thisOtsIndex < lowestUnusedOtsKey) || (lowestUnusedOtsKey === -1))) {
+              lowestUnusedOtsKey = thisOtsIndex
+            }
 
-          // Add to parsed array
-          newOtsBitfield[thisOtsIndex] = thisBinary[i]
-
-          // Check if this is lowest unused key
-          if ((thisBinary[i] === 0) &&
-           ((thisOtsIndex < lowestUnusedOtsKey) || (lowestUnusedOtsKey === -1))) {
-            lowestUnusedOtsKey = thisOtsIndex
+            // Increment otsBitfieldLength
+            otsBitfieldLength += 1
           }
+        })
 
-          // Increment otsBitfieldLength
-          otsBitfieldLength += 1
+        // If all keys in bitfield are used, lowest key will be what is shown in ots_counter + 1
+        if (lowestUnusedOtsKey === -1) {
+          if (response.state.ots_counter === '0') {
+            lowestUnusedOtsKey = otsBitfieldLength
+          } else {
+            lowestUnusedOtsKey = parseInt(response.state.ots_counter, 10) + 1
+          }
         }
-      })
-      */
-      // If all keys in bitfield are used, lowest key will be what is shown in ots_counter + 1
-      if (lowestUnusedOtsKey === -1) {
-        if (response.state.ots_counter === '0') {
-          lowestUnusedOtsKey = otsBitfieldLength
-        } else {
-          lowestUnusedOtsKey = parseInt(response.state.ots_counter, 10) + 1
+
+        // Calculate number of keys that are consumed
+        let totalKeysConsumed = 0
+        // First add all tracked keys from bitfield
+        for (let i = 0; i < otsBitfieldLength; i += 1) {
+          if (newOtsBitfield[i] === 1) {
+            totalKeysConsumed += 1
+          }
         }
-      }
 
-      // Calculate number of keys that are consumed
-      let totalKeysConsumed = 0
-      // First add all tracked keys from bitfield
-      for (let i = 0; i < otsBitfieldLength; i += 1) {
-        if(newOtsBitfield[i] === 1) {
-          totalKeysConsumed += 1
+        // Then add any extra from `otsBitfieldLength` to `ots_counter`
+        if (response.state.ots_counter !== '0') {
+          totalKeysConsumed += parseInt(response.state.ots_counter, 10) - (otsBitfieldLength - 1)
         }
-      }
 
-      // Then add any extra from `otsBitfieldLength` to `ots_counter`
-      if (response.state.ots_counter !== '0') {
-        totalKeysConsumed += parseInt(response.state.ots_counter, 10) - (otsBitfieldLength - 1)
-      }
+        // Add in OTS fields to response
+        response.ots = {}
+        response.ots.keys = newOtsBitfield
+        response.ots.nextKey = lowestUnusedOtsKey
+        response.ots.keysConsumed = totalKeysConsumed
 
-      // Add in OTS fields to response
-      response.ots = {}
-      response.ots.keys = newOtsBitfield
-      response.ots.nextKey = lowestUnusedOtsKey
-      response.ots.keysConsumed = totalKeysConsumed
-     
-      callback(null, response)
-    }
-  })
+        if (response.state.address) {
+          response.state.address = `Q${Buffer.from(response.state.address).toString('hex')}`
+        }
+
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetAddressState', '**ERROR/GetAddressState**')
+    callback(myError, null)
+  }
 }
 
 // Function to call getObject API and extract a txn Hash..
@@ -567,11 +623,9 @@ const createTokenTxn = (request, callback) => {
     decimals: request.decimals,
     initial_balances: request.initialBalances,
     fee: request.fee,
-    owner: request.owner,
-    owner: request.owner,
     xmss_pk: request.xmssPk,
     xmss_ots_index: request.xmssOtsKey,
-    network: request.network
+    network: request.network,
   }
 
   qrlApi('getTokenTxn', tx, (err, response) => {
@@ -1224,11 +1278,18 @@ Meteor.methods({
     const response = Meteor.wrapAsync(getKnownPeers)(request)
     return response
   },
-  getAddress(request) {
+  getAddressState(request) {
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(getAddressState)(request)
     return response
+  },
+  getTransactionsByAddress(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getTransactionsByAddress)(request)
+    console.table(response)
+    return helpersaddressTransactions(response)
   },
   getTxnHash(request) {
     this.unblock()

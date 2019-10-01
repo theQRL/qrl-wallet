@@ -849,7 +849,7 @@
 
       {{#if addressHasTransactions}}
         {{#each addressTransactions}}
-          {{#if isTransfer this.type}}
+          {{#if isTransfer this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             {{#if isMyAddress this.from_b32}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
@@ -881,7 +881,7 @@
           </div>
           {{/if}}
 
-          {{#if isTokenCreation this.type}}
+          {{#if isTokenCreation this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -898,7 +898,7 @@
           </div>
           {{/if}}
 
-          {{#if isTokenTransfer this.type}}
+          {{#if isTokenTransfer this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             {{#if isMyAddress this.from_b32}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
@@ -930,7 +930,7 @@
           </div>
           {{/if}}
 
-          {{#if isCoinbaseTxn this.type}}
+          {{#if isCoinbaseTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             <div class="content">
@@ -947,7 +947,7 @@
           </div>
           {{/if}}
 
-          {{#if isSlaveTxn this.type}}
+          {{#if isSlaveTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -964,7 +964,7 @@
           </div>
           {{/if}}
 
-          {{#if isLatticePKTxn this.type}}
+          {{#if isLatticePKTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -981,7 +981,7 @@
           </div>
           {{/if}}
 
-          {{#if isMessageTxn this.type}}
+          {{#if isMessageTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -998,7 +998,7 @@
           </div>
           {{/if}}
 
-          {{#if isDocumentNotarisation this.type}}
+          {{#if isDocumentNotarisation this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -1021,7 +1021,16 @@
         <table class="ui striped table">
           <tfoot>
               <tr><th colspan="7">
-                <div class="ui pagination menu">
+                <div class="ui grid">
+                  <div class="ten wide column">
+                <div class="ui right labeled fluid input">
+                  <label for="paginator" class="ui label">Page </label>
+                  <input type="text" placeholder="{{currentPage}}" id="paginator">
+                  <div class="ui label"> of {{totalPages}}</div>
+                </div>
+              </div>
+              <div class="row column">
+                <div class="ui right floated pagination menu">
                   {{#if pback}}
                   <a qrl-data="back" class="icon item">
                     <i qrl-data="back" class="left chevron icon"></i>
@@ -1036,6 +1045,8 @@
                   </a>
                   {{/if}}
                 </div>
+              </div>
+            </div>
               </th>
             </tr>
           </tfoot>
