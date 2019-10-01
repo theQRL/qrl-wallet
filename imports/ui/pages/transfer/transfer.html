@@ -822,7 +822,7 @@
           Transaction History
         </div>
       </h4>
-
+      {{#if loadingTransactions}}
       <div id="loadingTransactions" class="ui icon message">
         <br /><br />
         <i class="notched circle loading icon"></i>
@@ -833,6 +833,19 @@
           <p id="relayingMsg">Transaction history loading ...</p>
         </div>
       </div>
+      {{/if}}
+      {{#if errorLoadingTransactions}}
+      <div id="errorLoadingTransactions" class="ui icon red message">
+        <br /><br />
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Error loading transactions
+          </div>
+          <p id="txHistoryError">The wallet could not connect to the selected network</p>
+        </div>
+      </div>
+      {{/if}}
 
       {{#if addressHasTransactions}}
         {{#each addressTransactions}}

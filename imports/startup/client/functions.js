@@ -383,6 +383,7 @@ getBalance = (getAddress, callBack) => {
       Session.set('otsKeyEstimate', 0)
       Session.set('otsKeysRemaining', 0)
       Session.set('otsBitfield', {})
+      Session.set('errorLoadingTransactions', true)
     } else {
       if (res.state.address !== '') {
         Session.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
@@ -469,14 +470,16 @@ loadAddressTransactions = (txArray) => {
   }
 
   Session.set('addressTransactions', [])
-  $('#loadingTransactions').show()
+  Session.set('loadingTransactions', true)
 
   wrapMeteorCall('addressTransactions', request, (err, res) => {
     if (err) {
       Session.set('addressTransactions', { error: err })
+      Session.set('errorLoadingTransactions', true)
     } else {
       Session.set('addressTransactions', res)
-      $('#loadingTransactions').hide()
+      Session.set('loadingTransactions', false)
+      Session.set('errorLoadingTransactions', false)
       $('#noTransactionsFound').show()
     }
   })
@@ -540,6 +543,7 @@ getTokenBalances = (getAddress, callback) => {
         callback()
 
         // When done hide loading section
+        Session.set('errorLoadingTransactions', false)
         $('#loading').hide()
       } else {
         // Wallet not found, put together an empty response

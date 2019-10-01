@@ -981,7 +981,7 @@ Template.appTransfer.events({
     const startIndex = (b - 1) * 10
     Session.set('active', b)
     const txArray = Session.get('address').state.transactions.reverse().slice(startIndex, startIndex + 10)
-    $('#loadingTransactions').show()
+    Session.set('loadingTransactions', true)
     // Session.set('fetchedTx', false)
     loadAddressTransactions(txArray)
   },
@@ -1271,6 +1271,18 @@ Template.appTransfer.helpers({
   },
   isSeedWallet() {
     if (getXMSSDetails().walletType === 'seed') {
+      return true
+    }
+    return false
+  },
+  errorLoadingTransactions() {
+    if (Session.get('errorLoadingTransactions') === true) {
+      return true
+    }
+    return false
+  },
+  loadingTransactions() {
+    if (Session.get('loadingTransactions') === true) {
       return true
     }
     return false
