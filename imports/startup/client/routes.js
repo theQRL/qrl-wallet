@@ -28,6 +28,15 @@ import '../../ui/pages/tools/github/githubResult.js'
 
 import '../../ui/pages/tools/xmssindex/update.js'
 
+import '../../ui/pages/tools/multisig/multisigMenu.html'
+import '../../ui/pages/tools/multisig/multisigMenu.js'
+import '../../ui/pages/tools/multisig/multisigCreate.html'
+import '../../ui/pages/tools/multisig/multisigCreate.js'
+import '../../ui/pages/tools/multisig/multisigSpend.html'
+import '../../ui/pages/tools/multisig/multisigSpend.js'
+import '../../ui/pages/tools/multisig/multisigVote.html'
+import '../../ui/pages/tools/multisig/multisigVote.js'
+
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
 import '../../ui/pages/tokens/tokenCreateResult.js'
@@ -147,6 +156,50 @@ FlowRouter.route('/tools/message/create', {
       BlazeLayout.render('appBody', { main: 'appMessageCreate' })
     } else {
       BlazeLayout.render('mobile', { main: 'appMessageCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig', {
+  name: 'App.multisigMenu',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigMenu', multisig: 'multisigCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigMenu', multisig: 'multisigCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/create', {
+  name: 'App.multisigMenu',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigMenu', multisig: 'multisigCreate' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigMenu', multisig: 'multisigCreate' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/spend', {
+  name: 'App.multisigMenu',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigMenu', multisig: 'multisigSpend' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigMenu', multisig: 'multisigSpend' })
+    }
+  },
+})
+FlowRouter.route('/tools/multisig/vote', {
+  name: 'App.multisigMenu',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appMultisigMenu', multisig: 'multisigVote' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appMultisigMenu', multisig: 'multisigVote' })
     }
   },
 })

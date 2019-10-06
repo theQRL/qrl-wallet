@@ -2,16 +2,16 @@
   "public" :{
     "defaultNetworks": [
       {
-        "id": "devnet",
-        "name": "Devnet",
+        "id": "testnet",
+        "name": "Testnet",
         "disabled": "",
-        "explorerUrl": "https://devnet-explorer.theqrl.org",
+        "explorerUrl": "https://testnet-explorer.theqrl.org",
         "type": "both",
         "healthy": false,
         "nodes": [
           {
-            "id": "devnet",
-            "grpc": "devnet-1.automated.theqrl.org:19009",
+            "id": "testnet",
+            "grpc": "testnet-1.automated.theqrl.org:19009",
             "state": false,
             "height": 0
           }
