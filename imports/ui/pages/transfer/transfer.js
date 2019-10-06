@@ -964,7 +964,7 @@ Template.appTransfer.events({
     } else {
       const a = event.target.getAttribute('qrl-data')
       b = Session.get('active')
-      const c = Session.get('pages')
+      const c = Session.get('pages').length
       if (a === 'forward') {
         b += 1
       }
@@ -978,12 +978,21 @@ Template.appTransfer.events({
         b = 1
       }
     }
-    const startIndex = (b - 1) * 10
+    // const startIndex = (b - 1) * 10
     Session.set('active', b)
-    const txArray = Session.get('address').state.transactions.reverse().slice(startIndex, startIndex + 10)
+    Session.set('fetchedTx', false)
+    $('.loader').show()
     $('#loadingTransactions').show()
-    // Session.set('fetchedTx', false)
-    loadAddressTransactions(txArray)
+    loadAddressTransactions(getXMSSDetails().address, b)
+  },
+  'keypress #paginator': (event) => {
+    if (event.keyCode === 13) {
+      const x = parseInt($('#paginator').val(), 10)
+      const max = Session.get('pages').length
+      if ((x < (max + 1)) && (x > 0)) {
+        loadAddressTransactions(getXMSSDetails().address, x)
+      }
+    }
   },
   'click #showRecoverySeed': () => {
     $('#recoverySeedModal').modal('show')
@@ -1088,9 +1097,8 @@ Template.appTransfer.helpers({
   addressTransactions() {
     const transactions = []
     const thisAddress = getXMSSDetails().address
-    _.each(Session.get('addressTransactions'), (transaction) => {
+    _.each(Session.get('addressTransactions').transactions_detail, (transaction) => {
       const y = transaction
-
       // Update timestamp from unix epoch to human readable time/date.
       if (moment.unix(transaction.timestamp).isValid()) {
         y.timestamp = moment.unix(transaction.timestamp).format('HH:mm D MMM YYYY')
@@ -1111,13 +1119,18 @@ Template.appTransfer.helpers({
 
       transactions.push(y)
     })
+    console.log(transactions)
     return transactions
   },
   addressHasTransactions() {
-    if (Session.get('addressTransactions').length > 0) {
-      return true
+    try {
+      if (Session.get('addressTransactions').transactions_detail.length > 0) {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
     }
-    return false
   },
   isMyAddress(address) {
     const a = Buffer.from(anyAddressToRawAddress(address))
@@ -1257,6 +1270,15 @@ Template.appTransfer.helpers({
     }
     return ret
   },
+  currentPage() {
+    return Session.get('active')
+  },
+  totalPages() {
+    if (Session.get('pages')) {
+      return Session.get('pages').length
+    }
+    return false
+  },
   ledgerWalletDisabled() {
     if (getXMSSDetails().walletType === 'ledger') {
       return 'disabled'
@@ -1271,6 +1293,18 @@ Template.appTransfer.helpers({
   },
   isSeedWallet() {
     if (getXMSSDetails().walletType === 'seed') {
+      return true
+    }
+    return false
+  },
+  errorLoadingTransactions() {
+    if (Session.get('errorLoadingTransactions') === true) {
+      return true
+    }
+    return false
+  },
+  loadingTransactions() {
+    if (Session.get('loadingTransactions') === true) {
       return true
     }
     return false

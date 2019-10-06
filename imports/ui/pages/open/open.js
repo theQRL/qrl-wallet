@@ -264,8 +264,8 @@ function updateWalletType() {
   if (walletType === 'file') {
     $('#walletCode').hide()
     $('#ledgerArea').hide()
+    $('#eye').hide()
     $('#ledgerRefreshButton').hide()
-
     $('#walletFile').show()
     $('#passphraseArea').show()
     $('#unlockButton').show()
@@ -275,7 +275,7 @@ function updateWalletType() {
     $('#walletFile').hide()
     $('#passphraseArea').hide()
     $('#unlockButton').hide()
-
+    $('#eye').hide()
     $('#walletCode').show()
     $('#ledgerArea').show()
     $('#walletCode').prop('disabled', true)
@@ -286,7 +286,7 @@ function updateWalletType() {
     $('#walletFile').hide()
     $('#passphraseArea').hide()
     $('#ledgerRefreshButton').hide()
-
+    $('#eye').show()
     $('#walletCode').show()
     $('#walletCode').prop('disabled', false)
     $('#unlockButton').show()
@@ -485,6 +485,14 @@ Template.appAddressOpen.events({
       } else {
         $('#walletType').val('hexseed').change()
       }
+    }
+  },
+  'click #eye': () => {
+    const state = $('#walletCode').prop('type')
+    if (state === 'text') {
+      $('#walletCode').prop('type', 'password')
+    } else {
+      $('#walletCode').prop('type', 'text')
     }
   },
 })

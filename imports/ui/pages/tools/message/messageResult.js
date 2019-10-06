@@ -120,9 +120,12 @@ Template.appMessageResult.helpers({
     return status
   },
   messageDetails() {
-    const details = Session.get('txhash').transaction.tx.message
-    details.message = bytesToString(details.message_hash)
-    return details
+    if (Session.get('txhash').transaction) {
+      const details = Session.get('txhash').transaction.tx.message
+      details.message = bytesToString(details.message_hash)
+      return details
+    }
+    return null
   },
   nodeExplorerUrl() {
     if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
