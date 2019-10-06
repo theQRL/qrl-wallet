@@ -367,6 +367,38 @@ wrapMeteorCall = (method, request, callback) => {
   })
 }
 
+const otsParse = (response, totalSignatures) => {
+  // Parse OTS Bitfield, and grab the lowest unused key
+  let newOtsBitfield = {}
+  let thisOtsBitfield = []
+  if (response.ots_bitfield_by_page[0].ots_bitfield !== undefined) {
+    thisOtsBitfield = response.ots_bitfield_by_page[0].ots_bitfield
+  }
+  thisOtsBitfield.forEach((item, index) => {
+    const thisDecimal = new Uint8Array(item)[0]
+    const thisBinary = decimalToBinary(thisDecimal).reverse()
+    const startIndex = index * 8
+    for (let i = 0; i < 8; i += 1) {
+      const thisOtsIndex = startIndex + i
+      // Add to parsed array unless we have reached the end of the signatures
+      if (thisOtsIndex < totalSignatures) {
+        newOtsBitfield[thisOtsIndex] = thisBinary[i]
+      }
+    }
+  })
+  // console.log('otslen', newOtsBitfield)
+  if (newOtsBitfield.length > totalSignatures) {
+    newOtsBitfield = newOtsBitfield.slice(0, totalSignatures + 1)
+  }
+
+  // Add in OTS fields to response
+  const ots = {}
+  ots.keys = newOtsBitfield
+  ots.nextKey = response.next_unused_ots_index
+  // console.log('ots:', ots)
+  return ots
+}
+
 // Get wallet address state details
 getBalance = (getAddress, callBack) => {
   const request = {
@@ -396,22 +428,30 @@ getBalance = (getAddress, callBack) => {
 
       if (getXMSSDetails().walletType === 'seed') {
         // Collect next OTS key
-        Session.set('otsKeyEstimate', res.ots.nextKey)
-
-        // Get remaining OTS Keys
-        const validationResult = qrlAddressValdidator.hexString(getAddress)
-        const { keysConsumed } = res.ots
-        const totalSignatures = validationResult.sig.number
-        const keysRemaining = totalSignatures - keysConsumed
-
-        // Set keys remaining
-        Session.set('otsKeysRemaining', keysRemaining)
-
-        // Store OTS Bitfield in session
-        Session.set('otsBitfield', res.ots.keys)
-
-        // Callback if set
-        callBack()
+        request.page_from = 1
+        request.page_count = 1
+        request.unused_ots_index_from = 0
+        Meteor.call('getOTS', request, (error, result) => {
+          if (err) {
+            console.log('err: ', err)
+            Session.set('transferFromBalance', 0)
+            Session.set('transferFromTokenState', [])
+            Session.set('address', 'Error')
+            Session.set('otsKeyEstimate', 0)
+            Session.set('otsKeysRemaining', 0)
+            Session.set('otsBitfield', {})
+            Session.set('errorLoadingTransactions', true)
+          } else {
+            const totalSignatures = qrlAddressValdidator.hexString(res.state.address).sig.number
+            const ots = otsParse(result, totalSignatures)
+            res.ots = ots
+            res.ots.keysConsumed = res.state.used_ots_key_count
+            const keysRemaining = totalSignatures - res.ots.keysConsumed
+            Session.set('otsBitfield', res.ots.keys)
+            Session.set('otsKeysRemaining', keysRemaining)
+            Session.set('otsKeyEstimate', res.ots.nextKey)
+          }
+        })
       } else if (getXMSSDetails().walletType === 'ledger') {
         // Collect next OTS key from Ledger Device
         // Whilst technically we may have unused ones - we

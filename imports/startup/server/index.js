@@ -404,6 +404,23 @@ export const getTransactionsByAddress = (request, callback) => {
   }
 }
 
+const getOTS = (request, callback) => {
+  try {
+    qrlApi('GetOTS', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetOTS', '**ERROR/getOTS** ')
+        callback(myError, null)
+      } else {
+        // console.log(response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetOTS', '**ERROR/GetOTS**')
+    callback(myError, null)
+  }
+}
+
 // Function to call getAddressState API
 const getAddressState = (request, callback) => {
   try {
@@ -1324,6 +1341,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(transferCoins)(request)
+    return response
+  },
+  getOTS(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getOTS)(request)
     return response
   },
   addressTransactions(request) {
