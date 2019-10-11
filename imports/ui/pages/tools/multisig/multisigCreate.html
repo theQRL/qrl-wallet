@@ -1,3 +1,68 @@
 <template name="multisigCreate">
-  <p>This is the multisig create tab</p>
+  <p><strong>Creator:</strong> {{creator}}</p>
+  <div class="ui stackable two column grid">
+    <div class="six wide column">
+      <div id="transferRecipients">
+        <div>
+          <div class="field">
+            <label>Signatory</label>
+            <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
+              <input type="text" id="to_1" name="to[]" placeholder="Address" autocomplete="off" style="width: 55%;">
+              <input type="text" id="amounts_1" name="amounts[]" autocomplete="off" placeholder="Weight" style="width: 30%;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <button id="addTransferRecipient" class="ui small button sky" style="width: 100%">
+          <i class="add user icon"></i>
+          Add Another Signatory
+        </button>
+      </div>
+    </div>
+    <div class="six wide column">
+      <div class="field">
+        <label>Threshold to spend</label>
+        <div class="ui action center aligned input">
+          <input type="text" id="threshold" name="threshold" placeholder="Threshold" autocomplete="off" style="width: 100%;">
+        </div>
+      </div>
+      <div class="field">
+        <label>Fee (In Quanta)</label>
+        <div class="ui action center aligned input">
+          <input type="text" id="fee" value="0.1" autocomplete="off" style="width: 100%;">
+        </div>
+      </div>
+      <div class="field">
+        <label>OTS Key Index</label>
+        <div class="ui action center aligned input">
+          <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}} style="width: 100%;">
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="ui warning icon message" style="display: inline-flex;">
+          <i class="warning icon"></i>
+          <div class="content">
+            <div class="header">
+              OTS Key Index Warning
+            </div>
+            {{#if isLedgerWallet}}
+            <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is based on data provided by your Ledger Device. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. As you are using a Ledger Device, you can rest assured your Device will keep track of all used signatures for you. As a result, you cannot change the OTS Key that will be used to sign this transaction as the Ledger Device will automatically use the next one in line.</p>
+            {{else}}
+            <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected to. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+
+      <div class="ui stackable one column grid">
+        <div class="column center aligned">
+          <button id="generateTransaction" class="ui huge primary button red" style="width: 100%">Confirm</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </template>
