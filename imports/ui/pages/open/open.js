@@ -491,8 +491,12 @@ Template.appAddressOpen.events({
     const state = $('#walletCode').prop('type')
     if (state === 'text') {
       $('#walletCode').prop('type', 'password')
+      $('#eyeicon').removeClass('star')
+      $('#eyeicon').addClass('eye')
     } else {
       $('#walletCode').prop('type', 'text')
+      $('#eyeicon').addClass('star')
+      $('#eyeicon').removeClass('eye')
     }
   },
 })
