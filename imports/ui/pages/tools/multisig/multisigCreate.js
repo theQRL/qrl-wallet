@@ -1,14 +1,9 @@
 /* eslint no-console:0 */
-/* eslint no-global-assign: 0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* global getXMSSDetails, anyAddressToRawAddress, hexToBytes */
 
 import helpers from '@theqrl/explorer-helpers'
-import { BigNumber } from 'bignumber.js'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
+import { checkWeightsAndThreshold } from '@theqrl/wallet-helpers'
 
 Template.multisigCreate.onCreated(() => {
   // Route to open wallet is already opened
@@ -57,11 +52,26 @@ function generateTransaction() {
   const pubKey = hexToBytes(getXMSSDetails().pk)
   const sendTo = document.getElementsByName('to[]')
   const sendAmounts = document.getElementsByName('amounts[]')
-  const threshold = document.getElementById('threshold').value
+  const threshold = parseInt(document.getElementById('threshold').value, 10)
 
   // Capture outputs
   const thisAddressesTo = []
   const thisAmounts = []
+
+  let validAddresses = 0
+  _.each(sendTo, (item) => {
+    console.log(item.value)
+    const isValid = qrlAddressValdidator.hexString(item.value)
+    if (isValid.result) {
+      validAddresses += 1
+    }
+  })
+  if (validAddresses === thisAddressesTo.length) {
+    console.log('all addresses valid')
+  } else {
+    console.log('One or more of the signatories is invalid: please check the addresses carefully')
+    return
+  }
 
   for (let i = 0; i < sendTo.length; i += 1) {
     const thisAddress = sendTo[i].value
@@ -81,6 +91,19 @@ function generateTransaction() {
   console.log('thisAddressesTo:', thisAddressesTo)
   console.log('thisAmounts: ', thisAmounts)
   console.log('threshold', threshold)
+
+  const cwt = checkWeightsAndThreshold(thisAmounts, threshold)
+  console.log('cwt:', cwt)
+
+  if (!cwt.result) {
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    if (cwt.error === 'Array has non-integer values') {
+      $('#checkWeightsModal p').text('One or more of the weights entered is invalid.')
+    } else {
+      $('#checkWeightsModal p').text(cwt.error)
+    }
+    $('#checkWeightsModal').modal('show')
+  }
 }
 function getRecipientIds() {
   const ids = []
