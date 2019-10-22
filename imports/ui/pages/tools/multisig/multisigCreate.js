@@ -1,9 +1,12 @@
 /* eslint no-console:0 */
-/* global getXMSSDetails, anyAddressToRawAddress, hexToBytes */
+/* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
+selectedNetwork, wrapMeteorCall */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import { checkWeightsAndThreshold } from '@theqrl/wallet-helpers'
+
+import { BigNumber } from 'bignumber.js'
 
 Template.multisigCreate.onCreated(() => {
   // Route to open wallet is already opened
@@ -58,19 +61,30 @@ function generateTransaction() {
   const thisAddressesTo = []
   const thisAmounts = []
 
-  let validAddresses = 0
+  const validAddresses = []
   _.each(sendTo, (item) => {
-    console.log(item.value)
     const isValid = qrlAddressValdidator.hexString(item.value)
     if (isValid.result) {
-      validAddresses += 1
+      console.log(item.value + 'is a valid QRL address')
+      validAddresses.push(item.value.toLowerCase())
     }
   })
-  if (validAddresses === thisAddressesTo.length) {
+  if (validAddresses.length === sendTo.length) {
     console.log('all addresses valid')
   } else {
-    console.log('One or more of the signatories is invalid: please check the addresses carefully')
+    console.log('One or more of the signatories is invalid: please check the addresses carefully [validAddresses.length = ' + validAddresses.length + ' / sendTo.length = ' + sendTo.length)
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    $('#checkWeightsModal p').text('One or more of the signatories is invalid: please check the addresses carefully')
+    $('#checkWeightsModal').modal('show')
     return
+  }
+
+  const checkIfDuplicateExists = (w) => new Set(w).size !== w.length
+  if (checkIfDuplicateExists(validAddresses)) {
+    console.log('Duplicate signatory found')
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    $('#checkWeightsModal p').text('Duplicate signatory found')
+    $('#checkWeightsModal').modal('show')
   }
 
   for (let i = 0; i < sendTo.length; i += 1) {
@@ -104,6 +118,76 @@ function generateTransaction() {
     }
     $('#checkWeightsModal').modal('show')
   }
+
+  // Calculate txn fee
+  const convertFeeToBigNumber = new BigNumber(txnFee)
+  const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+
+  // Construct request
+  const request = {
+    fromAddress: sendFrom,
+    addresses_to: thisAddressesTo,
+    amounts: thisAmounts,
+    threshold,
+    fee: thisTxnFee,
+    xmssPk: pubKey,
+    network: selectedNetwork(),
+  }
+  wrapMeteorCall('createMultiSig', request, (err, res) => {
+    if (err) {
+      console.log('Error with createMultisig', err)
+      Session.set('transactionGenerationError', err.reason)
+      $('#transactionGenFailed').show()
+      $('#transferForm').hide()
+    } else {
+      console.log('Result from createMultisig', res)
+      // const confirmation_outputs = [] // eslint-disable-line
+
+      // const resAddrsTo = res.response.extended_transaction_unsigned.tx.transfer.addrs_to
+      // const resAmounts = res.response.extended_transaction_unsigned.tx.transfer.amounts
+      // let totalTransferAmount = 0
+
+      // for (let i = 0; i < resAddrsTo.length; i += 1) {
+      //   // Create and store the output
+      //   const thisOutput = {
+      //     address: Buffer.from(resAddrsTo[i]),
+      //     address_hex: helpers.rawAddressToHexAddress(resAddrsTo[i]),
+      //     address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
+      //     amount: resAmounts[i] / SHOR_PER_QUANTA,
+      //     name: 'Quanta',
+      //   }
+      //   confirmation_outputs.push(thisOutput)
+
+      //   // Update total transfer amount
+      //   totalTransferAmount += parseInt(resAmounts[i], 10)
+      // }
+
+      // const confirmation = {
+      //   from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
+      //   from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+      //   from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+      //   outputs: confirmation_outputs,
+      //   fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+      //   otsKey: otsKey, // eslint-disable-line
+      // }
+
+      // if (nodeReturnedValidResponse(request, confirmation, 'transferCoins')) {
+      //   Session.set('transactionConfirmation', confirmation)
+      //   Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+      //   Session.set('transactionConfirmationFee', confirmation.fee)
+      //   Session.set('transactionConfirmationResponse', res.response)
+
+      //   // Show confirmation
+      //   $('#generateTransactionArea').hide()
+      //   $('#confirmTransactionArea').show()
+      // } else {
+      //   // Hide generating component
+      //   $('#generating').hide()
+      //   // Show warning modal
+      //   $('#invalidNodeResponse').modal('show')
+      // }
+    }
+  })
 }
 function getRecipientIds() {
   const ids = []

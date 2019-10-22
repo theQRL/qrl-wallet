@@ -81,5 +81,72 @@
       </div>
 
     </div>
+
+            <!-- Confirm Transaction Area -->
+            <div id="confirmTransactionArea" style="display: none;">
+
+              <div class="ui icon message transactionRecord">
+                <img class="transactionTypeImage" src="/img/icons/send.png" />
+                <div class="content">
+                  <div class="header">
+                    Confirm Multisig Wallet Creation
+                  </div>
+                </div>
+                <div class="floatright">
+                  {{transactionConfirmationAmount}} Quanta
+                </div>
+              </div>
+    
+              <form>
+                <div class="field">
+                  <label>Recipients</label>
+                  <div class="ui visible message">
+                    <p class="wordBreak">
+                      {{#each transactionConfirmation.outputs}}
+                        {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                      {{/each}}
+                    </p>
+                  </div>
+                </div>
+    
+              </form>
+    
+              <h4 class="ui horizontal divider header">
+                <i class="file icon"></i>
+                Transaction Details
+              </h4>
+    
+              <div class="ui stackable one column grid">
+                <div class="column">
+                  <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
+                  <br />
+                  <span>OTS Key Index <a class="ui">{{transactionConfirmation.otsKey}}</a></span>
+                </div>
+              </div>
+    
+              <div class="ui stackable one column grid">
+                <div class="column center aligned">
+                  <button id="confirmTransaction" class="ui huge primary button red"  style="width: 100%">
+                    {{#if isSeedWallet}}
+                      Click to Send
+                    {{else}}
+                      Sign with Ledger
+                    {{/if}}
+                  </button>
+                </div>
+              </div>
+    
+              <div id="relaying" class="ui icon message" style="display: none;">
+                <br /><br />
+                <i class="notched circle loading icon"></i>
+                <div class="content">
+                  <div class="header">
+                    Just a moment
+                  </div>
+                  <p id="transferRelayingMsg">Your transaction is being relayed into the QRL network...</p>
+                </div>
+              </div>
+            </div>
+
   </div>
 </template>

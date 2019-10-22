@@ -1,4 +1,4 @@
-/* eslint no-console:0 */
+/* eslint no-console:0, max-len: 0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
@@ -99,8 +99,7 @@ const loadGrpcClient = (endpoint, callback) => {
                   // If the grpc object shasum matches, establish the grpc connection.
                   if ((calculatedObjectHash === verifiedProtoSha256Hash.objectSha256) || (allowUnchecksummedNodes === true)) {
                     // Create the gRPC Connection
-                    qrlClient[endpoint] =
-                      new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
+                    qrlClient[endpoint] = new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
 
                     console.log(`qrlClient loaded for ${endpoint}`)
 
@@ -248,6 +247,7 @@ const connectNodes = () => {
 // Wrapper to provide highly available API results in the event
 // the primary or secondary nodes go offline
 const qrlApi = (api, request, callback) => {
+  console.log('qrlApi.network:', request.network)
   // Handle multi node network api requests
   if((request.network == "devnet") || (request.network == "testnet") || (request.network == "mainnet")) {
     // Store active nodes
@@ -256,7 +256,7 @@ const qrlApi = (api, request, callback) => {
     // Determine current active nodes
     DEFAULT_NETWORKS.forEach((network) => {
       // Only get nodes from user selected network
-      if(network.id == request.network) {
+      if (network.id == request.network) {
         const networkNodes = network.nodes
         networkNodes.forEach((node, nodeIndex) => {
           if (node.state === true) {
@@ -277,6 +277,8 @@ const qrlApi = (api, request, callback) => {
       }
     })
 
+    console.log('bestNode:', bestNode)
+
     // If all nodes are offline, fail
     if (activeNodes.length === 0) {
       const myError = errorCallback('The wallet server cannot connect to any API node', 'Cannot connect to API', '**ERROR/noActiveNodes/b**')
@@ -286,8 +288,9 @@ const qrlApi = (api, request, callback) => {
       // Delete network from request object
       delete request.network;
       console.log('Making', api, 'request to', bestNode.grpc)
+      console.log('qrlClient:', qrlClient)
       qrlClient[bestNode.grpc][api](request, (error, response) => {
-        if (api == 'pushTransaction') {
+        if (api === 'pushTransaction') {
           response.relayed = bestNode.grpc
         }
         if (error) {
@@ -297,7 +300,6 @@ const qrlApi = (api, request, callback) => {
           callback(null, response)
         }
       })
-
     }
   } else {
     // Handle custom and localhost connections
@@ -525,10 +527,34 @@ const transferCoins = (request, callback) => {
     amounts: request.amounts,
     fee: request.fee,
     xmss_pk: request.xmssPk,
-    network: request.network
+    network: request.network,
   }
 
   qrlApi('transferCoins', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        response,
+      }
+      callback(null, transferResponse)
+    }
+  })
+}
+
+const createMultiSig = (request, callback) => {
+  const tx = {
+    // master_addr: request.fromAddress,
+    signatories: request.addresses_to,
+    weights: request.amounts,
+    threshold: request.threshold,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    network: request.network,
+  }
+
+  qrlApi('GetMultiSigCreateTxn', tx, (err, response) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
@@ -1341,6 +1367,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(transferCoins)(request)
+    return response
+  },
+  createMultiSig(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createMultiSig)(request)
     return response
   },
   getOTS(request) {
