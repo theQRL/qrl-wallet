@@ -1,4 +1,4 @@
-/* eslint no-console:0 */
+/* eslint no-console:0, max-len:0 */
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse */
 
@@ -62,14 +62,15 @@ Template.multisigCreate.helpers({
     const confirmation = Session.get('transactionConfirmation')
     return confirmation
   },
-  transactionConfirmationAmount() {
-    const confirmationAmount = Session.get('transactionConfirmationAmount')
-    return confirmationAmount
-  },
   transactionConfirmationFee() {
     if (Session.get('transactionConfirmationResponse') === undefined) { return false }
     const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
+  },
+  thresholdForSpend() {
+    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
+    const thresholdForSpend = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.multi_sig_create.threshold
+    return thresholdForSpend
   },
 })
 function generateTransaction() {
@@ -97,7 +98,6 @@ function generateTransaction() {
   if (validAddresses.length === sendTo.length) {
     console.log('all addresses valid')
   } else {
-    console.log('One or more of the signatories is invalid: please check the addresses carefully [validAddresses.length = ' + validAddresses.length + ' / sendTo.length = ' + sendTo.length)
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('One or more of the signatories is invalid: please check the addresses carefully')
     $('#checkWeightsModal').modal('show')
@@ -110,6 +110,7 @@ function generateTransaction() {
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Duplicate signatory found')
     $('#checkWeightsModal').modal('show')
+    return
   }
 
   for (let i = 0; i < sendTo.length; i += 1) {
@@ -142,6 +143,7 @@ function generateTransaction() {
       $('#checkWeightsModal p').text(cwt.error)
     }
     $('#checkWeightsModal').modal('show')
+    return
   }
 
   // Calculate txn fee
@@ -166,7 +168,7 @@ function generateTransaction() {
       $('#transferForm').hide()
     } else {
       console.log('Result from createMultisig', res)
-      const confirmation_outputs = [] // eslint-disable-line
+      const confirmationOutputs = []
 
       const resAddrsTo = res.response.extended_transaction_unsigned.tx.multi_sig_create.signatories
       const resAmounts = res.response.extended_transaction_unsigned.tx.multi_sig_create.weights
@@ -180,17 +182,17 @@ function generateTransaction() {
           address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
           weight: resAmounts[i],
         }
-        confirmation_outputs.push(thisOutput)
+        confirmationOutputs.push(thisOutput)
       }
 
       const confirmation = {
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
-        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-        outputs: confirmation_outputs,
+        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
+        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
+        outputs: confirmationOutputs,
         threshold: resThreshold,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-        otsKey: otsKey, // eslint-disable-line
+        otsKey,
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'multiSigCreate')) {

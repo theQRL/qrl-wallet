@@ -185,8 +185,12 @@
           Confirm Multisig Wallet Creation
         </div>
       </div>
-      <div class="floatright">{{ transactionConfirmationAmount }} Quanta</div>
     </div>
+
+    <h4 class="ui horizontal divider header">
+      <i class="file icon"></i>
+      Transaction Details
+    </h4>
 
     <form>
       <div class="field">
@@ -198,29 +202,26 @@
             <tr>
             <td>{{# if bech32}}{{ this.address_b32 }}{{else}}{{ this.address_hex
             }}{{/if}}</td>
-            <td>[weight={{ this.weight }}]</td>
+            <td>{{ this.weight }}</td>
             </tr>
             {{/each}}
           </tbody>
+          <tfoot>
+            <th>Threshold for spend</th>
+            <th><a class="ui">{{ thresholdForSpend }}</a></th>
+          </tfoot>
         </table>
       </div>
     </form>
 
-    <h4 class="ui horizontal divider header">
-      <i class="file icon"></i>
-      Transaction Details
-    </h4>
-
     <div class="ui stackable one column grid">
       <div class="column">
-        <span
-          >Fee <a class="ui">{{ transactionConfirmationFee }}</a> Quanta</span
-        >
         <br />
-        <span
-          >OTS Key Index
-          <a class="ui">{{ transactionConfirmation.otsKey }}</a></span
-        >
+        <span>Fee <a class="ui">{{ transactionConfirmationFee }}</a> Quanta</span>
+        <br />
+        <span>OTS Key Index
+          <a class="ui">{{ transactionConfirmation.otsKey }}</a>
+        </span>
       </div>
     </div>
 
