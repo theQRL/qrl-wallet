@@ -1,6 +1,6 @@
 /* eslint no-console:0 */
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
-selectedNetwork, wrapMeteorCall */
+selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -45,6 +45,31 @@ Template.multisigCreate.helpers({
       return true
     }
     return false
+  },
+  isSeedWallet() {
+    if (getXMSSDetails().walletType === 'seed') {
+      return true
+    }
+    return false
+  },
+  bech32() {
+    if (LocalStore.get('addressFormat') === 'bech32') {
+      return true
+    }
+    return false
+  },
+  transactionConfirmation() {
+    const confirmation = Session.get('transactionConfirmation')
+    return confirmation
+  },
+  transactionConfirmationAmount() {
+    const confirmationAmount = Session.get('transactionConfirmationAmount')
+    return confirmationAmount
+  },
+  transactionConfirmationFee() {
+    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
+    const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
+    return transactionConfirmationFee
   },
 })
 function generateTransaction() {
@@ -141,51 +166,47 @@ function generateTransaction() {
       $('#transferForm').hide()
     } else {
       console.log('Result from createMultisig', res)
-      // const confirmation_outputs = [] // eslint-disable-line
+      const confirmation_outputs = [] // eslint-disable-line
 
-      // const resAddrsTo = res.response.extended_transaction_unsigned.tx.transfer.addrs_to
-      // const resAmounts = res.response.extended_transaction_unsigned.tx.transfer.amounts
-      // let totalTransferAmount = 0
+      const resAddrsTo = res.response.extended_transaction_unsigned.tx.multi_sig_create.signatories
+      const resAmounts = res.response.extended_transaction_unsigned.tx.multi_sig_create.weights
+      const resThreshold = res.response.extended_transaction_unsigned.tx.multi_sig_create.threshold
 
-      // for (let i = 0; i < resAddrsTo.length; i += 1) {
-      //   // Create and store the output
-      //   const thisOutput = {
-      //     address: Buffer.from(resAddrsTo[i]),
-      //     address_hex: helpers.rawAddressToHexAddress(resAddrsTo[i]),
-      //     address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
-      //     amount: resAmounts[i] / SHOR_PER_QUANTA,
-      //     name: 'Quanta',
-      //   }
-      //   confirmation_outputs.push(thisOutput)
+      for (let i = 0; i < resAddrsTo.length; i += 1) {
+        // Create and store the output
+        const thisOutput = {
+          address: Buffer.from(resAddrsTo[i]),
+          address_hex: helpers.rawAddressToHexAddress(resAddrsTo[i]),
+          address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
+          weight: resAmounts[i],
+        }
+        confirmation_outputs.push(thisOutput)
+      }
 
-      //   // Update total transfer amount
-      //   totalTransferAmount += parseInt(resAmounts[i], 10)
-      // }
+      const confirmation = {
+        from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
+        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+        outputs: confirmation_outputs,
+        threshold: resThreshold,
+        fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        otsKey: otsKey, // eslint-disable-line
+      }
 
-      // const confirmation = {
-      //   from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
-      //   from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-      //   from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-      //   outputs: confirmation_outputs,
-      //   fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-      //   otsKey: otsKey, // eslint-disable-line
-      // }
+      if (nodeReturnedValidResponse(request, confirmation, 'multiSigCreate')) {
+        Session.set('transactionConfirmation', confirmation)
+        Session.set('transactionConfirmationFee', confirmation.fee)
+        Session.set('transactionConfirmationResponse', res.response)
 
-      // if (nodeReturnedValidResponse(request, confirmation, 'transferCoins')) {
-      //   Session.set('transactionConfirmation', confirmation)
-      //   Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
-      //   Session.set('transactionConfirmationFee', confirmation.fee)
-      //   Session.set('transactionConfirmationResponse', res.response)
-
-      //   // Show confirmation
-      //   $('#generateTransactionArea').hide()
-      //   $('#confirmTransactionArea').show()
-      // } else {
-      //   // Hide generating component
-      //   $('#generating').hide()
-      //   // Show warning modal
-      //   $('#invalidNodeResponse').modal('show')
-      // }
+        // Show confirmation
+        $('#generateTransactionArea').hide()
+        $('#confirmTransactionArea').show()
+      } else {
+        // Hide generating component
+        $('#generating').hide()
+        // Show warning modal
+        $('#invalidNodeResponse').modal('show')
+      }
     }
   })
 }

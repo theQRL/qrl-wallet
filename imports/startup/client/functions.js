@@ -901,6 +901,10 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // If we got here, everything matches the request
     return true
+  } else if (type === 'multiSigCreate') {
+    // todo: checks here
+
+    return true
   }
 
   // We should not get this far - return false as failsafe
