@@ -1,7 +1,7 @@
 /* eslint no-console:0, max-len:0 */
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
-toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, bytesToHex */
+toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -72,6 +72,24 @@ Template.multisigCreate.helpers({
     if (Session.get('transactionConfirmationResponse') === undefined) { return false }
     const thresholdForSpend = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.multi_sig_create.threshold
     return thresholdForSpend
+  },
+  transactionRelayedThrough() {
+    const status = Session.get('transactionRelayedThrough')
+    return status
+  },
+  transactionStatus() {
+    const status = Session.get('txstatus')
+    return status
+  },
+  nodeExplorerUrl() {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NETWORKS[0].explorerUrl
+    }
+    return Session.get('nodeExplorerUrl')
+  },
+  transactionHash() {
+    const hash = Session.get('transactionHash')
+    return hash
   },
 })
 

@@ -261,34 +261,41 @@
                   <img class="transactionTypeImage" src="/img/icons/send.png" />
                   <div class="content">
                     <div class="header">
-                      Sent
+                      MultiSig Wallet Created
                     </div>
-                  </div>
-                  <div class="floatright">
-                    {{transactionConfirmationAmount}} Quanta
                   </div>
                 </div>
-      
-                <form>
-                  <div class="field">
-                    <label>Recipient</label>
-                    <div class="ui visible message">
-                      <p class="wordBreak">
-                        {{#each transactionConfirmation.outputs}}
-                          {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
-                        {{/each}}
-                      </p>
-                    </div>
-                  </div>
-                </form>
       
                 <h4 class="ui horizontal divider header">
                   <i class="file icon"></i>
                   Transaction Details
                 </h4>
+
+                <form>
+                  <div class="field">
+                    <h4>Signatories</h4>
+                    <table class="ui table">
+                      <thead><th>Address</th><th>Weight</th></thead>
+                      <tbody>
+                        {{#each transactionConfirmation.outputs}}
+                        <tr>
+                        <td>{{# if bech32}}{{ this.address_b32 }}{{else}}{{ this.address_hex
+                        }}{{/if}}</td>
+                        <td>{{ this.weight }}</td>
+                        </tr>
+                        {{/each}}
+                      </tbody>
+                      <tfoot>
+                        <th>Threshold for spend</th>
+                        <th><a class="ui">{{ thresholdForSpend }}</a></th>
+                      </tfoot>
+                    </table>
+                  </div>
+                </form>
       
                 <div class="ui stackable one column grid">
                   <div class="column">
+                    <br />
                     <span>Transaction Hash <a id="confirmedTransferTxnHash" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
                     <br />
                     <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
