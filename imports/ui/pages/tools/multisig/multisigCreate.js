@@ -703,6 +703,18 @@ Template.multisigCreate.events({
     $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
+  'click #quantaJsonClick': () => {
+    if (!($('#quantaJsonbox').html())) {
+      setRawDetail()
+    }
+    $('#quantaJsonbox').toggle()
+  },
+  'click #tokenJsonClick': () => {
+    if (!($('#tokenJsonbox').html())) {
+      setRawDetail()
+    }
+    $('#tokenJsonbox').toggle()
+  },
 })
 
 Template.multisigCreate.onRendered(() => {
