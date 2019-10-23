@@ -254,4 +254,86 @@
       </div>
     </div>
   </div>
+              <!-- Transaction Result Area -->
+              <div id="transactionResultArea" style="display: none;">
+
+                <div class="ui icon message transactionRecord">
+                  <img class="transactionTypeImage" src="/img/icons/send.png" />
+                  <div class="content">
+                    <div class="header">
+                      Sent
+                    </div>
+                  </div>
+                  <div class="floatright">
+                    {{transactionConfirmationAmount}} Quanta
+                  </div>
+                </div>
+      
+                <form>
+                  <div class="field">
+                    <label>Recipient</label>
+                    <div class="ui visible message">
+                      <p class="wordBreak">
+                        {{#each transactionConfirmation.outputs}}
+                          {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                        {{/each}}
+                      </p>
+                    </div>
+                  </div>
+                </form>
+      
+                <h4 class="ui horizontal divider header">
+                  <i class="file icon"></i>
+                  Transaction Details
+                </h4>
+      
+                <div class="ui stackable one column grid">
+                  <div class="column">
+                    <span>Transaction Hash <a id="confirmedTransferTxnHash" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
+                    <br />
+                    <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
+                    <br />
+                    <span>OTS Key Index <a class="ui">{{transactionConfirmation.otsKey}}</a></span>
+                  </div>
+                </div>
+      
+                <div class="ui stackable one column grid">
+                  <div class="column">
+                    <p id="transferSuccessMessage" style="word-wrap: break-word; word-break: break-all;">
+                      Success! Your transaction has been relayed into the QRL network through the following nodes, and is pending validation.
+                    </p>
+                  </div>
+                </div>
+      
+      
+                <div class="ui mini horizontal divided list">
+                {{#each transactionRelayedThrough}}
+                  <div class="item">
+                    <i class="checkmark icon green"></i>
+                    <div class="content">
+                      <div class="header">{{this}}</div>
+                    </div>
+                  </div>
+                {{/each}}
+                </div>
+      
+                <div id="relaying" class="ui icon message">
+                  <br /><br />
+                  <i class="notched circle loading icon"></i>
+                  <div class="content">
+                    <div id="loadingHeader" class="header">
+                      Just a moment
+                    </div>
+                    <p id="transferFinalTxnStatus" class="wordBreak" style="word-wrap: break-word; word-break: break-all;">Transaction Status: {{transactionStatus}}</p>
+                  </div>
+                </div>
+      
+                <div class="ui stackable one column grid">
+                  <div class="column">
+                    <button id="quantaJsonClick" class="ui mini button jsonclick ">Raw Transaction Details <i class="down angle icon"></i></button>
+                    <div id="quantaJsonbox" class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+                  </div>
+                </div>
+      
+              </div>
 </template>
