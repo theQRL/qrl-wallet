@@ -352,7 +352,6 @@ const helpersaddressTransactions = (response) => {
   console.log(response)
   _.each(response.transactions_detail, (tx) => {
     const txEdited = tx
-    console.log('tx.transfer', tx.transfer)
     if (tx.tx.transfer) {
       const hexlified = []
       _.each(tx.tx.transfer.addrs_to, (txOutput) => {

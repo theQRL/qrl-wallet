@@ -523,7 +523,7 @@ loadAddressTransactions = (a, p) => {
       Session.set('errorLoadingTransactions', true)
     } else {
       Session.set('active', p)
-      Session.set('addressTransactions', res)
+      Session.set('addressTransactions', res.transactions_detail)
       Session.set('loadingTransactions', false)
       Session.set('errorLoadingTransactions', false)
       $('#noTransactionsFound').show()
