@@ -516,8 +516,8 @@ loadAddressTransactions = (a, p) => {
   Session.set('loadingTransactions', true)
 
   wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
-    console.log('err:', err)
-    console.log('res:', res)
+    // console.log('err:', err)
+    // console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
       Session.set('errorLoadingTransactions', true)

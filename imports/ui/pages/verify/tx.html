@@ -44,7 +44,7 @@
             <div class="item"><strong>Nonce</strong> {{tx.tx.nonce}}</div>
             <div class="item"><strong>OTS key</strong> {{tx.tx.ots_key}}</div>
             <div class="item"><strong>Fee</strong> {{tx.tx.fee}} Quanta</div>
-            <div class="item"><strong>Size</strong> {{txSize}}</div>            
+            <!-- <div class="item"><strong>Size</strong> {{txSize}}</div>             -->
             <div class="item"><strong>Status</strong> {{#if isConfirmed}} OK <i class="ui green circle icon"></i> {{ts}} {{else}} Unconfirmed <i class="ui yellow circle icon"></i>{{/if}}</div>
           </div>
           <div class="ui hidden divider"></div>
@@ -73,12 +73,15 @@
                         <div class="label">Token creation transaction: </div>
                         <a href="{{nodeExplorerUrl}}/tx/{{explorer.token_txhash}}" class="unbreakable">{{explorer.token_txhash}}</a>
                       {{else}}
+                      {{#if isMultiSigCreateTxn}}
+                      {{else}}
                         <div class="value" data-html="<div class='content'>USD ${{qrl}}</div>">
                           {{tx.tx.amount}}
                         </div>
                         <div class="label">
                           Quanta<br><small>USD ${{qrl}}</small>
                         </div>
+                        {{/if}}
                       {{/if}}
                     {{/if}}
                   {{/if}}
@@ -132,6 +135,28 @@
                 <span>Additional Text <a class="ui">{{explorer.text}}</a></span>
                 <br />
               {{else}}
+              {{#if isMultiSigCreateTxn}}
+                  <h4>Signatories</h4>
+                  <table class="ui table">
+                    <thead><th>Address</th><th>Weight</th></thead>
+                    <tbody>
+                      {{#each multiSigSignatories this.tx.multi_sig_create}}
+                      <tr>
+                      <td>
+                        <!-- {{# if bech32}}{{ this.address_b32 }}{{else}} -->
+                        {{ this.address_hex}}
+                        <!-- {{/if}} -->
+                      </td>
+                      <td>{{ this.weight }}</td>
+                      </tr>
+                      {{/each}}
+                    </tbody>
+                    <tfoot>
+                      <th>Threshold for spend</th>
+                      <th>{{ this.tx.multi_sig_create.threshold }}</th>
+                    </tfoot>
+                  </table>
+                {{else}}
                 <h3>To</h3>
                 <table class="ui stackable table">
                   <thead>
@@ -161,6 +186,7 @@
                     {{/if}}
                   </tbody>
                 </table>
+              {{/if}}
               {{/if}}
             {{/if}}
           {{/if}}
