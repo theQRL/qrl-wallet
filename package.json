@@ -6,9 +6,10 @@
   "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.4.3",
-    "@theqrl/explorer-helpers": "0.0.7",
+    "@theqrl/explorer-helpers": "^0.2.0",
     "@theqrl/hw-app-qrl": "^4.60.2",
-    "@theqrl/validate-qrl-address": "^1.1.0",
+    "@theqrl/validate-qrl-address": "^2.0.1",
+    "@theqrl/wallet-helpers": "^2.0.0",
     "aes256": "^1.0.2",
     "async": "^2.6.0",
     "babel-polyfill": "^6.26.0",
@@ -26,7 +27,7 @@
     "meteor-node-stubs": "^0.2.11",
     "qrllib": "^1.0.4",
     "run-script-os": "^1.0.3",
-    "snyk": "^1.185.1",
+    "snyk": "^1.236.1",
     "tmp": "0.0.33"
   },
   "private": false,

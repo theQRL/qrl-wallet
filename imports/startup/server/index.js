@@ -1,4 +1,4 @@
-/* eslint no-console:0 */
+/* eslint no-console:0, max-len: 0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
@@ -99,8 +99,7 @@ const loadGrpcClient = (endpoint, callback) => {
                   // If the grpc object shasum matches, establish the grpc connection.
                   if ((calculatedObjectHash === verifiedProtoSha256Hash.objectSha256) || (allowUnchecksummedNodes === true)) {
                     // Create the gRPC Connection
-                    qrlClient[endpoint] =
-                      new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
+                    qrlClient[endpoint] = new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
 
                     console.log(`qrlClient loaded for ${endpoint}`)
 
@@ -256,7 +255,7 @@ const qrlApi = (api, request, callback) => {
     // Determine current active nodes
     DEFAULT_NETWORKS.forEach((network) => {
       // Only get nodes from user selected network
-      if(network.id == request.network) {
+      if (network.id == request.network) {
         const networkNodes = network.nodes
         networkNodes.forEach((node, nodeIndex) => {
           if (node.state === true) {
@@ -277,6 +276,8 @@ const qrlApi = (api, request, callback) => {
       }
     })
 
+    console.log('bestNode:', bestNode)
+
     // If all nodes are offline, fail
     if (activeNodes.length === 0) {
       const myError = errorCallback('The wallet server cannot connect to any API node', 'Cannot connect to API', '**ERROR/noActiveNodes/b**')
@@ -287,7 +288,7 @@ const qrlApi = (api, request, callback) => {
       delete request.network;
       console.log('Making', api, 'request to', bestNode.grpc)
       qrlClient[bestNode.grpc][api](request, (error, response) => {
-        if (api == 'pushTransaction') {
+        if (api === 'pushTransaction') {
           response.relayed = bestNode.grpc
         }
         if (error) {
@@ -297,7 +298,6 @@ const qrlApi = (api, request, callback) => {
           callback(null, response)
         }
       })
-
     }
   } else {
     // Handle custom and localhost connections
@@ -352,7 +352,6 @@ const helpersaddressTransactions = (response) => {
   console.log(response)
   _.each(response.transactions_detail, (tx) => {
     const txEdited = tx
-    console.log('tx.transfer', tx.transfer)
     if (tx.tx.transfer) {
       const hexlified = []
       _.each(tx.tx.transfer.addrs_to, (txOutput) => {
@@ -525,10 +524,34 @@ const transferCoins = (request, callback) => {
     amounts: request.amounts,
     fee: request.fee,
     xmss_pk: request.xmssPk,
-    network: request.network
+    network: request.network,
   }
 
   qrlApi('transferCoins', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        response,
+      }
+      callback(null, transferResponse)
+    }
+  })
+}
+
+const createMultiSig = (request, callback) => {
+  const tx = {
+    master_addr: request.fromAddress,
+    signatories: request.signatories,
+    weights: request.weights,
+    threshold: request.threshold,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    network: request.network,
+  }
+
+  qrlApi('GetMultiSigCreateTxn', tx, (err, response) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
@@ -629,6 +652,97 @@ const confirmTransaction = (request, callback) => {
   })
 }
 
+const confirmMultiSigCreate = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change Uint8Arrays to Buffers
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  const { signatories } = confirmTxn.transaction_signed.multi_sig_create
+  const signatoriesFormatted = []
+  signatories.forEach(function (item) {
+    const i = toBuffer(item)
+    signatoriesFormatted.push(i)
+  })
+
+  // Overwrite signatories with our updated one
+  confirmTxn.transaction_signed.multi_sig_create.signatories = signatoriesFormatted
+  // // tx.multi_sig_create.threshold
+  confirmTxn.network = request.network
+
+  console.log('confirmed + signed tx for push', confirmTxn)
+  console.log(confirmTxn.transaction_signed.multi_sig_create.signatories)
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try {
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          console.log('Relayed Txn: ', Buffer.from(res.tx_hash).toString('hex'))
+
+          if (err) {
+            console.log(`Error:  ${err.message}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Error: Failed to send transaction: ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+    /*
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          try {
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+                cb()
+              } else {
+                console.log(`Transfer Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch(err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+            cb()
+          }
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('All transfer txns sent')
+        wfcb()
+      })
+    },
+    */
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
 
 // Function to call GetTokenTxn API
 const createTokenTxn = (request, callback) => {
@@ -1343,6 +1457,12 @@ Meteor.methods({
     const response = Meteor.wrapAsync(transferCoins)(request)
     return response
   },
+  createMultiSig(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(createMultiSig)(request)
+    return response
+  },
   getOTS(request) {
     check(request, Object)
     this.unblock()
@@ -1503,6 +1623,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(confirmTransaction)(request)
+    return response
+  },
+  confirmMultiSigCreate(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMultiSigCreate)(request)
     return response
   },
   createMessageTxn(request) {

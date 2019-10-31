@@ -165,6 +165,13 @@ Template.appVerifyTxid.helpers({
     }
     return false
   },
+  isMultiSigCreateTxn() {
+    console.log(this.explorer)
+    if (this.explorer.type === 'MULTISIG_CREATE') {
+      return true
+    }
+    return false
+  },
   isNotMessage() {
     if ((this.explorer.type !== 'MESSAGE') && (this.explorer.type !== 'DOCUMENT_NOTARISATION')) {
       return true
@@ -176,6 +183,16 @@ Template.appVerifyTxid.helpers({
       return DEFAULT_NETWORKS[0].explorerUrl
     }
     return Session.get('nodeExplorerUrl')
+  },
+  multiSigSignatories(ms) {
+    const output = []
+    if (ms) {
+      _.each(ms.signatories, (item, index) => {
+        output.push({address_hex: `Q${item}`, weight: ms.weights[index]})
+      })
+      return output
+    }
+    return false
   },
 })
 

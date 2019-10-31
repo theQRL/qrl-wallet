@@ -1,4 +1,4 @@
-/* eslint no-console:0 */
+/* eslint no-console:0, no-len: 0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
@@ -841,6 +841,7 @@ Template.appTransfer.onRendered(() => {
       $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
     }
   })
+  loadAddressTransactions(getXMSSDetails().address, 1)
 
   // Warn if user is has opened the 0 byte address (test mode on Ledger)
   if (getXMSSDetails().address === 'Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd') {
@@ -1097,7 +1098,7 @@ Template.appTransfer.helpers({
   addressTransactions() {
     const transactions = []
     const thisAddress = getXMSSDetails().address
-    _.each(Session.get('addressTransactions').transactions_detail, (transaction) => {
+    _.each(Session.get('addressTransactions'), (transaction) => {
       const y = transaction
       // Update timestamp from unix epoch to human readable time/date.
       if (moment.unix(transaction.timestamp).isValid()) {
@@ -1105,13 +1106,12 @@ Template.appTransfer.helpers({
       } else {
         y.timestamp = 'Unconfirmed Tx'
       }
-
       // Set total received amount if sent to this address
       let thisReceivedAmount = 0
-      if ((transaction.type === 'transfer') || (transaction.type === 'transfer_token')) {
-        _.each(transaction.outputs, (output) => {
-          if (output.address_hex === thisAddress) {
-            thisReceivedAmount += parseFloat(output.amount)
+      if ((y.tx.transactionType === 'transfer') || (y.tx.transactionType === 'transfer_token')) {
+        _.each(y.tx.transfer.addrs_to, (output, index) => {
+          if (output === thisAddress) {
+            thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
           }
         })
       }
@@ -1124,7 +1124,7 @@ Template.appTransfer.helpers({
   },
   addressHasTransactions() {
     try {
-      if (Session.get('addressTransactions').transactions_detail.length > 0) {
+      if (Session.get('addressTransactions').length > 0) {
         return true
       }
       return false
@@ -1172,6 +1172,12 @@ Template.appTransfer.helpers({
   },
   isLatticePKTxn(txType) {
     if (txType === 'latticePK') {
+      return true
+    }
+    return false
+  },
+  isCreateMultiSigTxn(txType) {
+    if (txType === 'multi_sig_create') {
       return true
     }
     return false
@@ -1280,22 +1286,34 @@ Template.appTransfer.helpers({
     return false
   },
   ledgerWalletDisabled() {
-    if (getXMSSDetails().walletType === 'ledger') {
-      return 'disabled'
+    try {
+      if (getXMSSDetails().walletType === 'ledger') {
+        return 'disabled'
+      }
+      return ''
+    } catch (error) {
+      return ''
     }
-    return ''
   },
   isLedgerWallet() {
-    if (getXMSSDetails().walletType === 'ledger') {
-      return true
+    try {
+      if (getXMSSDetails().walletType === 'ledger') {
+        return true
+      }
+      return false
+    } catch (error) {
+      return ''
     }
-    return false
   },
   isSeedWallet() {
-    if (getXMSSDetails().walletType === 'seed') {
-      return true
+    try {
+      if (getXMSSDetails().walletType === 'seed') {
+        return true
+      }
+      return false
+    } catch (error) {
+      return ''
     }
-    return false
   },
   errorLoadingTransactions() {
     if (Session.get('errorLoadingTransactions') === true) {

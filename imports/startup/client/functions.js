@@ -516,14 +516,14 @@ loadAddressTransactions = (a, p) => {
   Session.set('loadingTransactions', true)
 
   wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
-    console.log('err:', err)
-    console.log('res:', res)
+    // console.log('err:', err)
+    // console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
       Session.set('errorLoadingTransactions', true)
     } else {
       Session.set('active', p)
-      Session.set('addressTransactions', res)
+      Session.set('addressTransactions', res.transactions_detail)
       Session.set('loadingTransactions', false)
       Session.set('errorLoadingTransactions', false)
       $('#noTransactionsFound').show()
@@ -900,6 +900,10 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
 
     // If we got here, everything matches the request
+    return true
+  } else if (type === 'multiSigCreate') {
+    // todo: checks here
+
     return true
   }
 
