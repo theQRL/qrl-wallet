@@ -8,6 +8,13 @@ import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import { checkWeightsAndThreshold } from '@theqrl/wallet-helpers'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
+import sha256 from 'sha256'
+
+function toHexString(byteArray) {
+  return Array.from(byteArray, function (byte) {
+    return ('0' + (byte & 0xFF).toString(16)).slice(-2) // eslint-disable-line
+  }).join('')
+}
 
 Template.multisigCreate.onCreated(() => {
   // Route to open wallet is already opened
@@ -90,6 +97,17 @@ Template.multisigCreate.helpers({
   transactionHash() {
     const hash = Session.get('transactionHash')
     return hash
+  },
+  msaddress() {
+    const txhash = hexToBytes(Session.get('transactionHash'))
+    const desc = hexToBytes('110000')
+    const arr = [...desc, ...txhash]
+    const prevHash = hexToBytes(sha256(arr))
+    const newArr = [...desc, ...prevHash]
+    const newHash = hexToBytes(sha256(newArr).slice(56, 64))
+    const q1 = [...desc, ...prevHash]
+    const q = [...q1, ...newHash]
+    return `Q${toHexString(q)}`
   },
 })
 
