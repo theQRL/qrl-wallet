@@ -403,6 +403,24 @@ export const getTransactionsByAddress = (request, callback) => {
   }
 }
 
+const getMultiSigAddressesByAddress = (request, callback) => {
+  console.log('request:', request)
+  try {
+    qrlApi('GetMultiSigAddressesByAddress', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetMultiSigAddressesByAddress', '**ERROR/GetMultiSigAddressesByAddress**')
+        callback(myError, null)
+      } else {
+        console.log('No error: ', response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetMultiSigAddressesByAddress', '**ERROR/GetMultiSigAddressesByAddress**')
+    callback(myError, null)
+  }
+}
+
 const getOTS = (request, callback) => {
   try {
     qrlApi('GetOTS', request, (error, response) => {
@@ -1419,8 +1437,14 @@ Meteor.methods({
     check(request, Object)
     this.unblock()
     const response = Meteor.wrapAsync(getTransactionsByAddress)(request)
-    console.table(response)
     return helpersaddressTransactions(response)
+  },
+  getMultiSigAddressesByAddress(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getMultiSigAddressesByAddress)(request)
+    console.table(response)
+    return response
   },
   getTxnHash(request) {
     this.unblock()

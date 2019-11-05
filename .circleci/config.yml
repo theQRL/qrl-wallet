@@ -27,8 +27,8 @@ jobs:
             sudo n 8.11.4
             brew update
             brew cleanup
-            brew cask install google-chrome
-            brew cask install chromedriver
+            # brew cask install google-chrome
+            # brew cask install chromedriver
 
       # Prepare app
       - run:

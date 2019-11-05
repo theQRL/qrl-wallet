@@ -314,13 +314,14 @@
     <div id="walletAddress" class="content wordBreak">
       {{transferFrom.address}}
     </div>
+    <div class="float right"><button class="ui primary red button" id="changeAddress">Select Address</button></div>
   </h3>
   <br /><br />
   
   <div class="ui left aligned" id="transferForm">
     <div class="ui stackable two column grid">
       <div class="six wide column">
-  
+        {{#if hasAddressSet}}
           <!-- Generate Transaction Area -->
           <div id="generateTransactionArea">
             <form id="generateTransactionForm" class="ui form">
@@ -338,13 +339,13 @@
   
                       <select id="amountType" class="ui compact selection dropdown">
                         <option value="quanta">Quanta</option>
-                        {{#each tokensHeld}}
+                        <!-- {{#each tokensHeld}}
                         <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}} ({{this.shortHash}})</option>
-                        {{/each}}
+                        {{/each}} -->
                       </select>
                     </div>
                     <br />
-                    <div class="ui teal label">Balance: {{balanceAmount}} {{balanceSymbol}}</div>
+                    <div class="ui teal label">Balance: {{transferFrom.balance}} Quanta</div>
                   </div>
                   <br />
                 </div>
@@ -403,7 +404,7 @@
               </div>
             </form>
           </div>
-  
+          {{/if}}
   
           <!-- Confirm Transaction Area -->
           <div id="confirmTransactionArea" style="display: none;">
@@ -561,5 +562,35 @@
     <h4>Transaction Generation Failed</h4>
     <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
   </div>
-  
+  <div class="small ui modal" id="chooseSpendAddress">
+      <div class="header">Choose multisig address to spend from</div>
+      <div class="content">
+        {{> msTable}}
+      </div>
+      <div class="actions">
+        <div class="ui approve red button">Close</div>
+      </div>
+    </div>
+</template>
+<template name="msTable">
+    <table class="ui selectable celled table" id="chooseSpendAddressTable">
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each msAddresses}}
+            <tr>
+              <td>
+                {{this.address}}
+              </td>
+              <td>
+                {{this.balance}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
 </template>
