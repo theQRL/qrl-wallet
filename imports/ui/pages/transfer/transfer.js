@@ -1141,55 +1141,55 @@ Template.appTransfer.helpers({
     return false
   },
   isTransfer(txType) {
-    if (txType === 'transfer') {
+    if (txType.toLowerCase() === 'transfer') {
       return true
     }
     return false
   },
   isTokenCreation(txType) {
-    if (txType === 'token') {
+    if (txType.toLowerCase() === 'token') {
       return true
     }
     return false
   },
   isTokenTransfer(txType) {
-    if (txType === 'transfer_token') {
+    if (txType.toLowerCase() === 'transfer_token') {
       return true
     }
     return false
   },
   isCoinbaseTxn(txType) {
-    if (txType === 'coinbase') {
+    if (txType.toLowerCase() === 'coinbase') {
       return true
     }
     return false
   },
   isSlaveTxn(txType) {
-    if (txType === 'slave') {
+    if (txType.toLowerCase() === 'slave') {
       return true
     }
     return false
   },
   isLatticePKTxn(txType) {
-    if (txType === 'latticePK') {
+    if (txType.toLowerCase() === 'latticepk') {
       return true
     }
     return false
   },
   isCreateMultiSigTxn(txType) {
-    if (txType === 'multi_sig_create') {
+    if (txType.toLowerCase() === 'multi_sig_create') {
       return true
     }
     return false
   },
   isMessageTxn(txType) {
-    if (txType === 'MESSAGE') {
+    if (txType.toLowerCase() === 'message') {
       return true
     }
     return false
   },
   isDocumentNotarisation(txType) {
-    if (txType === 'DOCUMENT_NOTARISATION') {
+    if (txType.toLowerCase() === 'document_notarisation') {
       return true
     }
     return false
