@@ -253,6 +253,15 @@ function generateTransaction() {
     return
   }
 
+  // check enough balance for fee
+  if (txnFee > Session.get('transferFromBalance')) {
+    console.log('Insufficient balance in wallet for transaction fee')
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    $('#checkWeightsModal p').text('Insufficient balance in wallet for transaction fee')
+    $('#checkWeightsModal').modal('show')
+    return
+  }
+
   for (let i = 0; i < sendTo.length; i += 1) {
     const thisAddress = sendTo[i].value
     thisAddressesTo.push(anyAddressToRawAddress(thisAddress.trim()))

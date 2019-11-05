@@ -573,6 +573,7 @@
     </div>
 </template>
 <template name="msTable">
+  {{#if hasMultisig}}
     <table class="ui selectable celled table" id="chooseSpendAddressTable">
         <thead>
           <tr>
@@ -593,4 +594,10 @@
           {{/each}}
         </tbody>
       </table>
+      {{else}}
+      {{#if msLoading}}
+      <p>Looking up multisig addresses...</p>
+      {{else}}
+      <p>This wallet is not a signatory on any multisig addresses</p>
+      {{/if}}{{/if}}
 </template>

@@ -23,6 +23,15 @@ Template.msTable.helpers({
   msAddresses() {
     return Session.get('multiSigAddresses')
   },
+  msLoading() {
+    return Session.get('loadingmultiSigAddresses')
+  },
+  hasMultisig() {
+    if (Session.get('multiSigAddresses').length > 0) {
+      return true
+    }
+    return false
+  },
 })
 const loadMultisigs = (a, p) => {
   const addresstx = Buffer.from(a.substring(1), 'hex')
