@@ -99,15 +99,18 @@ Template.multisigCreate.helpers({
     return hash
   },
   msaddress() {
-    const txhash = hexToBytes(Session.get('transactionHash'))
-    const desc = hexToBytes('110000')
-    const arr = [...desc, ...txhash]
-    const prevHash = hexToBytes(sha256(arr))
-    const newArr = [...desc, ...prevHash]
-    const newHash = hexToBytes(sha256(newArr).slice(56, 64))
-    const q1 = [...desc, ...prevHash]
-    const q = [...q1, ...newHash]
-    return `Q${toHexString(q)}`
+    if (Session.get('transactionHash')) {
+      const txhash = hexToBytes(Session.get('transactionHash'))
+      const desc = hexToBytes('110000')
+      const arr = [...desc, ...txhash]
+      const prevHash = hexToBytes(sha256(arr))
+      const newArr = [...desc, ...prevHash]
+      const newHash = hexToBytes(sha256(newArr).slice(56, 64))
+      const q1 = [...desc, ...prevHash]
+      const q = [...q1, ...newHash]
+      return `Q${toHexString(q)}`
+    }
+    return ''
   },
 })
 
