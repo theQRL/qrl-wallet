@@ -562,7 +562,7 @@
     <h4>Transaction Generation Failed</h4>
     <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
   </div>
-  <div class="small ui modal" id="chooseSpendAddress">
+  <div class="ui modal" id="chooseSpendAddress">
       <div class="header">Choose multisig address to spend from</div>
       <div class="content">
         {{> msTable}}
@@ -578,10 +578,10 @@
         <thead>
           <tr>
             <th>Address</th>
-            <th>Balance</th>
+            <th>Balance (Quanta)</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style="font-family: 'Hack';">
           {{#each msAddresses}}
             <tr>
               <td>

@@ -1,4 +1,4 @@
-/* global hexOrB32, wrapMeteorCall, selectedNetwork, getXMSSDetails */
+/* global hexOrB32, wrapMeteorCall, selectedNetwork, getXMSSDetails, SHOR_PER_QUANTA */
 Template.multisigSpend.helpers({
   isActiveTab(p) {
     if (Session.get('activeMultisigTab') === p) {
@@ -55,7 +55,7 @@ const loadMultisigs = (a, p) => {
       Session.set('active', p)
       const add = []
       _.each(res.multi_sig_detail, (item => {
-        add.push({ address: `Q${Buffer.from(item.address).toString('hex')}`, balance: item.balance })
+        add.push({ address: `Q${Buffer.from(item.address).toString('hex')}`, balance: item.balance / SHOR_PER_QUANTA })
       }))
       Session.set('multiSigAddresses', add)
       Session.set('loadingmultiSigAddresses', false)
@@ -74,10 +74,8 @@ Template.multisigSpend.events({
 })
 Template.msTable.events({
   'click #chooseSpendAddressTable tr': (event) => {
-    console.log(event)
     const a = event.currentTarget.cells[0].textContent.trim()
     const b = event.currentTarget.cells[1].textContent.trim()
-    console.log(b)
     Session.set('multisigTransferFromAddress', a)
     Session.set('multisigTransferFromBalance', b)
     Session.set('multisigTransferFromAddressSet', true)
