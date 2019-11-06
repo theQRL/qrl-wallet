@@ -200,17 +200,17 @@ const checkNetworkHealth = (userNetwork, callback) => {
   // Determine current active nodes
   DEFAULT_NETWORKS.forEach((network) => {
     // Only look at health of userNetwork
-    if (network.id == userNetwork) {
-      if (network.healthy == true) {
+    if (network.id === userNetwork) {
+      if (network.healthy === true) {
         networkHealthy = true
       }
     }
   })
 
-  if (networkHealthy == true) {
+  if (networkHealthy === true) {
     callback(null, true)
   } else {
-    callback(true, {error: 'Network unhealthy'})
+    callback(true, { error: 'Network unhealthy' })
   }
 }
 
@@ -285,7 +285,7 @@ const qrlApi = (api, request, callback) => {
     } else {
       // Make the API call
       // Delete network from request object
-      delete request.network;
+      delete request.network
       console.log('Making', api, 'request to', bestNode.grpc)
       qrlClient[bestNode.grpc][api](request, (error, response) => {
         if (api === 'pushTransaction') {
@@ -303,11 +303,11 @@ const qrlApi = (api, request, callback) => {
     // Handle custom and localhost connections
     const apiEndpoint = request.network
     // Delete network from request object
-    delete request.network;
+    delete request.network
     console.log('Making', api, 'request to', apiEndpoint)
 
     qrlClient[apiEndpoint][api](request, (error, response) => {
-      if (api == 'pushTransaction') {
+      if (api === 'pushTransaction') {
         response.relayed = apiEndpoint
       }
       if (error) {
@@ -404,14 +404,12 @@ export const getTransactionsByAddress = (request, callback) => {
 }
 
 const getMultiSigAddressesByAddress = (request, callback) => {
-  console.log('request:', request)
   try {
     qrlApi('GetMultiSigAddressesByAddress', request, (error, response) => {
       if (error) {
         const myError = errorCallback(error, 'Cannot access API/GetMultiSigAddressesByAddress', '**ERROR/GetMultiSigAddressesByAddress**')
         callback(myError, null)
       } else {
-        console.log('No error: ', response)
         callback(null, response)
       }
     })
@@ -428,7 +426,6 @@ const getOTS = (request, callback) => {
         const myError = errorCallback(error, 'Cannot access API/GetOTS', '**ERROR/getOTS** ')
         callback(myError, null)
       } else {
-        // console.log(response)
         callback(null, response)
       }
     })
@@ -451,7 +448,6 @@ const getAddressState = (request, callback) => {
         let lowestUnusedOtsKey = -1
         let otsBitfieldLength = 0
         let thisOtsBitfield = []
-        // console.log('response.state.ots_bitfield=', response.state.ots_bitfield)
         if (response.state.ots_bitfield !== undefined) { thisOtsBitfield = response.state.ots_bitfield }
         thisOtsBitfield.forEach((item, index) => {
           const thisDecimal = new Uint8Array(item)[0]
@@ -578,6 +574,22 @@ const createMultiSig = (request, callback) => {
         response,
       }
       callback(null, transferResponse)
+    }
+  })
+}
+
+const getHeight = (request, callback) => {
+  const tx = {
+    network: request.network,
+  }
+
+  qrlApi('GetHeight', tx, (err, response) => {
+    console.log('response:', response)
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      callback(null, response)
     }
   })
 }
@@ -1425,6 +1437,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(getKnownPeers)(request)
+    return response
+  },
+  getHeight(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(getHeight)(request)
     return response
   },
   getAddressState(request) {

@@ -8,7 +8,7 @@
     "@babel/runtime": "^7.4.3",
     "@theqrl/explorer-helpers": "^0.2.0",
     "@theqrl/hw-app-qrl": "^4.60.2",
-    "@theqrl/validate-qrl-address": "^2.0.1",
+    "@theqrl/validate-qrl-address": "^3.0.0",
     "@theqrl/wallet-helpers": "^2.0.0",
     "aes256": "^1.0.2",
     "async": "^2.6.0",

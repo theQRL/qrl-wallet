@@ -319,15 +319,16 @@
   <br /><br />
   
   <div class="ui left aligned" id="transferForm">
-    <div class="ui stackable two column grid">
-      <div class="six wide column">
+    <div class="ui stackable grid">
+      <div class="column">
         {{#if hasAddressSet}}
           <!-- Generate Transaction Area -->
           <div id="generateTransactionArea">
-            <form id="generateTransactionForm" class="ui form">
-  
+            <!-- <form id="generateTransactionForm" class="ui form"> -->
+              <div class="ui stackable two column grid">
+              <div class="six wide column">
               <div id="transferRecipients">
-                <div>
+                <div class="ui form">
                   <div class="field">
                     <label>Recipient</label>
                     <input type="text" id="to_1" name="to[]" placeholder="Recipient Address" autocomplete="off">
@@ -359,14 +360,25 @@
                   Add Another Recipient
                 </button>
               </div>
-  
+            </div>
+            <div class="six wide column">
+              <div class="ui form">
+                  <div class="field">
+                      <label>Expiry block number</label>
+                      <div class="ui right labeled input">
+                        <input type="number" id="expiry" value="{{estimateExpiry}}" autocomplete="off">
+                        <button class="ui basic label" id="intervalButton">
+                          {{getInterval}}
+                        </button>
+                      </div>
+                    </div>
               <div class="field">
                 <label>Fee (In Quanta)</label>
-                <input type="text" id="fee" value="0.001" autocomplete="off">
+                <input type="number" id="fee" value="0.1" autocomplete="off">
               </div>
               <div class="field">
                 <label>OTS Key Index</label>
-                <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}}>
+                <input type="number" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}}>
               </div>
   
   
@@ -402,7 +414,10 @@
                   <p>Generating transaction...</p>
                 </div>
               </div>
-            </form>
+            </div>
+            </div>
+            <!-- </form> -->
+          </div>
           </div>
           {{/if}}
   
@@ -562,7 +577,7 @@
     <h4>Transaction Generation Failed</h4>
     <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
   </div>
-  <div class="small ui modal" id="chooseSpendAddress">
+  <div class="ui modal" id="chooseSpendAddress">
       <div class="header">Choose multisig address to spend from</div>
       <div class="content">
         {{> msTable}}
@@ -578,10 +593,10 @@
         <thead>
           <tr>
             <th>Address</th>
-            <th>Balance</th>
+            <th>Balance (Quanta)</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style="font-family: 'Hack';">
           {{#each msAddresses}}
             <tr>
               <td>
