@@ -19,5 +19,5 @@
       }
     ]
   },
-  "allowUnchecksummedNodes": true
+  "allowUnchecksummedNodes": false
 }

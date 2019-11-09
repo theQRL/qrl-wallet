@@ -85,6 +85,7 @@ const loadGrpcClient = (endpoint, callback) => {
                 // If the calculated qrl.proto hash matches the verified one for this version,
                 // continue to verify the grpc object loaded from the proto also matches the correct
                 // shasum.
+                console.log('proto: checking that calc of ' + calculatedProtoHash + ' = expected ' + verifiedProtoSha256Hash.protoSha256)
                 if ((calculatedProtoHash === verifiedProtoSha256Hash.protoSha256) || (allowUnchecksummedNodes === true)) {
                   // Load gRPC object
                   const grpcObject = grpc.load(qrlProtoFilePath)
@@ -97,6 +98,7 @@ const loadGrpcClient = (endpoint, callback) => {
                   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
 
                   // If the grpc object shasum matches, establish the grpc connection.
+                  console.log('object: checking that calc of ' + calculatedObjectHash + ' = expected ' + verifiedProtoSha256Hash.objectSha256)
                   if ((calculatedObjectHash === verifiedProtoSha256Hash.objectSha256) || (allowUnchecksummedNodes === true)) {
                     // Create the gRPC Connection
                     qrlClient[endpoint] = new grpcObject.qrl.PublicAPI(endpoint, grpc.credentials.createInsecure())
@@ -566,6 +568,31 @@ const createMultiSig = (request, callback) => {
   }
 
   qrlApi('GetMultiSigCreateTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        response,
+      }
+      callback(null, transferResponse)
+    }
+  })
+}
+
+const spendMultiSig = (request, callback) => {
+  const tx = {
+    master_addr: request.master_addr,
+    addrs_to: request.addrs_to,
+    amounts: request.amounts,
+    expiry_block_number: request.expiry_block_number,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    network: request.network,
+  }
+  console.log('About to call GRPC GetMultiSigSpendTxn with tx = ')
+  console.log(tx)
+  qrlApi('GetMultiSigSpendTxn', tx, (err, response) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
@@ -1503,6 +1530,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(createMultiSig)(request)
+    return response
+  },
+  spendMultiSig(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(spendMultiSig)(request)
     return response
   },
   getOTS(request) {

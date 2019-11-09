@@ -1,19 +1,46 @@
 <template name="multisigSpend">
-  <div class="small ui modal" id="verifyLedgerNanoAddressModal">
-    <div class="header">Ledger Nano S Address Verification</div>
+  <!-- error modal where weights/threshold invalid-->
+  <div class="small ui modal" id="checkWeightsModal">
+    <div class="header">Multisig Wallet Spend</div>
     <div class="content">
       <div class="ui warning icon message">
         <i class="warning icon"></i>
         <div>
           <div class="header">
-            The address below should be displayed on your Ledger Nano S device.
+            Lorum ipsum
           </div>
-          <p class="wordBreak"><strong>Address:</strong> {{transferFrom.address}}</p>
+          <p>Delit simplur</p>
         </div>
       </div>
     </div>
     <div class="actions">
       <div class="ui approve red button">Close</div>
+    </div>
+  </div>
+  <!-- error modal where node returns invalid response  -->
+  <div class="small ui modal" id="invalidNodeResponse">
+    <div class="header">WARNING - Bad Response</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            WARNING - The node you've requested this transaction from replied
+            with bad data that doesn't match your intended transaction
+            parameters.
+            <br /><br />
+            This transaction has been cancelled automatically to protect your
+            funds.
+            <br /><br />
+            Please report this issue through a Github issue, or directly to the
+            QRL Team via email: info@theqrl.org
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
     </div>
   </div>
   
