@@ -442,6 +442,7 @@ getBalance = (getAddress, callBack) => {
             Session.set('otsBitfield', {})
             Session.set('errorLoadingTransactions', true)
           } else {
+            console.log('getOTS response: ', result)
             const totalSignatures = qrlAddressValdidator.hexString(res.state.address).sig.number
             const ots = otsParse(result, totalSignatures)
             res.ots = ots
@@ -902,6 +903,10 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // If we got here, everything matches the request
     return true
   } else if (type === 'multiSigCreate') {
+    // todo: checks here
+
+    return true
+  } else if (type === 'multiSigSpend') {
     // todo: checks here
 
     return true
