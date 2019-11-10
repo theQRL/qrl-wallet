@@ -5,7 +5,6 @@ toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POL
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
-import { checkWeightsAndThreshold } from '@theqrl/wallet-helpers'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
 // import sha256 from 'sha256'
@@ -300,9 +299,10 @@ function generateTransaction() {
   }
 
   // check enough balance for fee
-  console.log('checking if ' + sumOfOutputs + ' plus fee is going to be bigger than ' + (parseInt(Session.get('transferFromBalance'), 10) * SHOR_PER_QUANTA))
-  const totalFee = new BigNumber(txnFee).plus(sumOfOutputs).toNumber()
-  if (totalFee > (parseInt(Session.get('transferFromBalance'), 10) * SHOR_PER_QUANTA)) {
+  const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).plus(sumOfOutputs).toNumber()
+  const totalBalance = new BigNumber(Session.get('multisigTransferFromBalance')).times(SHOR_PER_QUANTA).toNumber()
+  console.log('checking if ' + sumOfOutputs + ' plus fee is going to be bigger than ' + totalBalance)
+  if (totalFee > totalBalance) {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Insufficient balance in wallet for the transaction and the transaction fee')
