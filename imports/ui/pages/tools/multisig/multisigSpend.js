@@ -295,7 +295,7 @@ function generateTransaction() {
     const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     const thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
     thisAmounts.push(thisAmount)
-    sumOfOutputs = sumOfOutputs.plus(convertAmountToBigNumber)
+    sumOfOutputs = sumOfOutputs.plus(convertAmountToBigNumber.times(SHOR_PER_QUANTA))
   }
 
   // check enough balance for fee
