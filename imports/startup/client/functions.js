@@ -905,6 +905,10 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // todo: checks here
 
     return true
+  } else if (type === 'multiSigSpend') {
+    // todo: checks here
+
+    return true
   }
 
   // We should not get this far - return false as failsafe

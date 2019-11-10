@@ -39,6 +39,57 @@ Template.multisigSpend.helpers({
   getInterval() {
     return Session.get('expiryInterval')
   },
+  ledgerWalletDisabled() {
+    if (getXMSSDetails().walletType === 'ledger') {
+      return 'disabled'
+    }
+    return ''
+  },
+  isLedgerWallet() {
+    if (getXMSSDetails().walletType === 'ledger') {
+      return true
+    }
+    return false
+  },
+  isSeedWallet() {
+    if (getXMSSDetails().walletType === 'seed') {
+      return true
+    }
+    return false
+  },
+  bech32() {
+    if (LocalStore.get('addressFormat') === 'bech32') {
+      return true
+    }
+    return false
+  },
+  transactionConfirmation() {
+    const confirmation = Session.get('transactionConfirmation')
+    return confirmation
+  },
+  transactionConfirmationFee() {
+    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
+    const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
+    return transactionConfirmationFee
+  },
+  transactionRelayedThrough() {
+    const status = Session.get('transactionRelayedThrough')
+    return status
+  },
+  transactionStatus() {
+    const status = Session.get('txstatus')
+    return status
+  },
+  nodeExplorerUrl() {
+    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
+      return DEFAULT_NETWORKS[0].explorerUrl
+    }
+    return Session.get('nodeExplorerUrl')
+  },
+  transactionHash() {
+    const hash = Session.get('transactionHash')
+    return hash
+  },
 })
 
 const loadMultisigs = (a, p) => {
@@ -204,13 +255,14 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
 function generateTransaction() {
   // Get to/amount details
-  const sendFrom = anyAddressToRawAddress(Session.get('multisigTransferFromAddress'))
+  const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = hexToBytes(getXMSSDetails().pk)
   const sendTo = document.getElementsByName('to[]')
   const sendAmounts = document.getElementsByName('amounts[]')
   const expiryBlock = parseInt(document.getElementById('expiry').value, 10)
+  const msFrom = anyAddressToRawAddress(Session.get('multisigTransferFromAddress'))
 
   // Capture outputs
   const thisAddressesTo = []
@@ -239,12 +291,12 @@ function generateTransaction() {
   }
 
   // Format amounts correctly.
-  let sumOfOutputs = new BigNumber()
+  let sumOfOutputs = new BigNumber(0)
   for (let i = 0; i < sendAmounts.length; i += 1) {
     const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     const thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
     thisAmounts.push(thisAmount)
-    sumOfOutputs = sumOfOutputs.plus(convertAmountToBigNumber).toNumber()
+    sumOfOutputs = sumOfOutputs.plus(convertAmountToBigNumber)
   }
 
   // check enough balance for fee
@@ -275,6 +327,7 @@ function generateTransaction() {
   // Construct request
   const request = {
     master_addr: sendFrom,
+    multi_sig_address: msFrom,
     addrs_to: thisAddressesTo,
     amounts: thisAmounts,
     expiry_block_number: expiryBlock,
@@ -292,9 +345,9 @@ function generateTransaction() {
       console.log('Result from spendMultisig', res)
       const confirmationOutputs = []
 
-      const resAddrsTo = res.response.extended_transaction_unsigned.tx.multi_sig_create.signatories
-      const resAmounts = res.response.extended_transaction_unsigned.tx.multi_sig_create.weights
-      const resThreshold = res.response.extended_transaction_unsigned.tx.multi_sig_create.threshold
+      const resAddrsTo = res.response.extended_transaction_unsigned.tx.multi_sig_spend.addrs_to
+      const resAmounts = res.response.extended_transaction_unsigned.tx.multi_sig_spend.amounts
+      const resExpiry = res.response.extended_transaction_unsigned.tx.multi_sig_spend.expiry_block_number
 
       for (let i = 0; i < resAddrsTo.length; i += 1) {
         // Create and store the output
@@ -302,7 +355,7 @@ function generateTransaction() {
           address: Buffer.from(resAddrsTo[i]),
           address_hex: helpers.rawAddressToHexAddress(resAddrsTo[i]),
           address_b32: helpers.rawAddressToB32Address(resAddrsTo[i]),
-          weight: resAmounts[i],
+          amount: resAmounts[i],
         }
         confirmationOutputs.push(thisOutput)
       }
@@ -312,7 +365,7 @@ function generateTransaction() {
         from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
         from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmationOutputs,
-        threshold: resThreshold,
+        expiry_block_number: resExpiry,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey,
       }
@@ -343,22 +396,33 @@ function confirmTransaction() {
   if (getXMSSDetails().walletType === 'seed') {
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
   }
-
+/*
   // Concatenate Uint8Arrays
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
+    tx.extended_transaction_unsigned.tx.master_addr,
+  )
+*/
+
+  let concatenatedArrays = concatenateTypedArrays(
+    Uint8Array,
+    // concatenatedArrays,
     toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee) // eslint-disable-line
   )
 
   console.log('starting with concat: ', concatenatedArrays)
 
-  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.multi_sig_create.threshold))
+  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, tx.extended_transaction_unsigned.tx.multi_sig_spend.multi_sig_address)
 
-  console.log('after threshold added: ', concatenatedArrays)
+  console.log('after multi_sig_address added: ', concatenatedArrays)
+
+  // add expiry_block_number
+  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.multi_sig_spend.expiry_block_number))
+  console.log('after expiry added', concatenatedArrays)
 
   // Now append all recipient (outputs) to concatenatedArrays
-  const addrsToRaw = tx.extended_transaction_unsigned.tx.multi_sig_create.signatories
-  const amountsRaw = tx.extended_transaction_unsigned.tx.multi_sig_create.weights
+  const addrsToRaw = tx.extended_transaction_unsigned.tx.multi_sig_spend.addrs_to
+  const amountsRaw = tx.extended_transaction_unsigned.tx.multi_sig_spend.amounts
   const destAddr = []
   const destAmount = []
   for (let i = 0; i < addrsToRaw.length; i += 1) {
@@ -371,7 +435,6 @@ function confirmTransaction() {
       addrsToRaw[i] // eslint-disable-line
     )
 
-    // Add weight
     console.log('about to concatenate...', concatenatedArrays, toBigendianUint64BytesUnsigned(amountsRaw[i]))
     concatenatedArrays = concatenateTypedArrays(
       Uint8Array,
@@ -383,6 +446,9 @@ function confirmTransaction() {
     destAddr.push(Buffer.from(addrsToRaw[i]))
     destAmount.push(toBigendianUint64BytesUnsigned(amountsRaw[i], true))
   }
+
+  console.log('Final concatonated arrays:')
+  console.log(concatenatedArrays)
 
   // Convert Uint8Array to VectorUChar
   const hashableBytes = toUint8Vector(concatenatedArrays)

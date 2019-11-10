@@ -582,7 +582,8 @@ const createMultiSig = (request, callback) => {
 
 const spendMultiSig = (request, callback) => {
   const tx = {
-    master_addr: request.master_addr,
+    // master_addr: request.master_addr,
+    multi_sig_address: request.multi_sig_address,
     addrs_to: request.addrs_to,
     amounts: request.amounts,
     expiry_block_number: request.expiry_block_number,
@@ -731,6 +732,102 @@ const confirmMultiSigCreate = (request, callback) => {
 
   console.log('confirmed + signed tx for push', confirmTxn)
   console.log(confirmTxn.transaction_signed.multi_sig_create.signatories)
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try {
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          console.log('Relayed Txn: ', Buffer.from(res.tx_hash).toString('hex'))
+
+          if (err) {
+            console.log(`Error:  ${err.message}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch(err) {
+        console.log(`Error: Failed to send transaction: ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+    /*
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          try {
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+                cb()
+              } else {
+                console.log(`Transfer Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch(err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+            cb()
+          }
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('All transfer txns sent')
+        wfcb()
+      })
+    },
+    */
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+const confirmMultiSigSpend = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change Uint8Arrays to Buffers
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  const { addrs_to } = confirmTxn.transaction_signed.multi_sig_spend
+  const signatoriesFormatted = []
+  addrs_to.forEach(function (item) {
+    const i = toBuffer(item)
+    signatoriesFormatted.push(i)
+  })
+
+  // Overwrite signatories with our updated one
+  confirmTxn.transaction_signed.multi_sig_spend.addrs_to = signatoriesFormatted
+
+  // multi_sig_address & master_addr as Buffer
+  // confirmTxn.transaction_signed.master_addr = toBuffer(confirmTxn.transaction_signed.master_addr)
+  confirmTxn.transaction_signed.multi_sig_spend.multi_sig_address = toBuffer(confirmTxn.transaction_signed.multi_sig_spend.multi_sig_address)
+
+  // // tx.multi_sig_create.threshold
+  confirmTxn.network = request.network
+
+  console.log('confirmed + signed tx for push', confirmTxn)
 
   // Relay transaction through user node, then all default nodes.
   let txnResponse
@@ -1704,6 +1801,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(confirmMultiSigCreate)(request)
+    return response
+  },
+  confirmMultiSigSpend(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMultiSigSpend)(request)
     return response
   },
   createMessageTxn(request) {
