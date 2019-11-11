@@ -455,7 +455,7 @@
               <img class="transactionTypeImage" src="/img/icons/send.png" />
               <div class="content">
                 <div class="header">
-                  Confirm Send
+                  Confirm MultiSig Spend
                 </div>
               </div>
               <div class="floatright">
@@ -469,7 +469,7 @@
                 <div class="ui visible message">
                   <p class="wordBreak">
                     {{#each transactionConfirmation.outputs}}
-                      {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                      {{shorToQuanta this.amount}} Quanta -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                     {{/each}}
                   </p>
                 </div>

@@ -21,6 +21,8 @@ import QrlLedger from '/node_modules/ledger-qrl-js/wallet/qrl-ledger-library-src
 // Apply BrowserPolicy
 BrowserPolicy.content.disallowInlineScripts()
 BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
+BrowserPolicy.content.allowFontOrigin('cdn.jsdelivr.net')
+BrowserPolicy.content.allowStyleOrigin('cdn.jsdelivr.net')
 BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
 BrowserPolicy.content.allowFontDataUrl()
 BrowserPolicy.content.allowDataUrlForAll()
