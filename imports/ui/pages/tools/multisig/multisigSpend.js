@@ -71,6 +71,10 @@ Template.multisigSpend.helpers({
     const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
+  transactionConfirmationAmount() {
+    const confirmationAmount = Session.get('transactionConfirmationAmount')
+    return confirmationAmount
+  },
   transactionRelayedThrough() {
     const status = Session.get('transactionRelayedThrough')
     return status
@@ -88,6 +92,10 @@ Template.multisigSpend.helpers({
   transactionHash() {
     const hash = Session.get('transactionHash')
     return hash
+  },
+  shorToQuanta(n) {
+    const shor = new BigNumber(n)
+    return shor.dividedBy(SHOR_PER_QUANTA).toNumber()
   },
 })
 
@@ -344,7 +352,7 @@ function generateTransaction() {
     } else {
       console.log('Result from spendMultisig', res)
       const confirmationOutputs = []
-
+      let totalTransferAmount = 0
       const resAddrsTo = res.response.extended_transaction_unsigned.tx.multi_sig_spend.addrs_to
       const resAmounts = res.response.extended_transaction_unsigned.tx.multi_sig_spend.amounts
       const resExpiry = res.response.extended_transaction_unsigned.tx.multi_sig_spend.expiry_block_number
@@ -358,6 +366,7 @@ function generateTransaction() {
           amount: resAmounts[i],
         }
         confirmationOutputs.push(thisOutput)
+        totalTransferAmount += resAmounts[i]
       }
 
       const confirmation = {
@@ -372,6 +381,7 @@ function generateTransaction() {
 
       if (nodeReturnedValidResponse(request, confirmation, 'multiSigSpend')) {
         Session.set('transactionConfirmation', confirmation)
+        Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationResponse', res.response)
 
