@@ -97,6 +97,9 @@ Template.multisigSpend.helpers({
     const shor = new BigNumber(n)
     return shor.dividedBy(SHOR_PER_QUANTA).toNumber()
   },
+  transactionGenerationError() {
+    return Session.get('transactionGenerationError')
+  },
 })
 
 const loadMultisigs = (a, p) => {
