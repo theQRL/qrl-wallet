@@ -406,13 +406,6 @@ function confirmTransaction() {
   if (getXMSSDetails().walletType === 'seed') {
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
   }
-/*
-  // Concatenate Uint8Arrays
-  let concatenatedArrays = concatenateTypedArrays(
-    Uint8Array,
-    tx.extended_transaction_unsigned.tx.master_addr,
-  )
-*/
 
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
