@@ -998,6 +998,23 @@
           </div>
           {{/if}}
 
+          {{#if isSpendMultiSigTxn this.tx.transactionType}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Multisig Spend | {{this.timestamp}}
+              </div>
+              <p class="transactionAddress">
+                {{this.tx.transaction_hash}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
           {{#if isMessageTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />

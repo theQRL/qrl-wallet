@@ -1182,6 +1182,12 @@ Template.appTransfer.helpers({
     }
     return false
   },
+  isSpendMultiSigTxn(txType) {
+    if (txType.toLowerCase() === 'multi_sig_spend') {
+      return true
+    }
+    return false
+  },
   isMessageTxn(txType) {
     if (txType.toLowerCase() === 'message') {
       return true
