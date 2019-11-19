@@ -516,6 +516,22 @@ const getAddressState = (request, callback) => {
   }
 }
 
+const getMultiSigAddressState = (request, callback) => {
+  try {
+    qrlApi('GetMultiSigAddressState', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetMultiSigAddressState', '**ERROR/getMultiSigAddressState** ')
+        callback(myError, null)
+      } else {
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetMultiSigAddressState', '**ERROR/GetMultiSigAddressState**')
+    callback(myError, null)
+  }
+}
+
 // Function to call getObject API and extract a txn Hash..
 const getTxnHash = (request, callback) => {
   const txnHash = Buffer.from(request.query, 'hex')
@@ -1575,6 +1591,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(getAddressState)(request)
+    return response
+  },
+  getMultiSigAddressState(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(getMultiSigAddressState)(request)
     return response
   },
   getTransactionsByAddress(request) {
