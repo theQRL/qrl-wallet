@@ -1,3 +1,645 @@
 <template name="multisigVote">
-  <p>This is the multisig vote tab</p>
+   <!-- error modal where weights/threshold invalid-->
+   <div class="small ui modal" id="checkWeightsModal">
+    <div class="header">Multisig Wallet Spend</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div>
+          <div class="header">
+            Lorum ipsum
+          </div>
+          <p>Delit simplur</p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve red button">Close</div>
+    </div>
+  </div>
+  <!-- error modal where node returns invalid response  -->
+  <div class="small ui modal" id="invalidNodeResponse">
+    <div class="header">WARNING - Bad Response</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            WARNING - The node you've requested this transaction from replied
+            with bad data that doesn't match your intended transaction
+            parameters.
+            <br /><br />
+            This transaction has been cancelled automatically to protect your
+            funds.
+            <br /><br />
+            Please report this issue through a Github issue, or directly to the
+            QRL Team via email: info@theqrl.org
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="cancelTransactionGenerationWarning">
+    <div class="header">Whoa there buddy!!</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Are you sure?
+          </div>
+          <p>Please confirm you wish to cancel generating this transaction.</p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Yes, cancel this transaction!</div>
+      <div class="ui cancel red button plain">Cancel</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="cancelWaitingForTransactionWarning">
+    <div class="header">Whoa there buddy!!</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Are you sure?
+          </div>
+          <p>This transaction has not been confirmed on the network just yet! Leaving this page now may show incorrect balances on other pages. It is advised that you wait for the transaction to confirm before leaving this page.</p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">I understand, leave now anyway.</div>
+      <div class="ui cancel red button plain">Cancel</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="lowOtsKeyWarning">
+    <div class="header">OTS Keys Running Low!</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Warning: Your OTS Keys are running low.
+          </div>
+          <p>You only have <strong>{{otsKeysRemaining}}</strong> OTS Keys remaining. When you have used all of these, you will no longer be able to send QRL or Tokens from this wallet.</p>
+          <p>It is strongly suggested that you create a new wallet, and move all your QRL and Tokens to it to ensure you do not lose access to your funds.</p>
+          <p><a href="https://docs.theqrl.org/developers/ots/" target="_blank">Click here to learn what OTS Keys are.</a></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="zeroBytesAddressWarning">
+    <div class="header">You are using a test address!</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Warning: Never send mainnet Quanta to this address!
+          </div>
+          <p>The address you have opened is used for testing Ledger Nano devices, and is not securely seeded. Do not use this address to store or transact with any Quanta.</p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">I understand, I won't use this address!</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="invalidAddress0x">
+    <div class="header">Invalid Address</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            You have attempted to create a transaction to an Ethereum ERC20 address starting with <strong>0x</strong>.
+            <br /><br />
+            This is not possible from the QRL Network. You can only send to addresses that start with a <strong>Q</strong>.
+            <br /><br />
+            Some exchanges still list our ERC20 token, and will provide an <strong>0x</strong> deposit address that is only compatible with the legacy QRL ERC20 token.
+            <br /><br />
+            Please keep this in mind when attempting to transfer your Quanta around.
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="otsKeyReuseDetected">
+    <div class="header">OTS Key Reuse</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
+            <br /><br />
+            Please recreate your transaction using a unique OTS Key Index.
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="ledgerOtsKeyReuseDetected">
+    <div class="header">OTS Key Reuse</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
+            <br /><br />
+            You need to update your Ledgers XMSS Index in Tools -> Set XMSS Index.
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="maxThreeRecipientsLedger">
+    <div class="header">Max of 3 Recipients</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Ledger Nanos can only sign up to three recipients per transaction.
+            <br /><br />
+            Please remove some recipients so that you only have up to three per transaction.
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="maxRecipientsReached">
+    <div class="header">Max of 3 Recipients</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Ledger Nanos can only sign up to three recipients per transaction.
+            <br /><br />
+            You cannot add any more recipients to this transaction.
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="invalidNodeResponse">
+    <div class="header">WARNING - Bad Response</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            WARNING - The node you've requested this transaction from replied with bad data that doesn't match your intended transaction parameters.
+            <br /><br />
+            This transaction has been cancelled automatically to protect your funds.
+            <br /><br />
+            Please report this issue through a Github issue, or directly to the QRL Team via email: info@theqrl.org
+          </div>
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="ledgerNotSupported">
+    <div class="header">Ledger Not Supported</div>
+    <div class="content">
+      <div class="ui warning icon message">
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Ledger Nano not Supported for Tokens
+          </div>
+          <p>Sorry, Ledger Nano support for Multisig Transfers is still being developed and tested. We will enable this functionality at a later stage.</p>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui approve green button">Okay</div>
+    </div>
+  </div>
+  
+  <div class="small ui modal" id="ledgerConfirmationModal">
+    <div class="header">Send {{transactionConfirmationAmount}} Quanta?</div>
+    <div class="content">
+      <div class="ui stackable grid">
+        <div class="four wide column">
+          <img class="svg" src="/img/ledger-nano.svg" />
+        </div>
+        <div class="twelve wide column">
+          <div class="description pl-10">
+            <p>Your transaction requires confirmation on your Ledger Nano S device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
+            <div class="ui container">
+              <table class="ui stackable table">
+                <tr>
+                  <td>
+                    <div class="ui label fw">FROM</div>
+                  </td>
+                  <td class="no-wrap">{{transferFrom.address}}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ui label fw">TO</div>
+                  </td>
+                  <td class="no-wrap">
+                    {{#each transactionConfirmation.outputs}}
+                      {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{/each}}
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ui label fw">TOTAL</div>
+                  </td>
+                  <td class="no-wrap">{{transactionConfirmationAmount}} Quanta</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ui label fw">FEE</div>
+                  </td>
+                  <td class="no-wrap">{{transactionConfirmationFee}} Quanta</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <div id="awaitingLedgerConfirmation" class="ui inverted segment">
+        <h3>Awaiting confirmation on Ledger device
+          <div class="ui active inline loader"></div>
+        </h3>
+      </div>
+  
+      <div id="signOnLedgerRejected" class="ui inverted segment" style="display: none;">
+        <h3>The Transaction has been rejected on Ledger device</h3>
+        <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
+      </div>
+  
+      <div id="signOnLedgerTimeout" class="ui inverted segment" style="display: none;">
+        <h3>Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
+      </div>
+  
+      <div id="signOnLedgerError" class="ui inverted segment" style="display: none;">
+        <h3>Error communicating with Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
+      </div>
+  
+      <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <i class="ui check icon"></i></p>
+  
+      <div class="ui positive confirm button" id="relayLedgerTxnButton" style="display:none;">Send transaction</div>
+      <div class="ui negative button">Cancel</div>
+    </div>
+  </div>
+  
+  <h3 class="ui header pageHeader">
+    <div id="walletAddress" class="content wordBreak">
+      {{transferFrom.address}}
+    </div>
+    <div class="float right"><button class="ui primary red button" id="changeAddress">Select Address</button></div>
+  </h3>
+  <br /><br />
+  
+  <div class="ui left aligned" id="transferForm">
+    <div class="ui stackable grid">
+      <div class="column">
+        {{#if hasAddressSet}}
+          <!-- Generate Transaction Area -->
+          <div id="generateTransactionArea">
+            <!-- <form id="generateTransactionForm" class="ui form"> -->
+              <div class="ui stackable two column grid">
+              <div class="six wide column">
+              <div id="transferRecipients">
+                <div class="ui form">
+                  <div class="field">
+                    <label>Recipient</label>
+                    <input type="text" id="to_1" name="to[]" placeholder="Recipient Address" autocomplete="off">
+                  </div>
+                  <div class="field">
+                    <label>Amount</label>
+                    <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 20px;">
+                      <input type="text" id="amounts_1" name="amounts[]" autocomplete="off">
+  
+                      <select id="amountType" class="ui compact selection dropdown">
+                        <option value="quanta">Quanta</option>
+                        <!-- {{#each tokensHeld}}
+                        <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}} ({{this.shortHash}})</option>
+                        {{/each}} -->
+                      </select>
+                    </div>
+                    <br />
+                    <div class="ui teal label">Balance: {{transferFrom.balance}} Quanta</div>
+                  </div>
+                  <br />
+                </div>
+  
+              </div>
+  
+              <!-- Additional Recipients -->
+              <div class="field">
+                <button id="addTransferRecipient" class="ui small button sky" style="width: 100%">
+                  <i class="add user icon"></i>
+                  Add Another Recipient
+                </button>
+              </div>
+            </div>
+            <div class="six wide column">
+              <div class="ui form">
+                  <div class="field">
+                      <label>Expiry block number</label>
+                      <div class="ui right labeled input">
+                        <input type="number" id="expiry" value="{{estimateExpiry}}" autocomplete="off">
+                        <button class="ui basic label" id="intervalButton">
+                          {{getInterval}}
+                        </button>
+                      </div>
+                    </div>
+              <div class="field">
+                <label>Fee (In Quanta)</label>
+                <input type="number" id="fee" value="0.1" autocomplete="off">
+              </div>
+              <div class="field">
+                <label>OTS Key Index</label>
+                <input type="number" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}}>
+              </div>
+  
+  
+              <div class="field">
+                <div class="ui warning icon message" style="display: inline-flex;">
+                  <i class="warning icon"></i>
+                  <div class="content">
+                    <div class="header">
+                      OTS Key Index Warning
+                    </div>
+                    {{#if isLedgerWallet}}
+                    <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is based on data provided by your Ledger Device. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. As you are using a Ledger Device, you can rest assured your Device will keep track of all used signatures for you. As a result, you cannot change the OTS Key that will be used to sign this transaction as the Ledger Device will automatically use the next one in line.</p>
+                    {{else}}
+                    <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected to. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
+                    {{/if}}
+                  </div>
+                </div>
+              </div>
+  
+              <div class="ui stackable one column grid">
+                <div class="column center aligned">
+                  <button id="generateTransaction" class="ui huge primary button red" style="width: 100%">Confirm</button>
+                </div>
+              </div>
+  
+              <div id="generating" class="ui icon message" style="display: none;">
+                <br /><br />
+                <i class="notched circle loading icon"></i>
+                <div class="content">
+                  <div class="header">
+                    Just a moment
+                  </div>
+                  <p>Generating transaction...</p>
+                </div>
+              </div>
+            </div>
+            </div>
+            <!-- </form> -->
+          </div>
+          </div>
+          {{/if}}
+  
+          <!-- Confirm Transaction Area -->
+          <div id="confirmTransactionArea" style="display: none;">
+  
+            <div class="ui icon message transactionRecord">
+              <img class="transactionTypeImage" src="/img/icons/send.png" />
+              <div class="content">
+                <div class="header">
+                  Confirm MultiSig Spend
+                </div>
+              </div>
+              <div class="floatright">
+                {{transactionConfirmationAmount}} Quanta
+              </div>
+            </div>
+  
+            <form>
+              <div class="field">
+                <label>Recipients</label>
+                <div class="ui visible message">
+                  <p class="wordBreak">
+                    {{#each transactionConfirmation.outputs}}
+                      {{shorToQuanta this.amount}} Quanta -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{/each}}
+                  </p>
+                </div>
+              </div>
+  
+            </form>
+  
+            <h4 class="ui horizontal divider header">
+              <i class="file icon"></i>
+              Transaction Details
+            </h4>
+  
+            <div class="ui stackable one column grid">
+              <div class="column">
+                <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
+                <br />
+                <span>OTS Key Index <a class="ui">{{transactionConfirmation.otsKey}}</a></span>
+              </div>
+            </div>
+  
+            <div class="ui stackable one column grid">
+              <div class="column center aligned">
+                <button id="confirmTransaction" class="ui huge primary button red"  style="width: 100%">
+                  {{#if isSeedWallet}}
+                    Click to Send
+                  {{else}}
+                    Sign with Ledger
+                  {{/if}}
+                </button>
+              </div>
+            </div>
+  
+            <div id="relaying" class="ui icon message" style="display: none;">
+              <br /><br />
+              <i class="notched circle loading icon"></i>
+              <div class="content">
+                <div class="header">
+                  Just a moment
+                </div>
+                <p id="transferRelayingMsg">Your transaction is being relayed into the QRL network...</p>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Transaction Result Area -->
+          <div id="transactionResultArea" style="display: none;">
+  
+            <div class="ui icon message transactionRecord">
+              <img class="transactionTypeImage" src="/img/icons/send.png" />
+              <div class="content">
+                <div class="header">
+                  Sent
+                </div>
+              </div>
+              <div class="floatright">
+                {{transactionConfirmationAmount}} Quanta
+              </div>
+            </div>
+  
+            <form>
+              <div class="field">
+                <label>Recipient</label>
+                <div class="ui visible message">
+                  <p class="wordBreak">
+                    {{#each transactionConfirmation.outputs}}
+                      {{shorToQuanta this.amount}} Quanta -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{/each}}
+                  </p>
+                </div>
+              </div>
+            </form>
+  
+            <h4 class="ui horizontal divider header">
+              <i class="file icon"></i>
+              Transaction Details
+            </h4>
+  
+            <div class="ui stackable one column grid">
+              <div class="column">
+                <span>Transaction Hash <a id="confirmedTransferTxnHash" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}" target="_blank" class="ui wordBreak">{{transactionHash}}</a></span>
+                <br />
+                <span>Fee <a class="ui">{{transactionConfirmationFee}}</a> Quanta</span>
+                <br />
+                <span>OTS Key Index <a class="ui">{{transactionConfirmation.otsKey}}</a></span>
+              </div>
+            </div>
+  
+            <div class="ui stackable one column grid">
+              <div class="column">
+                <p id="transferSuccessMessage" style="word-wrap: break-word; word-break: break-all;">
+                  Success! Your transaction has been relayed into the QRL network through the following nodes, and is pending validation.
+                </p>
+              </div>
+            </div>
+  
+  
+            <div class="ui mini horizontal divided list">
+            {{#each transactionRelayedThrough}}
+              <div class="item">
+                <i class="checkmark icon green"></i>
+                <div class="content">
+                  <div class="header">{{this}}</div>
+                </div>
+              </div>
+            {{/each}}
+            </div>
+  
+            <div id="relaying" class="ui icon message">
+              <br /><br />
+              <i class="notched circle loading icon"></i>
+              <div class="content">
+                <div id="loadingHeader" class="header">
+                  Just a moment
+                </div>
+                <p id="transferFinalTxnStatus" class="wordBreak" style="word-wrap: break-word; word-break: break-all;">Transaction Status: {{transactionStatus}}</p>
+              </div>
+            </div>
+  
+            <div class="ui stackable one column grid">
+              <div class="column">
+                <button id="quantaJsonClick" class="ui mini button jsonclick ">Raw Transaction Details <i class="down angle icon"></i></button>
+                <div id="quantaJsonbox" class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+              </div>
+            </div>
+          </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <div id="transactionGenFailed" class="ui red segment pageSegment" style="display: none;">
+    <h4>Transaction Generation Failed</h4>
+    <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
+  </div>
+  <div class="ui modal" id="chooseVoteAddress">
+      <div class="header">Choose multisig address to spend from</div>
+      <div class="content">
+        {{> msvTable}}
+      </div>
+      <div class="actions">
+        <div class="ui approve red button">Close</div>
+      </div>
+    </div>
+</template>
+<template name="msvTable">
+  {{#if hasMultisig}}
+    <table class="ui selectable celled table" id="chooseVoteAddressTable">
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Balance (Quanta)</th>
+          </tr>
+        </thead>
+        <tbody style="font-family: 'Hack';">
+          {{#each msAddresses}}
+            <tr>
+              <td>
+                {{this.address}}
+              </td>
+              <td>
+                {{this.balance}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      {{#if msLoading}}
+      <p>Looking up multisig addresses...</p>
+      {{else}}
+      <p>This wallet is not a signatory on any multisig addresses</p>
+      {{/if}}{{/if}}
 </template>
