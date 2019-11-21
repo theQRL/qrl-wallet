@@ -384,7 +384,7 @@ function generateTransaction() {
 
       if (nodeReturnedValidResponse(request, confirmation, 'multiSigSpend')) {
         Session.set('transactionConfirmation', confirmation)
-        Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+        Session.set('transactionConfirmationAmount', (totalTransferAmount / SHOR_PER_QUANTA))
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationResponse', res.response)
 
