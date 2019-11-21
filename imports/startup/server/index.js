@@ -624,6 +624,30 @@ const spendMultiSig = (request, callback) => {
   })
 }
 
+const voteMultiSig = (request, callback) => {
+  const tx = {
+    // master_addr: request.master_addr,
+    shared_key: request.shared_key,
+    unvote: request.unvote,
+    fee: request.fee,
+    xmss_pk: request.xmssPk,
+    network: request.network,
+  }
+  console.log('About to call GRPC GetMultiSigVoteTxn with tx = ')
+  console.log(tx)
+  qrlApi('GetMultiSigVoteTxn', tx, (err, response) => {
+    if (err) {
+      console.log(`Error:  ${err.message}`)
+      callback(err, null)
+    } else {
+      const transferResponse = {
+        response,
+      }
+      callback(null, transferResponse)
+    }
+  })
+}
+
 const getHeight = (request, callback) => {
   const tx = {
     network: request.network,
@@ -873,6 +897,92 @@ const confirmMultiSigSpend = (request, callback) => {
           }
         })
       } catch(err) {
+        console.log(`Error: Failed to send transaction: ${err}`)
+        txnResponse = { error: err, response: err }
+        wfcb()
+      }
+    },
+    /*
+    // Now relay through all default nodes that we have a connection too
+    function(wfcb) {
+      async.eachSeries(DEFAULT_NODES, (node, cb) => {
+        if ((qrlClient.hasOwnProperty(node.grpc) === true) && (node.grpc !== request.grpc)) {
+          try {
+            // Push the transaction - we don't care for its response
+            qrlClient[node.grpc].pushTransaction(confirmTxn, (err) => {
+              if (err) {
+                console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+                cb()
+              } else {
+                console.log(`Transfer Transaction sent via ${node.grpc}`)
+                relayedThrough.push(node.grpc)
+                cb()
+              }
+            })
+          } catch(err) {
+            console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
+            cb()
+          }
+        } else {
+          cb()
+        }
+      }, (err) => {
+        if (err) console.error(err.message)
+        console.log('All transfer txns sent')
+        wfcb()
+      })
+    },
+    */
+  ], () => {
+    // All done, send txn response
+    txnResponse.relayed = relayedThrough
+    callback(null, txnResponse)
+  })
+}
+
+const confirmMultiSigVote = (request, callback) => {
+  const confirmTxn = { transaction_signed: request.extended_transaction_unsigned.tx }
+  const relayedThrough = []
+
+  // change Uint8Arrays to Buffers
+  confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
+  confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
+
+  // multi_sig_address & master_addr as Buffer
+  // confirmTxn.transaction_signed.master_addr = toBuffer(confirmTxn.transaction_signed.master_addr)
+  confirmTxn.transaction_signed.multi_sig_vote.shared_key = toBuffer(confirmTxn.transaction_signed.multi_sig_vote.shared_key)
+
+  // // tx.multi_sig_create.threshold
+  confirmTxn.network = request.network
+
+  console.log('confirmed + signed tx for push', confirmTxn)
+
+  // Relay transaction through user node, then all default nodes.
+  let txnResponse
+
+  async.waterfall([
+    // Relay through user node.
+    function (wfcb) {
+      try {
+        qrlApi('pushTransaction', confirmTxn, (err, res) => {
+          console.log('Relayed Txn: ', Buffer.from(res.tx_hash).toString('hex'))
+
+          if (err) {
+            console.log(`Error:  ${err.message}`)
+            txnResponse = { error: err.message, response: err.message }
+            wfcb()
+          } else {
+            const hashResponse = {
+              txnHash: Buffer.from(confirmTxn.transaction_signed.transaction_hash).toString('hex'),
+              signature: Buffer.from(confirmTxn.transaction_signed.signature).toString('hex'),
+            }
+            txnResponse = { error: null, response: hashResponse }
+            relayedThrough.push(res.relayed)
+            console.log(`Transaction sent via ${res.relayed}`)
+            wfcb()
+          }
+        })
+      } catch (err) {
         console.log(`Error: Failed to send transaction: ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1659,6 +1769,12 @@ Meteor.methods({
     const response = Meteor.wrapAsync(spendMultiSig)(request)
     return response
   },
+  voteMultiSig(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(voteMultiSig)(request)
+    return response
+  },
   getOTS(request) {
     check(request, Object)
     this.unblock()
@@ -1831,6 +1947,12 @@ Meteor.methods({
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(confirmMultiSigSpend)(request)
+    return response
+  },
+  confirmMultiSigVote(request) {
+    this.unblock()
+    check(request, Object)
+    const response = Meteor.wrapAsync(confirmMultiSigVote)(request)
     return response
   },
   createMessageTxn(request) {

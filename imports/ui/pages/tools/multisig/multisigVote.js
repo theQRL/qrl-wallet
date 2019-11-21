@@ -32,12 +32,6 @@ Template.multisigVote.helpers({
     const otsKeyEstimate = Session.get('otsKeyEstimate')
     return otsKeyEstimate
   },
-  estimateExpiry() {
-    return Session.get('estimateExpiry')
-  },
-  getInterval() {
-    return Session.get('expiryInterval')
-  },
   ledgerWalletDisabled() {
     if (getXMSSDetails().walletType === 'ledger') {
       return 'disabled'
@@ -100,6 +94,9 @@ Template.multisigVote.helpers({
   transactionGenerationError() {
     return Session.get('transactionGenerationError')
   },
+  MSStxhash() {
+    return '3d80d6f4bbca4c0208656a98c6f9b8a3d424659b41df5d9b85b6d6aa6e613f24'
+  },
 })
 
 const loadMultisigs = (a, p) => {
@@ -140,25 +137,6 @@ function getRecipientIds() {
     ids.push(parseInt(parts[1], 10))
   })
   return ids
-}
-
-function estimateExpiry(refreshHeight) {
-  const intervalSetting = Session.get('expiryInterval')
-  let interval = 86400
-  if (intervalSetting === 'approx 30 days') { interval = 86400 }
-  if (intervalSetting === 'approx 6 months') { interval = 525600 }
-  if (intervalSetting === 'approx 1 year') { interval = 1051200 }
-  if (refreshHeight) {
-    Meteor.call('getHeight', { network: selectedNetwork() }, (err, resp) => {
-      if (!err) {
-        Session.set('lastBlockHeight', parseInt(resp.height, 10))
-        Session.set('estimateExpiry', (parseInt(resp.height, 10) + interval))
-      }
-    })
-  } else {
-    const height = Session.get('lastBlockHeight')
-    Session.set('estimateExpiry', (height + interval))
-  }
 }
 
 function enableSendButton() {
@@ -269,54 +247,17 @@ function generateTransaction() {
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = hexToBytes(getXMSSDetails().pk)
-  const sendTo = document.getElementsByName('to[]')
-  const sendAmounts = document.getElementsByName('amounts[]')
-  const expiryBlock = parseInt(document.getElementById('expiry').value, 10)
-  const msFrom = anyAddressToRawAddress(Session.get('multisigTransferFromAddress'))
-
-  // Capture outputs
-  const thisAddressesTo = []
-  const thisAmounts = []
-
-  const validAddresses = []
-  _.each(sendTo, (item) => {
-    const isValid = qrlAddressValdidator.hexString(item.value)
-    if (isValid.result) {
-      console.log(item.value + 'is a valid QRL address')
-      validAddresses.push(item.value.toLowerCase())
-    }
-  })
-  if (validAddresses.length === sendTo.length) {
-    console.log('all addresses valid')
-  } else {
-    $('#checkWeightsModal .message .header').text('There\'s a problem')
-    $('#checkWeightsModal p').text('One or more of the recipients is invalid: please check the addresses carefully')
-    $('#checkWeightsModal').modal('show')
-    return
-  }
-
-  for (let i = 0; i < sendTo.length; i += 1) {
-    const thisAddress = sendTo[i].value
-    thisAddressesTo.push(anyAddressToRawAddress(thisAddress.trim()))
-  }
-
-  // Format amounts correctly.
-  let sumOfOutputs = new BigNumber(0)
-  for (let i = 0; i < sendAmounts.length; i += 1) {
-    const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
-    const thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
-    thisAmounts.push(thisAmount)
-    sumOfOutputs = sumOfOutputs.plus(convertAmountToBigNumber.times(SHOR_PER_QUANTA))
-  }
+  const msTxhash = '3d80d6f4bbca4c0208656a98c6f9b8a3d424659b41df5d9b85b6d6aa6e613f24'
+  const formUnvote = false // TODO: form element here
 
   // check enough balance for fee
-  const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).plus(sumOfOutputs).toNumber()
+  const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).toNumber()
   const totalBalance = new BigNumber(Session.get('multisigTransferFromBalance')).times(SHOR_PER_QUANTA).toNumber()
-  console.log('checking if ' + sumOfOutputs + ' plus fee is going to be bigger than ' + totalBalance)
+
   if (totalFee > totalBalance) {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
-    $('#checkWeightsModal p').text('Insufficient balance in wallet for the transaction and the transaction fee')
+    $('#checkWeightsModal p').text('Insufficient balance in your wallet for the transaction fee')
     $('#checkWeightsModal').modal('show')
     return
   }
@@ -325,11 +266,7 @@ function generateTransaction() {
   console.log('txnFee: ', txnFee)
   console.log('otsKey:', otsKey)
   console.log('pubKey:', pubKey)
-  console.log('thisAddressesTo:', thisAddressesTo)
-  console.log('thisAmounts: ', thisAmounts)
-  console.log('expiryblock', expiryBlock)
-
-  // todo: should check expiry block for sanity
+  console.log('msTxhash:', msTxhash)
 
   // Calculate txn fee
   const convertFeeToBigNumber = new BigNumber(txnFee)
@@ -338,24 +275,21 @@ function generateTransaction() {
   // Construct request
   const request = {
     master_addr: sendFrom,
-    multi_sig_address: msFrom,
-    addrs_to: thisAddressesTo,
-    amounts: thisAmounts,
-    expiry_block_number: expiryBlock,
+    shared_key: Buffer.from(msTxhash, 'hex'),
+    unvote: formUnvote,
     fee: thisTxnFee,
     xmssPk: pubKey,
     network: selectedNetwork(),
   }
-  wrapMeteorCall('spendMultiSig', request, (err, res) => {
+  wrapMeteorCall('voteMultiSig', request, (err, res) => {
     if (err) {
-      console.log('Error with spendMultisig', err)
+      console.log('Error with voteMultisig', err)
       Session.set('transactionGenerationError', err.reason)
       $('#transactionGenFailed').show()
       $('#transferForm').hide()
     } else {
-      console.log('Result from spendMultisig', res)
-      const confirmationOutputs = []
-      let totalTransferAmount = 0
+      console.log('Result from voteMultisig', res)
+      /*
       const resAddrsTo = res.response.extended_transaction_unsigned.tx.multi_sig_spend.addrs_to
       const resAmounts = res.response.extended_transaction_unsigned.tx.multi_sig_spend.amounts
       const resExpiry = res.response.extended_transaction_unsigned.tx.multi_sig_spend.expiry_block_number
@@ -371,20 +305,18 @@ function generateTransaction() {
         confirmationOutputs.push(thisOutput)
         totalTransferAmount += resAmounts[i]
       }
-
+      */
       const confirmation = {
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
         from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
         from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
-        outputs: confirmationOutputs,
-        expiry_block_number: resExpiry,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey,
       }
 
-      if (nodeReturnedValidResponse(request, confirmation, 'multisigVote')) {
+      if (nodeReturnedValidResponse(request, confirmation, 'multiSigVote')) {
         Session.set('transactionConfirmation', confirmation)
-        Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+        // Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationResponse', res.response)
 
@@ -418,43 +350,19 @@ function confirmTransaction() {
 
   console.log('starting with concat: ', concatenatedArrays)
 
-  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, tx.extended_transaction_unsigned.tx.multi_sig_spend.multi_sig_address)
+  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, tx.extended_transaction_unsigned.tx.multi_sig_vote.shared_key)
 
-  console.log('after multi_sig_address added: ', concatenatedArrays)
+  console.log('after shared_key added: ', concatenatedArrays)
 
-  // add expiry_block_number
-  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.multi_sig_spend.expiry_block_number))
-  console.log('after expiry added', concatenatedArrays)
-
-  // Now append all recipient (outputs) to concatenatedArrays
-  const addrsToRaw = tx.extended_transaction_unsigned.tx.multi_sig_spend.addrs_to
-  const amountsRaw = tx.extended_transaction_unsigned.tx.multi_sig_spend.amounts
-  const destAddr = []
-  const destAmount = []
-  for (let i = 0; i < addrsToRaw.length; i += 1) {
-    // Add address
-    console.log('about to concatenate...', concatenatedArrays, addrsToRaw[i])
-
-    concatenatedArrays = concatenateTypedArrays(
-      Uint8Array,
-      concatenatedArrays,
-      addrsToRaw[i] // eslint-disable-line
-    )
-
-    console.log('about to concatenate...', concatenatedArrays, toBigendianUint64BytesUnsigned(amountsRaw[i]))
-    concatenatedArrays = concatenateTypedArrays(
-      Uint8Array,
-      concatenatedArrays,
-      toBigendianUint64BytesUnsigned(amountsRaw[i]) // eslint-disable-line
-    )
-
-    // Add to array for Ledger Transactions
-    destAddr.push(Buffer.from(addrsToRaw[i]))
-    destAmount.push(toBigendianUint64BytesUnsigned(amountsRaw[i], true))
+  // add unvote flag
+  const unvote = new Uint8Array(1)
+  if (tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote === true) {
+    unvote[0] = 1
+  } else {
+    unvote[0] = 0
   }
-
-  console.log('Final concatonated arrays:')
-  console.log(concatenatedArrays)
+  concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, unvote)
+  console.log('after unvote added', concatenatedArrays)
 
   // Convert Uint8Array to VectorUChar
   const hashableBytes = toUint8Vector(concatenatedArrays)
@@ -486,7 +394,7 @@ function confirmTransaction() {
     // Prepare gRPC call
     tx.network = selectedNetwork()
 
-    wrapMeteorCall('confirmmultisigVote', tx, (err, res) => {
+    wrapMeteorCall('confirmMultiSigVote', tx, (err, res) => {
       if (res.error) {
         $('#transactionConfirmation').hide()
         $('#transactionFailed').show()
@@ -531,43 +439,7 @@ function cancelTransaction() {
 // Function to initialise form validation
 function initialiseFormValidation() {
   const validationRules = {}
-
-  // Calculate validation fields based on to/amount fields
-  _.each(getRecipientIds(), (id) => {
-    validationRules['to' + id] = {
-      identifier: 'to_' + id,
-      rules: [
-        {
-          type: 'empty',
-          prompt: 'Please enter the QRL address you wish to send to',
-        },
-        {
-          type: 'qrlAddressValid',
-          prompt: 'Please enter a valid QRL address',
-        },
-      ],
-    }
-
-    validationRules['amounts' + id] = {
-      identifier: 'amounts_' + id,
-      rules: [
-        {
-          type: 'empty',
-          prompt: 'You must enter an amount',
-        },
-        {
-          type: 'number',
-          prompt: 'Amount must be a number',
-        },
-        {
-          type: 'maxDecimals',
-          prompt: 'You can only enter up to 9 decimal places in the amount field',
-        },
-      ],
-    }
-  })
-
-  // Now set fee and otskey validation rules
+  // Set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
     rules: [
@@ -624,49 +496,6 @@ Template.multisigVote.events({
     loadMultisigs(getXMSSDetails().address, 1)
     $('#chooseVoteAddress').modal('show')
   },
-  'click #addTransferRecipient': (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-
-    const nextRecipientId = Math.max(...getRecipientIds()) + 1
-
-    const newTransferRecipient = `
-      <div>
-        <div class="field">
-          <label>Additional Recipient</label>
-          <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-            <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
-            <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
-            <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
-          </div>
-        </div>
-      </div>
-    `
-
-    // Append newTransferRecipient to transferRecipients div
-    $('#transferRecipients').append(newTransferRecipient)
-
-    // Initialise form validation
-    // initialiseFormValidation()
-  },
-  'click .removeTransferRecipient': (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-
-    // Remove the recipient
-    $(event.currentTarget).parent().parent().parent()
-      .remove()
-
-    // Initialise form validation
-    initialiseFormValidation()
-  },
-  'click #intervalButton': () => {
-    const interval = Session.get('expiryInterval')
-    if (interval === 'approx 30 days') { Session.set('expiryInterval', 'approx 6 months') }
-    if (interval === 'approx 6 months') { Session.set('expiryInterval', 'approx 1 year') }
-    if (interval === 'approx 1 year') { Session.set('expiryInterval', 'approx 30 days') }
-    estimateExpiry(false) // update estimated expiry using existing blockheight
-  },
   'click #generateTransaction': (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -695,6 +524,7 @@ Template.multisigVote.onRendered(() => {
   Session.set('expiryInterval', 'approx 30 days')
   Session.set('activeMultisigTab', 'vote')
   Session.set('multisigTransferFromAddressSet', false)
+  initialiseFormValidation()
 })
 
 // helpers and events for multisig selection modal
@@ -727,12 +557,10 @@ Template.msvTable.events({
       address: Buffer.from(a.substring(1), 'hex'),
       network: selectedNetwork(),
     }
-    console.log('do we get here???')
     wrapMeteorCall('getMultiSigAddressState', request, (err, res) => {
       console.log('err', err)
       console.log('res', res)
     })
-    estimateExpiry(true) // estimate expiry getting a fresh block height
     $('#chooseVoteAddress').modal('hide')
   },
 })

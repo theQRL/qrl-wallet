@@ -352,56 +352,25 @@
           <!-- Generate Transaction Area -->
           <div id="generateTransactionArea">
             <!-- <form id="generateTransactionForm" class="ui form"> -->
-              <div class="ui stackable two column grid">
-              <div class="six wide column">
-              <div id="transferRecipients">
-                <div class="ui form">
-                  <div class="field">
-                    <label>Recipient</label>
-                    <input type="text" id="to_1" name="to[]" placeholder="Recipient Address" autocomplete="off">
+              <div class="ui stackable one column grid">
+                <div class="twelve wide column">
+                  <div class="ui form">
+                      <div class="field">
+                          <label>Multisig Spend Transaction</label>
+                          <input type="text" id="MSStxhash" placeholder="0" value="{{MSStxhash}}" autocomplete="off" disabled>
+                        </div>
                   </div>
-                  <div class="field">
-                    <label>Amount</label>
-                    <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 20px;">
-                      <input type="text" id="amounts_1" name="amounts[]" autocomplete="off">
-  
-                      <select id="amountType" class="ui compact selection dropdown">
-                        <option value="quanta">Quanta</option>
-                        <!-- {{#each tokensHeld}}
-                        <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}} ({{this.shortHash}})</option>
-                        {{/each}} -->
-                      </select>
-                    </div>
-                    <br />
-                    <div class="ui teal label">Balance: {{transferFrom.balance}} Quanta</div>
-                  </div>
-                  <br />
                 </div>
-  
               </div>
-  
-              <!-- Additional Recipients -->
-              <div class="field">
-                <button id="addTransferRecipient" class="ui small button sky" style="width: 100%">
-                  <i class="add user icon"></i>
-                  Add Another Recipient
-                </button>
-              </div>
-            </div>
-            <div class="six wide column">
+              <div class="ui stackable two column grid">
+              <div class="six wide column">  
               <div class="ui form">
-                  <div class="field">
-                      <label>Expiry block number</label>
-                      <div class="ui right labeled input">
-                        <input type="number" id="expiry" value="{{estimateExpiry}}" autocomplete="off">
-                        <button class="ui basic label" id="intervalButton">
-                          {{getInterval}}
-                        </button>
-                      </div>
-                    </div>
               <div class="field">
                 <label>Fee (In Quanta)</label>
                 <input type="number" id="fee" value="0.1" autocomplete="off">
+              </div>
+              <div class="field">
+                <div class="ui teal label">Balance: {{transferFrom.balance}} Quanta</div>
               </div>
               <div class="field">
                 <label>OTS Key Index</label>
