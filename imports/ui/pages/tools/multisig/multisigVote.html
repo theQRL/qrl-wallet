@@ -341,7 +341,7 @@
     <div id="walletAddress" class="content wordBreak">
       {{transferFrom.address}}
     </div>
-    <div class="float right"><button class="ui primary red button" id="changeAddress">Select Address</button></div>
+    <div class="float right"><button class="ui primary red button" id="changeAddress">Select Address...</button></div>
   </h3>
   <br /><br />
   
@@ -358,6 +358,7 @@
                       <div class="field">
                           <label>Multisig Spend Transaction</label>
                           <input type="text" id="MSStxhash" placeholder="0" value="{{MSStxhash}}" autocomplete="off" disabled>
+                          <button class="ui sky button" id="changeTransaction">Select Transaction...</button>
                         </div>
                   </div>
                 </div>
@@ -574,7 +575,7 @@
     <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
   </div>
   <div class="ui modal" id="chooseVoteAddress">
-      <div class="header">Choose multisig address to spend from</div>
+      <div class="header">Choose a multisig address</div>
       <div class="content">
         {{> msvTable}}
       </div>

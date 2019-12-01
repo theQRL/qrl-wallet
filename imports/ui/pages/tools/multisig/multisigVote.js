@@ -107,11 +107,12 @@ const loadMultisigs = (a, p) => {
     item_per_page: 10,
     page_number: p,
   }
+  console.log('request', request)
   Session.set('multiSigAddresses', [])
   Session.set('loadingmultiSigAddresses', true)
   wrapMeteorCall('getMultiSigAddressesByAddress', request, (err, res) => {
-    // console.log('err:', err)
-    // console.log('res:', res)
+    console.log('err:', err)
+    console.log('res:', res)
     if (err) {
       Session.set('multiSigAddresses', { error: err })
       Session.set('errorLoadingMultiSig', true)
@@ -490,6 +491,37 @@ function initialiseFormValidation() {
 }
 
 Template.multisigVote.events({
+  'click #changeTransaction': () => {
+    const address = Session.get('multisigTransferFromAddress')
+    console.log('Fetching open MS transactions for ', address)
+    const addresstx = Buffer.from(address.substring(1), 'hex')
+    const request = {
+      address: addresstx,
+      network: selectedNetwork(),
+      item_per_page: 10,
+      page_number: 1,
+    }
+    console.log('request', request)
+    // Session.set('multiSigAddresses', [])
+    // Session.set('loadingmultiSigAddresses', true)
+    wrapMeteorCall('getMultiSigSpendTxsByMultiSigAddress', request, (err, res) => {
+      console.log('err:', err)
+      console.log('res:', res)
+      if (err) {
+        // Session.set('multiSigAddresses', { error: err })
+        // Session.set('errorLoadingMultiSig', true)
+      } else {
+        // Session.set('active', p)
+        // const add = []
+        // _.each(res.multi_sig_detail, (item => {
+        //   add.push({ address: `Q${Buffer.from(item.address).toString('hex')}`, balance: item.balance / SHOR_PER_QUANTA })
+        // }))
+        // Session.set('multiSigAddresses', add)
+        // Session.set('loadingmultiSigAddresses', false)
+        // Session.set('errorLoadingMultiSig', false)
+      }
+    })
+  },
   'click #changeAddress': () => {
     Session.set('multisigTransferFromAddressSet', false)
     // call api to get addresses

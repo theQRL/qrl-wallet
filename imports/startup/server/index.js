@@ -423,6 +423,22 @@ const getMultiSigAddressesByAddress = (request, callback) => {
   }
 }
 
+const getMultiSigSpendTxsByMultiSigAddress = (request, callback) => {
+  try {
+    qrlApi('GetMultiSigSpendTxsByMultiSigAddress', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetMultiSigSpendTxsByMultiSigAddress', '**ERROR/GetMultiSigSpendTxsByMultiSigAddress**')
+        callback(myError, null)
+      } else {
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetMultiSigSpendTxsByMultiSigAddress', '**ERROR/GetMultiSigSpendTxsByMultiSigAddress**')
+    callback(myError, null)
+  }
+}
+
 const getOTS = (request, callback) => {
   try {
     qrlApi('GetOTS', request, (error, response) => {
@@ -1719,6 +1735,13 @@ Meteor.methods({
     check(request, Object)
     this.unblock()
     const response = Meteor.wrapAsync(getMultiSigAddressesByAddress)(request)
+    console.table(response)
+    return response
+  },
+  getMultiSigSpendTxsByMultiSigAddress(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getMultiSigSpendTxsByMultiSigAddress)(request)
     console.table(response)
     return response
   },
