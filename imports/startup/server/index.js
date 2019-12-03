@@ -1,9 +1,5 @@
 /* eslint no-console:0, max-len: 0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* global decimalToBinary, getQrlProtoShasum, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -15,7 +11,7 @@ import fs from 'fs'
 import async from 'async'
 import CryptoJS from 'crypto-js'
 import util from 'util'
-import * as HID from 'node-hid'
+// import * as HID from 'node-hid'
 import QrlLedger from '/node_modules/ledger-qrl-js/wallet/qrl-ledger-library-src.js'
 
 // Apply BrowserPolicy
@@ -62,7 +58,7 @@ const loadGrpcClient = (endpoint, callback) => {
             console.log(fsErr)
             throw fsErr
           }
-          let allowUnchecksummedNodes = Meteor.settings.allowUnchecksummedNodes
+          let { allowUnchecksummedNodes } = Meteor.settings
           if (allowUnchecksummedNodes !== true) { allowUnchecksummedNodes = false }
           // Validate proto file matches node version
           getQrlProtoShasum(res.version, (verifiedProtoSha256HashEntry) => {
@@ -129,7 +125,7 @@ const loadGrpcClient = (endpoint, callback) => {
         })
       }
     })
-  } catch(err) {
+  } catch (err) {
     console.log('node connection error exception')
     const myError = errorCallback(err, `Cannot access node: ${endpoint}`, '**ERROR/connect**')
     callback(myError, null)
@@ -141,7 +137,7 @@ const loadGrpcClient = (endpoint, callback) => {
 // this function will call loadGrpcClient to establish one.
 const connectToNode = (endpoint, callback) => {
   // First check if there is an existing object to store the gRPC connection
-  if (qrlClient.hasOwnProperty(endpoint) === true) {
+  if (qrlClient.hasOwnProperty(endpoint) === true) { // eslint-disable-line
     console.log('Existing connection found for ', endpoint, ' - attempting getNodeState')
     // There is already a gRPC object for this server stored.
     // Attempt to connect to it.
@@ -252,16 +248,16 @@ const connectNodes = () => {
 // the primary or secondary nodes go offline
 const qrlApi = (api, request, callback) => {
   // Handle multi node network api requests
-  if((request.network == "devnet") || (request.network == "testnet") || (request.network == "mainnet")) {
+  if ((request.network === 'devnet') || (request.network === 'testnet') || (request.network === 'mainnet')) {
     // Store active nodes
     const activeNodes = []
 
     // Determine current active nodes
     DEFAULT_NETWORKS.forEach((network) => {
       // Only get nodes from user selected network
-      if (network.id == request.network) {
+      if (network.id === request.network) {
         const networkNodes = network.nodes
-        networkNodes.forEach((node, nodeIndex) => {
+        networkNodes.forEach((node) => {
           if (node.state === true) {
             activeNodes.push(node)
           }
@@ -390,7 +386,7 @@ const helpersaddressTransactions = (response) => {
   return response
 }
 
-export const getTransactionsByAddress = (request, callback) => {
+const getTransactionsByAddress = (request, callback) => {
   try {
     qrlApi('GetTransactionsByAddress', request, (error, response) => {
       if (error) {
@@ -423,18 +419,18 @@ const getMultiSigAddressesByAddress = (request, callback) => {
   }
 }
 
-const getMultiSigSpendTxsByMultiSigAddress = (request, callback) => {
+const getMultiSigSpendTxsByAddress = (request, callback) => {
   try {
-    qrlApi('GetMultiSigSpendTxsByMultiSigAddress', request, (error, response) => {
+    qrlApi('GetMultiSigSpendTxsByAddress', request, (error, response) => {
       if (error) {
-        const myError = errorCallback(error, 'Cannot access API/GetMultiSigSpendTxsByMultiSigAddress', '**ERROR/GetMultiSigSpendTxsByMultiSigAddress**')
+        const myError = errorCallback(error, 'Cannot access API/GetMultiSigSpendTxsByAddress', '**ERROR/GetMultiSigSpendTxsByAddress**')
         callback(myError, null)
       } else {
         callback(null, response)
       }
     })
   } catch (error) {
-    const myError = errorCallback(error, 'Cannot access API/GetMultiSigSpendTxsByMultiSigAddress', '**ERROR/GetMultiSigSpendTxsByMultiSigAddress**')
+    const myError = errorCallback(error, 'Cannot access API/GetMultiSigSpendTxsByAddress', '**ERROR/GetMultiSigSpendTxsByAddress**')
     callback(myError, null)
   }
 }
@@ -688,15 +684,15 @@ const confirmTransaction = (request, callback) => {
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  const addrs_to = confirmTxn.transaction_signed.transfer.addrs_to
-  addrs_to_Formatted = []
-  addrs_to.forEach (function (item) {
-    item = toBuffer(item)
-    addrs_to_Formatted.push(item)
+  const { addrsTo } = confirmTxn.transaction_signed.transfer
+  const addrsToFormatted = []
+  addrsTo.forEach((item) => {
+    const bufItem = toBuffer(item)
+    addrsToFormatted.push(bufItem)
   })
-  
+
   // Overwrite addrs_to with our updated one
-  confirmTxn.transaction_signed.transfer.addrs_to = addrs_to_Formatted
+  confirmTxn.transaction_signed.transfer.addrs_to = addrsToFormatted
   confirmTxn.network = request.network
 
   // Relay transaction through user node, then all default nodes.
@@ -724,8 +720,8 @@ const confirmTransaction = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
-        console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
+      } catch (err) {
+        console.log(`Error: Failed to send transaction - ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
       }
@@ -816,7 +812,7 @@ const confirmMultiSigCreate = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Error: Failed to send transaction: ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -868,9 +864,9 @@ const confirmMultiSigSpend = (request, callback) => {
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  const { addrs_to } = confirmTxn.transaction_signed.multi_sig_spend
+  const addrsTo = confirmTxn.transaction_signed.multi_sig_spend.addrs_to
   const signatoriesFormatted = []
-  addrs_to.forEach(function (item) {
+  addrsTo.forEach((item) => {
     const i = toBuffer(item)
     signatoriesFormatted.push(i)
   })
@@ -912,7 +908,7 @@ const confirmMultiSigSpend = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Error: Failed to send transaction: ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1156,22 +1152,19 @@ const confirmTokenCreation = (request, callback) => {
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash =
-    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.transaction_hash = toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  confirmTxn.transaction_signed.token.symbol =
-    toBuffer(confirmTxn.transaction_signed.token.symbol)
-  confirmTxn.transaction_signed.token.name =
-    toBuffer(confirmTxn.transaction_signed.token.name)
-  confirmTxn.transaction_signed.token.owner =
-    toBuffer(confirmTxn.transaction_signed.token.owner)
+  confirmTxn.transaction_signed.token.symbol = toBuffer(confirmTxn.transaction_signed.token.symbol)
+  confirmTxn.transaction_signed.token.name = toBuffer(confirmTxn.transaction_signed.token.name)
+  confirmTxn.transaction_signed.token.owner = toBuffer(confirmTxn.transaction_signed.token.owner)
 
   const initialBalances = confirmTxn.transaction_signed.token.initial_balances
-  initialBalancesFormatted = []
-  initialBalances.forEach (function (item) {
-    item.address = toBuffer(item.address)
-    initialBalancesFormatted.push(item)
+  const initialBalancesFormatted = []
+  initialBalances.forEach((item) => {
+    const itemFormatted = item
+    itemFormatted.address = toBuffer(item.address)
+    initialBalancesFormatted.push(itemFormatted)
   })
 
   // Overwrite inital_balances with our updated one
@@ -1184,10 +1177,10 @@ const confirmTokenCreation = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      try{
+      try {
         qrlApi('pushTransaction', confirmTxn, (err, res) => {
           if (err) {
-            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -1201,7 +1194,7 @@ const confirmTokenCreation = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Caught Error:  ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1252,12 +1245,10 @@ const confirmMessageCreation = (request, callback) => {
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash =
-    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.transaction_hash = toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  confirmTxn.transaction_signed.message.message_hash =
-    toBuffer(confirmTxn.transaction_signed.message.message_hash)
+  confirmTxn.transaction_signed.message.message_hash = toBuffer(confirmTxn.transaction_signed.message.message_hash)
 
   confirmTxn.network = request.network
 
@@ -1267,10 +1258,10 @@ const confirmMessageCreation = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      try{
+      try {
         qrlApi('pushTransaction', confirmTxn, (err, res) => {
           if (err) {
-            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -1284,7 +1275,7 @@ const confirmMessageCreation = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Caught Error:  ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1334,12 +1325,10 @@ const confirmKeybaseCreation = (request, callback) => {
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash =
-    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.transaction_hash = toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  confirmTxn.transaction_signed.message.message_hash =
-    toBuffer(confirmTxn.transaction_signed.message.message_hash)
+  confirmTxn.transaction_signed.message.message_hash = toBuffer(confirmTxn.transaction_signed.message.message_hash)
 
   confirmTxn.network = request.network
 
@@ -1349,10 +1338,10 @@ const confirmKeybaseCreation = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      try{
+      try {
         qrlApi('pushTransaction', confirmTxn, (err, res) => {
           if (err) {
-            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -1366,7 +1355,7 @@ const confirmKeybaseCreation = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Caught Error:  ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1416,12 +1405,10 @@ const confirmGithubCreation = (request, callback) => {
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash =
-    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.transaction_hash = toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  confirmTxn.transaction_signed.message.message_hash =
-    toBuffer(confirmTxn.transaction_signed.message.message_hash)
+  confirmTxn.transaction_signed.message.message_hash = toBuffer(confirmTxn.transaction_signed.message.message_hash)
 
   confirmTxn.network = request.network
 
@@ -1431,10 +1418,10 @@ const confirmGithubCreation = (request, callback) => {
   async.waterfall([
     // Relay through user node.
     function (wfcb) {
-      try{
+      try {
         qrlApi('pushTransaction', confirmTxn, (err, res) => {
           if (err) {
-            console.log(`Error: Failed to send transaction through ${rres.relayed} - ${err}`)
+            console.log(`Error: Failed to send transaction through ${res.relayed} - ${err}`)
             txnResponse = { error: err.message, response: err.message }
             wfcb()
           } else {
@@ -1448,7 +1435,7 @@ const confirmGithubCreation = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Caught Error:  ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1501,7 +1488,7 @@ const createTokenTransferTxn = (request, callback) => {
     token_txhash: request.tokenHash,
     fee: request.fee,
     xmss_pk: request.xmssPk,
-    network: request.network
+    network: request.network,
   }
 
   qrlApi('getTransferTokenTxn', tx, (err, response) => {
@@ -1510,7 +1497,7 @@ const createTokenTransferTxn = (request, callback) => {
       callback(err, null)
     } else {
       const transferResponse = {
-        response
+        response,
       }
 
       callback(null, transferResponse)
@@ -1524,21 +1511,19 @@ const confirmTokenTransfer = (request, callback) => {
 
   // change ArrayBuffer
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
-  confirmTxn.transaction_signed.transaction_hash =
-    toBuffer(confirmTxn.transaction_signed.transaction_hash)
+  confirmTxn.transaction_signed.transaction_hash = toBuffer(confirmTxn.transaction_signed.transaction_hash)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
-  confirmTxn.transaction_signed.transfer_token.token_txhash = 
-    toBuffer(confirmTxn.transaction_signed.transfer_token.token_txhash)
+  confirmTxn.transaction_signed.transfer_token.token_txhash = toBuffer(confirmTxn.transaction_signed.transfer_token.token_txhash)
 
-  const addrs_to = confirmTxn.transaction_signed.transfer_token.addrs_to
-  addrs_to_Formatted = []
-  addrs_to.forEach (function (item) {
-    item = toBuffer(item)
-    addrs_to_Formatted.push(item)
+  const addrsTo = confirmTxn.transaction_signed.transfer_token.addrs_to
+  const addrsToFormatted = []
+  addrsTo.forEach((item) => {
+    const Fitem = toBuffer(item)
+    addrsToFormatted.push(Fitem)
   })
-  
+
   // Overwrite addrs_to with our updated one
-  confirmTxn.transaction_signed.transfer_token.addrs_to = addrs_to_Formatted
+  confirmTxn.transaction_signed.transfer_token.addrs_to = addrsToFormatted
   confirmTxn.network = request.network
 
   // Relay transaction through user node, then all default nodes.
@@ -1564,7 +1549,7 @@ const confirmTokenTransfer = (request, callback) => {
             wfcb()
           }
         })
-      } catch(err) {
+      } catch (err) {
         console.log(`Caught Error:  ${err}`)
         txnResponse = { error: err, response: err }
         wfcb()
@@ -1646,8 +1631,8 @@ const ledgerVerifyAddress = (request, cb) => {
   })
 }
 const ledgerCreateTx = (sourceAddr, fee, destAddr, destAmount, cb) => {
-  sourceAddr = Buffer.from(sourceAddr)
-  fee = Buffer.from(fee)
+  const sourceAddrBuffer = Buffer.from(sourceAddr)
+  const feeBuffer = Buffer.from(fee)
 
   const destAddrFinal = []
   const destAmountFinal = []
@@ -1656,7 +1641,7 @@ const ledgerCreateTx = (sourceAddr, fee, destAddr, destAmount, cb) => {
     destAmountFinal.push(Buffer.from(destAmount[i]))
   }
 
-  QrlLedger.createTx(sourceAddr, fee, destAddrFinal, destAmountFinal).then(data => {
+  QrlLedger.createTx(sourceAddrBuffer, feeBuffer, destAddrFinal, destAmountFinal).then(data => {
     cb(null, data)
   })
 }
@@ -1671,11 +1656,11 @@ const ledgerSetIdx = (otsKey, cb) => {
   })
 }
 const ledgerCreateMessageTx = (sourceAddr, fee, message, cb) => {
-  sourceAddr = Buffer.from(sourceAddr)
-  fee = Buffer.from(fee)
-  message = Buffer.from(message)
+  const sourceAddrBuffer = Buffer.from(sourceAddr)
+  const feeBuffer = Buffer.from(fee)
+  const messageBuffer = Buffer.from(message)
 
-  QrlLedger.createMessageTx(sourceAddr, fee, message).then(data => {
+  QrlLedger.createMessageTx(sourceAddrBuffer, feeBuffer, messageBuffer).then(data => {
     cb(null, data)
   })
 }
@@ -1738,10 +1723,10 @@ Meteor.methods({
     console.table(response)
     return response
   },
-  getMultiSigSpendTxsByMultiSigAddress(request) {
+  getMultiSigSpendTxsByAddress(request) {
     check(request, Object)
     this.unblock()
-    const response = Meteor.wrapAsync(getMultiSigSpendTxsByMultiSigAddress)(request)
+    const response = Meteor.wrapAsync(getMultiSigSpendTxsByAddress)(request)
     console.table(response)
     return response
   },
@@ -2087,7 +2072,7 @@ Meteor.methods({
     check(destAddr, Match.Any)
     check(destAmount, Match.Any)
 
-    console.log('2: sourceAddr: ',sourceAddr,' - fee: ', fee,' - destAddr: ',destAddr, ' - destAmount: ', destAmount)
+    console.log('2: sourceAddr: ', sourceAddr, ' - fee: ', fee, ' - destAddr: ', destAddr, ' - destAmount: ', destAmount)
 
     const response = Meteor.wrapAsync(ledgerCreateTx)(sourceAddr, fee, destAddr, destAmount)
     return response
