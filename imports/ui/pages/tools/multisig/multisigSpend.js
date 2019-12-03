@@ -97,6 +97,9 @@ Template.multisigSpend.helpers({
     const shor = new BigNumber(n)
     return shor.dividedBy(SHOR_PER_QUANTA).toNumber()
   },
+  transactionGenerationError() {
+    return Session.get('transactionGenerationError')
+  },
 })
 
 const loadMultisigs = (a, p) => {
@@ -381,7 +384,7 @@ function generateTransaction() {
 
       if (nodeReturnedValidResponse(request, confirmation, 'multiSigSpend')) {
         Session.set('transactionConfirmation', confirmation)
-        Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+        Session.set('transactionConfirmationAmount', (totalTransferAmount / SHOR_PER_QUANTA))
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationResponse', res.response)
 
@@ -406,13 +409,6 @@ function confirmTransaction() {
   if (getXMSSDetails().walletType === 'seed') {
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
   }
-/*
-  // Concatenate Uint8Arrays
-  let concatenatedArrays = concatenateTypedArrays(
-    Uint8Array,
-    tx.extended_transaction_unsigned.tx.master_addr,
-  )
-*/
 
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,

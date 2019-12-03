@@ -521,7 +521,7 @@
               <img class="transactionTypeImage" src="/img/icons/send.png" />
               <div class="content">
                 <div class="header">
-                  Sent
+                  Spend proposal sent
                 </div>
               </div>
               <div class="floatright">
@@ -531,11 +531,11 @@
   
             <form>
               <div class="field">
-                <label>Recipient</label>
+                <label>Recipient(s)</label>
                 <div class="ui visible message">
                   <p class="wordBreak">
                     {{#each transactionConfirmation.outputs}}
-                      {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                      {{shorToQuanta this.amount}} Quanta -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                     {{/each}}
                   </p>
                 </div>

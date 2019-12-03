@@ -71,12 +71,12 @@ Template.multisigCreate.helpers({
     return confirmation
   },
   transactionConfirmationFee() {
-    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
+    if (Session.get('transactionConfirmationResponse') === undefined || Session.get('transactionConfirmationResponse') === null) { return false }
     const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
   thresholdForSpend() {
-    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
+    if (Session.get('transactionConfirmationResponse') === undefined || Session.get('transactionConfirmationResponse') === null) { return false }
     const thresholdForSpend = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.multi_sig_create.threshold
     return thresholdForSpend
   },
