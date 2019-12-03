@@ -11,7 +11,7 @@
         "nodes": [
           {
             "id": "devnet",
-            "grpc": "devnet-1.automated.theqrl.org:19009",
+            "grpc": "devnet-2.automated.theqrl.org:19009",
             "state": false,
             "height": 0
           }

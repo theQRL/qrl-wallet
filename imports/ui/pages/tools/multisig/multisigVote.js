@@ -19,7 +19,7 @@ Template.multisigVote.helpers({
   transferFrom() {
     const transferFrom = {}
     if (Session.get('multisigTransferFromAddressSet') === true) {
-      transferFrom.balance = Session.get('multisigTransferFromBalance')
+      transferFrom.balance = Session.get('transferFromBalance')
       transferFrom.address = hexOrB32(Session.get('multisigTransferFromAddress'))
       return transferFrom
     }
@@ -65,9 +65,11 @@ Template.multisigVote.helpers({
     const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
     return transactionConfirmationFee
   },
-  transactionConfirmationAmount() {
-    const confirmationAmount = Session.get('transactionConfirmationAmount')
-    return confirmationAmount
+  transactionConfirmationFromMultiSig() {
+    return Session.get('transactionConfirmationFromMultiSig')
+  },
+  transactionConfirmationUnvote() {
+    return Session.get('transactionConfirmationUnvote')
   },
   transactionRelayedThrough() {
     const status = Session.get('transactionRelayedThrough')
@@ -95,7 +97,19 @@ Template.multisigVote.helpers({
     return Session.get('transactionGenerationError')
   },
   MSStxhash() {
-    return '3d80d6f4bbca4c0208656a98c6f9b8a3d424659b41df5d9b85b6d6aa6e613f24'
+    return Session.get('multisigTransferFromTxhash')
+  },
+  isChecked(v) {
+    if (Session.get('unvote') === true) {
+      if (v === 0) {
+        return ''
+      }
+      return 'checked'
+    }
+    if (v === 0) {
+      return 'checked'
+    }
+    return ''
   },
 })
 
@@ -110,7 +124,7 @@ const loadMultisigs = (a, p) => {
   console.log('request', request)
   Session.set('multiSigAddresses', [])
   Session.set('loadingmultiSigAddresses', true)
-  wrapMeteorCall('getMultiSigAddressesByAddress', request, (err, res) => {
+  wrapMeteorCall('getMultiSigSpendTxsByAddress', request, (err, res) => {
     console.log('err:', err)
     console.log('res:', res)
     if (err) {
@@ -119,25 +133,14 @@ const loadMultisigs = (a, p) => {
     } else {
       Session.set('active', p)
       const add = []
-      _.each(res.multi_sig_detail, (item => {
-        add.push({ address: `Q${Buffer.from(item.address).toString('hex')}`, balance: item.balance / SHOR_PER_QUANTA })
+      _.each(res.transactions_detail, (item => {
+        add.push({ address: `Q${Buffer.from(item.tx.multi_sig_spend.multi_sig_address).toString('hex')}`, txhash: `${Buffer.from(item.tx.transaction_hash).toString('hex')}` })
       }))
       Session.set('multiSigAddresses', add)
       Session.set('loadingmultiSigAddresses', false)
       Session.set('errorLoadingMultiSig', false)
     }
   })
-}
-
-function getRecipientIds() {
-  const ids = []
-  const elements = document.getElementsByName('to[]')
-  _.each(elements, (element) => {
-    const thisId = element.id
-    const parts = thisId.split('_')
-    ids.push(parseInt(parts[1], 10))
-  })
-  return ids
 }
 
 function enableSendButton() {
@@ -248,12 +251,14 @@ function generateTransaction() {
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = hexToBytes(getXMSSDetails().pk)
-  const msTxhash = '3d80d6f4bbca4c0208656a98c6f9b8a3d424659b41df5d9b85b6d6aa6e613f24'
-  const formUnvote = false // TODO: form element here
+  const msTxhash = Session.get('multisigTransferFromTxhash')
+  const formUnvote = Session.get('unvote')
+
+  console.log('checkbox:', $('.checkbox').checkbox('is checked'))
 
   // check enough balance for fee
   const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).toNumber()
-  const totalBalance = new BigNumber(Session.get('multisigTransferFromBalance')).times(SHOR_PER_QUANTA).toNumber()
+  const totalBalance = new BigNumber(Session.get('multisigTransferFromTxhash')).times(SHOR_PER_QUANTA).toNumber()
 
   if (totalFee > totalBalance) {
     console.log('Insufficient balance in wallet for transaction fee')
@@ -320,7 +325,8 @@ function generateTransaction() {
         // Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationResponse', res.response)
-
+        Session.set('transactionConfirmationFromMultiSig', Buffer.from(res.response.extended_transaction_unsigned.tx.multi_sig_vote.shared_key).toString('hex'))
+        Session.set('transactionConfirmationUnvote', res.response.extended_transaction_unsigned.tx.multi_sig_vote.unvote)
         // Show confirmation
         $('#generateTransactionArea').hide()
         $('#confirmTransactionArea').show()
@@ -357,6 +363,7 @@ function confirmTransaction() {
 
   // add unvote flag
   const unvote = new Uint8Array(1)
+  console.log('tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote:', tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote)
   if (tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote === true) {
     unvote[0] = 1
   } else {
@@ -491,37 +498,6 @@ function initialiseFormValidation() {
 }
 
 Template.multisigVote.events({
-  'click #changeTransaction': () => {
-    const address = Session.get('multisigTransferFromAddress')
-    console.log('Fetching open MS transactions for ', address)
-    const addresstx = Buffer.from(address.substring(1), 'hex')
-    const request = {
-      address: addresstx,
-      network: selectedNetwork(),
-      item_per_page: 10,
-      page_number: 1,
-    }
-    console.log('request', request)
-    // Session.set('multiSigAddresses', [])
-    // Session.set('loadingmultiSigAddresses', true)
-    wrapMeteorCall('getMultiSigSpendTxsByMultiSigAddress', request, (err, res) => {
-      console.log('err:', err)
-      console.log('res:', res)
-      if (err) {
-        // Session.set('multiSigAddresses', { error: err })
-        // Session.set('errorLoadingMultiSig', true)
-      } else {
-        // Session.set('active', p)
-        // const add = []
-        // _.each(res.multi_sig_detail, (item => {
-        //   add.push({ address: `Q${Buffer.from(item.address).toString('hex')}`, balance: item.balance / SHOR_PER_QUANTA })
-        // }))
-        // Session.set('multiSigAddresses', add)
-        // Session.set('loadingmultiSigAddresses', false)
-        // Session.set('errorLoadingMultiSig', false)
-      }
-    })
-  },
   'click #changeAddress': () => {
     Session.set('multisigTransferFromAddressSet', false)
     // call api to get addresses
@@ -550,12 +526,20 @@ Template.multisigVote.events({
     }
     $('#tokenJsonbox').toggle()
   },
+  'click .checkbox': () => {
+    if ($('#vote_reject')[0].checked === true) {
+      Session.set('unvote', true)
+    } else {
+      Session.set('unvote', false)
+    }
+  },
 })
 
 Template.multisigVote.onRendered(() => {
   Session.set('expiryInterval', 'approx 30 days')
   Session.set('activeMultisigTab', 'vote')
   Session.set('multisigTransferFromAddressSet', false)
+  Session.set('unvote', false)
   initialiseFormValidation()
 })
 
@@ -580,19 +564,12 @@ Template.msvTable.helpers({
 
 Template.msvTable.events({
   'click #chooseVoteAddressTable tr': (event) => {
+    console.log(event)
     const a = event.currentTarget.cells[0].textContent.trim()
-    const b = event.currentTarget.cells[1].textContent.trim()
-    Session.set('multisigTransferFromAddress', a)
-    Session.set('multisigTransferFromBalance', b)
+    const b = event.currentTarget.children[1].attributes[0].nodeValue.trim()
+    Session.set('multisigTransferFromAddress', b)
+    Session.set('multisigTransferFromTxhash', a)
     Session.set('multisigTransferFromAddressSet', true)
-    const request = {
-      address: Buffer.from(a.substring(1), 'hex'),
-      network: selectedNetwork(),
-    }
-    wrapMeteorCall('getMultiSigAddressState', request, (err, res) => {
-      console.log('err', err)
-      console.log('res', res)
-    })
     $('#chooseVoteAddress').modal('hide')
   },
 })

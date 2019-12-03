@@ -341,7 +341,7 @@
     <div id="walletAddress" class="content wordBreak">
       {{transferFrom.address}}
     </div>
-    <div class="float right"><button class="ui primary red button" id="changeAddress">Select Address...</button></div>
+    <div class="float right"><button class="ui primary red button" id="changeAddress">Select Transaction...</button></div>
   </h3>
   <br /><br />
   
@@ -358,7 +358,6 @@
                       <div class="field">
                           <label>Multisig Spend Transaction</label>
                           <input type="text" id="MSStxhash" placeholder="0" value="{{MSStxhash}}" autocomplete="off" disabled>
-                          <button class="ui sky button" id="changeTransaction">Select Transaction...</button>
                         </div>
                   </div>
                 </div>
@@ -366,6 +365,21 @@
               <div class="ui stackable two column grid">
               <div class="six wide column">  
               <div class="ui form">
+                  <div class="grouped fields">
+                      <label>Approval</label>
+                      <div class="field">
+                        <div class="ui radio checkbox">
+                          <input type="radio" name="vote_action" id="vote_pass" {{ isChecked 0 }}>
+                          <label>Vote to APPROVE this transaction</label>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <div class="ui radio checkbox">
+                          <input type="radio" name="vote_action" id="vote_reject" {{ isChecked 1 }}>
+                          <label>Vote to REJECT this transaction</label>
+                        </div>
+                      </div>
+                    </div>
               <div class="field">
                 <label>Fee (In Quanta)</label>
                 <input type="number" id="fee" value="0.1" autocomplete="off">
@@ -425,23 +439,21 @@
               <img class="transactionTypeImage" src="/img/icons/send.png" />
               <div class="content">
                 <div class="header">
-                  Confirm MultiSig Spend
+                  Confirm MultiSig Vote
                 </div>
-              </div>
-              <div class="floatright">
-                {{transactionConfirmationAmount}} Quanta
+                {{transactionConfirmationFromMultiSig}}
               </div>
             </div>
   
             <form>
               <div class="field">
-                <label>Recipients</label>
+                <label>Approval</label>
                 <div class="ui visible message">
-                  <p class="wordBreak">
-                    {{#each transactionConfirmation.outputs}}
-                      {{shorToQuanta this.amount}} Quanta -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
-                    {{/each}}
-                  </p>
+                  {{#if transactionConfirmationUnvote}}
+                  Vote to REJECT this transaction
+                  {{else}}
+                  Vote to APPROVE this transaction
+                  {{/if}}
                 </div>
               </div>
   
@@ -575,7 +587,7 @@
     <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
   </div>
   <div class="ui modal" id="chooseVoteAddress">
-      <div class="header">Choose a multisig address</div>
+      <div class="header">Choose a multisig spend transaction</div>
       <div class="content">
         {{> msvTable}}
       </div>
@@ -589,18 +601,18 @@
     <table class="ui selectable celled table" id="chooseVoteAddressTable">
         <thead>
           <tr>
-            <th>Address</th>
-            <th>Balance (Quanta)</th>
+            <th>Transaction</th>
+            <th>&nbsp;</th>
           </tr>
         </thead>
         <tbody style="font-family: 'Hack';">
           {{#each msAddresses}}
             <tr>
               <td>
-                {{this.address}}
+                {{this.txhash}}
               </td>
-              <td>
-                {{this.balance}}
+              <td data-address="{{this.address}}">
+                <a href="{{nodeExplorerUrl}}/tx/{{this.txhash}}"><button class="ui tiny sky button">View in QRL Explorer &raquo;</button></a>
               </td>
             </tr>
           {{/each}}
@@ -608,8 +620,8 @@
       </table>
       {{else}}
       {{#if msLoading}}
-      <p>Looking up multisig addresses...</p>
+      <p>Looking up multisig transactions...</p>
       {{else}}
-      <p>This wallet is not a signatory on any multisig addresses</p>
+      <p>This wallet is not a signatory on any multisig addresses with open spend transactions</p>
       {{/if}}{{/if}}
 </template>
