@@ -505,21 +505,19 @@
                 <div class="header">
                   Sent
                 </div>
-              </div>
-              <div class="floatright">
-                {{transactionConfirmationAmount}} Quanta
+                MultiSig Vote Transaction
               </div>
             </div>
   
             <form>
               <div class="field">
-                <label>Recipient</label>
+                <label>Approval</label>
                 <div class="ui visible message">
-                  <p class="wordBreak">
-                    {{#each transactionConfirmation.outputs}}
-                      {{shorToQuanta this.amount}} Quanta -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
-                    {{/each}}
-                  </p>
+                    {{#if transactionConfirmationUnvote}}
+                    Vote to REJECT this transaction
+                    {{else}}
+                    Vote to APPROVE this transaction
+                    {{/if}}
                 </div>
               </div>
             </form>
