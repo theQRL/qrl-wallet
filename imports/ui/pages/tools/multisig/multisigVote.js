@@ -120,6 +120,7 @@ const loadMultisigs = (a, p) => {
     network: selectedNetwork(),
     item_per_page: 10,
     page_number: p,
+    filter_type: 6,
   }
   console.log('request', request)
   Session.set('multiSigAddresses', [])
@@ -363,7 +364,7 @@ function confirmTransaction() {
 
   // add unvote flag
   const unvote = new Uint8Array(1)
-  console.log('tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote:', tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote)
+
   if (tx.extended_transaction_unsigned.tx.multi_sig_vote.unvote === true) {
     unvote[0] = 1
   } else {

@@ -684,7 +684,8 @@ const confirmTransaction = (request, callback) => {
   confirmTxn.transaction_signed.public_key = toBuffer(confirmTxn.transaction_signed.public_key)
   confirmTxn.transaction_signed.signature = toBuffer(confirmTxn.transaction_signed.signature)
 
-  const { addrsTo } = confirmTxn.transaction_signed.transfer
+  const addrsTo = confirmTxn.transaction_signed.transfer.addrs_to
+
   const addrsToFormatted = []
   addrsTo.forEach((item) => {
     const bufItem = toBuffer(item)
