@@ -95,8 +95,8 @@ QRLPROTO_SHA256 = [
   // development .proto
   {
     version: '0+unknown python',
-    protoSha256: '34f22af23f87cd879b3e888011bb47f0ce10db6765cdfe02b0574279dabec197',
-    objectSha256: '18412806ab84c0eef03faf363e4ed134689a86d8061e833dbf41ef65ff59eb2f',
+    protoSha256: '9d035851c76143621960c858d064489838f6eef664930257946a4b23d70bcc6c',
+    objectSha256: '7e062340104109d2206017bbdb5cddf45386f77d8dd169d08fa9624b5c6b2934',
   },
 ]
 
