@@ -77,8 +77,12 @@ Template.multisigCreate.helpers({
   },
   thresholdForSpend() {
     if (Session.get('transactionConfirmationResponse') === undefined || Session.get('transactionConfirmationResponse') === null) { return false }
-    const thresholdForSpend = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.multi_sig_create.threshold
-    return thresholdForSpend
+    try {
+      const thresholdForSpend = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.multi_sig_create.threshold
+      return thresholdForSpend
+    } catch (e) {
+      return null
+    }
   },
   transactionRelayedThrough() {
     const status = Session.get('transactionRelayedThrough')
