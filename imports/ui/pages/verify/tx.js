@@ -172,6 +172,13 @@ Template.appVerifyTxid.helpers({
     }
     return false
   },
+  isMultiSigVoteTxn() {
+    console.log(this.explorer)
+    if (this.explorer.type === 'MULTISIG_VOTE') {
+      return true
+    }
+    return false
+  },
   isNotMessage() {
     if ((this.explorer.type !== 'MESSAGE') && (this.explorer.type !== 'DOCUMENT_NOTARISATION')) {
       return true

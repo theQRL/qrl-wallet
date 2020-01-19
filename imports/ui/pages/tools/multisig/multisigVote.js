@@ -1,7 +1,8 @@
 /* eslint no-console:0, max-len:0 */
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
-toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32 */
+toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
+refreshTransferPage */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -160,7 +161,7 @@ function checkResult(thisTxId, failureCount) {
       $('.loading').hide()
       $('#loadingHeader').hide()
       // once we have a list of multisigs, need to refresh list once new address created
-      // refreshTransferPage()
+      refreshTransferPage()
     } else if (Session.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if (failureCount < 5) {
