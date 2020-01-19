@@ -1188,6 +1188,12 @@ Template.appTransfer.helpers({
     }
     return false
   },
+  isVoteMultiSigTxn(txType) {
+    if (txType.toLowerCase() === 'multi_sig_vote') {
+      return true
+    }
+    return false
+  },
   isMessageTxn(txType) {
     if (txType.toLowerCase() === 'message') {
       return true

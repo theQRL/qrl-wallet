@@ -157,6 +157,18 @@
                     </tfoot>
                   </table>
                 {{else}}
+                {{#if isMultiSigVoteTxn}}
+                <table class="ui table">
+                  <tr>
+                    <td><strong>Spend transaction</strong></td>
+                    <td style="font-family: Hack;"><a href="/tx/{{ this.tx.multi_sig_vote.shared_key }}">{{ this.tx.multi_sig_vote.shared_key }}</a></td>
+                  </tr>
+                  <tr>
+                      <td><strong>Vote status</strong></td>
+                      <td>{{ #if this.tx.multi_sig_vote.unvote }}Approval revoked{{else}}Transaction approved{{/if}}</td>
+                  </tr>
+                </table>
+                {{else}}
                 <h3>To</h3>
                 <table class="ui stackable table">
                   <thead>
@@ -186,6 +198,7 @@
                     {{/if}}
                   </tbody>
                 </table>
+                {{/if}}
               {{/if}}
               {{/if}}
             {{/if}}
