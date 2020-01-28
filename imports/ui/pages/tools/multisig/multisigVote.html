@@ -337,7 +337,7 @@
     </div>
   </div>
   
-  <h3 class="ui header pageHeader">
+  <h3 class="ui header pageHeader msHeader">
     <div id="walletAddress" class="content wordBreak">
       {{transferFrom.address}}
     </div>
@@ -359,6 +359,15 @@
                           <label>Multisig Spend Transaction</label>
                           <input type="text" id="MSStxhash" placeholder="0" value="{{MSStxhash}}" autocomplete="off" disabled>
                         </div>
+                  </div>
+                  <div class="ui message">
+                    <div class="header">
+                      Proposal details<br><br>
+                    </div>
+                    <p>
+                      <strong>Proposed by: </strong> {{proposer}}<br>
+                      <strong>Spend details:</strong> {{{details}}}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -600,17 +609,28 @@
         <thead>
           <tr>
             <th>Transaction</th>
-            <th>&nbsp;</th>
+            <th>Spend from</th>
+            <th>Proposed by</th>
+            <th>Spend proposal</th>
           </tr>
         </thead>
         <tbody style="font-family: 'Hack';">
           {{#each msAddresses}}
-            <tr>
+            <tr data-txhash='{{this.txhash}}' data-address='{{this.address}}' data-proposer="{{this.proposedBy}}" data-details="{{ spendDetailHTML this }}">
               <td>
                 {{this.txhash}}
               </td>
-              <td data-address="{{this.address}}">
+              <!-- <td data-address="{{this.address}}">
                 <a href="{{nodeExplorerUrl}}/tx/{{this.txhash}}"><button class="ui tiny sky button">View in QRL Explorer &raquo;</button></a>
+              </td> -->
+              <td>
+                {{ this.address }}
+              </td>
+              <td>
+                {{ this.proposedBy }}
+              </td>
+              <td>
+                <small>{{{ spendDetailHTML this }}}</small>
               </td>
             </tr>
           {{/each}}

@@ -17,6 +17,12 @@ Template.multisigVote.helpers({
     }
     return ''
   },
+  proposer() {
+    return Session.get('multisigTransferFromProposer')
+  },
+  details() {
+    return Session.get('multisigTransferFromDetails')
+  },
   transferFrom() {
     const transferFrom = {}
     if (Session.get('multisigTransferFromAddressSet') === true) {
@@ -136,7 +142,17 @@ const loadMultisigs = (a, p) => {
       Session.set('active', p)
       const add = []
       _.each(res.transactions_detail, (item => {
-        add.push({ address: `Q${Buffer.from(item.tx.multi_sig_spend.multi_sig_address).toString('hex')}`, txhash: `${Buffer.from(item.tx.transaction_hash).toString('hex')}` })
+        const addrsTo = []
+        _.each(item.tx.multi_sig_spend.addrs_to, i => {
+          addrsTo.push(Buffer.from(i).toString('hex'))
+        })
+        add.push({
+          address: `Q${Buffer.from(item.tx.multi_sig_spend.multi_sig_address).toString('hex')}`,
+          txhash: `${Buffer.from(item.tx.transaction_hash).toString('hex')}`,
+          to: addrsTo,
+          amounts: item.tx.multi_sig_spend.amounts,
+          proposedBy: `Q${Buffer.from(item.addr_from).toString('hex')}`,
+        })
       }))
       Session.set('multiSigAddresses', add)
       Session.set('loadingmultiSigAddresses', false)
@@ -562,15 +578,30 @@ Template.msvTable.helpers({
     }
     return false
   },
+  spendDetailHTML(item) {
+    // console.log('item:', item)
+    let op = ''
+    if (item.amounts.length > 0) {
+      _.each(item.amounts, (a, i) => {
+        op += `${parseInt(a, 10) / SHOR_PER_QUANTA} Quanta => Q${item.to[i]}<br>`
+      })
+    }
+    return op
+  },
 })
 
 Template.msvTable.events({
   'click #chooseVoteAddressTable tr': (event) => {
-    console.log(event)
-    const a = event.currentTarget.cells[0].textContent.trim()
-    const b = event.currentTarget.children[1].attributes[0].nodeValue.trim()
-    Session.set('multisigTransferFromAddress', b)
-    Session.set('multisigTransferFromTxhash', a)
+    // console.log(event)
+    // console.log($(event.currentTarget).closest('tr').attr('data-address'))
+    const a = $(event.currentTarget).closest('tr').attr('data-address')
+    const b = $(event.currentTarget).closest('tr').attr('data-txhash')
+    const c = $(event.currentTarget).closest('tr').attr('data-proposer')
+    const d = $(event.currentTarget).closest('tr').attr('data-details')
+    Session.set('multisigTransferFromAddress', a)
+    Session.set('multisigTransferFromTxhash', b)
+    Session.set('multisigTransferFromProposer', c)
+    Session.set('multisigTransferFromDetails', d)
     Session.set('multisigTransferFromAddressSet', true)
     $('#chooseVoteAddress').modal('hide')
   },

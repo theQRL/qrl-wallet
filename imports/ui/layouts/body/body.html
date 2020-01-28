@@ -129,7 +129,23 @@
 
             <!-- Page Content -->
             <div class="subPageContent">
+              {{#if walletStatus.unlocked}}
+              <h3 class="ui header pageHeader">
+                <div id="openWalletAddress" class="content wordBreak">
+                  {{walletStatus.address}}
+                </div>
+                <div class="ui two column grid">
+                  <div class="column">
+                    <small>{{balanceAmount}} {{balanceSymbol}}</small>
+                  </div>
+                  <div class="column">
+                    <small>{{otsKeysRemaining}} OTS keys remaining</small>
+                  </div>
+                </div>
+              </h3>
+              {{/if}}
                 <div class="ui container">
+
                     {{> Template.dynamic template=main}}
 
                     <!-- Footer -->
