@@ -282,11 +282,23 @@ Template.appBody.events({
 
 
 Template.appBody.helpers({
+  walletStatus() {
+    return Session.get('walletStatus')
+  },
   addressFormat() {
     if (LocalStore.get('addressFormat') === 'bech32') {
       return 'BECH32'
     }
     return 'Hex'
+  },
+  balanceAmount() {
+    return Session.get('balanceAmount')
+  },
+  otsKeysRemaining() {
+    return Session.get('otsKeysRemaining')
+  },
+  balanceSymbol() {
+    return Session.get('balanceSymbol')
   },
   addressFormatChecked() {
     if (LocalStore.get('addressFormat') === 'bech32') {
