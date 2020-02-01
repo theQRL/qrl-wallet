@@ -291,6 +291,12 @@ Template.appBody.helpers({
     }
     return 'Hex'
   },
+  inProgress() {
+    if (Session.get('txstatus') === 'Pending') {
+      return true
+    }
+    return false
+  },
   balanceAmount() {
     return Session.get('balanceAmount')
   },
