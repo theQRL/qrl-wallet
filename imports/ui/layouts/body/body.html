@@ -136,9 +136,11 @@
                 </div>
                 <div class="ui two column grid">
                   <div class="column">
+                    {{#if inProgress}}<div class="ui active inline mini loader"></div>{{/if}}
                     <small>{{balanceAmount}} {{balanceSymbol}}</small>
                   </div>
                   <div class="column">
+                    {{#if inProgress}}<div class="ui active inline mini loader"></div>{{/if}}
                     <small>{{otsKeysRemaining}} OTS keys remaining</small>
                   </div>
                 </div>

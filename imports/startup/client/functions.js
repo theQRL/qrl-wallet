@@ -601,23 +601,29 @@ getTokenBalances = (getAddress, callback) => {
 }
 
 updateBalanceField = () => {
-  const selectedType = document.getElementById('amountType').value
+  try {
+    const selectedType = document.getElementById('amountType').value
 
-  // Quanta Balances
-  if (selectedType === 'quanta') {
+    // Quanta Balances
+    if (selectedType === 'quanta') {
+      Session.set('balanceAmount', Session.get('transferFromBalance'))
+      Session.set('balanceSymbol', 'Quanta')
+    } else {
+      // First extract the token Hash
+      const tokenHash = selectedType.split('-')[1]
+
+      // Now calculate the token balance.
+      _.each(Session.get('tokensHeld'), (token) => {
+        if (token.hash === tokenHash) {
+          Session.set('balanceAmount', token.balance)
+          Session.set('balanceSymbol', token.symbol)
+        }
+      })
+    }
+  } catch (error) {
+    // not in main transfer page, so use transferFromBalance session
     Session.set('balanceAmount', Session.get('transferFromBalance'))
     Session.set('balanceSymbol', 'Quanta')
-  } else {
-    // First extract the token Hash
-    const tokenHash = selectedType.split('-')[1]
-
-    // Now calculate the token balance.
-    _.each(Session.get('tokensHeld'), (token) => {
-      if (token.hash === tokenHash) {
-        Session.set('balanceAmount', token.balance)
-        Session.set('balanceSymbol', token.symbol)
-      }
-    })
   }
 }
 
