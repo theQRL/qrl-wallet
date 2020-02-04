@@ -891,7 +891,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   } else if (type === 'createGithubTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
-      console.log('Transaction Validation - Message mismatch')
+      console.log('Transaction Validation - Github Message mismatch')
       logRequestResponse(request, response)
       return false
     }
@@ -901,7 +901,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   } else if (type === 'createKeybaseTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
-      console.log('Transaction Validation - Message mismatch')
+      console.log('Transaction Validation - Keybase Message mismatch')
       logRequestResponse(request, response)
       return false
     }
@@ -909,7 +909,6 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // If we got here, everything matches the request
     return true
   } else if (type === 'multiSigCreate') {
-    // todo: checks here
     if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - Creator mismatch')
       logRequestResponse(request, response)
@@ -937,9 +936,36 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // if we've made it here all the MS_CREATE details match
     return true
   } else if (type === 'multiSigSpend') {
-    // todo: checks here
-    logRequestResponse(request, response)
-
+    if (!Buffer.from(request.multi_sig_address).equals(Buffer.from(response.multi_sig_address))) {
+      console.log('Transaction Validation - Multisig Address mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
+      console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    let testOutputs = true
+    _.each(request.addrs_to, (item, index) => {
+      if (!Buffer.from(item).equals(Buffer.from(response.outputs[index].address))) {
+        console.log('Transaction Validation - Recipient address mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+      if (request.amounts[index] !== parseInt(response.outputs[index].amount, 10)) {
+        console.log('Transaction Validation - Send amount mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+    })
+    if (testOutputs === false) { return false }
+    if (request.expiry_block_number !== parseInt(response.expiry_block_number, 10)) {
+      console.log('Transaction Validation - Expiry block number mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // if we've made it here all the MS_SPEND details match
     return true
   } else if (type === 'multiSigVote') {
     // todo: checks here

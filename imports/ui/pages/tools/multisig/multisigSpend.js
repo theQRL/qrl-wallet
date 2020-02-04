@@ -375,6 +375,7 @@ function generateTransaction() {
 
       const confirmation = {
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
+        multi_sig_address: res.response.extended_transaction_unsigned.tx.multi_sig_spend.multi_sig_address,
         from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
         from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmationOutputs,
