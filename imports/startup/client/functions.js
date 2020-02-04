@@ -933,6 +933,11 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
       logRequestResponse(request, response)
       testOutputs = false
     }
+    if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
+      console.log('Transaction Validation - XMSS PK mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
     // if we've made it here all the MS_CREATE details match
     return true
   } else if (type === 'multiSigSpend') {
@@ -965,12 +970,35 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
       logRequestResponse(request, response)
       return false
     }
+    if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
+      console.log('Transaction Validation - XMSS PK mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
     // if we've made it here all the MS_SPEND details match
     return true
   } else if (type === 'multiSigVote') {
-    // todo: checks here
-    logRequestResponse(request, response)
-
+    if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
+      console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.shared_key).equals(Buffer.from(response.shared_key))) {
+      console.log('Transaction Validation - Shared key mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (request.unvote !== response.unvote) {
+      console.log('Transaction Validation - Vote status [unvote flag] mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
+      console.log('Transaction Validation - XMSS PK mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // if we've made it here all the MS_VOTE details match
     return true
   }
 
