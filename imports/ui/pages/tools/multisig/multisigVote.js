@@ -334,7 +334,10 @@ function generateTransaction() {
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
         from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from),
         from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
+        shared_key: res.response.extended_transaction_unsigned.tx.multi_sig_vote.shared_key,
+        unvote: res.response.extended_transaction_unsigned.tx.multi_sig_vote.unvote,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        xmssPk: res.response.extended_transaction_unsigned.tx.public_key,
         otsKey,
       }
 
