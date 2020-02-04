@@ -910,14 +910,40 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     return true
   } else if (type === 'multiSigCreate') {
     // todo: checks here
-
+    if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
+      console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    let testOutputs = true
+    _.each(request.signatories, (item, index) => {
+      if (!Buffer.from(item).equals(Buffer.from(response.outputs[index].address))) {
+        console.log('Transaction Validation - Signatories mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+      if (request.weights[index] !== response.outputs[index].weight) {
+        console.log('Transaction Validation - Weights mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+    })
+    if (testOutputs === false) { return false }
+    if (request.threshold !== response.threshold) {
+      console.log('Transaction Validation - Threshold mismatch')
+      logRequestResponse(request, response)
+      testOutputs = false
+    }
+    // if we've made it here all the MS_CREATE details match
     return true
   } else if (type === 'multiSigSpend') {
     // todo: checks here
+    logRequestResponse(request, response)
 
     return true
   } else if (type === 'multiSigVote') {
     // todo: checks here
+    logRequestResponse(request, response)
 
     return true
   }
