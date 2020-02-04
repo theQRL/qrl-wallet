@@ -348,6 +348,7 @@ function generateTransaction() {
         from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from),
         outputs: confirmationOutputs,
         threshold: resThreshold,
+        xmssPk: res.response.extended_transaction_unsigned.tx.public_key,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey,
       }

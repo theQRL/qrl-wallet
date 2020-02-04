@@ -381,6 +381,7 @@ function generateTransaction() {
         outputs: confirmationOutputs,
         expiry_block_number: resExpiry,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        xmssPk: res.response.extended_transaction_unsigned.tx.public_key,
         otsKey,
       }
 
