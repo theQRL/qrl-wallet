@@ -211,6 +211,30 @@ resetWalletStatus = () => {
   status.menuHidden = 'display: none'
   status.menuHiddenInverse = ''
   Session.set('walletStatus', status)
+
+  // reset any Sessions
+  // TO DO: advise against this if transfer is pending?
+  Session.set('txstatus', '')
+  Session.set('txhash', {})
+  Session.set('addressTransactions', {})
+  Session.set('active', '')
+  Session.set('fetchedTx', false)
+  Session.set('transactionGenerationError', false)
+  Session.set('transactionConfirmation', false)
+  Session.set('transactionConfirmationAmount', false)
+  Session.set('transactionConfirmationFee', false)
+  Session.set('transactionConfirmationResponse', false)
+  Session.set('transactionFailed', false)
+  Session.set('transactionHash', false)
+  Session.set('transactionSignature', false)
+  Session.set('transactionRelayedThrough', false)
+  Session.set('ledgerTransaction', '')
+  Session.set('ledgerTransactionHash', '')
+  Session.set('tokenTransferError', false)
+  Session.set('tokenTransferConfirmation', false)
+  Session.set('tokenTransferConfirmationDetails', false)
+  Session.set('tokenTransferConfirmationResponse', false)
+  Session.set('tokenTransferConfirmationAmount', false)
 }
 
 passwordPolicyValid = (password) => {
