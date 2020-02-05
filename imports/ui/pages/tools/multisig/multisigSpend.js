@@ -311,13 +311,22 @@ function generateTransaction() {
   }
 
   // check enough balance for fee
-  const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).plus(sumOfOutputs).toNumber()
-  const totalBalance = new BigNumber(Session.get('multisigTransferFromBalance')).times(SHOR_PER_QUANTA).toNumber()
-  console.log('checking if ' + sumOfOutputs + ' plus fee is going to be bigger than ' + totalBalance)
-  if (totalFee > totalBalance) {
+  if (txnFee > Session.get('transferFromBalance')) {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
-    $('#checkWeightsModal p').text('Insufficient balance in wallet for the transaction and the transaction fee')
+    $('#checkWeightsModal p').text('Insufficient balance in wallet for transaction fee')
+    $('#checkWeightsModal').modal('show')
+    return
+  }
+
+  // check enough balance in multisig for the outputs
+  const totalOutputs = sumOfOutputs.toNumber()
+  const totalBalance = new BigNumber(Session.get('multisigTransferFromBalance')).times(SHOR_PER_QUANTA).toNumber()
+  console.log('checking if ' + sumOfOutputs + ' is going to be bigger than ' + totalBalance)
+  if (totalOutputs > totalBalance) {
+    console.log('Insufficient balance in multisig wallet for the outputs listed')
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    $('#checkWeightsModal p').text('There are not enough funds in the multisig wallet for this transaction')
     $('#checkWeightsModal').modal('show')
     return
   }

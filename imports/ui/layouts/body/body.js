@@ -363,9 +363,6 @@ Template.appBody.helpers({
     }
     return status
   },
-  walletStatus() {
-    return Session.get('walletStatus')
-  },
   customNodeCreated() {
     return LocalStore.get('customNodeCreated')
   },

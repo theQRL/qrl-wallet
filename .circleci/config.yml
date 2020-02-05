@@ -35,7 +35,7 @@ jobs:
           name: Prepare App
           command: |
             if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
-            if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com | sh; fi
+            if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
             npm install -g chimp
             npm install -g selenium-standalone
             npm install -g electrify-qrl
