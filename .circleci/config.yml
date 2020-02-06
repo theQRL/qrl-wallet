@@ -32,7 +32,7 @@ jobs:
 
       # Prepare app
       - run:
-          name: Install meteor
+          name: Install meteor v1.8.0.2
           command: |
             if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
             if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
@@ -43,7 +43,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            npm install
+            rm package-lock.json && rm .electrify/package-lock.json && npm install
       - run:
           name: install electrify-qrl globally
           command: |
