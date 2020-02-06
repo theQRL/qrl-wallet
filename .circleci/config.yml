@@ -24,7 +24,7 @@ jobs:
           name: Install dependencies
           command: |
             npm install -g n
-            sudo n 8.11.4
+            sudo n 8.11.3
             brew update
             brew cleanup
             # brew cask install google-chrome
@@ -32,13 +32,25 @@ jobs:
 
       # Prepare app
       - run:
-          name: Prepare App
+          name: Install meteor
           command: |
             if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
             if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
+      - run:
+          name: update npm to latest
+          command: |
             npm i npm@latest -g
-            npm install -g electrify-qrl
+      - run:
+          name: install dependencies
+          command: |
             npm install
+      - run:
+          name: install electrify-qrl globally
+          command: |
+            npm install -g electrify-qrl
+      - run:
+          name: report meteor node version
+          command: |
             meteor node -e 'console.log("I am Node.js %s!", process.version);'
 
       # Start meteor in background
