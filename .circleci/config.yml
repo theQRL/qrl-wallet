@@ -36,6 +36,7 @@ jobs:
           command: |
             if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
             if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
+            npm i npm@latest -g
             npm install -g electrify-qrl
             npm install
             meteor node -e 'console.log("I am Node.js %s!", process.version);'
