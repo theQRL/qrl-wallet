@@ -454,9 +454,9 @@ const getOTS = (request, callback) => {
 // Function to call getAddressState API
 const getAddressState = (request, callback) => {
   try {
-    qrlApi('GetAddressState', request, (error, response) => {
+    qrlApi('GetOptimizedAddressState', request, (error, response) => {
       if (error) {
-        const myError = errorCallback(error, 'Cannot access API/GetAddressState', '**ERROR/getAddressState** ')
+        const myError = errorCallback(error, 'Cannot access API/GetOptimizedAddressState', '**ERROR/getAddressState** ')
         callback(myError, null)
       } else {
         // Parse OTS Bitfield, and grab the lowest unused key
