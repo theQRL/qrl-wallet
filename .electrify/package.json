@@ -16,7 +16,7 @@
     },
     "version-string": {
       "CompanyName": "The QRL",
-      "LegalCopyright": "Copyright 2019 DIE QRL STIFTUNG, Zug Switzerland",
+      "LegalCopyright": "Copyright 2020 DIE QRL STIFTUNG, Zug Switzerland",
       "FileDescription": "QRLWallet",
       "OriginalFilename": "QRLWallet.exe",
       "FileVersion": "@version",
