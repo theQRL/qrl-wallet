@@ -47,7 +47,7 @@ jobs:
       - run:
           name: install electrify-qrl globally
           command: |
-            npm install -g electrify-qrl electron
+            npm install -g electrify-qrl
       - run:
           name: report meteor node version
           command: |
@@ -74,7 +74,7 @@ jobs:
       - deploy:
           command:  |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              npm install -g meteor-electrify electron
+              npm install -g electrify-qrl
               npm install
               export NODEPATH=/usr/local/Cellar/node/8.7.0
               export PATH="$NODEPATH/bin:$PATH"
@@ -88,7 +88,7 @@ jobs:
               rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
             fi
             if [ "${CIRCLE_BRANCH}" == "devnet" ]; then
-              npm install -g meteor-electrify electron
+              npm install -g electrify-qrl
               npm install
               export NODEPATH=/usr/local/Cellar/node/8.7.0
               export PATH="$NODEPATH/bin:$PATH"
