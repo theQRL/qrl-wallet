@@ -98,6 +98,12 @@ QRLPROTO_SHA256 = [
     protoSha256: '9d035851c76143621960c858d064489838f6eef664930257946a4b23d70bcc6c',
     objectSha256: '7e062340104109d2206017bbdb5cddf45386f77d8dd169d08fa9624b5c6b2934',
   },
+  // testnet public release
+  {
+    version: '0.2.0 python',
+    protoSha256: 'ab168a46875c6dc41000080804c858b9039aae977dfd5503d9eb234ece4e3510',
+    objectSha256: 'dcea2509dcc9eb9dd0411d9eb3fb26bea0c2ffc7bf38275e494b30a038df8585',
+  },
 ]
 
 // function to get shasum of qrl node version
