@@ -36,10 +36,10 @@ jobs:
           command: |
             if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
             if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
-      - run:
-          name: update npm to latest
-          command: |
-            npm i npm@latest -g
+      # - run:
+      #     name: update npm to latest
+      #     command: |
+      #       npm i npm@latest -g
       - run:
           name: install dependencies
           command: |
