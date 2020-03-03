@@ -92,6 +92,11 @@ QRLPROTO_SHA256 = [
     protoSha256: 'df0f718b6a8a31ff3b746e74bcf461fe48c6d9ddac604826aa2b2891b4a7ed2a',
     objectSha256: 'a985aee431dae781576e3237f1a47d23ad579eacd5b9f4a6fddf6fd3833f1e12',
   },
+  {
+    version: '1.1.15+65.gf434f320.dirty python',
+    protoSha256: '9c273e5aa3c88c8a225dd16a76203a95ca23f737599ebab991e1087badec7598',
+    objectSha256: 'ffab214fb7f1497209b6a513c5a9053a0c5566741a91c836482e1057c0e57773',
+  },
   // development .proto
   {
     version: '0+unknown python',
