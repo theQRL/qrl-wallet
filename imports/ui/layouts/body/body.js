@@ -45,12 +45,16 @@ const updateNetwork = (selectedNetwork) => {
 
   // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
+
+  Session.set('cancellingNetwork', false)
+
   // Update local node connection details
   switch (userNetwork) {
     case 'add': {
       $('#addNode').modal({
         onDeny: () => {
           Session.set('modalEventTriggered', true)
+          Session.set('cancellingNetwork', true)
           $('#networkDropdown').dropdown('set selected', 'mainnet')
         },
         onApprove: () => {
@@ -209,10 +213,14 @@ Template.appBody.events({
     event.preventDefault()
     $('.sidebar').sidebar('show')
   },
-  'change #network': () => {
+  'change #network': (event) => {
+    console.log(event)
     updateNetwork(selectedNetwork())
-    // reload to update balances/Txs if on different network
-    window.Reload._reload()
+    if (event.target.value !== 'add' && Session.get('cancellingNetwork') !== true) {
+      // reload to update balances/Txs if on different network
+      window.Reload._reload()
+    }
+    Session.set('cancellingNetwork', false)
   },
   'change #addressFormatCheckbox': () => {
     const checked = $('#addressFormatCheckbox').prop('checked')
@@ -257,7 +265,7 @@ Template.appBody.events({
               }).modal('show')
           }
         } else {
-          // Confirm with user they will loose progress of this transaction if they proceeed.
+          // Confirm with user they will lose progress of this transaction if they proceeed.
           $('#cancelTransactionGenerationWarning').modal('transition', 'disable')
             .modal({
               onApprove: () => {
@@ -274,11 +282,29 @@ Template.appBody.events({
 
 
 Template.appBody.helpers({
+  walletStatus() {
+    return Session.get('walletStatus')
+  },
   addressFormat() {
     if (LocalStore.get('addressFormat') === 'bech32') {
       return 'BECH32'
     }
     return 'Hex'
+  },
+  inProgress() {
+    if (Session.get('txstatus') === 'Pending') {
+      return true
+    }
+    return false
+  },
+  balanceAmount() {
+    return Session.get('balanceAmount')
+  },
+  otsKeysRemaining() {
+    return Session.get('otsKeysRemaining')
+  },
+  balanceSymbol() {
+    return Session.get('balanceSymbol')
   },
   addressFormatChecked() {
     if (LocalStore.get('addressFormat') === 'bech32') {
@@ -336,9 +362,6 @@ Template.appBody.helpers({
       status.colour = 'red'
     }
     return status
-  },
-  walletStatus() {
-    return Session.get('walletStatus')
   },
   customNodeCreated() {
     return LocalStore.get('customNodeCreated')

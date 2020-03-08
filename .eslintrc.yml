@@ -46,9 +46,8 @@ rules:
  
 
 globals:
-  # collections
-  # Foo: false
-  # Bar: false
+  QRLLIB: true
+  LocalStore: true
 
   # packages
   FlowRouter: false # kadira:flow-router
@@ -57,4 +56,7 @@ globals:
   
 settings:
   import/core-modules: [ meteor ]
-  import/resolver: meteor
+  import/resolver:
+    meteor:
+      extensions:
+        - .js

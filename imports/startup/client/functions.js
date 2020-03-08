@@ -211,6 +211,30 @@ resetWalletStatus = () => {
   status.menuHidden = 'display: none'
   status.menuHiddenInverse = ''
   Session.set('walletStatus', status)
+
+  // reset any Sessions
+  // TO DO: advise against this if transfer is pending?
+  Session.set('txstatus', '')
+  Session.set('txhash', {})
+  Session.set('addressTransactions', {})
+  Session.set('active', '')
+  Session.set('fetchedTx', false)
+  Session.set('transactionGenerationError', false)
+  Session.set('transactionConfirmation', false)
+  Session.set('transactionConfirmationAmount', false)
+  Session.set('transactionConfirmationFee', false)
+  Session.set('transactionConfirmationResponse', false)
+  Session.set('transactionFailed', false)
+  Session.set('transactionHash', false)
+  Session.set('transactionSignature', false)
+  Session.set('transactionRelayedThrough', false)
+  Session.set('ledgerTransaction', '')
+  Session.set('ledgerTransactionHash', '')
+  Session.set('tokenTransferError', false)
+  Session.set('tokenTransferConfirmation', false)
+  Session.set('tokenTransferConfirmationDetails', false)
+  Session.set('tokenTransferConfirmationResponse', false)
+  Session.set('tokenTransferConfirmationAmount', false)
 }
 
 passwordPolicyValid = (password) => {
@@ -367,6 +391,38 @@ wrapMeteorCall = (method, request, callback) => {
   })
 }
 
+const otsParse = (response, totalSignatures) => {
+  // Parse OTS Bitfield, and grab the lowest unused key
+  let newOtsBitfield = {}
+  let thisOtsBitfield = []
+  if (response.ots_bitfield_by_page[0].ots_bitfield !== undefined) {
+    thisOtsBitfield = response.ots_bitfield_by_page[0].ots_bitfield
+  }
+  thisOtsBitfield.forEach((item, index) => {
+    const thisDecimal = new Uint8Array(item)[0]
+    const thisBinary = decimalToBinary(thisDecimal).reverse()
+    const startIndex = index * 8
+    for (let i = 0; i < 8; i += 1) {
+      const thisOtsIndex = startIndex + i
+      // Add to parsed array unless we have reached the end of the signatures
+      if (thisOtsIndex < totalSignatures) {
+        newOtsBitfield[thisOtsIndex] = thisBinary[i]
+      }
+    }
+  })
+  // console.log('otslen', newOtsBitfield)
+  if (newOtsBitfield.length > totalSignatures) {
+    newOtsBitfield = newOtsBitfield.slice(0, totalSignatures + 1)
+  }
+
+  // Add in OTS fields to response
+  const ots = {}
+  ots.keys = newOtsBitfield
+  ots.nextKey = response.next_unused_ots_index
+  // console.log('ots:', ots)
+  return ots
+}
+
 // Get wallet address state details
 getBalance = (getAddress, callBack) => {
   const request = {
@@ -374,7 +430,7 @@ getBalance = (getAddress, callBack) => {
     network: selectedNetwork(),
   }
 
-  wrapMeteorCall('getAddress', request, async (err, res) => {
+  wrapMeteorCall('getAddressState', request, async (err, res) => {
     if (err) {
       console.log('err: ', err)
       Session.set('transferFromBalance', 0)
@@ -383,6 +439,7 @@ getBalance = (getAddress, callBack) => {
       Session.set('otsKeyEstimate', 0)
       Session.set('otsKeysRemaining', 0)
       Session.set('otsBitfield', {})
+      Session.set('errorLoadingTransactions', true)
     } else {
       if (res.state.address !== '') {
         Session.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
@@ -395,22 +452,31 @@ getBalance = (getAddress, callBack) => {
 
       if (getXMSSDetails().walletType === 'seed') {
         // Collect next OTS key
-        Session.set('otsKeyEstimate', res.ots.nextKey)
-
-        // Get remaining OTS Keys
-        const validationResult = qrlAddressValdidator.hexString(getAddress)
-        const { keysConsumed } = res.ots
-        const totalSignatures = validationResult.sig.number
-        const keysRemaining = totalSignatures - keysConsumed
-
-        // Set keys remaining
-        Session.set('otsKeysRemaining', keysRemaining)
-
-        // Store OTS Bitfield in session
-        Session.set('otsBitfield', res.ots.keys)
-
-        // Callback if set
-        callBack()
+        request.page_from = 1
+        request.page_count = 1
+        request.unused_ots_index_from = 0
+        Meteor.call('getOTS', request, (error, result) => {
+          if (err) {
+            console.log('err: ', err)
+            Session.set('transferFromBalance', 0)
+            Session.set('transferFromTokenState', [])
+            Session.set('address', 'Error')
+            Session.set('otsKeyEstimate', 0)
+            Session.set('otsKeysRemaining', 0)
+            Session.set('otsBitfield', {})
+            Session.set('errorLoadingTransactions', true)
+          } else {
+            console.log('getOTS response: ', result)
+            const totalSignatures = qrlAddressValdidator.hexString(res.state.address).sig.number
+            const ots = otsParse(result, totalSignatures)
+            res.ots = ots
+            res.ots.keysConsumed = res.state.used_ots_key_count
+            const keysRemaining = totalSignatures - res.ots.keysConsumed
+            Session.set('otsBitfield', res.ots.keys)
+            Session.set('otsKeysRemaining', keysRemaining)
+            Session.set('otsKeyEstimate', res.ots.nextKey)
+          }
+        })
       } else if (getXMSSDetails().walletType === 'ledger') {
         // Collect next OTS key from Ledger Device
         // Whilst technically we may have unused ones - we
@@ -462,21 +528,29 @@ otsIndexUsed = (otsBitfield, index) => {
   return false
 }
 
-loadAddressTransactions = (txArray) => {
+loadAddressTransactions = (a, p) => {
+  const addresstx = Buffer.from(a.substring(1), 'hex')
   const request = {
-    tx: txArray,
+    address: addresstx,
     network: selectedNetwork(),
+    item_per_page: 10,
+    page_number: p,
   }
 
   Session.set('addressTransactions', [])
-  $('#loadingTransactions').show()
+  Session.set('loadingTransactions', true)
 
-  wrapMeteorCall('addressTransactions', request, (err, res) => {
+  wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
+    // console.log('err:', err)
+    // console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
+      Session.set('errorLoadingTransactions', true)
     } else {
-      Session.set('addressTransactions', res)
-      $('#loadingTransactions').hide()
+      Session.set('active', p)
+      Session.set('addressTransactions', res.transactions_detail)
+      Session.set('loadingTransactions', false)
+      Session.set('errorLoadingTransactions', false)
       $('#noTransactionsFound').show()
     }
   })
@@ -488,7 +562,7 @@ getTokenBalances = (getAddress, callback) => {
     network: selectedNetwork(),
   }
 
-  wrapMeteorCall('getAddress', request, (err, res) => {
+  wrapMeteorCall('getAddressState', request, (err, res) => {
     if (err) {
       console.log('err: ', err)
       Session.set('transferFromBalance', 0)
@@ -540,6 +614,7 @@ getTokenBalances = (getAddress, callback) => {
         callback()
 
         // When done hide loading section
+        Session.set('errorLoadingTransactions', false)
         $('#loading').hide()
       } else {
         // Wallet not found, put together an empty response
@@ -550,23 +625,29 @@ getTokenBalances = (getAddress, callback) => {
 }
 
 updateBalanceField = () => {
-  const selectedType = document.getElementById('amountType').value
+  try {
+    const selectedType = document.getElementById('amountType').value
 
-  // Quanta Balances
-  if (selectedType === 'quanta') {
+    // Quanta Balances
+    if (selectedType === 'quanta') {
+      Session.set('balanceAmount', Session.get('transferFromBalance'))
+      Session.set('balanceSymbol', 'Quanta')
+    } else {
+      // First extract the token Hash
+      const tokenHash = selectedType.split('-')[1]
+
+      // Now calculate the token balance.
+      _.each(Session.get('tokensHeld'), (token) => {
+        if (token.hash === tokenHash) {
+          Session.set('balanceAmount', token.balance)
+          Session.set('balanceSymbol', token.symbol)
+        }
+      })
+    }
+  } catch (error) {
+    // not in main transfer page, so use transferFromBalance session
     Session.set('balanceAmount', Session.get('transferFromBalance'))
     Session.set('balanceSymbol', 'Quanta')
-  } else {
-    // First extract the token Hash
-    const tokenHash = selectedType.split('-')[1]
-
-    // Now calculate the token balance.
-    _.each(Session.get('tokensHeld'), (token) => {
-      if (token.hash === tokenHash) {
-        Session.set('balanceAmount', token.balance)
-        Session.set('balanceSymbol', token.symbol)
-      }
-    })
   }
 }
 
@@ -582,7 +663,7 @@ refreshTransferPage = (callback) => {
     getBalance(getXMSSDetails().address, function () {
       // Load Wallet Transactions
       const addressState = Session.get('address')
-      const numPages = Math.ceil(addressState.state.transactions.length / 10)
+      const numPages = Math.ceil(addressState.state.transaction_hash_count / 10)
       const pages = []
       while (pages.length !== numPages) {
         pages.push({
@@ -592,12 +673,9 @@ refreshTransferPage = (callback) => {
         })
       }
       Session.set('pages', pages)
-      let txArray = addressState.state.transactions.reverse()
-      if (txArray.length > 10) {
-        txArray = txArray.slice(0, 10)
-      }
-      loadAddressTransactions(txArray)
-
+      Session.set('active', 1)
+      Session.set('fetchedTx', false)
+      loadAddressTransactions(getXMSSDetails().address, 1)
       callback()
     })
 
@@ -837,7 +915,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   } else if (type === 'createGithubTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
-      console.log('Transaction Validation - Message mismatch')
+      console.log('Transaction Validation - Github Message mismatch')
       logRequestResponse(request, response)
       return false
     }
@@ -847,12 +925,104 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   } else if (type === 'createKeybaseTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
-      console.log('Transaction Validation - Message mismatch')
+      console.log('Transaction Validation - Keybase Message mismatch')
       logRequestResponse(request, response)
       return false
     }
 
     // If we got here, everything matches the request
+    return true
+  } else if (type === 'multiSigCreate') {
+    if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
+      console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    let testOutputs = true
+    _.each(request.signatories, (item, index) => {
+      if (!Buffer.from(item).equals(Buffer.from(response.outputs[index].address))) {
+        console.log('Transaction Validation - Signatories mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+      if (request.weights[index] !== response.outputs[index].weight) {
+        console.log('Transaction Validation - Weights mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+    })
+    if (testOutputs === false) { return false }
+    if (request.threshold !== response.threshold) {
+      console.log('Transaction Validation - Threshold mismatch')
+      logRequestResponse(request, response)
+      testOutputs = false
+    }
+    if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
+      console.log('Transaction Validation - XMSS PK mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // if we've made it here all the MS_CREATE details match
+    return true
+  } else if (type === 'multiSigSpend') {
+    if (!Buffer.from(request.multi_sig_address).equals(Buffer.from(response.multi_sig_address))) {
+      console.log('Transaction Validation - Multisig Address mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
+      console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    let testOutputs = true
+    _.each(request.addrs_to, (item, index) => {
+      if (!Buffer.from(item).equals(Buffer.from(response.outputs[index].address))) {
+        console.log('Transaction Validation - Recipient address mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+      if (request.amounts[index] !== parseInt(response.outputs[index].amount, 10)) {
+        console.log('Transaction Validation - Send amount mismatch')
+        logRequestResponse(request, response)
+        testOutputs = false
+      }
+    })
+    if (testOutputs === false) { return false }
+    if (request.expiry_block_number !== parseInt(response.expiry_block_number, 10)) {
+      console.log('Transaction Validation - Expiry block number mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
+      console.log('Transaction Validation - XMSS PK mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // if we've made it here all the MS_SPEND details match
+    return true
+  } else if (type === 'multiSigVote') {
+    if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
+      console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.shared_key).equals(Buffer.from(response.shared_key))) {
+      console.log('Transaction Validation - Shared key mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (request.unvote !== response.unvote) {
+      console.log('Transaction Validation - Vote status [unvote flag] mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
+      console.log('Transaction Validation - XMSS PK mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // if we've made it here all the MS_VOTE details match
     return true
   }
 

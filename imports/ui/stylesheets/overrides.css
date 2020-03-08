@@ -512,3 +512,6 @@ margin-right: 5% !important;
 .ui.segment {
   border-radius: 0px
 }
+.msHeader {
+  background: rgba(27, 28, 29, 0.7) !important;
+}

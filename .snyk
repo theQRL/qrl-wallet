@@ -1,11 +1,34 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.12.0
+version: v1.13.5
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   'npm:shelljs:20140723':
     - '*':
         reason: shelljs used in qrl-eletrify only for CI server to bundle app
         expires: 2019-01-01T00:00:00.000Z
+  SNYK-JS-ELECTRON-174045:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-03-30T09:35:41.982Z'
+  SNYK-JS-ELECTRON-483050:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-03-30T09:35:41.982Z'
+  SNYK-JS-ELECTRON-483056:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-03-30T09:35:41.982Z'
+  SNYK-JS-ELLIPTIC-511941:
+    - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
+        reason: None given
+        expires: '2020-03-30T09:35:41.982Z'
+    - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
+        reason: None given
+        expires: '2020-03-30T09:35:41.982Z'
+  'npm:plist:20180219':
+    - electrify-qrl > electron-packager > plist:
+        reason: None given
+        expires: '2020-03-30T09:35:41.982Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   'npm:lodash:20180130':

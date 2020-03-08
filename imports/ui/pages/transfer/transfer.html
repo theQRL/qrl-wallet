@@ -313,12 +313,13 @@
 
 {{> recoverySeedModal }}
 
-<h3 class="ui header pageHeader">
+<!-- This has now been moved to body page -->
+<!-- <h3 class="ui header pageHeader">
   <div id="walletAddress" class="content wordBreak">
     {{transferFrom.address}}
   </div>
 </h3>
-<br /><br />
+<br /><br /> -->
 
 <div class="ui left aligned" id="transferForm">
   <div class="ui stackable two column grid">
@@ -603,7 +604,7 @@
 
           <div class="ui stackable one column grid">
             <div class="column">
-              <p id="transferSuccessMessage" style="word-wrap: break-word; word-break: break-all;">
+              <p id="transferSuccessMessage" style="word-wrap: break-word;">
                 Success! Your transaction has been relayed into the QRL network through the following nodes, and is pending validation.
               </p>
             </div>
@@ -822,7 +823,7 @@
           Transaction History
         </div>
       </h4>
-
+      {{#if loadingTransactions}}
       <div id="loadingTransactions" class="ui icon message">
         <br /><br />
         <i class="notched circle loading icon"></i>
@@ -833,19 +834,32 @@
           <p id="relayingMsg">Transaction history loading ...</p>
         </div>
       </div>
+      {{/if}}
+      {{#if errorLoadingTransactions}}
+      <div id="errorLoadingTransactions" class="ui icon red message">
+        <br /><br />
+        <i class="warning icon"></i>
+        <div class="content">
+          <div class="header">
+            Error loading transactions
+          </div>
+          <p id="txHistoryError">The wallet could not connect to the selected network</p>
+        </div>
+      </div>
+      {{/if}}
 
       {{#if addressHasTransactions}}
         {{#each addressTransactions}}
-          {{#if isTransfer this.type}}
+          {{#if isTransfer this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
-            {{#if isMyAddress this.from_b32}}
+            {{#if isMyAddress this.addr_from}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             {{else}}
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             {{/if}}
             <div class="content">
               <div class="header">
-                {{#if isMyAddress this.from_b32}}
+                {{#if isMyAddress this.addr_from}}
                 Sent
                 {{else}}
                 Received
@@ -853,7 +867,7 @@
                  | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{#if isMyAddress this.from_b32}}
+                {{#if isMyAddress this.addr_from}}
                   {{#each this.outputs}}
                     {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
@@ -863,12 +877,12 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from_b32}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isTokenCreation this.type}}
+          {{#if isTokenCreation this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -876,25 +890,25 @@
                 Token Creation - {{this.name}} ({{this.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.txhash}}
+                {{this.tx.transaction_hash}}
               </p>
             </div>
             <div class="floatright">
-               <a href="/verify-txid/{{this.txhash}}">{{this.symbol}} &gt;</a>
+               <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isTokenTransfer this.type}}
+          {{#if isTokenTransfer this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
-            {{#if isMyAddress this.from_b32}}
+            {{#if isMyAddress this.addr_from}}
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             {{else}}
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             {{/if}}
             <div class="content">
               <div class="header">
-                {{#if isMyAddress this.from_b32}}
+                {{#if isMyAddress this.addr_from}}
                 Sent
                 {{else}}
                 Received
@@ -902,7 +916,7 @@
                  | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{#if isMyAddress this.from_b32}}
+                {{#if isMyAddress this.addr_from}}
                   {{#each this.outputs}}
                     {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
@@ -912,12 +926,12 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{#if isMyAddress this.from_b32}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isCoinbaseTxn this.type}}
+          {{#if isCoinbaseTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/receive.png" />
             <div class="content">
@@ -929,12 +943,12 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isSlaveTxn this.type}}
+          {{#if isSlaveTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -942,16 +956,16 @@
                 Slave Transaction | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.txhash}}
+                {{this.tx.transaction_hash}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">{{this.amount}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isLatticePKTxn this.type}}
+          {{#if isLatticePKTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -959,16 +973,67 @@
                 Lattice Public Key | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.txhash}}
+                {{this.tx.transaction_hash}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isMessageTxn this.type}}
+          {{#if isCreateMultiSigTxn this.tx.transactionType}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Multisig Create | {{this.timestamp}}
+              </div>
+              <p class="transactionAddress">
+                {{this.tx.transaction_hash}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if isSpendMultiSigTxn this.tx.transactionType}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Multisig Spend | {{this.timestamp}}
+              </div>
+              <p class="transactionAddress">
+                {{this.tx.transaction_hash}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if isVoteMultiSigTxn this.tx.transactionType}}
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <div class="content">
+              <div class="header">
+                Multisig Vote | {{this.timestamp}}
+              </div>
+              <p class="transactionAddress">
+                {{this.tx.transaction_hash}}
+              </p>
+            </div>
+            <div class="floatright">
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if isMessageTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -976,16 +1041,16 @@
                 Message | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.txhash}}
+                {{this.tx.transaction_hash}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
 
-          {{#if isDocumentNotarisation this.type}}
+          {{#if isDocumentNotarisation this.tx.transactionType}}
           <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
@@ -993,11 +1058,11 @@
                 Document Notarisation | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
-                {{this.txhash}}
+                {{this.tx.transaction_hash}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.txhash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1008,7 +1073,16 @@
         <table class="ui striped table">
           <tfoot>
               <tr><th colspan="7">
-                <div class="ui pagination menu">
+                <div class="ui grid">
+                  <div class="ten wide column">
+                <div class="ui right labeled fluid input">
+                  <label for="paginator" class="ui label">Page </label>
+                  <input type="text" placeholder="{{currentPage}}" id="paginator">
+                  <div class="ui label"> of {{totalPages}}</div>
+                </div>
+              </div>
+              <div class="row column">
+                <div class="ui right floated pagination menu">
                   {{#if pback}}
                   <a qrl-data="back" class="icon item">
                     <i qrl-data="back" class="left chevron icon"></i>
@@ -1023,6 +1097,8 @@
                   </a>
                   {{/if}}
                 </div>
+              </div>
+            </div>
               </th>
             </tr>
           </tfoot>

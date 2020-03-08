@@ -450,17 +450,21 @@ function unlockWallet() {
   }
 }
 
+function clickUnlockButton() {
+  $('#unlocking').show()
+  $('#unlockError').hide()
+  $('#ledgerReadError').hide()
+  $('#ledgerUninitialisedError').hide()
+  $('#noWalletFileSelected').hide()
+  $('#ledgerKeysGeneratingError').hide()
+  $('#ledgerKeysGeneratingDeviceError').hide()
+  $('#ledgerKeysGeneratingComplete').hide()
+  setTimeout(() => { unlockWallet() }, 50)
+}
+
 Template.appAddressOpen.events({
   'click #unlockButton': () => {
-    $('#unlocking').show()
-    $('#unlockError').hide()
-    $('#ledgerReadError').hide()
-    $('#ledgerUninitialisedError').hide()
-    $('#noWalletFileSelected').hide()
-    $('#ledgerKeysGeneratingError').hide()
-    $('#ledgerKeysGeneratingDeviceError').hide()
-    $('#ledgerKeysGeneratingComplete').hide()
-    setTimeout(() => { unlockWallet() }, 50)
+    clickUnlockButton()
   },
   'click #ledgerRefreshButton': () => {
     $('#readingLedger').show()
@@ -491,8 +495,18 @@ Template.appAddressOpen.events({
     const state = $('#walletCode').prop('type')
     if (state === 'text') {
       $('#walletCode').prop('type', 'password')
+      $('#eyeicon').removeClass('star')
+      $('#eyeicon').addClass('eye')
     } else {
       $('#walletCode').prop('type', 'text')
+      $('#eyeicon').addClass('star')
+      $('#eyeicon').removeClass('eye')
+    }
+  },
+  'keyup input': (event) => {
+    if (event.which === 13) {
+      // enter pressed, triger unlock button
+      clickUnlockButton()
     }
   },
 })
