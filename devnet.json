@@ -1,0 +1,23 @@
+{
+  "public" :{
+    "defaultNetworks": [
+      {
+        "id": "devnet",
+        "name": "Devnet",
+        "disabled": "",
+        "explorerUrl": "https://devnet-explorer.theqrl.org",
+        "type": "both",
+        "healthy": false,
+        "nodes": [
+          {
+            "id": "devnet",
+            "grpc": "devnet-2.automated.theqrl.org:19009",
+            "state": false,
+            "height": 0
+          }
+        ]
+      }
+    ]
+  },
+  "allowUnchecksummedNodes": false
+}

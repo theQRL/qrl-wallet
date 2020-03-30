@@ -13,7 +13,7 @@ import './nodes.js'
 SHOR_PER_QUANTA = 1000000000
 
 // qrl-wallet Version
-WALLET_VERSION = '1.2.1'
+WALLET_VERSION = '1.3.0'
 
 // qrl.proto sha256 sum for each release of QRL Node
 QRLPROTO_SHA256 = [
@@ -92,11 +92,41 @@ QRLPROTO_SHA256 = [
     protoSha256: 'df0f718b6a8a31ff3b746e74bcf461fe48c6d9ddac604826aa2b2891b4a7ed2a',
     objectSha256: 'a985aee431dae781576e3237f1a47d23ad579eacd5b9f4a6fddf6fd3833f1e12',
   },
+  {
+    version: '1.1.15+65.gf434f320.dirty python',
+    protoSha256: '9c273e5aa3c88c8a225dd16a76203a95ca23f737599ebab991e1087badec7598',
+    objectSha256: 'ffab214fb7f1497209b6a513c5a9053a0c5566741a91c836482e1057c0e57773',
+  },
+  {
+    version: '2.0.0+0.gbcf7644.dirty python',
+    protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
+    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
+  },
+  {
+    version: '2.0.1+0.gf457b3a.dirty python',
+    protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
+    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
+  },
+  {
+    version: '2.0.1+0.gf457b3a.dirty python (null)',
+    protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
+    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
+  },
+  {
+    version: '2.0.0+0.gbcf7644.dirty python (null)',
+    protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
+    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
+  },
   // development .proto
   {
     version: '0+unknown python',
     protoSha256: '9d035851c76143621960c858d064489838f6eef664930257946a4b23d70bcc6c',
     objectSha256: '7e062340104109d2206017bbdb5cddf45386f77d8dd169d08fa9624b5c6b2934',
+  },
+  {
+    version: '0.2.0 python (null)',
+    protoSha256: 'ab168a46875c6dc41000080804c858b9039aae977dfd5503d9eb234ece4e3510',
+    objectSha256: 'dcea2509dcc9eb9dd0411d9eb3fb26bea0c2ffc7bf38275e494b30a038df8585',
   },
   // testnet public release
   {

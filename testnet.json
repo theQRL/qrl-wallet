@@ -1,0 +1,23 @@
+{
+  "public" :{
+    "defaultNetworks": [
+      {
+        "id": "testnet",
+        "name": "Testnet",
+        "disabled": "",
+        "explorerUrl": "https://testnet-explorer.theqrl.org",
+        "type": "both",
+        "healthy": false,
+        "nodes": [
+          {
+            "id": "testnet",
+            "grpc": "testnet-1.automated.theqrl.org:19009",
+            "state": false,
+            "height": 0
+          }
+        ]
+      }
+    ]
+  },
+  "allowUnchecksummedNodes": true
+}
