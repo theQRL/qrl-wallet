@@ -1108,15 +1108,17 @@ Template.appTransfer.helpers({
       }
       // Set total received amount if sent to this address
       let thisReceivedAmount = 0
+      let totalSent = 0
       if ((y.tx.transactionType === 'transfer') || (y.tx.transactionType === 'transfer_token')) {
         _.each(y.tx.transfer.addrs_to, (output, index) => {
+          totalSent += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
           if (output === thisAddress) {
             thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
           }
         })
       }
       y.thisReceivedAmount = numberToString(thisReceivedAmount)
-
+      y.totalTransferred = totalSent
       transactions.push(y)
     })
     console.log(transactions)
