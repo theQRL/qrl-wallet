@@ -91,18 +91,18 @@ DEFAULT_NETWORKS = [{
 
 // disable during network upgrade
 // Override DEFAULT_NETWORKS if provided in settings file
-//try {
-//  if (Meteor.settings.public.defaultNetworks.length > 0) {
+try {
+  if (Meteor.settings.public.defaultNetworks.length > 0) {
     // Reset DEFAULT_NETWORKS
     // eslint-disable-next-line no-unused-vars, no-undef
-//    DEFAULT_NETWORKS = []
+    DEFAULT_NETWORKS = []
     // Set DEFAULT_NETWORKS from Meteor settings
     // eslint-disable-next-line no-unused-vars, no-undef
-//    DEFAULT_NETWORKS = Meteor.settings.public.defaultNetworks
-//  }
-//} catch (e) {
+    DEFAULT_NETWORKS = Meteor.settings.public.defaultNetworks
+  }
+} catch (e) {
   // no configuration file used
-//}
+}
 
 // Function to search through the DEFAULT_NETWORKS array and identify and return an
 // object based on its 'id' value.
