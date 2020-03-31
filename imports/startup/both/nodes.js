@@ -21,20 +21,8 @@ DEFAULT_NETWORKS = [{
     height: 0,
   },
   {
-    id: 'mainnet-2',
-    grpc: 'mainnet-2.automated.theqrl.org:19009',
-    state: false,
-    height: 0,
-  },
-  {
     id: 'mainnet-3',
     grpc: 'mainnet-3.automated.theqrl.org:19009',
-    state: false,
-    height: 0,
-  },
-  {
-    id: 'mainnet-4',
-    grpc: 'mainnet-4.automated.theqrl.org:19009',
     state: false,
     height: 0,
   },
