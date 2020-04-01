@@ -105,12 +105,12 @@ QRLPROTO_SHA256 = [
   {
     version: '2.0.1+0.gf457b3a.dirty python',
     protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
-    objectSha256: 'f6b06eac25bd5740fe6877d5e604429e6aadd93dee668e7412051decbf34add2',
+    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
   },
   {
     version: '2.0.1+0.gf457b3a.dirty python (null)',
     protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
-    objectSha256: 'f6b06eac25bd5740fe6877d5e604429e6aadd93dee668e7412051decbf34add2',
+    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
   },
   {
     version: '2.0.0+0.gbcf7644.dirty python (null)',
@@ -152,7 +152,7 @@ QRLPROTO_SHA256 = [
   {
     version: '0.2.0 python',
     protoSha256: 'ab168a46875c6dc41000080804c858b9039aae977dfd5503d9eb234ece4e3510',
-    objectSha256: '0ead495c340fd331b28e325166ffe162a0f7cc3929b559f47d3691aeb0541bae',
+    objectSha256: 'dcea2509dcc9eb9dd0411d9eb3fb26bea0c2ffc7bf38275e494b30a038df8585',
   },
 ]
 
