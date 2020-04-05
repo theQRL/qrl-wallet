@@ -48,12 +48,6 @@ DEFAULT_NETWORKS = [{
     height: 0,
   },
   {
-    id: 'testnet-3',
-    grpc: 'testnet-3.automated.theqrl.org:19009',
-    state: false,
-    height: 0,
-  },
-  {
     id: 'testnet-4',
     grpc: 'testnet-4.automated.theqrl.org:19009',
     state: false,
