@@ -130,12 +130,12 @@ QRLPROTO_SHA256 = [
   {
     version: '2.0.1 python',
     protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
-    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
+    objectSha256: 'f6b06eac25bd5740fe6877d5e604429e6aadd93dee668e7412051decbf34add2',
   },
   {
     version: '2.0.1 python (null)',
     protoSha256: 'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
-    objectSha256: 'f6d7eb01dbb38707bb39d760619d05de01ae456a95060cb4849eafc3c358d12c',
+    objectSha256: 'f6b06eac25bd5740fe6877d5e604429e6aadd93dee668e7412051decbf34add2',
   },
   // development .proto
   {
