@@ -29,7 +29,7 @@ app.on('ready', function() {
     window.loadURL(meteor_root_url);
 
     // Set About menu for MacOS
-    // if (process.platform === 'darwin') {
+    if (process.platform === 'darwin') {
       app.setAboutPanelOptions({
         applicationName: "QRL Wallet",
         applicationVersion: "1.5.0",
@@ -37,7 +37,7 @@ app.on('ready', function() {
         copyright: "Die QRL Stiftung, Zug Switzerland",
         credits: "The QRL Developers"
       });
-    // }
+    }
 
     // Setup content menu, and enable copy/paste actions
     window.webContents.on('contextmenu', () => {
