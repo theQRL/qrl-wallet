@@ -7,7 +7,7 @@ let loading;
 app.on('ready', function() {
   // Create the loading screen
   loading = new BrowserWindow({
-    width: 830, height: 310,
+    width: 850, height: 340,
     nodeIntegration: false,
     icon: __dirname + '/assets/qrl.png'
   });
@@ -29,15 +29,15 @@ app.on('ready', function() {
     window.loadURL(meteor_root_url);
 
     // Set About menu for MacOS
-    if (process.platform === 'darwin') {
+    // if (process.platform === 'darwin') {
       app.setAboutPanelOptions({
         applicationName: "QRL Wallet",
-        applicationVersion: "1.0.8",
+        applicationVersion: "1.5.0",
         version: "Electron 1.8.8",
-        copyright: "DIE QRL STIFTUNG, Zug Switzerland",
-        credits: "Scott Donald, JP Lomas and The QRL Team"
+        copyright: "Die QRL Stiftung, Zug Switzerland",
+        credits: "The QRL Developers"
       });
-    }
+    // }
 
     // Setup content menu, and enable copy/paste actions
     window.webContents.on('contextmenu', () => {
