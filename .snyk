@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.5
+version: v1.14.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   'npm:shelljs:20140723':
@@ -22,13 +22,13 @@ ignore:
     - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
-      meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
-        reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
     - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
-      meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
+    - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
+    - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
         expires: '2020-05-05T09:42:09.703Z'
   'npm:plist:20180219':
@@ -81,3 +81,40 @@ patch:
   'npm:lodash:20180130':
     - electrify-qrl > lodash:
         patched: '2018-07-03T05:05:23.077Z'
+  SNYK-JS-LODASH-567746:
+    - async > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - electrify-qrl > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > @snyk/dep-graph > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > inquirer > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-config > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-mvn-plugin > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-nodejs-lockfile-parser > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-nuget-plugin > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-go-plugin > graphlib > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-nodejs-lockfile-parser > graphlib > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-nuget-plugin > dotnet-deps-parser > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > snyk-php-plugin > @snyk/composer-lockfile-parser > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/ruby-semver > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T08:21:20.905Z'
