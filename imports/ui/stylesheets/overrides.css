@@ -1,12 +1,14 @@
-@import url('https://fonts.googleapis.com/css?family=Quicksand');
+@import url('https://fonts.cdnfonts.com/css/dinpro-medium');
+@import url('https://fonts.cdnfonts.com/css/dinpro');
 
 
 body {
-  background: #f3f3f3;
+  background: #0B181E;
+  font-family: 'DinPro' !important;
 }
 
 .pushable {
-  background: #f3f3f3 !important;
+  /* background: #f3f3f3 !important; */
 }
 
 .ui .label {
@@ -23,7 +25,7 @@ body {
 }
 
 body.pushable {
-  background: #f3f3f3 !important;
+  /* background: #f3f3f3 !important; */
 }
 
 @media (max-width: 519px) {
@@ -79,7 +81,7 @@ td .unbreakable {
 
 .ui.inverted.segment,
 .ui.primary.inverted.segment {
-  background: #1d2951;
+  background: #0b181e;
 }
 
 .footbanner {
@@ -92,7 +94,7 @@ td .unbreakable {
 
 
 .sidebar {
-  background-color: #160527 !important;
+  background-color: #3C464B !important;
 }
 
 .sidebarConnectionStatus {
@@ -179,14 +181,14 @@ td .unbreakable {
   max-width: 70px;
   margin-left: auto !important;
   margin-right: auto !important;
-  width: 50px !important; 
+  width: 70px !important; 
   
 }
 
 .logoArea {
-  background-color: #dc255d !important;
+  background-color: #FFA729 !important;
   color: #fff !important;
-  font-family: 'Quicksand', sans-serif !important;
+  font-family: 'DinPro', sans-serif !important;
   font-weight: bold;
   text-align: center;
   font-size: 24px;
@@ -197,18 +199,18 @@ td .unbreakable {
   margin-left: auto !important;
   margin-right: auto !important;
   display: block !important;
-  margin-bottom: 5px !important;
+  /* margin-bottom: 5px !important; */
 }
 
 .main-menu-btn {
   font-weight: bold;
-  color: #fff !important;
-  font-family: 'Quicksand', sans-serif !important;
+  color: #EAEFF5 !important;
+  font-family: 'DinPro', sans-serif !important;
 }
 .main-menu-btn .icon {
   font-weight: bold;
-  color: #fff !important;
-  fill: #fff !important;
+  color: #EAEFF5 !important;
+  fill: #EAEFF5 !important;
   width: 40px !important; 
   height: 40px !important; 
 }
@@ -227,21 +229,21 @@ td .unbreakable {
 /* Hover style for menu items */
 .main-menu-btn:hover {
   font-weight: bold;
-  background-color: #fff !important;
-  color: #000 !important;
-  font-family: 'Quicksand', sans-serif !important;
+  background-color: #6D7478 !important;
+  /* color: #000 !important; */
+  font-family: 'DinPro', sans-serif !important;
 }
 .ui.inverted.menu .active.item:hover {
-  color: #000 !important;
+  /* color: #000 !important; */
 }
 
 .main-menu-btn:hover .icon {
-  color: #000 !important;
-  fill: #000 !important;
+  color: #ffa729 !important;
+  fill: #ffa729 !important;
 }
 /* Exclude Logo Area :hover */
 .logoArea:hover {
-  background-color: #dc255d !important;
+  /* background-color: #dc255d !important; */
 }
 
 
@@ -251,7 +253,7 @@ td .unbreakable {
     width: 100%;
     height: 100%;
     min-height: 100%;
-    padding-top: 70px;
+    /* padding-top: 70px; */
     padding-left: 120px;
 }
 
@@ -277,7 +279,7 @@ td .unbreakable {
   background-position: left top, right bottom !important;
   */
 
-  background-image: url(/img/bg/right-bottom-key.png) !important;
+  /* background-simage: url(/img/bg/right-bottom-key.png) !important; */
   background-position: right bottom !important;
   background-repeat: no-repeat !important;
 }
@@ -291,21 +293,22 @@ td .unbreakable {
 
 /* Main content wrapper for inside a subpage */
 .pageSegment {
-  background-color: rgba(255, 255, 255, 0.9) !important;
+  /* background-color: rgba(255, 255, 255, 0.9) !important; */
   box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
-  border-radius: 0px !important;
+  border-radius: 4px !important;
   border: 0px !important;
   margin-top: 0px !important;
 }
 
 /* Header for a Sub Page */
 .ui .pageHeader {
-  background-color: #160527;
+  background-color: #4AAFFF;
+  border-radius: 4px 4px 0px 0px !important;
   color: #fff;
   margin: 0px !important;
-  font-family: 'Quicksand', sans-serif;
-  padding: 10px;
-  font-size: 1.5em !important;
+  font-family: 'DinProBold', sans-serif;
+  padding: 15px !important;
+  font-size: 1.3em !important;
 }
 .ui .pageHeader .icon {
   float: right;
@@ -313,7 +316,7 @@ td .unbreakable {
 }
 .ui .pageHeader  .content .sub.header {
   color: #fff !important;
-  font-family: 'Quicksand', sans-serif !important;
+  font-family: 'DinPro', sans-serif !important;
 }
 
 
@@ -329,7 +332,7 @@ td .unbreakable {
   z-index: 10;
 }
 .footerLogo {
-  width: 50px;
+  width: 150px;
 }
 
 
@@ -340,65 +343,89 @@ td .unbreakable {
 
 .ui.tabular.menu .active.item {
   border-radius: 0px !important;
-  background-color: #fff !important;
-  color: #0A0724 !important;
+  background-color: #0B181E !important;
+  color: #EAEFF5 !important;
 }
 
 .ui.tabular.menu .item {
-  background-color: #160527 !important;
-  color: #fff !important;
+  background-color: #EAEFF5 !important;
+  color: #0B181E !important;
 }
 
 
 
 /* Form Styles */
 input {
-  background-color: #E3E1E3 !important;
-  color: #0A0724 !important;
+  background-color: #EAEFF5 !important;
+  color: #3C464B !important;
   border-radius: 0px !important;
 }
 
 .ui.button.red {
-  background-color: #dc255d !important;
-  box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
-  color: #fff !important;
-  border-radius: 0px !important;
-  font-family: Quicksand !important;
+  background-color: #ffa729 !important;
+  box-shadow: unset !important;
+  color: #0a1720 !important;
+  border-radius: 4px !important;
+  font-family: 'DinPro-Medium' !important;
+  text-transform: uppercase;
   font-size: 14px;
+  -webkit-transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
+  transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
 }
+.ui.button.red:hover {
+  background-color: #0B181E !important;
+  color: #EAEFF5 !important;
+}
+
 .ui.button.sky {
-    background-color: #4A90E2 !important;
-    box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
-    color: #fff !important;
-    border-radius: 0px !important;
-    font-family: Quicksand !important;
+    background-color: #4AAFFF !important;
+    box-shadow: unset !important;
+    color: #0a1720 !important;
+    border-radius: 4px !important;
+    font-family: 'DinPro-Medium' !important;
+    text-transform: uppercase;
     font-size: 14px;
+    -webkit-transition: all .2s linear;
+    transition: all .2s linear;
 }
+
+.ui.button.sky:hover {
+  background-color: #0B181E !important;
+}
+
 .ui.button.plain  {
-  background-color: #f3f3f3 !important;
-  box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
-  border: solid 1px #160527 !important;
-  color: #0A0724 !important;
-  border-radius: 0px !important;
-  font-family: Quicksand !important;
+  background-color: #EAEFF5 !important;
+  box-shadow: unset !important;
+  border: solid 1px #0B181E !important;
+  color: #0a1720 !important;
+  border-radius: 4px !important;
+  font-family: 'DinPro-Medium' !important;
+  text-transform: uppercase;
   font-size: 14px;
 }
 
 .ui.selection.dropdown {
-  background-color: #E3E1E3 !important;
-  color: #0A0724 !important;
+  background-color: #3C464B !important;
+  color: #EAEFF5 !important;
   box-shadow: 0 !important;
-  border: solid 1px #160527 !important;
+  border: solid 1px #0B181E !important;
   border-radius: 0px !important;
+  font-family: 'DinPro-Medium' !important;
 }
 
+.ui.selection.dropdown div.text {
+  color: #EAEFF5 !important;
+}
 
 /* Wallet Created Segments */
 .ui.inverted.segment, .ui.primary.inverted.segment {
-  background-color: #E3E1E3 !important;
+  background-color: #3C464B !important;
   box-shadow: 0 !important;
-  border-radius: 0px !important;
-  color: #0A0724 !important;
+  font-family: 'DinPro-Medium' !important;
+  text-transform: uppercase;
+  border-radius: 4px !important;
+  color: #EAEFF5 !important;
+  border: 1px solid #0B181E !important;
 }
 
 
@@ -441,7 +468,7 @@ input {
 }
 
 .mobile-wallet > h4.ui.header, h3.ui.header {
- font-family: Quicksand;
+ font-family: DinPro;
  font-size: 1.5em;
  text-align: center;
  font-weight: 300;
@@ -510,8 +537,27 @@ margin-right: 5% !important;
   word-wrap: break-word; 
 }
 .ui.segment {
-  border-radius: 0px
+  border-radius: 4px !important;
+  background-color: #3C464B !important;
 }
 .msHeader {
   background: rgba(27, 28, 29, 0.7) !important;
+}
+.ui.form .field > label, .ui.form > p {
+  color: #EAEFF5 !important;
+}
+.ui.warning.message {
+  background-color: #FFDCA9;
+  color: #000;
+
+}
+.pageSegment > .ui.attached.segment {
+  border: 1px solid #0B181E !important;
+  margin-bottom: unset !important;
+}
+.list a.item {
+  color: #EAEFF5 !important;
+}
+.list a.item:hover {
+  color: #FFA729 !important;
 }
