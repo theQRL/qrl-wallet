@@ -7,6 +7,15 @@ body {
   font-family: 'DinPro' !important;
 }
 
+a {
+  color: #FFA729 !important;
+  -webkit-transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
+  transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
+}
+a:hover {
+  color: #4AAFFF !important;
+}
+
 .pushable {
   /* background: #f3f3f3 !important; */
 }
@@ -341,9 +350,13 @@ td .unbreakable {
   border-radius: 0px !important;
 }
 
+a.item {
+  font-family: 'DinPro' !important;
+}
+
 .ui.tabular.menu .active.item {
   border-radius: 0px !important;
-  background-color: #0B181E !important;
+  background-color: #3C464B !important;
   color: #EAEFF5 !important;
 }
 
@@ -391,6 +404,7 @@ input {
 
 .ui.button.sky:hover {
   background-color: #0B181E !important;
+  color: #EAEFF5 !important;
 }
 
 .ui.button.plain  {
@@ -476,7 +490,7 @@ input {
  padding-top: 10px;
  padding-bottom: 10px;
  color: #fff;
- background: #1b1c1d;
+ /* background: #1b1c1d; */
  display: block !important;
 }
 
@@ -560,4 +574,66 @@ margin-right: 5% !important;
 }
 .list a.item:hover {
   color: #FFA729 !important;
+}
+.ui.form .grouped.fields > label, .ui.checkbox label {
+  color: #EAEFF5 !important;
+}
+h1, h2, h3, h4, h5 {
+  font-family: 'DINPro' !important;
+  color: #EAEFF5 !important;
+}
+#transferFormFromAddress {
+  font-weight: 300 !important;
+}
+.med {
+  font-weight: 300 !important;
+}
+.qr-code-container canvas {
+  background-color: #FFF !important;
+}
+small {
+  text-transform: uppercase !important;
+  color: #4AAFFF !important;
+}
+.description {
+  color: #EAEFF5 !important;
+}
+div.value {
+  font-family: 'DinPro' !important;
+  color: #EAEFF5 !important;
+}
+div.label {
+  color: #EAEFF5 !important;
+}
+div.label > small {
+  color: #92CFFF !important;
+}
+table {
+  border-radius: 0px !important;
+}
+
+.ui.table {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.ui.table td {
+  color: #fafafa;
+}
+
+.ui.table th {
+  color: #fafafa !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.jsonclick {
+  border-radius: 0px !important;
+}
+div.ui.raised.segment.jsonbox.json {
+  background-color: #CBD7E6 !important;
+}
+.ui.red.label {
+  background-color: #FFA729 !important;
+}
+.ui.teal.label {
+  background-color: #FFA729 !important;
 }
