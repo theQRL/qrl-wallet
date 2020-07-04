@@ -12,7 +12,7 @@ a {
   -webkit-transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
   transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
 }
-a:hover {
+a:hover :not(.menu) {
   color: #4AAFFF !important;
 }
 
@@ -100,7 +100,9 @@ td .unbreakable {
   width: 100%;
 }
 
-
+.label {
+  background-color: #4AAFFF !important;
+}
 
 .sidebar {
   background-color: #3C464B !important;
@@ -605,6 +607,9 @@ div.value {
 div.label {
   color: #EAEFF5 !important;
 }
+div.field {
+  color: #EAEFF5 !important;
+}
 div.label > small {
   color: #92CFFF !important;
 }
@@ -636,4 +641,16 @@ div.ui.raised.segment.jsonbox.json {
 }
 .ui.teal.label {
   background-color: #FFA729 !important;
+}
+.step {
+  background: unset !important;
+}
+.step > .icon {
+  color: #EAEFF5 !important;
+}
+#generateTransactionArea > p {
+  color: #EAEFF5 !important;
+}
+#generateTransactionArea > label {
+  color: #EAEFF5 !important;
 }
