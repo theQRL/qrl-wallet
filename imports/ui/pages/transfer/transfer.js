@@ -218,11 +218,13 @@ function confirmTransaction() {
     toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee) // eslint-disable-line
   )
 
-  concatenatedArrays = concatenateTypedArrays(
-    Uint8Array,
-    concatenatedArrays,
-    tx.message_data,
-  )
+  if (tx.message_data) {
+    concatenatedArrays = concatenateTypedArrays(
+      Uint8Array,
+      concatenatedArrays,
+      tx.message_data,
+    )
+  }
 
   // Now append all recipient (outputs) to concatenatedArrays
   const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
