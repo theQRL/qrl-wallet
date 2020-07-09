@@ -21,20 +21,8 @@ DEFAULT_NETWORKS = [{
     height: 0,
   },
   {
-    id: 'mainnet-2',
-    grpc: 'mainnet-2.automated.theqrl.org:19009',
-    state: false,
-    height: 0,
-  },
-  {
     id: 'mainnet-3',
     grpc: 'mainnet-3.automated.theqrl.org:19009',
-    state: false,
-    height: 0,
-  },
-  {
-    id: 'mainnet-4',
-    grpc: 'mainnet-4.automated.theqrl.org:19009',
     state: false,
     height: 0,
   },
@@ -56,12 +44,6 @@ DEFAULT_NETWORKS = [{
   {
     id: 'testnet-2',
     grpc: 'testnet-2.automated.theqrl.org:19009',
-    state: false,
-    height: 0,
-  },
-  {
-    id: 'testnet-3',
-    grpc: 'testnet-3.automated.theqrl.org:19009',
     state: false,
     height: 0,
   },
@@ -89,6 +71,7 @@ DEFAULT_NETWORKS = [{
 },
 ]
 
+// disable during network upgrade
 // Override DEFAULT_NETWORKS if provided in settings file
 try {
   if (Meteor.settings.public.defaultNetworks.length > 0) {

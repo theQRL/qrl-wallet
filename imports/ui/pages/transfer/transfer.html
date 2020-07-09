@@ -340,8 +340,24 @@
             <div id="transferRecipients">
               <div>
                 <div class="field">
-                  <label>Recipient</label>
+                  <label>
+                    <p style="text-align:left;">
+                      Recipient
+                      <span style="float:right;">
+                       <a id="showMessageField">Add message</a>
+                      </span>
+                  </p>
+                  </label>
                   <input type="text" id="to_1" name="to[]" placeholder="Recipient Address" autocomplete="off">
+                </div>
+                <div class="field" style="display: none;" id="messageField">
+                  <label>                    <p style="text-align:left;">
+                    Message
+                    <span style="float:right;">
+                     <a id="clearMessageField">Remove message</a>
+                    </span>
+                </p></label>
+                  <input type="text" id="message" name="message" placeholder="Message" autocomplete="off">
                 </div>
                 <div class="field">
                   <label>Amount</label>

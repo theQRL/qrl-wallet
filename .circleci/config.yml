@@ -24,7 +24,7 @@ jobs:
           name: Install dependencies
           command: |
             npm install -g n
-            sudo n 8.11.3
+            sudo n 8.11.4
             brew update
             brew cleanup
             # brew cask install google-chrome

@@ -5,9 +5,31 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import { isElectrified,  createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
-import async from 'async'
+import { isElectrified, createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
+// import async from 'async'
 import './update.html'
+
+const getNodeXMSSIndex = () => {
+  const request = {
+    address: addressForAPI(getXMSSDetails().address),
+    network: selectedNetwork(),
+  }
+  Meteor.call('getOTS', request, (err, res) => {
+    if (err) {
+      console.log('err: ', err)
+      Session.set('transferFromBalance', 0)
+      Session.set('transferFromTokenState', [])
+      Session.set('address', 'Error')
+      Session.set('otsKeyEstimate', 0)
+      Session.set('otsKeysRemaining', 0)
+      Session.set('otsBitfield', {})
+      Session.set('errorLoadingTransactions', true)
+    } else {
+      console.log('getOTS response: ', res)
+      Session.set('suggestedXMSSIndex', res.next_unused_ots_index)
+    }
+  })
+}
 
 async function updateLedgerIdx(otsKey, callback) {
   if (isElectrified()) {
@@ -64,6 +86,7 @@ Template.appXmssIndexUpdate.onRendered(() => {
   getBalance(getXMSSDetails().address, function () {
     console.log('Got balance')
   })
+  getNodeXMSSIndex()
 })
 
 Template.appXmssIndexUpdate.events({
@@ -84,20 +107,7 @@ Template.appXmssIndexUpdate.helpers({
     return currentLedgerXMSSIndex
   },
   suggestedXMSSIndex() {
-    const bitfield = Session.get('otsBitfield')
-    // Identify the largest OTS Key utilised in the bitfield
-    let largestIndex = 0
-    for (let i in bitfield) { // eslint-disable-line
-      if (bitfield[i] === 1) {
-        largestIndex = i
-      }
-      // Only 255 indexs in Ledger bitfields
-      if (i >= 255) {
-        break
-      }
-    }
-    // Suggested XMSS Index is largestedIndex + 1
-    return parseInt(largestIndex, 10) + 1
+    return Session.get('suggestedXMSSIndex')
   },
   ledgerAppVersion() {
     const appVersion = Session.get('ledgerDetailsAppVersion')

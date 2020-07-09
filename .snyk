@@ -9,26 +9,73 @@ ignore:
   SNYK-JS-ELECTRON-174045:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-03-30T09:35:41.982Z'
+        expires: '2020-05-05T09:42:09.703Z'
   SNYK-JS-ELECTRON-483050:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-03-30T09:35:41.982Z'
+        expires: '2020-05-05T09:42:09.703Z'
   SNYK-JS-ELECTRON-483056:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-03-30T09:35:41.982Z'
+        expires: '2020-05-05T09:42:09.703Z'
   SNYK-JS-ELLIPTIC-511941:
     - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
+      meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
     - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
+      meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
   'npm:plist:20180219':
     - electrify-qrl > electron-packager > plist:
         reason: None given
-        expires: '2020-03-30T09:35:41.982Z'
+        expires: '2020-05-05T09:42:09.703Z'
+  SNYK-JS-MINIMIST-559764:
+    - grpc > node-pre-gyp > mkdirp > minimist:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+    - grpc > node-pre-gyp > tar > mkdirp > minimist:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+    - grpc > node-pre-gyp > rc > minimist:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+    - ledger-qrl-js > mocha > mkdirp > minimist:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
+    - xolvio-sync-webdriverio > webdriverio > optimist > minimist:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
+  'npm:hoek:20180212':
+    - phantomjs-prebuilt > request > hawk > cryptiles > boom > hoek:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+    - phantomjs-prebuilt > request > hawk > sntp > hoek:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+    - phantomjs-prebuilt > request > hawk > hoek:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+    - phantomjs-prebuilt > request > hawk > boom > hoek:
+        reason: None given
+        expires: '2020-05-05T09:42:09.702Z'
+  SNYK-JS-ELECTRON-564272:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
+  SNYK-JS-MOCHA-561476:
+    - ledger-qrl-js > mocha:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
+  SNYK-JS-YARGSPARSER-560381:
+    - electrify-qrl > electron-packager > yargs-parser:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   'npm:lodash:20180130':
