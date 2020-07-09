@@ -4,7 +4,7 @@
 
 body {
   background: #0B181E;
-  font-family: 'DinPro' !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
 }
 
 a {
@@ -199,7 +199,7 @@ td .unbreakable {
 .logoArea {
   background-color: #FFA729 !important;
   color: #fff !important;
-  font-family: 'DinPro', sans-serif !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
   font-weight: bold;
   text-align: center;
   font-size: 24px;
@@ -216,7 +216,7 @@ td .unbreakable {
 .main-menu-btn {
   font-weight: bold;
   color: #EAEFF5 !important;
-  font-family: 'DinPro', sans-serif !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
 }
 .main-menu-btn .icon {
   font-weight: bold;
@@ -242,7 +242,7 @@ td .unbreakable {
   font-weight: bold;
   background-color: #6D7478 !important;
   /* color: #000 !important; */
-  font-family: 'DinPro', sans-serif !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
 }
 .ui.inverted.menu .active.item:hover {
   /* color: #000 !important; */
@@ -317,7 +317,7 @@ td .unbreakable {
   border-radius: 4px 4px 0px 0px !important;
   color: #fff;
   margin: 0px !important;
-  font-family: 'DinProBold', sans-serif;
+  font-family: 'DinProBold', Tahoma, Geneva, sans-serif;
   padding: 15px !important;
   font-size: 1.3em !important;
 }
@@ -327,7 +327,7 @@ td .unbreakable {
 }
 .ui .pageHeader  .content .sub.header {
   color: #fff !important;
-  font-family: 'DinPro', sans-serif !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
 }
 
 
@@ -353,7 +353,7 @@ td .unbreakable {
 }
 
 a.item {
-  font-family: 'DinPro' !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
 }
 
 .ui.tabular.menu .active.item {
@@ -381,7 +381,7 @@ input {
   box-shadow: unset !important;
   color: #0a1720 !important;
   border-radius: 4px !important;
-  font-family: 'DinPro-Medium' !important;
+  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   font-size: 14px;
   -webkit-transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
@@ -397,7 +397,7 @@ input {
     box-shadow: unset !important;
     color: #0a1720 !important;
     border-radius: 4px !important;
-    font-family: 'DinPro-Medium' !important;
+    font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
     text-transform: uppercase;
     font-size: 14px;
     -webkit-transition: all .2s linear;
@@ -415,7 +415,7 @@ input {
   border: solid 1px #0B181E !important;
   color: #0a1720 !important;
   border-radius: 4px !important;
-  font-family: 'DinPro-Medium' !important;
+  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   font-size: 14px;
 }
@@ -426,7 +426,7 @@ input {
   box-shadow: 0 !important;
   border: solid 1px #0B181E !important;
   border-radius: 0px !important;
-  font-family: 'DinPro-Medium' !important;
+  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
 }
 
 .ui.selection.dropdown div.text {
@@ -437,7 +437,7 @@ input {
 .ui.inverted.segment, .ui.primary.inverted.segment {
   background-color: #3C464B !important;
   box-shadow: 0 !important;
-  font-family: 'DinPro-Medium' !important;
+  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   border-radius: 4px !important;
   color: #EAEFF5 !important;
@@ -484,7 +484,7 @@ input {
 }
 
 .mobile-wallet > h4.ui.header, h3.ui.header {
- font-family: DinPro;
+ font-family: DinPro, Tahoma, Geneva, sans-serif;
  font-size: 1.5em;
  text-align: center;
  font-weight: 300;
@@ -581,7 +581,7 @@ margin-right: 5% !important;
   color: #EAEFF5 !important;
 }
 h1, h2, h3, h4, h5 {
-  font-family: 'DINPro' !important;
+  font-family: 'DINPro', Tahoma, Geneva, sans-serif !important;
   color: #EAEFF5 !important;
 }
 #transferFormFromAddress {
@@ -601,7 +601,7 @@ small {
   color: #EAEFF5 !important;
 }
 div.value {
-  font-family: 'DinPro' !important;
+  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
   color: #EAEFF5 !important;
 }
 div.label {
@@ -652,5 +652,23 @@ div.ui.raised.segment.jsonbox.json {
   color: #EAEFF5 !important;
 }
 #generateTransactionArea > label {
+  color: #EAEFF5 !important;
+}
+.ui.steps {
+  border: 0px !important;
+}
+#confirmTransactionArea > div > div > span {
+  color: #EAEFF5 !important;
+}
+#showMessageField:hover {
+  text-decoration: underline !important;
+}
+#clearMessageField:hover {
+  text-decoration: underline !important;
+}
+.column {
+  color: #EAEFF5;
+}
+.ui.list > .item .header {
   color: #EAEFF5 !important;
 }

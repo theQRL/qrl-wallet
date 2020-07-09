@@ -20,6 +20,8 @@ BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
 BrowserPolicy.content.allowFontOrigin('cdn.jsdelivr.net')
 BrowserPolicy.content.allowStyleOrigin('cdn.jsdelivr.net')
 BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
+BrowserPolicy.content.allowFontOrigin('fonts.cdnfonts.com')
+BrowserPolicy.content.allowStyleOrigin('fonts.cdnfonts.com')
 BrowserPolicy.content.allowFontDataUrl()
 BrowserPolicy.content.allowDataUrlForAll()
 
@@ -571,6 +573,7 @@ const transferCoins = (request, callback) => {
     fee: request.fee,
     xmss_pk: request.xmssPk,
     network: request.network,
+    message_data: request.message_data,
   }
 
   qrlApi('transferCoins', tx, (err, response) => {

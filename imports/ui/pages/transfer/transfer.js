@@ -135,6 +135,15 @@ function generateTransaction() {
     network: selectedNetwork(),
   }
 
+  // add message field if present
+  const userMessage = document.getElementById('message').value
+  let messageBytes = null
+  if (userMessage.length > 0) {
+    messageBytes = stringToBytes(userMessage)
+    request.message_data = messageBytes
+  }
+
+  console.log('MessageBytes:', messageBytes)
   wrapMeteorCall('transferCoins', request, (err, res) => {
     if (err) {
       Session.set('transactionGenerationError', err.reason)
@@ -171,10 +180,18 @@ function generateTransaction() {
         otsKey: otsKey, // eslint-disable-line
       }
 
+      if (userMessage.length > 0) {
+        messageBytes = stringToBytes(userMessage)
+        confirmation.message_data = messageBytes
+      }
+
+      console.log('confirmation.message_data:', confirmation.message_data)
+
       if (nodeReturnedValidResponse(request, confirmation, 'transferCoins')) {
         Session.set('transactionConfirmation', confirmation)
         Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
         Session.set('transactionConfirmationFee', confirmation.fee)
+        Session.set('transactionConfirmationMessage', confirmation.message_data)
         Session.set('transactionConfirmationResponse', res.response)
 
         // Show confirmation
@@ -192,7 +209,7 @@ function generateTransaction() {
 
 function confirmTransaction() {
   const tx = Session.get('transactionConfirmationResponse')
-
+  tx.message_data = Session.get('transactionConfirmationMessage')
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
@@ -202,6 +219,14 @@ function confirmTransaction() {
   let concatenatedArrays = concatenateTypedArrays(
     Uint8Array,
     toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee) // eslint-disable-line
+  )
+
+    console.log('msgdata for txhash:', tx.message_data)
+
+  concatenatedArrays = concatenateTypedArrays(
+    Uint8Array,
+    concatenatedArrays,
+    tx.message_data,
   )
 
   // Now append all recipient (outputs) to concatenatedArrays
@@ -256,8 +281,13 @@ function confirmTransaction() {
 
     console.log('Txn Hash: ', txnHash)
 
+    // add ,message
+    tx.message_data = Session.get('transactionConfirmationMessage')
+
     // Prepare gRPC call
     tx.network = selectedNetwork()
+
+    console.log('pushing confirmed tx:', tx)
 
     wrapMeteorCall('confirmTransaction', tx, (err, res) => {
       if (res.error) {
@@ -393,6 +423,7 @@ function cancelTransaction() {
   Session.set('transactionConfirmationAmount', '')
   Session.set('transactionConfirmationFee', '')
   Session.set('transactionConfirmationResponse', '')
+  Session.set('transactionConfirmationMessage', '')
 
   Session.set('transactionFailed', 'User requested cancellation')
 
@@ -791,6 +822,16 @@ function initialiseFormValidation() {
     ],
   }
 
+  validationRules['message'] = {
+    id: 'message',
+    rules: [
+      {
+        type: 'maxLength[80]',
+        prompt: 'The max length of a message is 80 bytes.',
+      },
+    ],
+  }
+
   // Max of 9 decimals
   $.fn.form.settings.rules.maxDecimals = function (value) {
     return (countDecimals(value) <= 9)
@@ -869,6 +910,19 @@ Template.appTransfer.onRendered(() => {
 })
 
 Template.appTransfer.events({
+  'click #showMessageField': (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    $('#messageField').show()
+    $('#showMessageField').hide()
+  },
+  'click #clearMessageField': (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    $('#message').val('')
+    $('#messageField').hide()
+    $('#showMessageField').show()
+  },
   'submit #generateTransactionForm': (event) => {
     event.preventDefault()
     event.stopPropagation()
