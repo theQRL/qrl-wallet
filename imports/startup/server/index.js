@@ -571,6 +571,7 @@ const transferCoins = (request, callback) => {
     fee: request.fee,
     xmss_pk: request.xmssPk,
     network: request.network,
+    message_data: request.message_data,
   }
 
   qrlApi('transferCoins', tx, (err, response) => {
