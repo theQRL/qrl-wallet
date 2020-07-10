@@ -204,6 +204,18 @@
               {{/if}}
             {{/if}}
           {{/if}}
+          {{#if hasMessage}}
+          <table class="ui stackable table">
+            <thead>
+              <th>Message</th>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{tfMessage}}</td>
+              </tr>
+            </tbody>
+            </table>
+          {{/if}}
           <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
           <div class="ui raised segment jsonbox json" style="display: none">{{json}}</div>
         </div>

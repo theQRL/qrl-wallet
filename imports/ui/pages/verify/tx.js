@@ -50,6 +50,19 @@ Template.appVerifyTxid.onRendered(() => {
 
 
 Template.appVerifyTxid.helpers({
+  hasMessage() {
+    try {
+      if (this.tx.transfer.message_data.length > 0) {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
+  },
+  tfMessage() {
+    return this.tx.transfer.message_data
+  },
   tx() {
     const txhash = Session.get('txhash').transaction
     const signature = txhash.tx.signature // eslint-disable-line

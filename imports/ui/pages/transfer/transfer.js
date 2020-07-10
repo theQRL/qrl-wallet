@@ -221,13 +221,15 @@ function confirmTransaction() {
     toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee) // eslint-disable-line
   )
 
-    console.log('msgdata for txhash:', tx.message_data)
+  console.log('msgdata for txhash:', tx.message_data)
 
-  concatenatedArrays = concatenateTypedArrays(
-    Uint8Array,
-    concatenatedArrays,
-    tx.message_data,
-  )
+  if (tx.message_data) {
+    concatenatedArrays = concatenateTypedArrays(
+      Uint8Array,
+      concatenatedArrays,
+      tx.message_data,
+    )
+  }
 
   // Now append all recipient (outputs) to concatenatedArrays
   const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
@@ -1164,7 +1166,12 @@ Template.appTransfer.helpers({
       let thisReceivedAmount = 0
       let totalSent = 0
       if ((y.tx.transactionType === 'transfer') || (y.tx.transactionType === 'transfer_token')) {
+        y.outputs = []
         _.each(y.tx.transfer.addrs_to, (output, index) => {
+          y.outputs.push({
+            addr_to: output,
+            amount: parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA),
+          })
           totalSent += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
           if (output === thisAddress) {
             thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)

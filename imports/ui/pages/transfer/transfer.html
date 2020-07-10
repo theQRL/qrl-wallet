@@ -766,13 +766,13 @@
           <div class="ui stackable grid">
             <div class="sixteen wide column left aligned">
               <h4>Address Details</h4>
-              <div class="ui label">Signature Scheme: {{addressValidation.signatureScheme}}</div>
+              <div class="ui sky label">Signature Scheme: {{addressValidation.signatureScheme}}</div>
               <br /><br />
-              <div class="ui label">Tree Height: {{addressValidation.height}}</div>
+              <div class="ui sky label">Tree Height: {{addressValidation.height}}</div>
               <br /><br />
-              <div class="ui label">Total Signatures: {{addressValidation.totalSignatures}}</div>
+              <div class="ui sky label">Total Signatures: {{addressValidation.totalSignatures}}</div>
               <br /><br />
-              <div class="ui label">Hash Function: {{addressValidation.hashFunction}}</div>
+              <div class="ui sky label">Hash Function: {{addressValidation.hashFunction}}</div>
               <br /><br />
             </div>
           </div>
@@ -885,15 +885,15 @@
               <p class="transactionAddress">
                 {{#if isMyAddress this.addr_from}}
                   {{#each this.outputs}}
-                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
+                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.addr_to}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
-                  {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
+                  {{# if bech32}}{{this.from_b32}}{{else}}{{this.addr_from}}{{/if}}
                 {{/if}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} <br><small>Quanta</small></a>
             </div>
           </div>
           {{/if}}
@@ -910,7 +910,7 @@
               </p>
             </div>
             <div class="floatright">
-               <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.symbol}} &gt;</a>
+               <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.symbol}}</a>
             </div>
           </div>
           {{/if}}
@@ -942,7 +942,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}}</a>
             </div>
           </div>
           {{/if}}
@@ -959,7 +959,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta</a>
             </div>
           </div>
           {{/if}}
@@ -976,7 +976,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta</a>
             </div>
           </div>
           {{/if}}
@@ -993,7 +993,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
             </div>
           </div>
           {{/if}}
@@ -1010,7 +1010,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
             </div>
           </div>
           {{/if}}
@@ -1027,7 +1027,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
             </div>
           </div>
           {{/if}}
@@ -1044,7 +1044,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
             </div>
           </div>
           {{/if}}
@@ -1061,7 +1061,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
             </div>
           </div>
           {{/if}}
@@ -1078,7 +1078,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
             </div>
           </div>
           {{/if}}

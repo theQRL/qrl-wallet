@@ -1747,7 +1747,6 @@ Meteor.methods({
     let output
     // asynchronous call to API
     const response = Meteor.wrapAsync(getTxnHash)(request)
-
     if (response.transaction.tx.transactionType === 'transfer_token') {
       // Request Token Decimals / Symbol
       const symbolRequest = {

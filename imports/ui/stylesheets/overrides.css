@@ -100,8 +100,14 @@ td .unbreakable {
   width: 100%;
 }
 
-.label {
+.ui.sky.label {
   background-color: #4AAFFF !important;
+  color: #FFF !important;
+}
+
+.ui.purple.label {
+  background-color: #4AAFFF !important;
+  color: #FFF !important;
 }
 
 .sidebar {
@@ -448,10 +454,20 @@ input {
 
 /* Transactions */
 .transactionRecord {
-  background-color: #fff !important;
+  background-color:#3C464B !important;
   border-radius: 0px !important;
   padding-left: 1em !important;
+  color: #FFF !important;
 }
+.transactionRecord:hover {
+  background-color: #9DA3A5 !important;
+  cursor: pointer;
+}
+
+.transactionRecord > .content {
+  margin-right: 10px;
+}
+
 .transactionRecordInternal {
   background-color: #fff !important;
   border-radius: 0px !important;
@@ -467,6 +483,8 @@ input {
 
 .transactionAddress {
   font-size: 9px;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 
@@ -671,4 +689,11 @@ div.ui.raised.segment.jsonbox.json {
 }
 .ui.list > .item .header {
   color: #EAEFF5 !important;
+}
+.transactionRecord > .floatright {
+  text-align: center !important;
+}
+.transactionRecord > .floatright > a > small {
+  text-transform: none !important;
+  color: unset !important;
 }
