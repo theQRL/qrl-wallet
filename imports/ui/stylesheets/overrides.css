@@ -244,6 +244,7 @@ td .unbreakable {
   /* color: #000 !important; */
   font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
 }
+
 .ui.inverted.menu .active.item:hover {
   /* color: #000 !important; */
 }
@@ -671,4 +672,20 @@ div.ui.raised.segment.jsonbox.json {
 }
 .ui.list > .item .header {
   color: #EAEFF5 !important;
+}
+.mobile-wallet > .ui.menu > a.item {
+  color: #fff !important;
+}
+.mobile-wallet > .ui.menu > a.item > img {
+  filter: invert(1);
+  -webkit-filter: invert(1);
+}
+.mobile-wallet > .ui.menu > a.item:hover {
+  background: #4AAFFF !important;
+}
+.mobile-wallet > .ui.menu > a.active.item {
+  background: #3C464B !important;
+}
+.mobile-wallet > .ui.menu .item {
+    background: #0b181e !important;
 }
