@@ -426,7 +426,7 @@
           <div id="confirmTransactionArea" style="display: none;">
   
             <div class="ui icon message transactionRecord">
-              <img class="transactionTypeImage" src="/img/icons/send.png" />
+              <img class="transactionTypeImage" src="/img/icons/send.svg" />
               <div class="content">
                 <div class="header">
                   Confirm MultiSig Vote
@@ -499,7 +499,7 @@
           <div id="transactionResultArea" style="display: none;">
   
             <div class="ui icon message transactionRecord">
-              <img class="transactionTypeImage" src="/img/icons/send.png" />
+              <img class="transactionTypeImage" src="/img/icons/send.svg" />
               <div class="content">
                 <div class="header">
                   Sent
@@ -607,19 +607,19 @@
         <tbody style="font-family: 'Hack';">
           {{#each msAddresses}}
             <tr data-txhash='{{this.txhash}}' data-address='{{this.address}}' data-proposer="{{this.proposedBy}}" data-details="{{ spendDetailHTML this }}">
-              <td>
+              <td color="#000">
                 {{this.txhash}}
               </td>
               <!-- <td data-address="{{this.address}}">
                 <a href="{{nodeExplorerUrl}}/tx/{{this.txhash}}"><button class="ui tiny sky button">View in QRL Explorer &raquo;</button></a>
               </td> -->
-              <td>
+              <td color="#000">
                 {{ this.address }}
               </td>
-              <td>
+              <td color="#000">
                 {{ this.proposedBy }}
               </td>
-              <td>
+              <td color="#000">
                 <small>{{{ spendDetailHTML this }}}</small>
               </td>
             </tr>
