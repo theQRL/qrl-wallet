@@ -912,6 +912,12 @@ Template.appTransfer.onRendered(() => {
 })
 
 Template.appTransfer.events({
+  'click .transactionRecord': (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const txhash = $(event.target).closest('.transactionRecord').attr('data-txhash')
+    FlowRouter.go(`/verify-txid/${txhash}`)
+  },
   'click #showMessageField': (event) => {
     event.preventDefault()
     event.stopPropagation()

@@ -867,7 +867,7 @@
       {{#if addressHasTransactions}}
         {{#each addressTransactions}}
           {{#if isTransfer this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             {{#if isMyAddress this.addr_from}}
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             {{else}}
@@ -899,7 +899,7 @@
           {{/if}}
 
           {{#if isTokenCreation this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -916,7 +916,7 @@
           {{/if}}
 
           {{#if isTokenTransfer this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             {{#if isMyAddress this.addr_from}}
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             {{else}}
@@ -948,7 +948,7 @@
           {{/if}}
 
           {{#if isCoinbaseTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/receive.svg" />
             <div class="content">
               <div class="header">
@@ -965,7 +965,7 @@
           {{/if}}
 
           {{#if isSlaveTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -982,7 +982,7 @@
           {{/if}}
 
           {{#if isLatticePKTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -999,7 +999,7 @@
           {{/if}}
 
           {{#if isCreateMultiSigTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -1016,7 +1016,7 @@
           {{/if}}
 
           {{#if isSpendMultiSigTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -1033,7 +1033,7 @@
           {{/if}}
 
           {{#if isVoteMultiSigTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -1050,7 +1050,7 @@
           {{/if}}
 
           {{#if isMessageTxn this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -1067,7 +1067,7 @@
           {{/if}}
 
           {{#if isDocumentNotarisation this.tx.transactionType}}
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
