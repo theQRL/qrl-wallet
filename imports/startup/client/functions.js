@@ -440,6 +440,7 @@ getBalance = (getAddress, callBack) => {
       Session.set('otsKeysRemaining', 0)
       Session.set('otsBitfield', {})
       Session.set('errorLoadingTransactions', true)
+      Session.set('loadingTransactions', false)
     } else {
       if (res.state.address !== '') {
         Session.set('transferFromBalance', res.state.balance / SHOR_PER_QUANTA)
