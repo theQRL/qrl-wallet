@@ -43,6 +43,14 @@ body.pushable {
   }
 }
 
+span {
+  color: #EAEFF5;
+}
+
+p > pre {
+  color: #EAEFF5;
+}
+
 .ui.label {
   overflow: auto;
   word-break: break-all;
@@ -652,7 +660,7 @@ table {
   border-radius: 0px !important;
 }
 div.ui.raised.segment.jsonbox.json {
-  background-color: #CBD7E6 !important;
+  background-color: rgba(255,255,255,0.1) !important;
 }
 .ui.red.label {
   background-color: #FFA729 !important;
@@ -696,4 +704,19 @@ div.ui.raised.segment.jsonbox.json {
 .transactionRecord > .floatright > a > small {
   text-transform: none !important;
   color: unset !important;
+}
+.json-formatter-string, .json-formatter-number, .json-formatter-bracket {
+  color: #ffa729 !important;
+}
+.json-formatter-key {
+  color: #FFFFFF !important;
+}
+.json-formatter-key:hover {
+  color: #4AAFFF !important;
+}
+.json-formatter-toggler {
+  font-size: 1.2rem !important;
+}
+.json-formatter-null {
+  color:#a97301 !important;
 }

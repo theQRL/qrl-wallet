@@ -140,7 +140,7 @@ Template.appVerifyTxid.helpers({
     if (this.tx.transactionType === 'transfer') {
       return 'yellow'
     }
-    return ''
+    return 'sky'
   },
   isToken() {
     if (this.explorer.type === 'CREATE TOKEN') {
