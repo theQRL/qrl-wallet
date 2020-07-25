@@ -320,7 +320,7 @@ td .unbreakable {
 .pageSegment {
   /* background-color: rgba(255, 255, 255, 0.9) !important; */
   box-shadow: 0 1px 7px 0 rgba(0, 0, 0, 0.3) !important;
-  border-radius: 4px !important;
+  border-radius: 0px !important;
   border: 0px !important;
   margin-top: 0px !important;
 }
@@ -328,7 +328,7 @@ td .unbreakable {
 /* Header for a Sub Page */
 .ui .pageHeader {
   background-color: #4AAFFF;
-  border-radius: 4px 4px 0px 0px !important;
+  border-radius: 0px !important;
   color: #fff;
   margin: 0px !important;
   font-family: 'DinProBold', Tahoma, Geneva, sans-serif;
@@ -393,24 +393,24 @@ input {
 .ui.button.red {
   background-color: #ffa729 !important;
   box-shadow: unset !important;
-  color: #0a1720 !important;
-  border-radius: 4px !important;
+  color: #FFFFFF !important;
+  border-radius: 0px !important;
   font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   font-size: 14px;
-  -webkit-transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
-  transition: opacity .5s ease-in-out,color .5s ease-in-out,background-color .5s ease-in-out;
+  -webkit-transition: opacity .2s ease-in-out,color .2s ease-in-out,background-color .2s ease-in-out;
+  transition: opacity .2s ease-in-out,color .2s ease-in-out,background-color .2s ease-in-out;
 }
 .ui.button.red:hover {
-  background-color: #0B181E !important;
-  color: #EAEFF5 !important;
+  background-color: #a97301 !important;
+  color: #ccc !important;
 }
 
 .ui.button.sky {
     background-color: #4AAFFF !important;
     box-shadow: unset !important;
-    color: #0a1720 !important;
-    border-radius: 4px !important;
+    color: #FFF !important;
+    border-radius: 0px !important;
     font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
     text-transform: uppercase;
     font-size: 14px;
@@ -419,8 +419,8 @@ input {
 }
 
 .ui.button.sky:hover {
-  background-color: #0B181E !important;
-  color: #EAEFF5 !important;
+  background-color: #3981ba !important;
+  color: #ccc !important;
 }
 
 .ui.button.plain  {
@@ -428,10 +428,14 @@ input {
   box-shadow: unset !important;
   border: solid 1px #0B181E !important;
   color: #0a1720 !important;
-  border-radius: 4px !important;
+  border-radius: 0px !important;
   font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   font-size: 14px;
+}
+
+.ui.message, .ui.label, .ui.button, .ui.selection.dropdown .menu {
+  border-radius: 0px !important;
 }
 
 .ui.selection.dropdown {
@@ -453,7 +457,7 @@ input {
   box-shadow: 0 !important;
   font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
-  border-radius: 4px !important;
+  border-radius: 0px !important;
   color: #EAEFF5 !important;
   border: 1px solid #0B181E !important;
 }
@@ -579,7 +583,7 @@ margin-right: 5% !important;
   word-wrap: break-word; 
 }
 .ui.segment {
-  border-radius: 4px !important;
+  border-radius: 0px !important;
   background-color: #3C464B !important;
 }
 .msHeader {
@@ -723,4 +727,7 @@ div.ui.raised.segment.jsonbox.json {
 #newAddressMnemonic, #newAddress, #newHexseed {
   word-wrap: break-word;
   text-transform: none !important;
+}
+input::placeholder {
+  overflow: visible !important;
 }
