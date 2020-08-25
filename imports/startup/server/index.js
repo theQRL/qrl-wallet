@@ -1,5 +1,5 @@
 /* eslint no-console:0, max-len: 0 */
-/* global decimalToBinary, getQrlProtoShasum, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
+/* global bytesToString, decimalToBinary, getQrlProtoShasum, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -355,10 +355,14 @@ const helpersaddressTransactions = (response) => {
     if (tx.tx.transfer) {
       const hexlified = []
       _.each(tx.tx.transfer.addrs_to, (txOutput) => {
-        console.log('formatting: ', txOutput)
         hexlified.push(`Q${Buffer.from(txOutput).toString('hex')}`)
       })
       txEdited.tx.transfer.addrs_to = hexlified
+    }
+    if (tx.tx.token) {
+      txEdited.tx.token.name = Buffer.from(tx.tx.token.name).toString()
+      txEdited.tx.token.symbol = Buffer.from(tx.tx.token.symbol).toString()
+      txEdited.tx.token.owner = `Q${Buffer.from(tx.tx.token.owner).toString('hex')}`
     }
     if (tx.tx.coinbase) {
       if (tx.tx.coinbase.addr_to) {
@@ -399,6 +403,23 @@ const getTransactionsByAddress = (request, callback) => {
     })
   } catch (error) {
     const myError = errorCallback(error, 'Cannot access API/GetTransactionsByAddress', '**ERROR/GetTransactionsByAddress**')
+    callback(myError, null)
+  }
+}
+
+const getTokensByAddress = (request, callback) => {
+  try {
+    qrlApi('GetTokensByAddress', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetTokensByAddress', '**ERROR/GetTokensByAddress**')
+        callback(myError, null)
+      } else {
+        // console.log(response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetTokensByAddress', '**ERROR/GetTokensByAddress**')
     callback(myError, null)
   }
 }
@@ -518,7 +539,7 @@ const getAddressState = (request, callback) => {
         if (response.state.address) {
           response.state.address = `Q${Buffer.from(response.state.address).toString('hex')}`
         }
-
+        console.table(response)
         callback(null, response)
       }
     })
@@ -1717,6 +1738,12 @@ Meteor.methods({
     this.unblock()
     const response = Meteor.wrapAsync(getTransactionsByAddress)(request)
     return helpersaddressTransactions(response)
+  },
+  getTokensByAddress(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getTokensByAddress)(request)
+    return response
   },
   getMultiSigAddressesByAddress(request) {
     check(request, Object)

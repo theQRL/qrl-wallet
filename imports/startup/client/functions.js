@@ -571,8 +571,29 @@ getTokenBalances = (getAddress, callback) => {
       Session.set('otsKeyEstimate', 0)
       Session.set('otsKeysRemaining', 0)
     } else {
+      console.log(res)
       if (res.state.address !== '') { // eslint-disable-line
         const tokensHeld = []
+
+        if (res.state.tokens_count > 0) {
+          console.log('User has tokens which need to be fetched')
+          const tknRequest = {
+            address: Buffer.from(getAddress.substring(1), 'hex'),
+            network: selectedNetwork(),
+            item_per_page: 100,
+            page_number: 0,
+          }
+          wrapMeteorCall('getTokensByAddress', tknRequest, (tknerr, tknres) => {
+            console.log('err:', tknerr)
+            console.log('res:', tknres)
+            if (tknerr) {
+              Session.set('addressTransactions', { error: err })
+              Session.set('errorLoadingTransactions', true)
+            } else {
+              console.log(tknres)
+            }
+          })
+        }
 
         // Now for each res.state.token we find, go discover token name and symbol
         for (let i in res.state.tokens) { // eslint-disable-line
