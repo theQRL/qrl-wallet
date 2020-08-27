@@ -1,5 +1,5 @@
 /* eslint no-console:0, max-len: 0 */
-/* global bytesToString, decimalToBinary, getQrlProtoShasum, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
+/* global decimalToBinary, getQrlProtoShasum, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -347,6 +347,23 @@ const getStats = (request, callback) => {
   }
 }
 
+const getObject = (request, callback) => {
+  try {
+    qrlApi('GetObject', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetObject', '**ERROR/GetObject**')
+        callback(myError, null)
+      } else {
+        // console.log(response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetObject', '**ERROR/GetObject**')
+    callback(myError, null)
+  }
+}
+
 const helpersaddressTransactions = (response) => {
   const output = []
   console.log(response)
@@ -468,6 +485,26 @@ const getOTS = (request, callback) => {
     })
   } catch (error) {
     const myError = errorCallback(error, 'Cannot access API/GetOTS', '**ERROR/GetOTS**')
+    callback(myError, null)
+  }
+}
+
+const getFullAddressState = (request, callback) => {
+  try {
+    qrlApi('GetAddressState', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetOptimizedAddressState', '**ERROR/getAddressState** ')
+        callback(myError, null)
+      } else {
+        if (response.state.address) {
+          response.state.address = `Q${Buffer.from(response.state.address).toString('hex')}`
+        }
+
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetAddressState', '**ERROR/GetAddressState**')
     callback(myError, null)
   }
 }
@@ -1721,10 +1758,22 @@ Meteor.methods({
     const response = Meteor.wrapAsync(getHeight)(request)
     return response
   },
+  getObject(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getObject)(request)
+    return response
+  },
   getAddressState(request) {
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(getAddressState)(request)
+    return response
+  },
+  getFullAddressState(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getFullAddressState)(request)
     return response
   },
   getMultiSigAddressState(request) {

@@ -1074,9 +1074,13 @@ Template.appTransfer.helpers({
     return confirmationAmount
   },
   transactionConfirmationFee() {
-    if (Session.get('transactionConfirmationResponse') === undefined) { return false }
-    const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
-    return transactionConfirmationFee
+    try {
+      if (Session.get('transactionConfirmationResponse') === undefined) { return false }
+      const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
+      return transactionConfirmationFee
+    } catch (e) {
+      return false
+    }
   },
   transactionGenerationError() {
     const error = Session.get('transactionGenerationError')
@@ -1117,18 +1121,26 @@ Template.appTransfer.helpers({
     return status
   },
   txDetail() {
-    if (Session.get('txhash') === undefined) { return false }
-    const txDetail = Session.get('txhash').transaction.tx.transfer
-    txDetail.amount /= SHOR_PER_QUANTA
-    txDetail.fee /= SHOR_PER_QUANTA
-    return txDetail
+    try {
+      if (Session.get('txhash') === undefined) { return false }
+      const txDetail = Session.get('txhash').transaction.tx.transfer
+      txDetail.amount /= SHOR_PER_QUANTA
+      txDetail.fee /= SHOR_PER_QUANTA
+      return txDetail
+    } catch (e) {
+      return false
+    }
   },
   tokenTransferConfirmation() {
-    const confirmation = Session.get('tokenTransferConfirmation')
-    if (confirmation !== undefined) {
-      confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+    try {
+      const confirmation = Session.get('tokenTransferConfirmation')
+      if (confirmation !== undefined) {
+        confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+      }
+      return confirmation
+    } catch (e) {
+      return false
     }
-    return confirmation
   },
   tokenTransferConfirmationAmount() {
     const amount = Session.get('tokenTransferConfirmationAmount')
@@ -1148,6 +1160,7 @@ Template.appTransfer.helpers({
     const thisAddress = getXMSSDetails().address
     _.each(Session.get('addressTransactions'), (transaction) => {
       const y = transaction
+      console.log(y)
       // Update timestamp from unix epoch to human readable time/date.
       if (moment.unix(transaction.timestamp).isValid()) {
         y.timestamp = moment.unix(transaction.timestamp).format('HH:mm D MMM YYYY')
@@ -1157,11 +1170,19 @@ Template.appTransfer.helpers({
       // Set total received amount if sent to this address
       let thisReceivedAmount = 0
       let totalSent = 0
-      if ((y.tx.transactionType === 'transfer') || (y.tx.transactionType === 'transfer_token')) {
+      if (y.tx.transactionType === 'transfer') {
         _.each(y.tx.transfer.addrs_to, (output, index) => {
           totalSent += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
           if (output === thisAddress) {
             thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+          }
+        })
+      }
+      if (y.tx.transactionType === 'transfer_token') { // FIXME: sort token decimals here
+        _.each(y.tx.transfer_token.addrs_to, (output, index) => {
+          totalSent += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
+          if (output === thisAddress) {
+            thisReceivedAmount += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
           }
         })
       }
@@ -1261,10 +1282,14 @@ Template.appTransfer.helpers({
     return moment(x).format('HH:mm D MMM YYYY')
   },
   openedAddress() {
-    if (LocalStore.get('addressFormat') === 'bech32') {
-      return getXMSSDetails().addressB32
+    try {
+      if (LocalStore.get('addressFormat') === 'bech32') {
+        return getXMSSDetails().addressB32
+      }
+      return getXMSSDetails().address
+    } catch (e) {
+      return false
     }
-    return getXMSSDetails().address
   },
   tokensHeld() {
     const tokens = []
@@ -1281,16 +1306,20 @@ Template.appTransfer.helpers({
     return Session.get('balanceSymbol')
   },
   addressValidation() {
-    const thisAddress = getXMSSDetails().address
-    const validationResult = qrlAddressValdidator.hexString(thisAddress)
+    try {
+      const thisAddress = getXMSSDetails().address
+      const validationResult = qrlAddressValdidator.hexString(thisAddress)
 
-    const result = {}
-    result.height = validationResult.sig.height
-    result.totalSignatures = validationResult.sig.number
-    result.signatureScheme = validationResult.sig.type
-    result.hashFunction = validationResult.hash.function
+      const result = {}
+      result.height = validationResult.sig.height
+      result.totalSignatures = validationResult.sig.number
+      result.signatureScheme = validationResult.sig.type
+      result.hashFunction = validationResult.hash.function
 
-    return result
+      return result
+    } catch (e) {
+      return false
+    }
   },
   // Pagination for address transactions
   pages() {
@@ -1392,6 +1421,10 @@ Template.appTransfer.helpers({
 })
 Template.recoverySeedModal.helpers({
   recoverySeed() {
-    return getXMSSDetails()
+    try {
+      return getXMSSDetails()
+    } catch (e) {
+      return false
+    }
   },
 })

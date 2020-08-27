@@ -1,9 +1,11 @@
 /* eslint no-console:0 */
 /* eslint no-global-assign: 0 */
+/* eslint max-len: 0 */
+/* eslint no-unused-vars: 0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import aes256 from 'aes256'
@@ -12,41 +14,41 @@ import helpers from '@theqrl/explorer-helpers'
 
 import 'babel-polyfill'
 import Qrl from '@theqrl/hw-app-qrl'
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
 
 bech32 = require('bech32') // eslint-disable-line
 
 export function ledgerReturnedError(e) {
-  let r = false;
+  let r = false
   try {
     if (e instanceof DOMException) {
       // DOMException will be thrown if WebUSB device is unplugged during Ledger UI event
-      r = true;
+      r = true
     }
-  } catch (e) {
-    r = false;
+  } catch (err) {
+    r = false
   }
   try {
     if (e.name === 'TransportStatusError' || e instanceof TransportStatusError || e.name === 'TransportOpenUserCancelled') {
-      r = true;
+      r = true
     }
-  } catch (e) {
-    r = false;
+  } catch (err) {
+    r = false
   }
-  return r;
+  return r
 }
 
 export async function createTransport() {
-  var transport = null;
-  transport = await TransportWebUSB.create();
-  console.log('USING WEBUSB');
-  var qrl = await new Qrl(transport);
+  let transport = null
+  transport = await TransportWebUSB.create()
+  console.log('USING WEBUSB')
+  const qrl = await new Qrl(transport)
   return qrl
 }
 
 // Client side function to detmine if running within Electron
-export function isElectrified () {
+export function isElectrified() {
   const userAgent = navigator.userAgent.toLowerCase()
   if (userAgent.indexOf(' electron/') > -1) {
     return true
@@ -483,7 +485,7 @@ getBalance = (getAddress, callBack) => {
         // prefer to rely on state tracked in ledger device
         console.log('-- Getting QRL Ledger Nano App State --')
         if (isElectrified()) {
-          Meteor.call('ledgerGetState', [], (err, data) => {
+          Meteor.call('ledgerGetState', [], (gsErr, data) => {
             console.log('> Got Ledger Nano State from USB')
             Session.set('otsKeyEstimate', data.xmss_index)
             // Get remaining OTS Keys
@@ -556,74 +558,46 @@ loadAddressTransactions = (a, p) => {
   })
 }
 
-getTokenBalances = (getAddress, callback) => {
+const getTokenBalances = (getAddress, callback) => {
   const request = {
-    address: addressForAPI(getAddress),
+    address: Buffer.from(getAddress.substring(1), 'hex'),
     network: selectedNetwork(),
   }
-
-  wrapMeteorCall('getAddressState', request, (err, res) => {
+  const tokensHeld = []
+  Meteor.call('getFullAddressState', request, (err, res) => {
     if (err) {
-      console.log('err: ', err)
-      Session.set('transferFromBalance', 0)
-      Session.set('transferFromTokenState', [])
-      Session.set('address', 'Error')
-      Session.set('otsKeyEstimate', 0)
-      Session.set('otsKeysRemaining', 0)
+      // TODO - Error handling
     } else {
-      console.log(res)
-      if (res.state.address !== '') { // eslint-disable-line
-        const tokensHeld = []
-
-        if (res.state.tokens_count > 0) {
-          console.log('User has tokens which need to be fetched')
-          const tknRequest = {
-            address: Buffer.from(getAddress.substring(1), 'hex'),
-            network: selectedNetwork(),
-            item_per_page: 100,
-            page_number: 0,
-          }
-          wrapMeteorCall('getTokensByAddress', tknRequest, (tknerr, tknres) => {
-            console.log('err:', tknerr)
-            console.log('res:', tknres)
-            if (tknerr) {
-              Session.set('addressTransactions', { error: err })
-              Session.set('errorLoadingTransactions', true)
-            } else {
-              console.log(tknres)
-            }
-          })
-        }
-
-        // Now for each res.state.token we find, go discover token name and symbol
-        for (let i in res.state.tokens) { // eslint-disable-line
-          const tokenHash = i
-          const tokenBalance = res.state.tokens[i]
+      // Now for each res.state.token we find, go discover token name and symbol
+      // eslint-disable-next-line
+      if (res.state.address !== '') {
+        Object.keys(res.state.tokens).forEach((key) => {
+          const tokenHash = key
+          const tokenBalance = res.state.tokens[key]
 
           const thisToken = {}
 
-          const txnRequest = {
-            query: tokenHash,
+          const req = {
+            query: Buffer.from(tokenHash, 'hex'),
             network: selectedNetwork(),
           }
 
-          wrapMeteorCall('getTxnHash', txnRequest, (err, res) => { // eslint-disable-line
+          Meteor.call('getObject', req, (objErr, objRes) => {
             if (err) {
-              console.log('err:', err)
-              Session.set('tokensHeld', [])
+              // TODO - Error handling here
+              console.log('err:', objErr)
             } else {
               // Check if this is a token hash.
-              if (res.transaction.tx.transactionType !== 'token') { // eslint-disable-line
-                console.log('err: ', err)
-                Session.set('tokensHeld', [])
+              // eslint-disable-next-line
+              if (objRes.transaction.tx.transactionType !== 'token') {
+                // TODO - Error handling here
               } else {
-                const tokenDetails = res.transaction.tx.token
+                const tokenDetails = objRes.transaction.tx.token
 
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
-                thisToken.symbol = bytesToString(tokenDetails.symbol)
-                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals) // eslint-disable-line
-                thisToken.decimals = tokenDetails.decimals
+                thisToken.symbol = bytesToString(tokenDetails.symbol) // eslint-disable-next-line
+                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals)
 
                 tokensHeld.push(thisToken)
 
@@ -631,15 +605,7 @@ getTokenBalances = (getAddress, callback) => {
               }
             }
           })
-        }
-        callback()
-
-        // When done hide loading section
-        Session.set('errorLoadingTransactions', false)
-        $('#loading').hide()
-      } else {
-        // Wallet not found, put together an empty response
-        callback()
+        })
       }
     }
   })
