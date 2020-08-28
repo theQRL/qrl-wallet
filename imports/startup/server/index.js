@@ -381,6 +381,14 @@ const helpersaddressTransactions = (response) => {
       txEdited.tx.token.symbol = Buffer.from(tx.tx.token.symbol).toString()
       txEdited.tx.token.owner = `Q${Buffer.from(tx.tx.token.owner).toString('hex')}`
     }
+    if (tx.tx.transfer_token) {
+      const hexlified = []
+      txEdited.tx.transfer_token.token_txhash = Buffer.from(tx.tx.transfer_token.token_txhash).toString('hex')
+      _.each(tx.tx.transfer_token.addrs_to, (txOutput) => {
+        hexlified.push(`Q${Buffer.from(txOutput).toString('hex')}`)
+      })
+      txEdited.tx.transfer_token.addrs_to = hexlified
+    }
     if (tx.tx.coinbase) {
       if (tx.tx.coinbase.addr_to) {
         txEdited.tx.coinbase.addr_to = `Q${Buffer.from(txEdited.tx.coinbase.addr_to).toString('hex')}`

@@ -925,11 +925,11 @@
             <div class="content">
               <div class="header">
                 {{#if isMyAddress this.addr_from}}
-                Sent
+                Tokens Sent
                 {{else}}
-                Received
+                Tokens Received
                 {{/if}}
-                 | {{this.timestamp}}
+                - {{this.tx.transfer_token.name}} ({{this.tx.transfer_token.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{#if isMyAddress this.addr_from}}

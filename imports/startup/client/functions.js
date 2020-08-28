@@ -543,17 +543,77 @@ loadAddressTransactions = (a, p) => {
   Session.set('loadingTransactions', true)
 
   wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
-    // console.log('err:', err)
+    if (err) { console.log('err:', err) }
     // console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
       Session.set('errorLoadingTransactions', true)
     } else {
       Session.set('active', p)
-      Session.set('addressTransactions', res.transactions_detail)
+
+      const transactions = []
+      const thisAddress = a
+      _.each(res.transactions_detail, (transaction) => {
+        const y = transaction
+        // Update timestamp from unix epoch to human readable time/date.
+        if (moment.unix(transaction.timestamp).isValid()) {
+          y.timestamp = moment.unix(transaction.timestamp).format('HH:mm D MMM YYYY')
+        } else {
+          y.timestamp = 'Unconfirmed Tx'
+        }
+        // Set total received amount if sent to this address
+        let thisReceivedAmount = 0
+        let totalSent = 0
+        if (y.tx.transactionType === 'transfer') {
+          _.each(y.tx.transfer.addrs_to, (output, index) => {
+            totalSent += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+            if (output === thisAddress) {
+              thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+            }
+          })
+        }
+        if (y.tx.transactionType === 'transfer_token') {
+          const req = {
+            query: Buffer.from(y.tx.transfer_token.token_txhash, 'hex'),
+            network: selectedNetwork(),
+          }
+          console.log('doing a getObject with query:', req)
+          Meteor.call('getObject', req, (objErr, objRes) => {
+            if (objErr) {
+              // TODO - Error handling here
+              console.log('err:', objErr)
+            } else {
+              console.log('and got response...', objRes)
+              // Check if this is a token hash.
+              // eslint-disable-next-line
+              if (objRes.transaction.tx.transactionType !== 'token') {
+                // TODO - Error handling here
+              } else {
+                const tokenDetails = objRes.transaction.tx.token
+                console.log('appending to transfer_token...', tokenDetails)
+                console.log('appending to var', y)
+                y.tx.transfer_token.name = bytesToString(tokenDetails.name)
+                y.tx.transfer_token.symbol = bytesToString(tokenDetails.symbol)
+                y.tx.transfer_token.decimals = tokenDetails.decimals
+              }
+            }
+          })
+          // FIXME: sort token decimals here0104004f2b82bc06838b27cb32183c9817cfe50104004f2b82bc06838b27cb32183c9817cfe50104004f2b82bc06838b27cb32183c9817cfe50104004f2b82bc06838b27cb32183c9817cfe5289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52
+          _.each(y.tx.transfer_token.addrs_to, (output, index) => {
+            totalSent += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
+            if (output === thisAddress) {
+              thisReceivedAmount += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
+            }
+          })
+        }
+        y.thisReceivedAmount = numberToString(thisReceivedAmount)
+        y.totalTransferred = totalSent
+        transactions.push(y)
+        Session.set('addressTransactions', transactions)
+      })
       Session.set('loadingTransactions', false)
       Session.set('errorLoadingTransactions', false)
-      $('#noTransactionsFound').show()
+      $('#noTransactionsFound').show()0104004f2b82bc06838b27cb32183c9817cfe5289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52
     }
   })
 }
@@ -609,6 +669,7 @@ const getTokenBalances = (getAddress, callback) => {
       }
     }
   })
+  $('#tokenBalancesLoading').hide()
 }
 
 updateBalanceField = () => {
