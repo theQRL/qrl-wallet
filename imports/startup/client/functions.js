@@ -598,7 +598,7 @@ loadAddressTransactions = (a, p) => {
               }
             }
           })
-          // FIXME: sort token decimals here0104004f2b82bc06838b27cb32183c9817cfe50104004f2b82bc06838b27cb32183c9817cfe50104004f2b82bc06838b27cb32183c9817cfe50104004f2b82bc06838b27cb32183c9817cfe5289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52
+          // FIXME: sort token decimals here
           _.each(y.tx.transfer_token.addrs_to, (output, index) => {
             totalSent += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
             if (output === thisAddress) {
@@ -613,7 +613,7 @@ loadAddressTransactions = (a, p) => {
       })
       Session.set('loadingTransactions', false)
       Session.set('errorLoadingTransactions', false)
-      $('#noTransactionsFound').show()0104004f2b82bc06838b27cb32183c9817cfe5289d31cbba817b3b8f6a1fdb5a4074004eb8a7e68912b9f181ad50498271ec52
+      $('#noTransactionsFound').show()
     }
   })
 }
