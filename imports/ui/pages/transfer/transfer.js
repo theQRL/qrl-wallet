@@ -1156,7 +1156,27 @@ Template.appTransfer.helpers({
     return otsKey
   },
   addressTransactions() {
-    return Session.get('addressTransactions')
+    const transactions = Session.get('addressTransactions')
+    const formatted = []
+    _.each(transactions, (transaction => {
+      const txOut = transaction
+      if (transaction.tx.transactionType === 'transfer_token') {
+        const lookFor = transaction.tx.transfer_token.token_txhash
+        let found = null
+        _.each(Session.get('tokensHeld'), (output) => {
+          if (output.hash === lookFor) {
+            found = output
+          }
+        })
+        if (found) {
+          txOut.tx.transfer_token.name = found.name
+          txOut.tx.transfer_token.symbol = found.symbol
+          txOut.tx.transfer_token.decimals = found.decimals
+        }
+      }
+      formatted.push(txOut)
+    }))
+    return formatted
   },
   addressHasTransactions() {
     try {

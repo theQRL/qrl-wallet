@@ -573,31 +573,6 @@ loadAddressTransactions = (a, p) => {
           })
         }
         if (y.tx.transactionType === 'transfer_token') {
-          const req = {
-            query: Buffer.from(y.tx.transfer_token.token_txhash, 'hex'),
-            network: selectedNetwork(),
-          }
-          console.log('doing a getObject with query:', req)
-          Meteor.call('getObject', req, (objErr, objRes) => {
-            if (objErr) {
-              // TODO - Error handling here
-              console.log('err:', objErr)
-            } else {
-              console.log('and got response...', objRes)
-              // Check if this is a token hash.
-              // eslint-disable-next-line
-              if (objRes.transaction.tx.transactionType !== 'token') {
-                // TODO - Error handling here
-              } else {
-                const tokenDetails = objRes.transaction.tx.token
-                console.log('appending to transfer_token...', tokenDetails)
-                console.log('appending to var', y)
-                y.tx.transfer_token.name = bytesToString(tokenDetails.name)
-                y.tx.transfer_token.symbol = bytesToString(tokenDetails.symbol)
-                y.tx.transfer_token.decimals = tokenDetails.decimals
-              }
-            }
-          })
           // FIXME: sort token decimals here
           _.each(y.tx.transfer_token.addrs_to, (output, index) => {
             totalSent += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
@@ -658,7 +633,7 @@ const getTokenBalances = (getAddress, callback) => {
                 thisToken.name = bytesToString(tokenDetails.name)
                 thisToken.symbol = bytesToString(tokenDetails.symbol) // eslint-disable-next-line
                 thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals)
-
+                thisToken.decimals = tokenDetails.decimals
                 tokensHeld.push(thisToken)
 
                 Session.set('tokensHeld', tokensHeld)
@@ -706,7 +681,16 @@ refreshTransferPage = (callback) => {
   waitForQRLLIB(function () {
     // Set transfer from address
     Session.set('transferFromAddress', getXMSSDetails().address)
+    // Get Tokens and Balances
+    getTokenBalances(getXMSSDetails().address, function () {
+      // Update balance field
+      updateBalanceField()
 
+      $('#tokenBalancesLoading').hide()
+
+      // Render dropdown
+      $('.ui.dropdown').dropdown()
+    })
     // Get address balance
     getBalance(getXMSSDetails().address, function () {
       // Load Wallet Transactions
@@ -725,17 +709,6 @@ refreshTransferPage = (callback) => {
       Session.set('fetchedTx', false)
       loadAddressTransactions(getXMSSDetails().address, 1)
       callback()
-    })
-
-    // Get Tokens and Balances
-    getTokenBalances(getXMSSDetails().address, function () {
-      // Update balance field
-      updateBalanceField()
-
-      $('#tokenBalancesLoading').hide()
-
-      // Render dropdown
-      $('.ui.dropdown').dropdown()
     })
   })
 }
