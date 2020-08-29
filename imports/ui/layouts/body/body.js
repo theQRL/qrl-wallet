@@ -298,7 +298,10 @@ Template.appBody.helpers({
     return false
   },
   balanceAmount() {
-    return Session.get('balanceAmount')
+    if (Session.get('balanceAmount')) {
+      return Session.get('balanceAmount')
+    }
+    return Session.get('transferFromBalance')
   },
   otsKeysRemaining() {
     return Session.get('otsKeysRemaining')
