@@ -575,9 +575,9 @@ loadAddressTransactions = (a, p) => {
         if (y.tx.transactionType === 'transfer_token') {
           // FIXME: sort token decimals here
           _.each(y.tx.transfer_token.addrs_to, (output, index) => {
-            totalSent += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
+            totalSent += parseFloat(y.tx.transfer_token.amounts[index])
             if (output === thisAddress) {
-              thisReceivedAmount += parseFloat(y.tx.transfer_token.amounts[index] / SHOR_PER_QUANTA)
+              thisReceivedAmount += parseFloat(y.tx.transfer_token.amounts[index])
             }
           })
         }
@@ -655,7 +655,9 @@ updateBalanceField = () => {
     if (selectedType === 'quanta') {
       Session.set('balanceAmount', Session.get('transferFromBalance'))
       Session.set('balanceSymbol', 'Quanta')
+      $('#showMessageField').show()
     } else {
+      $('#showMessageField').hide()
       // First extract the token Hash
       const tokenHash = selectedType.split('-')[1]
 

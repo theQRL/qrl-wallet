@@ -659,7 +659,15 @@ function checkResult(thisTxId, failureCount) {
       Session.set('transactionConfirmed', 'true')
       $('.loading').hide()
       $('#loadingHeader').hide()
-      refreshTransferPage()
+      refreshTransferPage(function () {
+        // Show warning is otsKeysRemaining is low
+        if (Session.get('otsKeysRemaining') < 50) {
+          // Shown low OTS Key warning modal
+          $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+        }
+      })
+      loadAddressTransactions(getXMSSDetails().address, 1)
+      updateBalanceField()
     } else if (Session.get('txhash').error != null) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if (failureCount < 5) {
@@ -877,6 +885,7 @@ Template.appTransfer.onRendered(() => {
     }
   })
   loadAddressTransactions(getXMSSDetails().address, 1)
+  updateBalanceField()
 
   // Warn if user is has opened the 0 byte address (test mode on Ledger)
   if (getXMSSDetails().address === 'Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd') {
@@ -1053,6 +1062,12 @@ Template.appTransfer.events({
 })
 
 Template.appTransfer.helpers({
+  tokenTotalTransferred() {
+    const num = this.totalTransferred
+    const { decimals } = this.tx.transfer_token
+    const convertAmountToBigNumber = new BigNumber(num)
+    return convertAmountToBigNumber.dividedBy(Math.pow(10, decimals)).toString() // eslint-disable-line
+  },
   transferFrom() {
     const transferFrom = {}
     transferFrom.balance = Session.get('transferFromBalance')

@@ -942,7 +942,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{tokenTotalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
