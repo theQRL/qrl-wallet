@@ -903,7 +903,7 @@
             <img class="transactionTypeImage" src="/img/icons/send.png" />
             <div class="content">
               <div class="header">
-                Token Creation - {{this.name}} ({{this.symbol}}) | {{this.timestamp}}
+                Token Creation - {{this.tx.token.name}} ({{this.tx.token.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{this.tx.transaction_hash}}
@@ -925,11 +925,11 @@
             <div class="content">
               <div class="header">
                 {{#if isMyAddress this.addr_from}}
-                Sent
+                Tokens Sent
                 {{else}}
-                Received
+                Tokens Received
                 {{/if}}
-                 | {{this.timestamp}}
+                - {{this.tx.transfer_token.name}} ({{this.tx.transfer_token.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{#if isMyAddress this.addr_from}}
@@ -942,7 +942,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{tokenTotalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
