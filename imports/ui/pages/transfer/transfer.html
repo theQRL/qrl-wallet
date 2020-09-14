@@ -436,7 +436,7 @@
         <!-- Confirm Transaction Area -->
         <div id="confirmTransactionArea" style="display: none;">
 
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -447,7 +447,17 @@
               {{transactionConfirmationAmount}} Quanta
             </div>
           </div>
-
+            {{#if includesMessage}}
+            <form>
+              <div class="field">
+                <label>Message</label>
+                <div class="ui visible message">
+                  {{messageText}}
+                </div>
+                </div>
+            </form>
+            <p>&nbsp;</p>
+            {{/if}}
           <form>
             <div class="field">
               <label>Recipients</label>
@@ -502,7 +512,7 @@
 
         <!-- Confirm Token Transaction Area -->
         <div id="confirmTokenTransactionArea" style="display: none;">
-          <div class="ui icon message transactionRecord">
+          <div class="ui icon message">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">

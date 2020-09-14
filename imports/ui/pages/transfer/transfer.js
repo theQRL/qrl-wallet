@@ -915,7 +915,7 @@ Template.appTransfer.events({
   'click .transactionRecord': (event) => {
     event.preventDefault()
     event.stopPropagation()
-    const txhash = $(event.target).closest('.transactionRecord').attr('data-txhash')
+    const txhash = $(event.target).closest('.transactionRecord').data('txhash')
     FlowRouter.go(`/verify-txid/${txhash}`)
   },
   'click #showMessageField': (event) => {
@@ -994,7 +994,7 @@ Template.appTransfer.events({
             <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
               <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
               <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
-              <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+              <button class="ui sky small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
             </div>
           </div>
         </div>
@@ -1067,6 +1067,20 @@ Template.appTransfer.events({
 })
 
 Template.appTransfer.helpers({
+  includesMessage() {
+    try {
+      const m = Session.get('transactionConfirmationMessage')
+      if (m.length > 0) {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
+  },
+  messageText() {
+    return Buffer.from(Session.get('transactionConfirmationMessage')).toString()
+  },
   transferFrom() {
     const transferFrom = {}
     transferFrom.balance = Session.get('transferFromBalance')

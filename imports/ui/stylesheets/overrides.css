@@ -5,6 +5,10 @@
 body {
   background: #0B181E;
   font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  -webkit-font-feature-settings: "liga" 0;
+  -moz-font-feature-settings: "liga" 0;
+  -ms-font-feature-settings: "liga" 0;
+  font-feature-settings: "liga" 0;
 }
 
 a {
@@ -587,7 +591,7 @@ margin-right: 5% !important;
   background-color: #3C464B !important;
 }
 .msHeader {
-  background: rgba(27, 28, 29, 0.7) !important;
+  background: #3C464B !important;
 }
 .ui.form .field > label, .ui.form > p {
   color: #EAEFF5 !important;
@@ -664,7 +668,7 @@ table {
   border-radius: 0px !important;
 }
 div.ui.raised.segment.jsonbox.json {
-  background-color: rgba(255,255,255,0.1) !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
 }
 .ui.red.label {
   background-color: #FFA729 !important;
@@ -709,6 +713,48 @@ div.ui.raised.segment.jsonbox.json {
   text-transform: none !important;
   color: unset !important;
 }
+.jsonbox a {
+  color: #000 !important;
+}
+.ui.red.segment {
+  border: 2px solid #FFA729 !important;
+  margin-top: 10px !important;
+}
+.ui.red.segment > p {
+  color: #EAEFF5 !important;
+}
+
+p#newAddress {
+  text-transform: none !important;
+}
+
+p#newAddressMnemonic {
+  text-transform: none !important;
+}
+
+p#newAddressHexseed {
+  text-transform: none !important;
+}
+
+.ui.modal > .content {
+  background: #3C464B !important;
+}
+.ui.modal > .header {
+  background: #4AAFFF !important;
+  color: #EAEFF5 !important;
+}
+.ui.modal > .actions {
+  background: #3C464B !important;
+}
+div.ui.label.fw {
+  background: #ffa729;
+}
+div.ui.negative.button {
+  background: #0B181E !important;
+}
+div.ui.negative.button:hover {
+  background: #3C464B !important;
+}
 .json-formatter-string, .json-formatter-number, .json-formatter-bracket {
   color: #ffa729 !important;
 }
@@ -723,11 +769,4 @@ div.ui.raised.segment.jsonbox.json {
 }
 .json-formatter-null {
   color:#a97301 !important;
-}
-#newAddressMnemonic, #newAddress, #newHexseed {
-  word-wrap: break-word;
-  text-transform: none !important;
-}
-input::placeholder {
-  overflow: visible !important;
 }

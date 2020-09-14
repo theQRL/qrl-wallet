@@ -208,7 +208,7 @@ Template.appVerifyTxid.helpers({
     const output = []
     if (ms) {
       _.each(ms.signatories, (item, index) => {
-        output.push({address_hex: `Q${item}`, weight: ms.weights[index]})
+        output.push({ address_hex: `Q${item}`, weight: ms.weights[index] })
       })
       return output
     }

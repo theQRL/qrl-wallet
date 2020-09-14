@@ -72,10 +72,10 @@
   </div>
 
   <div class="ui stackable two column grid">
-    <div class="column twelve wide">
+    <div class="column fourteen wide">
       <h4 class="ui header">QRL Address</h4>
       <div class="ui inverted segment">
-        <p id="newAddress">{{# if bech32}}{{newAddress.addressB32}}{{else}}{{newAddress.address}}{{/if}}</p>
+        <p id="newAddress" style="word-wrap: break-word;">{{# if bech32}}{{newAddress.addressB32}}{{else}}{{newAddress.address}}{{/if}}</p>
       </div>
     </div>
 
@@ -91,7 +91,7 @@
 
   <h4 class="ui header">Hexseed</h4>
   <div class="ui inverted segment">
-    <p id="newHexseed">{{newAddress.hexseed}}</p>
+    <p id="newAddressHexseed" style="word-wrap: break-word;">{{newAddress.hexseed}}</p>
   </div>
 
   <div class="ui stackable three column grid">
