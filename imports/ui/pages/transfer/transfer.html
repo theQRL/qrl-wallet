@@ -323,7 +323,7 @@
 
 <div class="ui left aligned" id="transferForm">
   <div class="ui stackable two column grid">
-    <div class="eight wide column">
+    <div class="six wide column">
 
       <!-- Send/Receive Section -->
       <div id="sendReceiveTabs" class="ui top attached tabular menu">
@@ -436,7 +436,7 @@
         <!-- Confirm Transaction Area -->
         <div id="confirmTransactionArea" style="display: none;">
 
-          <div class="ui icon message">
+          <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -447,17 +447,7 @@
               {{transactionConfirmationAmount}} Quanta
             </div>
           </div>
-            {{#if includesMessage}}
-            <form>
-              <div class="field">
-                <label>Message</label>
-                <div class="ui visible message">
-                  {{messageText}}
-                </div>
-                </div>
-            </form>
-            <p>&nbsp;</p>
-            {{/if}}
+
           <form>
             <div class="field">
               <label>Recipients</label>
@@ -512,7 +502,7 @@
 
         <!-- Confirm Token Transaction Area -->
         <div id="confirmTokenTransactionArea" style="display: none;">
-          <div class="ui icon message">
+          <div class="ui icon message transactionRecord">
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
@@ -776,13 +766,13 @@
           <div class="ui stackable grid">
             <div class="sixteen wide column left aligned">
               <h4>Address Details</h4>
-              <div class="ui sky label">Signature Scheme: {{addressValidation.signatureScheme}}</div>
+              <div class="ui label">Signature Scheme: {{addressValidation.signatureScheme}}</div>
               <br /><br />
-              <div class="ui sky label">Tree Height: {{addressValidation.height}}</div>
+              <div class="ui label">Tree Height: {{addressValidation.height}}</div>
               <br /><br />
-              <div class="ui sky label">Total Signatures: {{addressValidation.totalSignatures}}</div>
+              <div class="ui label">Total Signatures: {{addressValidation.totalSignatures}}</div>
               <br /><br />
-              <div class="ui sky label">Hash Function: {{addressValidation.hashFunction}}</div>
+              <div class="ui label">Hash Function: {{addressValidation.hashFunction}}</div>
               <br /><br />
             </div>
           </div>
@@ -841,7 +831,7 @@
       </div>
 
     </div>
-    <div class="eight wide column">
+    <div class="ten wide column">
       
       <!-- Transaction History -->
       <h4 class="ui pageHeader header">
@@ -895,15 +885,15 @@
               <p class="transactionAddress">
                 {{#if isMyAddress this.addr_from}}
                   {{#each this.outputs}}
-                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.addr_to}}{{/if}} - {{this.amount}}<br />
+                    {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}} - {{this.amount}}<br />
                   {{/each}}
                 {{else}}
-                  {{# if bech32}}{{this.from_b32}}{{else}}{{this.addr_from}}{{/if}}
+                  {{# if bech32}}{{this.from_b32}}{{else}}{{this.from_hex}}{{/if}}
                 {{/if}}
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} <br><small>Quanta</small></a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -913,14 +903,14 @@
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
-                Token Creation - {{this.name}} ({{this.symbol}}) | {{this.timestamp}}
+                Token Creation - {{this.tx.token.name}} ({{this.tx.token.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{this.tx.transaction_hash}}
               </p>
             </div>
             <div class="floatright">
-               <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.symbol}}</a>
+               <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -935,11 +925,11 @@
             <div class="content">
               <div class="header">
                 {{#if isMyAddress this.addr_from}}
-                Sent
+                Tokens Sent
                 {{else}}
-                Received
+                Tokens Received
                 {{/if}}
-                 | {{this.timestamp}}
+                - {{this.tx.transfer_token.name}} ({{this.tx.transfer_token.symbol}}) | {{this.timestamp}}
               </div>
               <p class="transactionAddress">
                 {{#if isMyAddress this.addr_from}}
@@ -952,7 +942,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{this.totalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}}</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{#if isMyAddress this.addr_from}} {{tokenTotalTransferred}} {{else}} {{this.thisReceivedAmount}} {{/if}} {{this.symbol}} &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -969,7 +959,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -986,7 +976,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">{{this.amount}} Quanta &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1003,7 +993,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1020,7 +1010,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1037,7 +1027,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1054,7 +1044,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1071,7 +1061,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}
@@ -1088,7 +1078,7 @@
               </p>
             </div>
             <div class="floatright">
-              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction</a>
+              <a href="/verify-txid/{{this.tx.transaction_hash}}">View Transaction &gt;</a>
             </div>
           </div>
           {{/if}}

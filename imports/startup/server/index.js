@@ -349,6 +349,23 @@ const getStats = (request, callback) => {
   }
 }
 
+const getObject = (request, callback) => {
+  try {
+    qrlApi('GetObject', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetObject', '**ERROR/GetObject**')
+        callback(myError, null)
+      } else {
+        // console.log(response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetObject', '**ERROR/GetObject**')
+    callback(myError, null)
+  }
+}
+
 const helpersaddressTransactions = (response) => {
   const output = []
   console.log(response)
@@ -357,10 +374,22 @@ const helpersaddressTransactions = (response) => {
     if (tx.tx.transfer) {
       const hexlified = []
       _.each(tx.tx.transfer.addrs_to, (txOutput) => {
-        console.log('formatting: ', txOutput)
         hexlified.push(`Q${Buffer.from(txOutput).toString('hex')}`)
       })
       txEdited.tx.transfer.addrs_to = hexlified
+    }
+    if (tx.tx.token) {
+      txEdited.tx.token.name = Buffer.from(tx.tx.token.name).toString()
+      txEdited.tx.token.symbol = Buffer.from(tx.tx.token.symbol).toString()
+      txEdited.tx.token.owner = `Q${Buffer.from(tx.tx.token.owner).toString('hex')}`
+    }
+    if (tx.tx.transfer_token) {
+      const hexlified = []
+      txEdited.tx.transfer_token.token_txhash = Buffer.from(tx.tx.transfer_token.token_txhash).toString('hex')
+      _.each(tx.tx.transfer_token.addrs_to, (txOutput) => {
+        hexlified.push(`Q${Buffer.from(txOutput).toString('hex')}`)
+      })
+      txEdited.tx.transfer_token.addrs_to = hexlified
     }
     if (tx.tx.coinbase) {
       if (tx.tx.coinbase.addr_to) {
@@ -401,6 +430,23 @@ const getTransactionsByAddress = (request, callback) => {
     })
   } catch (error) {
     const myError = errorCallback(error, 'Cannot access API/GetTransactionsByAddress', '**ERROR/GetTransactionsByAddress**')
+    callback(myError, null)
+  }
+}
+
+const getTokensByAddress = (request, callback) => {
+  try {
+    qrlApi('GetTokensByAddress', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetTokensByAddress', '**ERROR/GetTokensByAddress**')
+        callback(myError, null)
+      } else {
+        // console.log(response)
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetTokensByAddress', '**ERROR/GetTokensByAddress**')
     callback(myError, null)
   }
 }
@@ -449,6 +495,26 @@ const getOTS = (request, callback) => {
     })
   } catch (error) {
     const myError = errorCallback(error, 'Cannot access API/GetOTS', '**ERROR/GetOTS**')
+    callback(myError, null)
+  }
+}
+
+const getFullAddressState = (request, callback) => {
+  try {
+    qrlApi('GetAddressState', request, (error, response) => {
+      if (error) {
+        const myError = errorCallback(error, 'Cannot access API/GetOptimizedAddressState', '**ERROR/getAddressState** ')
+        callback(myError, null)
+      } else {
+        if (response.state.address) {
+          response.state.address = `Q${Buffer.from(response.state.address).toString('hex')}`
+        }
+
+        callback(null, response)
+      }
+    })
+  } catch (error) {
+    const myError = errorCallback(error, 'Cannot access API/GetAddressState', '**ERROR/GetAddressState**')
     callback(myError, null)
   }
 }
@@ -520,7 +586,7 @@ const getAddressState = (request, callback) => {
         if (response.state.address) {
           response.state.address = `Q${Buffer.from(response.state.address).toString('hex')}`
         }
-
+        console.table(response)
         callback(null, response)
       }
     })
@@ -1702,10 +1768,22 @@ Meteor.methods({
     const response = Meteor.wrapAsync(getHeight)(request)
     return response
   },
+  getObject(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getObject)(request)
+    return response
+  },
   getAddressState(request) {
     this.unblock()
     check(request, Object)
     const response = Meteor.wrapAsync(getAddressState)(request)
+    return response
+  },
+  getFullAddressState(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getFullAddressState)(request)
     return response
   },
   getMultiSigAddressState(request) {
@@ -1719,6 +1797,12 @@ Meteor.methods({
     this.unblock()
     const response = Meteor.wrapAsync(getTransactionsByAddress)(request)
     return helpersaddressTransactions(response)
+  },
+  getTokensByAddress(request) {
+    check(request, Object)
+    this.unblock()
+    const response = Meteor.wrapAsync(getTokensByAddress)(request)
+    return response
   },
   getMultiSigAddressesByAddress(request) {
     check(request, Object)

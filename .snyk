@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.5
+version: v1.14.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   'npm:shelljs:20140723':
@@ -9,36 +9,45 @@ ignore:
   SNYK-JS-ELECTRON-174045:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.054Z'
   SNYK-JS-ELECTRON-483050:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.054Z'
   SNYK-JS-ELECTRON-483056:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.054Z'
   SNYK-JS-ELLIPTIC-511941:
     - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
       meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.056Z'
     - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
       meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
+    - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
+        reason: None given
+        expires: '2020-05-05T09:42:09.703Z'
+    - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
+        reason: None given
         expires: '2020-05-05T09:42:09.703Z'
   'npm:plist:20180219':
     - electrify-qrl > electron-packager > plist:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.057Z'
   SNYK-JS-MINIMIST-559764:
     - grpc > node-pre-gyp > mkdirp > minimist:
         reason: None given
         expires: '2020-05-05T09:42:09.702Z'
+      ledger-qrl-js > mocha > mkdirp > minimist:
+        reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
     - grpc > node-pre-gyp > tar > mkdirp > minimist:
         reason: None given
         expires: '2020-05-05T09:42:09.702Z'
@@ -67,15 +76,98 @@ ignore:
   SNYK-JS-ELECTRON-564272:
     - electrify-qrl > electron:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.054Z'
   SNYK-JS-MOCHA-561476:
     - ledger-qrl-js > mocha:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.056Z'
   SNYK-JS-YARGSPARSER-560381:
     - electrify-qrl > electron-packager > yargs-parser:
         reason: None given
-        expires: '2020-05-05T09:42:09.703Z'
+        expires: '2020-09-28T14:57:26.057Z'
+  SNYK-JS-ELECTRON-565051:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565052:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565362:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565366:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565368:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565441:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565488:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.054Z'
+  SNYK-JS-ELECTRON-565490:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-565494:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-565571:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-565705:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-565709:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-565713:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-570624:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-570833:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-575393:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-575394:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-575395:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELECTRON-575396:
+    - electrify-qrl > electron:
+        reason: None given
+        expires: '2020-09-28T14:57:26.055Z'
+  SNYK-JS-ELLIPTIC-571484:
+    - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
+        reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
+    - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
+        reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   'npm:lodash:20180130':

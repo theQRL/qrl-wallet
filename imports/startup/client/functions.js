@@ -1,9 +1,11 @@
 /* eslint no-console:0 */
 /* eslint no-global-assign: 0 */
+/* eslint max-len: 0 */
+/* eslint no-unused-vars: 0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import aes256 from 'aes256'
@@ -12,41 +14,41 @@ import helpers from '@theqrl/explorer-helpers'
 
 import 'babel-polyfill'
 import Qrl from '@theqrl/hw-app-qrl'
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
 
 bech32 = require('bech32') // eslint-disable-line
 
 export function ledgerReturnedError(e) {
-  let r = false;
+  let r = false
   try {
     if (e instanceof DOMException) {
       // DOMException will be thrown if WebUSB device is unplugged during Ledger UI event
-      r = true;
+      r = true
     }
-  } catch (e) {
-    r = false;
+  } catch (err) {
+    r = false
   }
   try {
     if (e.name === 'TransportStatusError' || e instanceof TransportStatusError || e.name === 'TransportOpenUserCancelled') {
-      r = true;
+      r = true
     }
-  } catch (e) {
-    r = false;
+  } catch (err) {
+    r = false
   }
-  return r;
+  return r
 }
 
 export async function createTransport() {
-  var transport = null;
-  transport = await TransportWebUSB.create();
-  console.log('USING WEBUSB');
-  var qrl = await new Qrl(transport);
+  let transport = null
+  transport = await TransportWebUSB.create()
+  console.log('USING WEBUSB')
+  const qrl = await new Qrl(transport)
   return qrl
 }
 
 // Client side function to detmine if running within Electron
-export function isElectrified () {
+export function isElectrified() {
   const userAgent = navigator.userAgent.toLowerCase()
   if (userAgent.indexOf(' electron/') > -1) {
     return true
@@ -484,7 +486,7 @@ getBalance = (getAddress, callBack) => {
         // prefer to rely on state tracked in ledger device
         console.log('-- Getting QRL Ledger Nano App State --')
         if (isElectrified()) {
-          Meteor.call('ledgerGetState', [], (err, data) => {
+          Meteor.call('ledgerGetState', [], (gsErr, data) => {
             console.log('> Got Ledger Nano State from USB')
             Session.set('otsKeyEstimate', data.xmss_index)
             // Get remaining OTS Keys
@@ -519,6 +521,7 @@ getBalance = (getAddress, callBack) => {
         }
       }
     }
+    updateBalanceField()
   })
 }
 
@@ -542,14 +545,49 @@ loadAddressTransactions = (a, p) => {
   Session.set('loadingTransactions', true)
 
   wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
-    // console.log('err:', err)
+    if (err) { console.log('err:', err) }
     // console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
       Session.set('errorLoadingTransactions', true)
     } else {
       Session.set('active', p)
-      Session.set('addressTransactions', res.transactions_detail)
+
+      const transactions = []
+      const thisAddress = a
+      _.each(res.transactions_detail, (transaction) => {
+        const y = transaction
+        // Update timestamp from unix epoch to human readable time/date.
+        if (moment.unix(transaction.timestamp).isValid()) {
+          y.timestamp = moment.unix(transaction.timestamp).format('HH:mm D MMM YYYY')
+        } else {
+          y.timestamp = 'Unconfirmed Tx'
+        }
+        // Set total received amount if sent to this address
+        let thisReceivedAmount = 0
+        let totalSent = 0
+        if (y.tx.transactionType === 'transfer') {
+          _.each(y.tx.transfer.addrs_to, (output, index) => {
+            totalSent += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+            if (output === thisAddress) {
+              thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+            }
+          })
+        }
+        if (y.tx.transactionType === 'transfer_token') {
+          // FIXME: sort token decimals here
+          _.each(y.tx.transfer_token.addrs_to, (output, index) => {
+            totalSent += parseFloat(y.tx.transfer_token.amounts[index])
+            if (output === thisAddress) {
+              thisReceivedAmount += parseFloat(y.tx.transfer_token.amounts[index])
+            }
+          })
+        }
+        y.thisReceivedAmount = numberToString(thisReceivedAmount)
+        y.totalTransferred = totalSent
+        transactions.push(y)
+        Session.set('addressTransactions', transactions)
+      })
       Session.set('loadingTransactions', false)
       Session.set('errorLoadingTransactions', false)
       $('#noTransactionsFound').show()
@@ -557,72 +595,58 @@ loadAddressTransactions = (a, p) => {
   })
 }
 
-getTokenBalances = (getAddress, callback) => {
+const getTokenBalances = (getAddress, callback) => {
   const request = {
-    address: addressForAPI(getAddress),
+    address: Buffer.from(getAddress.substring(1), 'hex'),
     network: selectedNetwork(),
   }
-
-  wrapMeteorCall('getAddressState', request, (err, res) => {
+  const tokensHeld = []
+  Meteor.call('getFullAddressState', request, (err, res) => {
     if (err) {
-      console.log('err: ', err)
-      Session.set('transferFromBalance', 0)
-      Session.set('transferFromTokenState', [])
-      Session.set('address', 'Error')
-      Session.set('otsKeyEstimate', 0)
-      Session.set('otsKeysRemaining', 0)
+      // TODO - Error handling
     } else {
-      if (res.state.address !== '') { // eslint-disable-line
-        const tokensHeld = []
-
-        // Now for each res.state.token we find, go discover token name and symbol
-        for (let i in res.state.tokens) { // eslint-disable-line
-          const tokenHash = i
-          const tokenBalance = res.state.tokens[i]
+      // Now for each res.state.token we find, go discover token name and symbol
+      // eslint-disable-next-line
+      if (res.state.address !== '') {
+        Object.keys(res.state.tokens).forEach((key) => {
+          const tokenHash = key
+          const tokenBalance = res.state.tokens[key]
 
           const thisToken = {}
 
-          const txnRequest = {
-            query: tokenHash,
+          const req = {
+            query: Buffer.from(tokenHash, 'hex'),
             network: selectedNetwork(),
           }
 
-          wrapMeteorCall('getTxnHash', txnRequest, (err, res) => { // eslint-disable-line
+          Meteor.call('getObject', req, (objErr, objRes) => {
             if (err) {
-              console.log('err:', err)
-              Session.set('tokensHeld', [])
+              // TODO - Error handling here
+              console.log('err:', objErr)
             } else {
               // Check if this is a token hash.
-              if (res.transaction.tx.transactionType !== 'token') { // eslint-disable-line
-                console.log('err: ', err)
-                Session.set('tokensHeld', [])
+              // eslint-disable-next-line
+              if (objRes.transaction.tx.transactionType !== 'token') {
+                // TODO - Error handling here
               } else {
-                const tokenDetails = res.transaction.tx.token
+                const tokenDetails = objRes.transaction.tx.token
 
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
-                thisToken.symbol = bytesToString(tokenDetails.symbol)
-                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals) // eslint-disable-line
+                thisToken.symbol = bytesToString(tokenDetails.symbol) // eslint-disable-next-line
+                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals)
                 thisToken.decimals = tokenDetails.decimals
-
                 tokensHeld.push(thisToken)
 
                 Session.set('tokensHeld', tokensHeld)
               }
             }
           })
-        }
-        callback()
-
-        // When done hide loading section
-        Session.set('errorLoadingTransactions', false)
-        $('#loading').hide()
-      } else {
-        // Wallet not found, put together an empty response
-        callback()
+        })
       }
     }
   })
+  $('#tokenBalancesLoading').hide()
 }
 
 updateBalanceField = () => {
@@ -633,7 +657,9 @@ updateBalanceField = () => {
     if (selectedType === 'quanta') {
       Session.set('balanceAmount', Session.get('transferFromBalance'))
       Session.set('balanceSymbol', 'Quanta')
+      $('#showMessageField').show()
     } else {
+      $('#showMessageField').hide()
       // First extract the token Hash
       const tokenHash = selectedType.split('-')[1]
 
@@ -646,6 +672,7 @@ updateBalanceField = () => {
       })
     }
   } catch (error) {
+    console.log('error caught:', error)
     // not in main transfer page, so use transferFromBalance session
     Session.set('balanceAmount', Session.get('transferFromBalance'))
     Session.set('balanceSymbol', 'Quanta')
@@ -659,7 +686,16 @@ refreshTransferPage = (callback) => {
   waitForQRLLIB(function () {
     // Set transfer from address
     Session.set('transferFromAddress', getXMSSDetails().address)
+    // Get Tokens and Balances
+    getTokenBalances(getXMSSDetails().address, function () {
+      // Update balance field
+      updateBalanceField()
 
+      $('#tokenBalancesLoading').hide()
+
+      // Render dropdown
+      $('.ui.dropdown').dropdown()
+    })
     // Get address balance
     getBalance(getXMSSDetails().address, function () {
       // Load Wallet Transactions
@@ -678,17 +714,6 @@ refreshTransferPage = (callback) => {
       Session.set('fetchedTx', false)
       loadAddressTransactions(getXMSSDetails().address, 1)
       callback()
-    })
-
-    // Get Tokens and Balances
-    getTokenBalances(getXMSSDetails().address, function () {
-      // Update balance field
-      updateBalanceField()
-
-      $('#tokenBalancesLoading').hide()
-
-      // Render dropdown
-      $('.ui.dropdown').dropdown()
     })
   })
 }
