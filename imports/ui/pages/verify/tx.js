@@ -24,7 +24,7 @@ Template.appVerifyTxid.onRendered(() => {
   if (thisTxId) {
     wrapMeteorCall('txhash', request, (err, res) => {
       if (err) {
-        Session.set('txhash', { error: err, id: thisTxId })
+        Session.set('txhash', { error: err.message, id: thisTxId })
       } else {
         Session.set('txhash', res)
       }
@@ -64,9 +64,7 @@ Template.appVerifyTxid.helpers({
     return this.tx.transfer.message_data
   },
   tx() {
-    const txhash = Session.get('txhash').transaction
-    const signature = txhash.tx.signature // eslint-disable-line
-    txhash.tx.ots_key = parseInt(signature.substring(0, 8), 16)
+    const txhash = Session.get('txhash')
     return txhash
   },
   bech32() {

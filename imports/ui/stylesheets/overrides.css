@@ -770,3 +770,6 @@ div.ui.negative.button:hover {
 .json-formatter-null {
   color:#a97301 !important;
 }
+#passphraseArea {
+  color: #fff !important;
+}
