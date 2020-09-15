@@ -21,9 +21,10 @@ Template.appVerifyTxid.onRendered(() => {
     network: selectedNetwork(),
   }
 
-  if (thisTxId) {
+  if (thisTxId && thisTxId.length === 64) {
     wrapMeteorCall('txhash', request, (err, res) => {
       if (err) {
+        console.log(err)
         Session.set('txhash', { error: err.message, id: thisTxId })
       } else {
         Session.set('txhash', res)
@@ -46,6 +47,9 @@ Template.appVerifyTxid.onRendered(() => {
       }
     })
   }
+  if (thisTxId.length !== 64) {
+    Session.set('txhash', { error: 'Invalif txhash', id: thisTxId })
+  }
 })
 
 
@@ -64,8 +68,12 @@ Template.appVerifyTxid.helpers({
     return this.tx.transfer.message_data
   },
   tx() {
-    const txhash = Session.get('txhash')
-    return txhash
+    try {
+      const txhash = Session.get('txhash').transaction
+      return txhash
+    } catch (e) {
+      return false
+    }
   },
   bech32() {
     if (Session.get('addressFormat') === 'bech32') {
@@ -95,16 +103,20 @@ Template.appVerifyTxid.helpers({
     return '...'
   },
   amount() {
-    if (this.tx.coinbase) {
-      return numberToString(this.tx.coinbase.amount / SHOR_PER_QUANTA)
+    try {
+      if (this.tx.coinbase) {
+        return numberToString(this.tx.coinbase.amount / SHOR_PER_QUANTA)
+      }
+      if (this.tx.transactionType === 'transfer') {
+        return `${numberToString(this.tx.transfer.totalTransferred)} Quanta`
+      }
+      if (this.tx.transactionType === 'transfer_token') {
+        return `${numberToString(this.tx.transfer_token.totalTransferred)} ${this.tx.transfer_token.symbol}`
+      }
+      return ''
+    } catch (e) {
+      return false
     }
-    if (this.tx.transactionType === 'transfer') {
-      return `${numberToString(this.tx.transfer.totalTransferred)} Quanta`
-    }
-    if (this.tx.transactionType === 'transfer_token') {
-      return `${numberToString(this.tx.transfer_token.totalTransferred)} ${this.tx.transfer_token.symbol}`
-    }
-    return ''
   },
   isConfirmed() {
     try {
@@ -129,70 +141,108 @@ Template.appVerifyTxid.helpers({
     return moment(x).format('HH:mm D MMM YYYY')
   },
   color() {
-    if (this.tx.transactionType === 'coinbase') {
-      return 'teal'
+    try {
+      if (this.tx.transactionType === 'coinbase') {
+        return 'teal'
+      }
+      if (this.tx.transactionType === 'stake') {
+        return 'red'
+      }
+      if (this.tx.transactionType === 'transfer') {
+        return 'yellow'
+      }
+      return 'sky'
+    } catch (e) {
+      return false
     }
-    if (this.tx.transactionType === 'stake') {
-      return 'red'
-    }
-    if (this.tx.transactionType === 'transfer') {
-      return 'yellow'
-    }
-    return 'sky'
   },
   isToken() {
-    if (this.explorer.type === 'CREATE TOKEN') {
-      return true
+    try {
+      if (this.explorer.type === 'CREATE TOKEN') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isTransfer() {
-    if (this.explorer.type === 'TRANSFER') {
-      return true
+    try {
+      if (this.explorer.type === 'TRANSFER') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isTokenTransfer() {
-    if (this.explorer.type === 'TRANSFER TOKEN') {
-      return true
+    try {
+      if (this.explorer.type === 'TRANSFER TOKEN') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isNotCoinbase() {
-    if (this.explorer.type !== 'COINBASE') {
-      return true
+    try {
+      if (this.explorer.type !== 'COINBASE') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isMessage() {
-    if (this.explorer.type === 'MESSAGE') {
-      return true
+    try {
+      if (this.explorer.type === 'MESSAGE') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isDocumentNotarisation() {
-    if (this.explorer.type === 'DOCUMENT_NOTARISATION') {
-      return true
+    try {
+      if (this.explorer.type === 'DOCUMENT_NOTARISATION') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isMultiSigCreateTxn() {
-    console.log(this.explorer)
-    if (this.explorer.type === 'MULTISIG_CREATE') {
-      return true
+    try {
+      if (this.explorer.type === 'MULTISIG_CREATE') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isMultiSigVoteTxn() {
-    console.log(this.explorer)
-    if (this.explorer.type === 'MULTISIG_VOTE') {
-      return true
+    try {
+      if (this.explorer.type === 'MULTISIG_VOTE') {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
   isNotMessage() {
-    if ((this.explorer.type !== 'MESSAGE') && (this.explorer.type !== 'DOCUMENT_NOTARISATION')) {
-      return true
+    try {
+      if ((this.explorer.type !== 'MESSAGE') && (this.explorer.type !== 'DOCUMENT_NOTARISATION')) {
+        return true
+      }
+    } catch (e) {
+      return false
     }
     return false
   },
