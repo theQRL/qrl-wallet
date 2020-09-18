@@ -53,7 +53,7 @@ function generateWallet() {
       if (newAddress !== '') {
         // close existing wallet if open
         resetWalletStatus()
-        
+
         Session.set('passphrase', passphrase)
         Session.set('xmssHeight', xmssHeight)
 
