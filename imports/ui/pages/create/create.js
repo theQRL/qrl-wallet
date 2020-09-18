@@ -51,6 +51,9 @@ function generateWallet() {
 
       // If it worked, send the user to the address page.
       if (newAddress !== '') {
+        // close existing wallet if open
+        resetWalletStatus()
+
         Session.set('passphrase', passphrase)
         Session.set('xmssHeight', xmssHeight)
 
