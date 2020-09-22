@@ -5,7 +5,7 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import { isElectrified, createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
+import { isElectrified, createTransport, ledgerReturnedError, checkIfLedgerTreesMatch } from '../../../../startup/client/functions'
 // import async from 'async'
 import './update.html'
 
@@ -119,4 +119,8 @@ Template.appXmssIndexUpdate.helpers({
     transferFrom.address = hexOrB32(Session.get('transferFromAddress'))
     return transferFrom
   },
+})
+
+Template.appXmssIndexUpdate.onRendered(() => {
+  checkIfLedgerTreesMatch()
 })
