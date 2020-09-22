@@ -1055,3 +1055,56 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // We should not get this far - return false as failsafe
   return false
 }
+
+export function checkIfLedgerTreesMatch() {
+  const appLedger = hexOrB32(Session.get('transferFromAddress'))
+  console.log('appLedger', appLedger)
+  console.log('-- Getting QRL Ledger Nano Public Key --')
+  if (isElectrified()) {
+    Meteor.call('ledgerPublicKey', [], (err, data) => {
+      console.log('> Got Ledger Public Key from USB')
+      // Convert Uint to hex
+      const pkHex = Buffer.from(data.public_key).toString('hex')
+      // Get address from pk
+      const qAddress = QRLLIB.getAddress(pkHex)
+      const ledgerQAddress = `Q${qAddress}`
+      console.log(ledgerQAddress)
+      if (appLedger !== ledgerQAddress) {
+        console.log('Trees switched: logout!')
+        Session.set('closedWithError', 'XMSS-trees-change')
+        FlowRouter.go('/close')
+      }
+      // callback(null, data)
+    })
+  } else {
+    createTransport().then(QrlLedger => {
+      QrlLedger.publickey().then(data => {
+        if (ledgerReturnedError()) {
+          console.log('-- Ledger error --')
+        } else {
+          console.log('> Got Ledger Public Key from WebUSB')
+          // Convert Uint to hex
+          const pkHex = Buffer.from(data.public_key).toString('hex')
+          // Get address from pk
+          const qAddress = QRLLIB.getAddress(pkHex)
+          const ledgerQAddress = `Q${qAddress}`
+          console.log(ledgerQAddress)
+          if (appLedger !== ledgerQAddress) {
+            console.log('Trees switched: logout!')
+            Session.set('closedWithError', 'XMSS-trees-change')
+            FlowRouter.go('/close')
+          }
+          // callback(null, data)
+        }
+      }, e => {
+        console.log(`-- Ledger error: ${e} --`)
+      }).catch(e => {
+        console.log(`-- Ledger error: ${e} --`)
+      }).catch(e => {
+        console.log(`-- Ledger error: ${e} --`)
+      })
+    }, e => {
+      console.log(`-- Ledger error: ${e} --`)
+    })
+  }
+}
