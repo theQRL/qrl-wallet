@@ -10,4 +10,24 @@ import './close.html'
 Template.appAddressClose.onRendered(() => {
   XMSS_OBJECT = null // eslint-disable-line
   resetWalletStatus()
+  if (Session.get('closedWithError')) {
+    $('#closedWithError').modal({
+      onApprove: () => {
+        Session.set('closedWithError', false)
+      },
+      onDeny: () => {
+        Session.set('closedWithError', false)
+      },
+      onHide: () => {
+        Session.set('closedWithError', false)
+      },
+    }).modal('show')
+  }
 })
+
+// Template.appAddressClose.events({
+//   'click .green': () => {
+//     console.log('dismiss')
+//     $('#closedWithError').modal().modal('hide')
+//   },
+// })
