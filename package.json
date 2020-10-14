@@ -22,7 +22,7 @@
     "grpc": "^1.24.2",
     "json-formatter-js": "^2.2.0",
     "ledger-qrl-js": "^0.4.3",
-    "mathjs": "4.0.1",
+    "mathjs": "7.5.1",
     "meteor-babel-helpers": "0.0.3",
     "meteor-node-stubs": "^0.2.11",
     "qrllib": "^1.0.4",
