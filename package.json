@@ -9,7 +9,7 @@
     "@theqrl/explorer-helpers": "2.0.2",
     "@theqrl/hw-app-qrl": "^4.60.2",
     "@theqrl/validate-qrl-address": "^3.0.0",
-    "@theqrl/wallet-helpers": "^2.0.0",
+    "@theqrl/wallet-helpers": "^2.1.0",
     "aes256": "^1.0.2",
     "async": "^2.6.3",
     "babel-polyfill": "^6.26.0",
