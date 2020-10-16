@@ -8,6 +8,7 @@
 import aes256 from 'aes256'
 import async from 'async'
 import './open.html'
+import helpers from '@theqrl/wallet-helpers'
 
 import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'
 
@@ -389,7 +390,10 @@ function unlockWallet() {
       // eslint-disable-next-line
       return function (e) {
         try {
-          const walletDetail = JSON.parse(e.target.result)
+          let walletDetail = JSON.parse(e.target.result)
+          if (helpers.getWalletFileType(walletDetail) === 'PYTHON-NODE') {
+            walletDetail = helpers.pythonNodeToWebWallet(walletDetail)
+          }
 
           // Check if wallet file is deprecated
           if (isWalletFileDeprecated(walletDetail)) {
