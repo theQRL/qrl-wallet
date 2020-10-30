@@ -43,7 +43,7 @@ jobs:
       - run:
           name: install snyk globally
           command: |
-            npm i snyk -g
+            npm i snyk -g && sudo chown -R $USER:$(id -gn $USER) /Users/distiller/.config
       - run:
           name: install dependencies
           command: |
