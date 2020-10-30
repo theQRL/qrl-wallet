@@ -41,6 +41,10 @@ jobs:
       #     command: |
       #       npm i npm@latest -g
       - run:
+          name: install snyk globally
+          command: |
+            npm i snyk -g
+      - run:
           name: install dependencies
           command: |
             rm package-lock.json && rm .electrify/package-lock.json && npm install
