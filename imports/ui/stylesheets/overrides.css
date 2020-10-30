@@ -1,10 +1,32 @@
-@import url('https://fonts.cdnfonts.com/css/dinpro-medium');
-@import url('https://fonts.cdnfonts.com/css/dinpro');
+@font-face {
+  font-family: 'Alte DIN 1451 Mittelschrift';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/AlteDIN1451Mittelschrift/din1451alt.eot'); /* IE9 Compat Modes */
+  src: local('Alte DIN 1451 Mittelschrift'), local('AlteDIN1451Mittelschrift'),
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt.woff') format('woff'), /* Modern Browsers */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt.svg#AlteDIN1451Mittelschrift') format('svg'); /* Legacy iOS */
+}
 
+@font-face {
+  font-family: 'Alte DIN 1451 Mittelschrift';
+  font-style: bold;
+  font-weight: 600;
+  src: url('/fonts/AlteDIN1451Mittelschrift/din1451alt_bold.eot'); /* IE9 Compat Modes */
+  src: local('Alte DIN 1451 Mittelschrift'), local('AlteDIN1451Mittelschrift'),
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt_bold.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt_bold.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt_bold.woff') format('woff'), /* Modern Browsers */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt_bold.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('/fonts/AlteDIN1451Mittelschrift/din1451alt_bold.svg#AlteDIN1451Mittelschrift') format('svg'); /* Legacy iOS */
+}
 
 body {
   background: #0B181E;
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   -webkit-font-feature-settings: "liga" 0;
   -moz-font-feature-settings: "liga" 0;
   -ms-font-feature-settings: "liga" 0;
@@ -217,7 +239,7 @@ td .unbreakable {
 .logoArea {
   background-color: #FFA729 !important;
   color: #fff !important;
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   font-weight: bold;
   text-align: center;
   font-size: 24px;
@@ -234,7 +256,7 @@ td .unbreakable {
 .main-menu-btn {
   font-weight: bold;
   color: #EAEFF5 !important;
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
 }
 .main-menu-btn .icon {
   font-weight: bold;
@@ -260,7 +282,7 @@ td .unbreakable {
   font-weight: bold;
   background-color: #6D7478 !important;
   /* color: #000 !important; */
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
 }
 .ui.inverted.menu .active.item:hover {
   /* color: #000 !important; */
@@ -335,7 +357,7 @@ td .unbreakable {
   border-radius: 0px !important;
   color: #fff;
   margin: 0px !important;
-  font-family: 'DinProBold', Tahoma, Geneva, sans-serif;
+  font-family: 'Alte DIN 1451 MittelschriftBold', Tahoma, Geneva, sans-serif;
   padding: 15px !important;
   font-size: 1.3em !important;
 }
@@ -345,7 +367,7 @@ td .unbreakable {
 }
 .ui .pageHeader  .content .sub.header {
   color: #fff !important;
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
 }
 
 
@@ -371,7 +393,7 @@ td .unbreakable {
 }
 
 a.item {
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
 }
 
 .ui.tabular.menu .active.item {
@@ -399,7 +421,7 @@ input {
   box-shadow: unset !important;
   color: #FFFFFF !important;
   border-radius: 0px !important;
-  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   font-size: 14px;
   -webkit-transition: opacity .2s ease-in-out,color .2s ease-in-out,background-color .2s ease-in-out;
@@ -415,7 +437,7 @@ input {
     box-shadow: unset !important;
     color: #FFF !important;
     border-radius: 0px !important;
-    font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
+    font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
     text-transform: uppercase;
     font-size: 14px;
     -webkit-transition: all .2s linear;
@@ -433,7 +455,7 @@ input {
   border: solid 1px #0B181E !important;
   color: #0a1720 !important;
   border-radius: 0px !important;
-  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   font-size: 14px;
 }
@@ -448,7 +470,7 @@ input {
   box-shadow: 0 !important;
   border: solid 1px #0B181E !important;
   border-radius: 0px !important;
-  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
 }
 
 .ui.selection.dropdown div.text {
@@ -459,7 +481,7 @@ input {
 .ui.inverted.segment, .ui.primary.inverted.segment {
   background-color: #3C464B !important;
   box-shadow: 0 !important;
-  font-family: 'DinPro-Medium', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   text-transform: uppercase;
   border-radius: 0px !important;
   color: #EAEFF5 !important;
@@ -518,7 +540,7 @@ input {
 }
 
 .mobile-wallet > h4.ui.header, h3.ui.header {
- font-family: DinPro, Tahoma, Geneva, sans-serif;
+ font-family: Alte DIN 1451 Mittelschrift, Tahoma, Geneva, sans-serif;
  font-size: 1.5em;
  text-align: center;
  font-weight: 300;
@@ -615,7 +637,7 @@ margin-right: 5% !important;
   color: #EAEFF5 !important;
 }
 h1, h2, h3, h4, h5 {
-  font-family: 'DINPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   color: #EAEFF5 !important;
 }
 #transferFormFromAddress {
@@ -635,7 +657,7 @@ small {
   color: #EAEFF5 !important;
 }
 div.value {
-  font-family: 'DinPro', Tahoma, Geneva, sans-serif !important;
+  font-family: 'Alte DIN 1451 Mittelschrift', Tahoma, Geneva, sans-serif !important;
   color: #EAEFF5 !important;
 }
 div.label {
