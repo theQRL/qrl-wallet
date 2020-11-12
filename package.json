@@ -19,7 +19,7 @@
     "crypto-js": "^3.2.1",
     "electrify-qrl": "^0.2.3",
     "fibers": "^3.0.0",
-    "grpc": "^1.24.2",
+    "grpc": "^1.24.4",
     "json-formatter-js": "^2.2.0",
     "ledger-qrl-js": "^0.4.3",
     "mathjs": "4.0.1",
