@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.14.1
+version: v1.13.5
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   'npm:shelljs:20140723':
@@ -22,21 +22,21 @@ ignore:
     - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
-      meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
-        reason: None given
-        expires: '2020-09-28T14:57:26.056Z'
     - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
         reason: None given
         expires: '2020-03-30T09:35:41.982Z'
-      meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
-        reason: None given
-        expires: '2020-09-28T14:57:26.056Z'
     - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
         reason: None given
         expires: '2020-05-05T09:42:09.703Z'
     - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
         reason: None given
         expires: '2020-05-05T09:42:09.703Z'
+    - meteor-node-stubs > crypto-browserify > browserify-sign > elliptic:
+        reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
+    - meteor-node-stubs > crypto-browserify > create-ecdh > elliptic:
+        reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
   'npm:plist:20180219':
     - electrify-qrl > electron-packager > plist:
         reason: None given
@@ -45,9 +45,6 @@ ignore:
     - grpc > node-pre-gyp > mkdirp > minimist:
         reason: None given
         expires: '2020-05-05T09:42:09.702Z'
-      ledger-qrl-js > mocha > mkdirp > minimist:
-        reason: None given
-        expires: '2020-09-28T14:57:26.056Z'
     - grpc > node-pre-gyp > tar > mkdirp > minimist:
         reason: None given
         expires: '2020-05-05T09:42:09.702Z'
@@ -60,6 +57,9 @@ ignore:
     - xolvio-sync-webdriverio > webdriverio > optimist > minimist:
         reason: None given
         expires: '2020-05-05T09:42:09.703Z'
+    - ledger-qrl-js > mocha > mkdirp > minimist:
+        reason: None given
+        expires: '2020-09-28T14:57:26.056Z'
   'npm:hoek:20180212':
     - phantomjs-prebuilt > request > hawk > cryptiles > boom > hoek:
         reason: None given

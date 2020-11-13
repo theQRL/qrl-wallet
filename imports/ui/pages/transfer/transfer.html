@@ -436,8 +436,8 @@
         <!-- Confirm Transaction Area -->
         <div id="confirmTransactionArea" style="display: none;">
 
-          <div class="ui icon message">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Confirm Send
@@ -512,8 +512,8 @@
 
         <!-- Confirm Token Transaction Area -->
         <div id="confirmTokenTransactionArea" style="display: none;">
-          <div class="ui icon message">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+          <div class="ui icon message transactionRecord">
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Confirm Send
@@ -589,7 +589,7 @@
         <div id="transactionResultArea" style="display: none;">
 
           <div class="ui icon message transactionRecord">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Sent
@@ -674,7 +674,7 @@
         <div id="tokenTransactionResultArea" style="display: none;">
 
           <div class="ui icon message transactionRecord">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Sent
@@ -879,9 +879,9 @@
           {{#if isTransfer this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             {{#if isMyAddress this.addr_from}}
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             {{else}}
-            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            <img class="transactionTypeImage" src="/img/icons/receive.svg" />
             {{/if}}
             <div class="content">
               <div class="header">
@@ -910,7 +910,7 @@
 
           {{#if isTokenCreation this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Token Creation - {{this.tx.token.name}} ({{this.tx.token.symbol}}) | {{this.timestamp}}
@@ -928,9 +928,9 @@
           {{#if isTokenTransfer this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
             {{#if isMyAddress this.addr_from}}
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             {{else}}
-            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            <img class="transactionTypeImage" src="/img/icons/receive.svg" />
             {{/if}}
             <div class="content">
               <div class="header">
@@ -959,7 +959,7 @@
 
           {{#if isCoinbaseTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/receive.png" />
+            <img class="transactionTypeImage" src="/img/icons/receive.svg" />
             <div class="content">
               <div class="header">
                 Coinbase Received | {{this.timestamp}}
@@ -976,7 +976,7 @@
 
           {{#if isSlaveTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Slave Transaction | {{this.timestamp}}
@@ -993,7 +993,7 @@
 
           {{#if isLatticePKTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Lattice Public Key | {{this.timestamp}}
@@ -1010,7 +1010,7 @@
 
           {{#if isCreateMultiSigTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Multisig Create | {{this.timestamp}}
@@ -1027,7 +1027,7 @@
 
           {{#if isSpendMultiSigTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Multisig Spend | {{this.timestamp}}
@@ -1044,7 +1044,7 @@
 
           {{#if isVoteMultiSigTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Multisig Vote | {{this.timestamp}}
@@ -1061,7 +1061,7 @@
 
           {{#if isMessageTxn this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Message | {{this.timestamp}}
@@ -1078,7 +1078,7 @@
 
           {{#if isDocumentNotarisation this.tx.transactionType}}
           <div class="ui icon message transactionRecord" data-txhash="{{this.tx.transaction_hash}}">
-            <img class="transactionTypeImage" src="/img/icons/send.png" />
+            <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
                 Document Notarisation | {{this.timestamp}}

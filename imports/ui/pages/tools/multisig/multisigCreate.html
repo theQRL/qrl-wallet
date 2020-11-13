@@ -45,9 +45,9 @@
   </div>
 
   <div id="generateTransactionArea">
-    <p><strong>Creator:</strong> {{ creator }}</p>
+    <p style="word-break: break-all;"><strong>Creator:</strong> {{ creator }}</p>
     <div class="ui stackable two column grid">
-      <div class="six wide column">
+      <div class="eight wide column">
         <div id="transferRecipients">
           <div>
             <div class="field">
@@ -89,7 +89,7 @@
           </button>
         </div>
       </div>
-      <div class="six wide column">
+      <div class="eight wide column">
         <div class="ui form">
         <div class="field">
           <label>Threshold to spend</label>
@@ -181,7 +181,7 @@
   <!-- Confirm Transaction Area -->
   <div id="confirmTransactionArea" style="display: none;">
     <div class="ui icon message transactionRecord">
-      <img class="transactionTypeImage" src="/img/icons/send.png" />
+      <img class="transactionTypeImage" src="/img/icons/send.svg" />
       <div class="content">
         <div class="header">
           Confirm Multisig Wallet Creation
@@ -260,10 +260,10 @@
               <div id="transactionResultArea" style="display: none;">
 
                 <div class="ui icon message transactionRecord">
-                  <img class="transactionTypeImage" src="/img/icons/send.png" />
+                  <img class="transactionTypeImage" src="/img/icons/send.svg" />
                   <div class="content">
                     <div class="header">
-                      MultiSig Wallet Created<br><small>{{msaddress}}</small>
+                      MultiSig Wallet Created<br><small style="word-break: break-all; text-transform: none !important;">{{msaddress}}</small>
                     </div>
                   </div>
                 </div>

@@ -334,7 +334,7 @@
           <div id="generateTransactionArea">
             <!-- <form id="generateTransactionForm" class="ui form"> -->
               <div class="ui stackable two column grid">
-              <div class="six wide column">
+              <div class="eight wide column">
               <div id="transferRecipients">
                 <div class="ui form">
                   <div class="field">
@@ -369,7 +369,7 @@
                 </button>
               </div>
             </div>
-            <div class="six wide column">
+            <div class="eight wide column">
               <div class="ui form">
                   <div class="field">
                       <label>Expiry block number</label>
@@ -433,7 +433,7 @@
           <div id="confirmTransactionArea" style="display: none;">
   
             <div class="ui icon message transactionRecord">
-              <img class="transactionTypeImage" src="/img/icons/send.png" />
+              <img class="transactionTypeImage" src="/img/icons/send.svg" />
               <div class="content">
                 <div class="header">
                   Confirm MultiSig Spend
@@ -499,7 +499,7 @@
           <div id="transactionResultArea" style="display: none;">
   
             <div class="ui icon message transactionRecord">
-              <img class="transactionTypeImage" src="/img/icons/send.png" />
+              <img class="transactionTypeImage" src="/img/icons/send.svg" />
               <div class="content">
                 <div class="header">
                   Spend proposal sent
@@ -604,13 +604,13 @@
             <th>Balance (Quanta)</th>
           </tr>
         </thead>
-        <tbody style="font-family: 'Hack';">
+        <tbody>
           {{#each msAddresses}}
             <tr>
-              <td>
+              <td style="color: #000;">
                 {{this.address}}
               </td>
-              <td>
+              <td style="color: #000;">
                 {{this.balance}}
               </td>
             </tr>

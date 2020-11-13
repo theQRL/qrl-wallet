@@ -20,6 +20,8 @@ BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
 BrowserPolicy.content.allowFontOrigin('cdn.jsdelivr.net')
 BrowserPolicy.content.allowStyleOrigin('cdn.jsdelivr.net')
 BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
+BrowserPolicy.content.allowFontOrigin('fonts.cdnfonts.com')
+BrowserPolicy.content.allowStyleOrigin('fonts.cdnfonts.com')
 BrowserPolicy.content.allowFontDataUrl()
 BrowserPolicy.content.allowDataUrlForAll()
 
@@ -1829,7 +1831,6 @@ Meteor.methods({
     let output
     // asynchronous call to API
     const response = Meteor.wrapAsync(getTxnHash)(request)
-
     if (response.transaction.tx.transactionType === 'transfer_token') {
       // Request Token Decimals / Symbol
       const symbolRequest = {
