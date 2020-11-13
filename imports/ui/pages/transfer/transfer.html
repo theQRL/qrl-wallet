@@ -447,7 +447,17 @@
               {{transactionConfirmationAmount}} Quanta
             </div>
           </div>
-
+          {{#if includesMessage}}
+          <form>
+            <div class="field">
+              <label>Message</label>
+              <div class="ui visible message">
+                {{messageText}}
+              </div>
+            </div>
+          </form>
+          <p>&nbsp;</p>
+          {{/if}}
           <form>
             <div class="field">
               <label>Recipients</label>
