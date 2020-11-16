@@ -394,6 +394,7 @@ function unlockWallet() {
           if (helpers.getWalletFileType(walletDetail) === 'PYTHON-NODE') {
             walletDetail = helpers.pythonNodeToWebWallet(walletDetail)
           }
+
           // Check if wallet file is deprecated
           if (isWalletFileDeprecated(walletDetail)) {
             $('#updateWalletFileFormat').modal({

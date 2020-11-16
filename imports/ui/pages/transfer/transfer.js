@@ -917,6 +917,7 @@ Template.appTransfer.events({
     event.preventDefault()
     event.stopPropagation()
     const txhash = $(event.target).closest('.transactionRecord').attr('data-txhash')
+
     FlowRouter.go(`/verify-txid/${txhash}`)
   },
   'click #showMessageField': (event) => {
@@ -1068,6 +1069,20 @@ Template.appTransfer.events({
 })
 
 Template.appTransfer.helpers({
+  includesMessage() {
+    try {
+      const m = Session.get('transactionConfirmationMessage')
+      if (m.length > 0) {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
+  },
+  messageText() {
+    return Buffer.from(Session.get('transactionConfirmationMessage')).toString()
+  },
   tokenTotalTransferred() {
     const num = this.totalTransferred
     const { decimals } = this.tx.transfer_token
@@ -1306,7 +1321,11 @@ Template.appTransfer.helpers({
     return tokens
   },
   balanceAmount() {
-    return Session.get('balanceAmount')
+    const b = Session.get('balanceAmount')
+    if (b !== '') {
+      return b
+    }
+    return Session.get('transferFromBalance')
   },
   balanceSymbol() {
     return Session.get('balanceSymbol')

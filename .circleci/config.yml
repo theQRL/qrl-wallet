@@ -2,7 +2,7 @@ version: 2
 jobs:
   build_wallet:
     macos:
-      xcode: "9.0"
+      xcode: "12.2.0"
 
     steps:
       # Checkout repo
@@ -40,6 +40,10 @@ jobs:
       #     name: update npm to latest
       #     command: |
       #       npm i npm@latest -g
+      - run:
+          name: install snyk globally
+          command: |
+            npm i snyk -g && sudo chown -R $USER:$(id -gn $USER) /Users/distiller/.config
       - run:
           name: install dependencies
           command: |
