@@ -6,6 +6,9 @@
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import './mobile.html'
+import {
+  isElectrified,
+} from '../../startup/client/functions'
 
 BlazeLayout.setRoot('body')
 
@@ -287,5 +290,61 @@ Template.mobile.helpers({
   },
   customNodeName() {
     return LocalStore.get('customNodeName')
+  },
+  /* Active Menu Item Helpers */
+  menuNewWalletActive() {
+    if (
+      (FlowRouter.getRouteName() === 'App.home')
+      || (FlowRouter.getRouteName() === 'App.create')
+      || (FlowRouter.getRouteName() === 'App.createAddress')) {
+      return 'active'
+    }
+    return ''
+  },
+  menuOpenWalletActive() {
+    if (
+      (FlowRouter.getRouteName() === 'App.open')
+      || (FlowRouter.getRouteName() === 'App.opened')) {
+      return 'active'
+    }
+    return ''
+  },
+  menuCloseWalletActive() {
+    if (
+      (FlowRouter.getRouteName() === 'App.close')
+      || (FlowRouter.getRouteName() === 'App.closed')) {
+      return 'active'
+    }
+    return ''
+  },
+  menuTransferActive() {
+    if (
+      (FlowRouter.getRouteName() === 'App.transfer')) {
+      return 'active'
+    }
+    return ''
+  },
+  menuTokensActive() {
+    if (
+      (FlowRouter.getRouteName() === 'App.tokens')
+      || (FlowRouter.getRouteName() === 'App.tokensView')
+      || (FlowRouter.getRouteName() === 'App.tokensCreate')
+      || (FlowRouter.getRouteName() === 'App.tokenCreationConfirm')
+      || (FlowRouter.getRouteName() === 'App.tokenCreationResult')
+      || (FlowRouter.getRouteName() === 'App.tokensTransfer')
+      || (FlowRouter.getRouteName() === 'App.tokensTransferLoad')
+      || (FlowRouter.getRouteName() === 'App.tokensTransferConfirm')
+      || (FlowRouter.getRouteName() === 'App.tokensTransferResult')) {
+      return 'active'
+    }
+    return ''
+  },
+  menuVerifyActive() {
+    if (
+      (FlowRouter.getRouteName() === 'App.verify')
+      || (FlowRouter.getRouteName() === 'App.verifytxid')) {
+      return 'active'
+    }
+    return ''
   },
 })

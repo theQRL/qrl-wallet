@@ -4,23 +4,23 @@
     <div class="ui labeled icon bottom fixed {{menuItemsCount
   }} item menu">
 
-        <a id="newWalletButton" href="/create" class="item">
+        <a id="newWalletButton" href="/create" class="item {{menuNewWalletActive}}">
           <img class="svg" src="/img/icons/new-wallet.svg" />
           New
         </a>
 
 
-        <a id="openWalletButton" href="/open" class="item">
+        <a id="openWalletButton" href="/open" class="item {{menuOpenWalletActive}}">
           <img class="svg" src="/img/icons/open-wallet.svg" />
           Open
         </a>
 
-        <a id="closeWalletButton" href="/close" class="item">
+        <a id="closeWalletButton" href="/close" class="item {{menuCloseWalletActive}}">
           <img class="svg" src="/img/icons/lock.svg" />
           Close
         </a>
 
-        <a id="sendAndReceiveButton" href="/transfer" class="item">
+        <a id="sendAndReceiveButton" href="/transfer" class="item {{menuTransferActive}}">
           <img class="svg" src="/img/icons/transfer.svg" />
           Send &amp;<br />Receive
         </a>
@@ -36,7 +36,7 @@
         Tools
       </a>
 
-        <a id="verifyButton" href="/verify" class="item">
+        <a id="verifyButton" href="/verify" class="item {{menuVerifyActive}}">
           <img class="svg" src="/img/icons/tick.svg" />
           Verify<br />Transaction
         </a>
@@ -61,7 +61,7 @@
     <div class="footer">
       <div class="ui center aligned container">
         <a href="/">
-                  <img class="footerLogo" src="/img/Q@2x.png">
+                  <img class="footerLogo" src="/img/qrl-logo-dark.png">
                 </a>
         <br />
         <div class="ui horizontal small divided link list">
