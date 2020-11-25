@@ -56,9 +56,7 @@
               <div class="ui basic center aligned segment">
                 <div class="ui statistic">
 
-                  <div class="label">
-                    <div class="ui {{color}} label">{{explorer.type}}{{#if isTokenTransfer}}: {{explorer.symbol}} {{/if}}</div>
-                  </div>
+                  <div class="ui {{color}} label">{{explorer.type}}{{#if isTokenTransfer}}: {{explorer.symbol}} {{/if}}</div>
                   
                   {{#if isNotMessage}}
                     {{#if isToken}}
@@ -108,12 +106,13 @@
             </table>
           {{else}}
             {{#if isNotCoinbase}}
-              <table class="ui stackable table">
+            <h3><i class="left arrow icon"></i> From</h3>
+            <table class="ui stackable table">
+              <thead>
+                <th>Address</th>
+                </thead>
                 <tbody>
                   <tr>
-                    <td class="single line">
-                      <div class="ui red label"><i class="sign out icon"></i>from</div>
-                    </td>
                     <td><a href="{{nodeExplorerUrl}}/a/{{# if bech32}}{{explorer.from_b32}}{{else}}{{explorer.from_hex}}{{/if}}">{{# if bech32}}{{explorer.from_b32}}{{else}}{{explorer.from_hex}}{{/if}}</a></td>
                   </tr>
                 </tbody>
@@ -169,7 +168,7 @@
                   </tr>
                 </table>
                 {{else}}
-                <h3>To</h3>
+                <h3><i class="right arrow icon"></i> To</h3>
                 <table class="ui stackable table">
                   <thead>
                     <th>Address</th>
@@ -202,6 +201,18 @@
               {{/if}}
               {{/if}}
             {{/if}}
+          {{/if}}
+          {{#if hasMessage}}
+          <table class="ui stackable table">
+            <thead>
+              <th>Message</th>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{tfMessage}}</td>
+              </tr>
+            </tbody>
+            </table>
           {{/if}}
           <button class="ui mini button jsonclick">Meta <i class="down angle icon"></i></button>
           <div class="ui raised segment jsonbox json" style="display: none">{{json}}</div>

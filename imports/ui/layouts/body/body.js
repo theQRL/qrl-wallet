@@ -304,7 +304,11 @@ Template.appBody.helpers({
     return Session.get('transferFromBalance')
   },
   otsKeysRemaining() {
+    if (Session.get('errorLoadingTransactions')) {
+      return 'unknown'
+    }
     return Session.get('otsKeysRemaining')
+
   },
   balanceSymbol() {
     return Session.get('balanceSymbol')

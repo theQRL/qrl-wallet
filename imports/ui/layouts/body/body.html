@@ -5,8 +5,7 @@
     <!-- Main Menu -->
     <div class="ui visible left vertical inverted sidebar labeled icon menu">
         <a href="/" class="item logoArea">
-        <img class="main-menu-logo" src="/img/qrl-logo-white.png" />
-        QRL
+        <img class="main-menu-logo" src="/img/qrl-full-logo.svg" />
       </a>
         <a id="newWalletButton" href="/create" class="item main-menu-btn {{menuNewWalletActive}}">
         <img class="icon svg" src="/img/icons/new-wallet.svg" />
@@ -50,7 +49,7 @@
     <!-- Content Wrapper -->
     <div class="main-content-wrapper">
         <!-- Top Message Bar -->
-        <div class="main-content-warning ui fixed secondary menu">
+        <div class="main-content-warning ui fixed secondary menu" style="display: none;">
             <div class="center menu">
                 <div class="ui item">
                     <a href="https://medium.com/the-quantum-resistant-ledger/last-week-in-qrl-may-21st-27th-fa8fb1017e02#1150"><div class="ui icon tiny message">
@@ -135,11 +134,11 @@
                   {{walletStatus.address}}
                 </div>
                 <div class="ui two column grid">
-                  <div class="column">
+                  <div class="column" style="z-index: -99;">
                     {{#if inProgress}}<div class="ui active inline mini loader"></div>{{/if}}
                     <small>{{balanceAmount}} {{balanceSymbol}}</small>
                   </div>
-                  <div class="column">
+                  <div class="column" style="z-index: -99;">
                     {{#if inProgress}}<div class="ui active inline mini loader"></div>{{/if}}
                     <small>{{otsKeysRemaining}} OTS keys remaining</small>
                   </div>
@@ -154,7 +153,7 @@
                     <div class="footer">
                         <div class="ui center aligned container">
                             <a href="/">
-                  <img class="footerLogo" src="/img/Q@2x.png">
+                  <img class="footerLogo" src="/img/qrl-logo-dark.png">
                 </a>
                             <br />
                             <div class="ui horizontal small divided link list">

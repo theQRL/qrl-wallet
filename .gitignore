@@ -13,3 +13,4 @@ local.json
 /.deploy
 .DS_Store
 .snap
+/mainnet.json
