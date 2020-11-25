@@ -1,11 +1,12 @@
 {
   "name": "qrl-wallet",
-  "version": "1.6.1",
+  "version": "1.6.5",
   "description": "QRL Wallet",
   "author": "The QRL Contributors",
   "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.4.3",
+    "@grpc/proto-loader": "^0.5.5",
     "@theqrl/explorer-helpers": "2.0.2",
     "@theqrl/hw-app-qrl": "^4.60.2",
     "@theqrl/validate-qrl-address": "^3.0.0",
