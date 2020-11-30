@@ -14,7 +14,7 @@ import './nodes.js'
 SHOR_PER_QUANTA = 1000000000
 
 // qrl-wallet Version
-WALLET_VERSION = '1.6.5'
+WALLET_VERSION = '1.6.6'
 
 // qrl.proto sha256 sum for each release of QRL Node
 QRLPROTO_SHA256 = [
@@ -185,6 +185,13 @@ QRLPROTO_SHA256 = [
       'b24a5c41468610914da57ac92f3cc2f74d89575f2626d5968f84ca211f55410c',
     objectSha256:
       '693b179b68016896c80d1b3660354549706d70e24d97240ce0aa7e9416c2b4aa',
+  },
+  {
+    version: '2.0.7 python',
+    protoSha256:
+      '0d70a3372c4668a1bf4fd42983ae01f2e0fb54b4030b808bbea78e5adadb23f0',
+    objectSha256:
+      '2899c2d79b287e75b9ecc3aaa2fd63ec3ebd5455b7e0883528ef5425121c6a27',
   },
   // development .proto
   {
