@@ -5,7 +5,9 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import { isElectrified, createTransport, ledgerReturnedError, checkIfLedgerTreesMatch } from '../../../../startup/client/functions'
+import {
+  isElectrified, createTransport, ledgerReturnedError, checkIfLedgerTreesMatch
+} from '../../../../startup/client/functions'
 // import async from 'async'
 import './update.html'
 
@@ -33,10 +35,15 @@ const getNodeXMSSIndex = () => {
 
 async function updateLedgerIdx(otsKey, callback) {
   if (isElectrified()) {
-    Meteor.call('ledgerSetIdx', otsKey, (err, data) => {
-      console.log('> Set Ledger OTS Key via USB')
-      callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call('ledgerSetIdx', otsKey, (err, data) => {
+        if (data.error_message !== 'Timeout') {
+          console.log('> Set Ledger OTS Key via USB')
+          Meteor.clearInterval(retry)
+          callback(null, data)
+        }
+      })
+    }, 2000)
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.setIdx(otsKey).then(idxResponse => {

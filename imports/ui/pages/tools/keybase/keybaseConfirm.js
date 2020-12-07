@@ -5,17 +5,28 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import { isElectrified,  createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
+import { isElectrified, createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
 import './keybaseConfirm.html'
 
 async function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
   console.log('-- Getting QRL Ledger Nano App createMessageTx --')
   if (isElectrified()) {
-    Meteor.call('ledgerCreateMessageTx', sourceAddr, fee, message, (err, data) => {
-      console.log('> Got Ledger Nano createMessageTx from USB')
-      console.log(data)
-      callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call(
+        'ledgerCreateMessageTx',
+        sourceAddr,
+        fee,
+        message,
+        (err, data) => {
+          if (data.error_message !== 'Timeout') {
+            console.log('> Got Ledger Nano createMessageTx from USB')
+            console.log(data)
+            Meteor.clearInterval(retry)
+            callback(null, data)
+          }
+        }
+      )
+    }, 2000)
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.createMessageTx(sourceAddr, fee, message).then(data => {
@@ -28,11 +39,16 @@ async function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
 async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
-    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
-      console.log('> Got Ledger Nano retrieveSignature from USB')
-      console.log(data)
-      callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+        if (data.error_message !== 'Timeout') {
+          console.log('> Got Ledger Nano retrieveSignature from USB')
+          console.log(data)
+          Meteor.clearInterval(retry)
+          callback(null, data)
+        }
+      })
+    }, 2000)
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.retrieveSignature(request).then(data => {
@@ -177,7 +193,7 @@ function confirmKeybaseCreation() {
         } else if (sigResponse.return_code === 14) {
           $('#signOnLedgerTimeout').show()
         // Check for unknown errors
-        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == "Unknown error code")) {
+        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == 'Unknown error code')) {
           $('#signOnLedgerError').show()
         } else {
           // Show confirmation message
