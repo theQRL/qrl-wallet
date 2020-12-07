@@ -10,17 +10,22 @@ import { BigNumber } from 'bignumber.js'
 
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
-import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'
+import { isElectrified, createTransport, ledgerReturnedError } from '../../../startup/client/functions'
 import './transfer.html'
 
 async function verifyLedgerNanoAddress(callback) {
   console.log('-- Verify Ledger Nano S Address --')
   if (isElectrified()) {
-    Meteor.call('ledgerVerifyAddress', [], (err, data) => {
-      console.log('> Got Ledger Nano address verification from USB')
-      console.log(data)
-      callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call('ledgerVerifyAddress', [], (err, data) => {
+        if (data.error_message !== 'Timeout') {
+          console.log('> Got Ledger Nano address verification from USB')
+          console.log(data)
+          Meteor.clearInterval(retry)
+          callback(null, data)
+        }
+      })
+    }, 2000)
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.viewAddress().then(data => {
@@ -34,11 +39,23 @@ async function verifyLedgerNanoAddress(callback) {
 async function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
   console.log('-- Getting QRL Ledger Nano App createTx --')
   if (isElectrified()) {
-    Meteor.call('ledgerCreateTx', sourceAddr, fee, destAddr, destAmount, (err, data) => {
-      console.log('> Got Ledger Nano createTx from USB')
-      console.log(data)
-      callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call(
+        'ledgerCreateTx',
+        sourceAddr,
+        fee,
+        destAddr,
+        destAmount,
+        (err, data) => {
+          if (data.error_message !== 'Timeout') {
+            console.log('> Got Ledger Nano createTx from USB')
+            console.log(data)
+            Meteor.clearInterval(retry)
+            callback(null, data)
+          }
+        }
+      )
+    }, 2000)
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(data => {
@@ -51,11 +68,16 @@ async function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback
 async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
-    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
-      console.log('> Got Ledger Nano retrieveSignature from USB')
-      console.log(data)
-      callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+        if (data.error_message !== 'Timeout') {
+          console.log('> Got Ledger Nano retrieveSignature from USB')
+          console.log(data)
+          Meteor.clearInterval(retry)
+          callback(null, data)
+        }
+      })
+    }, 2000)
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.retrieveSignature(request).then(data => {
@@ -359,9 +381,8 @@ function confirmTransaction() {
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
     const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
 
-    getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, function(err, txn) {
-      getLedgerRetrieveSignature(txn, function(err, sigResponse) {
-
+    getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, function (err, txn) {
+      getLedgerRetrieveSignature(txn, function (err, sigResponse) {
         // Hide the awaiting ledger confirmation spinner
         $('#awaitingLedgerConfirmation').hide()
 
@@ -376,7 +397,7 @@ function confirmTransaction() {
         } else if (sigResponse.return_code === 14) {
           $('#signOnLedgerTimeout').show()
         // Check for unknown errors
-        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == "Unknown error code")) {
+        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == 'Unknown error code')) {
           $('#signOnLedgerError').show()
         } else {
           // Show confirmation message
