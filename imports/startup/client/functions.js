@@ -486,21 +486,27 @@ getBalance = (getAddress, callBack) => {
         // prefer to rely on state tracked in ledger device
         console.log('-- Getting QRL Ledger Nano App State --')
         if (isElectrified()) {
-          Meteor.call('ledgerGetState', [], (gsErr, data) => {
-            console.log('> Got Ledger Nano State from USB')
-            Session.set('otsKeyEstimate', data.xmss_index)
-            // Get remaining OTS Keys
-            const validationResult = qrlAddressValdidator.hexString(getAddress)
-            const totalSignatures = validationResult.sig.number
-            const keysRemaining = totalSignatures - data.xmss_index
-            // Set keys remaining
-            Session.set('otsKeysRemaining', keysRemaining)
+          const retry = Meteor.setInterval(() => {
+            Meteor.call('ledgerGetState', [], (gsErr, data) => {
+              if (data.error_message !== 'Timeout') {
+                console.log('> Got Ledger Nano State from USB')
+                Session.set('otsKeyEstimate', data.xmss_index)
+                // Get remaining OTS Keys
+                const validationResult = qrlAddressValdidator.hexString(
+                  getAddress
+                )
+                const totalSignatures = validationResult.sig.number
+                const keysRemaining = totalSignatures - data.xmss_index
+                // Set keys remaining
+                Session.set('otsKeysRemaining', keysRemaining)
 
-            // Store OTS Bitfield in session
-            Session.set('otsBitfield', res.ots.keys)
-
-            callBack()
-          })
+                // Store OTS Bitfield in session
+                Session.set('otsBitfield', res.ots.keys)
+                Meteor.clearInterval(retry)
+                callBack()
+              }
+            })
+          }, 2000)
         } else {
           const QrlLedger = await createTransport()
           QrlLedger.get_state().then(data => {
@@ -1061,21 +1067,26 @@ export function checkIfLedgerTreesMatch() {
   console.log('appLedger', appLedger)
   console.log('-- Getting QRL Ledger Nano Public Key --')
   if (isElectrified()) {
-    Meteor.call('ledgerPublicKey', [], (err, data) => {
-      console.log('> Got Ledger Public Key from USB')
-      // Convert Uint to hex
-      const pkHex = Buffer.from(data.public_key).toString('hex')
-      // Get address from pk
-      const qAddress = QRLLIB.getAddress(pkHex)
-      const ledgerQAddress = `Q${qAddress}`
-      console.log(ledgerQAddress)
-      if (appLedger !== ledgerQAddress) {
-        console.log('Trees switched: logout!')
-        Session.set('closedWithError', 'XMSS-trees-change')
-        FlowRouter.go('/close')
-      }
-      // callback(null, data)
-    })
+    const retry = Meteor.setInterval(() => {
+      Meteor.call('ledgerPublicKey', [], (err, data) => {
+        if (data.error_message !== 'Timeout') {
+          Meteor.clearInterval(retry)
+          console.log('> Got Ledger Public Key from USB')
+          // Convert Uint to hex
+          const pkHex = Buffer.from(data.public_key).toString('hex')
+          // Get address from pk
+          const qAddress = QRLLIB.getAddress(pkHex)
+          const ledgerQAddress = `Q${qAddress}`
+          console.log(ledgerQAddress)
+          if (appLedger !== ledgerQAddress) {
+            console.log('Trees switched: logout!')
+            Session.set('closedWithError', 'XMSS-trees-change')
+            FlowRouter.go('/close')
+          }
+          // callback(null, data)
+        }
+      })
+    }, 2000)
   } else {
     createTransport().then(QrlLedger => {
       QrlLedger.publickey().then(data => {
