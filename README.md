@@ -16,7 +16,7 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v8.11.4
+[NodeJS](https://nodejs.org/en/) v8.11.3
 
 [Meteor](https://www.meteor.com/install)
 
@@ -28,9 +28,15 @@ The following dependencies are required for a functional local development envir
 
 	npm install -g node-gyp
 
+Mac only: create-dmg
+
+	npm install --global create-dmg
+
 Windows Only - [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2017)
 
-Windows Only - [Wix Toolset Build Tools](http://wixtoolset.org/releases/)
+Windows Only - [Wix Toolset Build Tools](http://wixtoolset.org/releases/) and electron-wix-msi-qrl:
+
+	npm install -g electron-wix-msi-qrl
 
 
 ## Install qrl-wallet
@@ -54,6 +60,8 @@ Note: QRL Wallet must already be running for this to work!
 	npm run electron
 
 ## Package Electron Client
+
+Ensure the node, mongo and mongod for the platform being built for are in the .electrify/bin directory (these are found in .meteor/local/dev_bundle after a successful local run)
 
 1. Clean the dist folder
 
