@@ -5,7 +5,7 @@
   "author": "The QRL Contributors",
   "license": "MIT",
   "dependencies": {
-    "@babel/runtime": "^7.4.3",
+    "@babel/runtime": "^7.12.5",
     "@grpc/proto-loader": "^0.5.5",
     "@theqrl/explorer-helpers": "2.0.2",
     "@theqrl/hw-app-qrl": "^4.60.2",
@@ -14,18 +14,15 @@
     "aes256": "^1.0.2",
     "async": "^2.6.3",
     "babel-polyfill": "^6.26.0",
-    "bech32": "^1.1.3",
+    "bech32": "^1.1.4",
     "bignumber.js": "^7.2.1",
     "crypto-browserify": "^3.12.0",
     "crypto-js": "^3.2.1",
-    "electrify-qrl": "^0.2.3",
-    "fibers": "^3.0.0",
     "grpc": "^1.24.2",
     "json-formatter-js": "^2.2.0",
     "ledger-qrl-js": "^0.4.3",
     "mathjs": "4.0.1",
-    "meteor-babel-helpers": "0.0.3",
-    "meteor-node-stubs": "^0.2.11",
+    "meteor-node-stubs": "^1.0.1",
     "qrllib": "^1.0.4",
     "run-script-os": "^1.0.3",
     "snyk": "^1.305.0",
@@ -45,24 +42,18 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
-    "chimp": "^0.51.1",
-    "cross-spawn-async": "^2.2.5",
-    "electron-rebuild": "^1.8.4",
+    "electron": "^11.0.4",
+    "electron-builder": "21.2.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-import-resolver-meteor": "^0.4.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-meteor": "^5.1.0",
-    "gulp-chimp": "^2.2.1"
-  },
-  "optionalDependencies": {
-    "electron-installer-debian": "^1.1.0",
-    "electron-installer-dmg": "^2.0.0",
-    "electron-wix-msi-qrl": "2.1.2"
+    "meteor-desktop": "^2.2.5"
   },
   "scripts": {
     "dev": "meteor",
-    "test": "chimp --ddp=http://localhost:3000 --browser=chrome --path=tests",
+    "test": "echo null",
     "postinstall": "run-script-os",
     "install:win32": "copy node_modules\\qrllib\\build\\web-libjsqrl.wasm public\\ && copy node_modules\\ledger-qrl-js\\browser\\ledger.js public\\ && copy node_modules\\ledger-qrl-js\\wallet\\qrl-ledger-library.js public\\",
     "install:darwin": "electron-rebuild -v 1.8.8 --force -m . -o node-hid && sleep 10 && cp node_modules/qrllib/build/web-libjsqrl.wasm public/ && cp node_modules/ledger-qrl-js/browser/ledger.js public/ && cp node_modules/ledger-qrl-js/wallet/qrl-ledger-library.js public/",
@@ -83,7 +74,8 @@
     "installer": "run-script-os",
     "installer:darwin": "node build-dmg.js",
     "installer:linux": "node build-deb.js",
-    "installer:win32": "node build-msi.js"
+    "installer:win32": "node build-msi.js",
+    "desktop": "meteor-desktop"
   },
   "snyk": true
 }

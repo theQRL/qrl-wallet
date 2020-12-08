@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu } = require('electron');
-const electrify = require('electrify-qrl')(__dirname);
+const electrify = require('meteor-electrify')(__dirname);
 
 let window;
 let loading;
