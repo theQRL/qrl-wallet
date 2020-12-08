@@ -7,7 +7,7 @@
   "dependencies": {
     "@babel/runtime": "^7.4.3",
     "@grpc/proto-loader": "^0.5.5",
-    "@theqrl/explorer-helpers": "2.0.2",
+    "@theqrl/explorer-helpers": "2.4.1",
     "@theqrl/hw-app-qrl": "^4.60.2",
     "@theqrl/validate-qrl-address": "^3.0.0",
     "@theqrl/wallet-helpers": "^2.1.0",
