@@ -70,8 +70,6 @@ mongo-dev-server@1.1.0
 mongo-id@1.0.7
 npm-mongo@3.8.1
 observe-sequence@1.0.16
-omega:meteor-desktop-bundler@2.2.5
-omega:meteor-desktop-watcher@2.2.5
 ordered-dict@1.1.0
 promise@0.11.2
 qrl:browser-policy@1.1.1
