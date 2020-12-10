@@ -12,8 +12,8 @@ import fs from 'fs'
 import async from 'async'
 import CryptoJS from 'crypto-js'
 import util from 'util'
-// import * as HID from 'node-hid'
-import QrlLedger from '/node_modules/ledger-qrl-js/wallet/qrl-ledger-library-src.js'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import Qrl from '@theqrl/hw-app-qrl/lib/Qrl'
 
 const PROTO_PATH = Assets.absoluteFilePath('qrlbase.proto').split(
   'qrlbase.proto'
@@ -2085,32 +2085,58 @@ const apiCall = (apiUrl, callback) => {
 }
 
 // Ledger Nano S Integration for Electron Desktop Apps
-const ledgerGetState = (request, cb) => {
-  QrlLedger.get_state().then((data) => {
-    cb(null, data)
+
+let transport = null
+
+async function createTransport() {
+  transport = await TransportNodeHid.create(10)
+  const qrl = await new Qrl(transport)
+  return qrl
+}
+
+const ledgerGetState = async (request, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.get_state().then(async (data) => {
+    console.log(data)
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerPublicKey = (request, cb) => {
-  QrlLedger.publickey().then((data) => {
-    cb(null, data)
+const ledgerPublicKey = async (request, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.publickey().then(async (data) => {
+    console.log(data)
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerAppVersion = (request, cb) => {
-  QrlLedger.app_version().then((data) => {
-    cb(null, data)
+const ledgerAppVersion = async (request, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.get_version().then(async (data) => {
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerLibraryVersion = (request, cb) => {
-  QrlLedger.library_version().then((data) => {
-    cb(null, data)
+const ledgerLibraryVersion = async (request, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.library_version().then(async (data) => {
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerVerifyAddress = (request, cb) => {
-  QrlLedger.viewAddress().then((data) => {
-    cb(null, data)
+const ledgerVerifyAddress = async (request, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.viewAddress().then(async (data) => {
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerCreateTx = (sourceAddr, fee, destAddr, destAmount, cb) => {
+const ledgerCreateTx = async (sourceAddr, fee, destAddr, destAmount, cb) => {
   const sourceAddrBuffer = Buffer.from(sourceAddr)
   const feeBuffer = Buffer.from(fee)
 
@@ -2121,35 +2147,49 @@ const ledgerCreateTx = (sourceAddr, fee, destAddr, destAmount, cb) => {
     destAmountFinal.push(Buffer.from(destAmount[i]))
   }
 
-  QrlLedger.createTx(
+  const QrlLedger = await createTransport()
+  await QrlLedger.createTx(
     sourceAddrBuffer,
     feeBuffer,
     destAddrFinal,
     destAmountFinal
-  ).then((data) => {
-    cb(null, data)
+  ).then(async (data) => {
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerRetrieveSignature = (txn, cb) => {
-  QrlLedger.retrieveSignature(txn).then((data) => {
-    cb(null, data)
+const ledgerRetrieveSignature = async (txn, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.retrieveSignature(txn).then(async (data) => {
+    await transport.close().then(() => {
+      cb(null, data)
+    })
   })
 }
-const ledgerSetIdx = (otsKey, cb) => {
-  QrlLedger.setIdx(otsKey).then((idxResponse) => {
-    cb(null, idxResponse)
+const ledgerSetIdx = async (otsKey, cb) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.setIdx(otsKey).then(async (idxResponse) => {
+    await transport.close().then(() => {
+      cb(null, idxResponse)
+    })
   })
 }
-const ledgerCreateMessageTx = (sourceAddr, fee, message, cb) => {
+const ledgerCreateMessageTx = async (sourceAddr, fee, message, cb) => {
   const sourceAddrBuffer = Buffer.from(sourceAddr)
   const feeBuffer = Buffer.from(fee)
   const messageBuffer = Buffer.from(message)
 
-  QrlLedger.createMessageTx(sourceAddrBuffer, feeBuffer, messageBuffer).then(
-    (data) => {
+  const QrlLedger = await createTransport()
+  await QrlLedger.createMessageTx(
+    sourceAddrBuffer,
+    feeBuffer,
+    messageBuffer
+  ).then(async (data) => {
+    await transport.close().then(() => {
       cb(null, data)
-    }
-  )
+    })
+  })
 }
 
 // Define Meteor Methods

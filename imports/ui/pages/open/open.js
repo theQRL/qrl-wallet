@@ -31,16 +31,11 @@ function showError() {
 async function getLedgerState(callback) {
   console.log('-- Getting QRL Ledger Nano App State --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerGetState', [], (err, data) => {
-        console.log('> Got Ledger Nano State from USB')
-        if (data.error_message !== 'Timeout') {
-          console.log(data)
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerGetState', [], (err, data) => {
+      console.log('> Got Ledger Nano State from USB')
+      console.log(data)
+      callback(null, data)
+    })
   } else {
     createTransport().then(QrlLedger => {
       QrlLedger.get_state().then(data => {
@@ -71,23 +66,18 @@ async function getLedgerState(callback) {
 async function getLedgerPubkey(callback) {
   console.log('-- Getting QRL Ledger Nano Public Key --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerPublicKey', [], (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Got Ledger Public Key from USB')
-          // Convert Uint to hex
-          const pkHex = Buffer.from(data.public_key).toString('hex')
-          // Get address from pk
-          const qAddress = QRLLIB.getAddress(pkHex)
-          const ledgerQAddress = `Q${qAddress}`
-          Session.set('ledgerDetailsAddress', ledgerQAddress)
-          Session.set('ledgerDetailsPkHex', pkHex)
-          $('#walletCode').val(ledgerQAddress)
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerPublicKey', [], (err, data) => {
+      console.log('> Got Ledger Public Key from USB')
+      // Convert Uint to hex
+      const pkHex = Buffer.from(data.public_key).toString('hex')
+      // Get address from pk
+      const qAddress = QRLLIB.getAddress(pkHex)
+      const ledgerQAddress = `Q${qAddress}`
+      Session.set('ledgerDetailsAddress', ledgerQAddress)
+      Session.set('ledgerDetailsPkHex', pkHex)
+      $('#walletCode').val(ledgerQAddress)
+      callback(null, data)
+    })
   } else {
     createTransport().then(QrlLedger => {
       QrlLedger.publickey().then(data => {
@@ -126,19 +116,14 @@ async function getLedgerPubkey(callback) {
 async function getLedgerVersion(callback) {
   console.log('-- Getting QRL Ledger Nano App Version --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerAppVersion', [], (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Got Ledger App Version from USB')
-          Session.set(
-            'ledgerDetailsAppVersion',
-            data.major + '.' + data.minor + '.' + data.patch
-          )
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerAppVersion', [], (err, data) => {
+      console.log('> Got Ledger App Version from USB')
+      Session.set(
+        'ledgerDetailsAppVersion',
+        data.major + '.' + data.minor + '.' + data.patch
+      )
+      callback(null, data)
+    })
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.get_version().then(data => {
@@ -152,16 +137,11 @@ async function getLedgerVersion(callback) {
 
 async function getLedgerLibraryVersion(callback) {
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerAppVersion', [], (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Got Ledger Library Version from USB')
-          Session.set('ledgerDetailsLibraryVersion', data)
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerAppVersion', [], (err, data) => {
+      console.log('> Got Ledger Library Version from USB')
+      Session.set('ledgerDetailsLibraryVersion', data)
+      callback(null, data)
+    })
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.get_version().then(data => {

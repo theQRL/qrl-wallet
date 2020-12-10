@@ -10,25 +10,24 @@ import { BigNumber } from 'bignumber.js'
 
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
-import { isElectrified, createTransport, ledgerReturnedError } from '../../../startup/client/functions'
+import {
+  isElectrified,
+  createTransport,
+  ledgerReturnedError,
+} from '../../../startup/client/functions'
 import './transfer.html'
 
 async function verifyLedgerNanoAddress(callback) {
   console.log('-- Verify Ledger Nano S Address --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerVerifyAddress', [], (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Got Ledger Nano address verification from USB')
-          console.log(data)
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerVerifyAddress', [], (err, data) => {
+      console.log('> Got Ledger Nano address verification from USB')
+      console.log(data)
+      callback(null, data)
+    })
   } else {
     const QrlLedger = await createTransport()
-    QrlLedger.viewAddress().then(data => {
+    QrlLedger.viewAddress().then((data) => {
       console.log('> Got Ledger Nano address verification from WebUSB')
       console.log(data)
       callback(null, data)
@@ -36,29 +35,30 @@ async function verifyLedgerNanoAddress(callback) {
   }
 }
 
-async function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback) {
+async function getLedgerCreateTx(
+  sourceAddr,
+  fee,
+  destAddr,
+  destAmount,
+  callback
+) {
   console.log('-- Getting QRL Ledger Nano App createTx --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call(
-        'ledgerCreateTx',
-        sourceAddr,
-        fee,
-        destAddr,
-        destAmount,
-        (err, data) => {
-          if (data.error_message !== 'Timeout') {
-            console.log('> Got Ledger Nano createTx from USB')
-            console.log(data)
-            Meteor.clearInterval(retry)
-            callback(null, data)
-          }
-        }
-      )
-    }, 2000)
+    Meteor.call(
+      'ledgerCreateTx',
+      sourceAddr,
+      fee,
+      destAddr,
+      destAmount,
+      (err, data) => {
+        console.log('> Got Ledger Nano createTx from USB')
+        console.log(data)
+        callback(null, data)
+      }
+    )
   } else {
     const QrlLedger = await createTransport()
-    QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then(data => {
+    QrlLedger.createTx(sourceAddr, fee, destAddr, destAmount).then((data) => {
       console.log('> Got Ledger Nano createTx from WebUSB')
       console.log(data)
       callback(null, data)
@@ -68,19 +68,14 @@ async function getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, callback
 async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Got Ledger Nano retrieveSignature from USB')
-          console.log(data)
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+      console.log('> Got Ledger Nano retrieveSignature from USB')
+      console.log(data)
+      callback(null, data)
+    })
   } else {
     const QrlLedger = await createTransport()
-    QrlLedger.retrieveSignature(request).then(data => {
+    QrlLedger.retrieveSignature(request).then((data) => {
       console.log('> Got Ledger Nano retrieveSignature from WebUSB')
       console.log(data)
       callback(null, data)
@@ -110,7 +105,7 @@ function generateTransaction() {
     const thisAddress = sendTo[i].value
 
     // Fail early if attempting to send to an Ethereum style 0x address
-    if ((thisAddress[0] === '0') && (thisAddress[1] === 'x')) {
+    if (thisAddress[0] === '0' && thisAddress[1] === 'x') {
       $('#generating').hide()
       $('#invalidAddress0x').modal('show')
       return
@@ -120,7 +115,7 @@ function generateTransaction() {
   }
 
   // Fail if more than 3 recipients using Ledger
-  if ((thisAddressesTo.length > 3) && (getXMSSDetails().walletType === 'ledger')) {
+  if (thisAddressesTo.length > 3 && getXMSSDetails().walletType === 'ledger') {
     $('#generating').hide()
     $('#maxThreeRecipientsLedger').modal('show')
   }
@@ -139,7 +134,9 @@ function generateTransaction() {
   // Format amounts correctly.
   for (let i = 0; i < sendAmounts.length; i += 1) {
     const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
-    const thisAmount = convertAmountToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+    const thisAmount = convertAmountToBigNumber
+      .times(SHOR_PER_QUANTA)
+      .toNumber()
     thisAmounts.push(thisAmount)
   }
 
@@ -173,8 +170,10 @@ function generateTransaction() {
     } else {
       const confirmation_outputs = [] // eslint-disable-line
 
-      const resAddrsTo = res.response.extended_transaction_unsigned.tx.transfer.addrs_to
-      const resAmounts = res.response.extended_transaction_unsigned.tx.transfer.amounts
+      const resAddrsTo =
+        res.response.extended_transaction_unsigned.tx.transfer.addrs_to
+      const resAmounts =
+        res.response.extended_transaction_unsigned.tx.transfer.amounts
       let totalTransferAmount = 0
 
       for (let i = 0; i < resAddrsTo.length; i += 1) {
@@ -194,10 +193,15 @@ function generateTransaction() {
 
       const confirmation = {
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
-        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+        from_hex: helpers.rawAddressToHexAddress(
+          res.response.extended_transaction_unsigned.addr_from
+        ), // eslint-disable-line
+        from_b32: helpers.rawAddressToB32Address(
+          res.response.extended_transaction_unsigned.addr_from
+        ), // eslint-disable-line
         outputs: confirmation_outputs,
-        fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        fee:
+          res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         otsKey: otsKey, // eslint-disable-line
       }
 
@@ -208,7 +212,10 @@ function generateTransaction() {
 
       if (nodeReturnedValidResponse(request, confirmation, 'transferCoins')) {
         Session.set('transactionConfirmation', confirmation)
-        Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
+        Session.set(
+          'transactionConfirmationAmount',
+          totalTransferAmount / SHOR_PER_QUANTA
+        )
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationMessage', confirmation.message_data)
         Session.set('transactionConfirmationResponse', res.response)
@@ -231,7 +238,9 @@ function confirmTransaction() {
   tx.message_data = Session.get('transactionConfirmationMessage')
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
-    XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
+    XMSS_OBJECT.setIndex(
+      parseInt(Session.get('transactionConfirmation').otsKey, 10)
+    )
   }
 
   // Concatenate Uint8Arrays
@@ -244,7 +253,7 @@ function confirmTransaction() {
     concatenatedArrays = concatenateTypedArrays(
       Uint8Array,
       concatenatedArrays,
-      tx.message_data,
+      tx.message_data
     )
   }
 
@@ -284,7 +293,9 @@ function confirmTransaction() {
     // Show relaying message
     $('#relaying').show()
 
-    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(
+      XMSS_OBJECT.sign(shaSum)
+    )
 
     // Calculate transaction hash
     const txnHashConcat = concatenateTypedArrays(
@@ -339,98 +350,120 @@ function confirmTransaction() {
     $('#noRemainingSignatures').hide()
 
     // Show ledger sign modal
-    $('#ledgerConfirmationModal').modal({
-      closable: false,
-      onDeny: () => {
-        // Clear session state for transaction
-        Session.set('ledgerTransaction', '')
-        Session.set('ledgerTransactionHash', '')
-      },
-      onApprove: () => {
-        // Hide modal, and show relaying message
-        $('#ledgerConfirmationModal').modal('hide')
-        $('#relaying').show()
+    $('#ledgerConfirmationModal')
+      .modal({
+        closable: false,
+        onDeny: () => {
+          // Clear session state for transaction
+          Session.set('ledgerTransaction', '')
+          Session.set('ledgerTransactionHash', '')
+        },
+        onApprove: () => {
+          // Hide modal, and show relaying message
+          $('#ledgerConfirmationModal').modal('hide')
+          $('#relaying').show()
 
-        // Relay the transaction
-        wrapMeteorCall('confirmTransaction', Session.get('ledgerTransaction'), (err, res) => {
-          if (res.error) {
-            $('#transactionConfirmation').hide()
-            $('#transactionFailed').show()
+          // Relay the transaction
+          wrapMeteorCall(
+            'confirmTransaction',
+            Session.get('ledgerTransaction'),
+            (err, res) => {
+              if (res.error) {
+                $('#transactionConfirmation').hide()
+                $('#transactionFailed').show()
 
-            Session.set('transactionFailed', res.error)
-          } else {
-            Session.set('transactionHash', Session.get('ledgerTransactionHash'))
-            Session.set('transactionSignature', res.response.signature)
-            Session.set('transactionRelayedThrough', res.relayed)
+                Session.set('transactionFailed', res.error)
+              } else {
+                Session.set(
+                  'transactionHash',
+                  Session.get('ledgerTransactionHash')
+                )
+                Session.set('transactionSignature', res.response.signature)
+                Session.set('transactionRelayedThrough', res.relayed)
 
-            // Show result
-            $('#generateTransactionArea').hide()
-            $('#confirmTransactionArea').hide()
-            enableSendButton()
-            $('#transactionResultArea').show()
+                // Show result
+                $('#generateTransactionArea').hide()
+                $('#confirmTransactionArea').hide()
+                enableSendButton()
+                $('#transactionResultArea').show()
 
-            // Start polling this transcation
-            // eslint-disable-next-line no-use-before-define
-            pollTransaction(Session.get('transactionHash'), true)
-          }
-        })
-      },
-    }).modal('show')
+                // Start polling this transcation
+                // eslint-disable-next-line no-use-before-define
+                pollTransaction(Session.get('transactionHash'), true)
+              }
+            }
+          )
+        },
+      })
+      .modal('show')
 
     // Create a transaction
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
-    const fee = toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee, true)
+    const fee = toBigendianUint64BytesUnsigned(
+      tx.extended_transaction_unsigned.tx.fee,
+      true
+    )
 
-    getLedgerCreateTx(sourceAddr, fee, destAddr, destAmount, function (err, txn) {
-      getLedgerRetrieveSignature(txn, function (err, sigResponse) {
-        // Hide the awaiting ledger confirmation spinner
-        $('#awaitingLedgerConfirmation').hide()
+    getLedgerCreateTx(
+      sourceAddr,
+      fee,
+      destAddr,
+      destAmount,
+      function (err, txn) {
+        getLedgerRetrieveSignature(txn, function (err, sigResponse) {
+          // Hide the awaiting ledger confirmation spinner
+          $('#awaitingLedgerConfirmation').hide()
 
-        // Check if ledger rejected transaction
-        if (sigResponse.return_code === 27014) {
-          $('#signOnLedgerRejected').show()
-          // Show no signatures remaining message if there are none remaining.
-          if (Session.get('transactionConfirmation').otsKey >= 256) {
-            $('#noRemainingSignatures').show()
+          // Check if ledger rejected transaction
+          if (sigResponse.return_code === 27014) {
+            $('#signOnLedgerRejected').show()
+            // Show no signatures remaining message if there are none remaining.
+            if (Session.get('transactionConfirmation').otsKey >= 256) {
+              $('#noRemainingSignatures').show()
+            }
+            // Check if the the request timed out waiting for response on ledger
+          } else if (sigResponse.return_code === 14) {
+            $('#signOnLedgerTimeout').show()
+            // Check for unknown errors
+          } else if (
+            sigResponse.return_code === 1 &&
+            sigResponse.error_message == 'Unknown error code'
+          ) {
+            $('#signOnLedgerError').show()
+          } else {
+            // Show confirmation message
+            $('#ledgerHasConfirmed').show()
+
+            tx.extended_transaction_unsigned.tx.signature =
+              sigResponse.signature
+
+            // Calculate transaction hash
+            const txnHashConcat = concatenateTypedArrays(
+              Uint8Array,
+              binaryToBytes(shaSum),
+              tx.extended_transaction_unsigned.tx.signature,
+              hexToBytes(getXMSSDetails().pk) // eslint-disable-line
+            )
+
+            const txnHashableBytes = toUint8Vector(txnHashConcat)
+
+            const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+            console.log('Txn Hash: ', txnHash)
+
+            // Prepare gRPC call
+            tx.network = selectedNetwork()
+
+            // Set session values for later relaying
+            Session.set('ledgerTransaction', tx)
+            Session.set('ledgerTransactionHash', txnHash)
+
+            // Show relay button
+            $('#relayLedgerTxnButton').show()
           }
-        // Check if the the request timed out waiting for response on ledger
-        } else if (sigResponse.return_code === 14) {
-          $('#signOnLedgerTimeout').show()
-        // Check for unknown errors
-        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == 'Unknown error code')) {
-          $('#signOnLedgerError').show()
-        } else {
-          // Show confirmation message
-          $('#ledgerHasConfirmed').show()
-
-          tx.extended_transaction_unsigned.tx.signature = sigResponse.signature
-
-          // Calculate transaction hash
-          const txnHashConcat = concatenateTypedArrays(
-            Uint8Array,
-            binaryToBytes(shaSum),
-            tx.extended_transaction_unsigned.tx.signature,
-            hexToBytes(getXMSSDetails().pk) // eslint-disable-line
-          )
-
-          const txnHashableBytes = toUint8Vector(txnHashConcat)
-
-          const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
-
-          console.log('Txn Hash: ', txnHash)
-
-          // Prepare gRPC call
-          tx.network = selectedNetwork()
-
-          // Set session values for later relaying
-          Session.set('ledgerTransaction', tx)
-          Session.set('ledgerTransactionHash', txnHash)
-
-          // Show relay button
-          $('#relayLedgerTxnButton').show()
-        }
-      }) // retrieveSignature
-    }) // getLedgerCreateTx
+        }) // retrieveSignature
+      }
+    ) // getLedgerCreateTx
   }
 }
 
@@ -483,7 +516,9 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   }
   for (let i = 0; i < sendAmounts.length; i += 1) {
     const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
-    const thisAmount = convertAmountToBigNumber.times(Math.pow(10, decimals)).toNumber() // eslint-disable-line
+    const thisAmount = convertAmountToBigNumber
+      .times(Math.pow(10, decimals))
+      .toNumber() // eslint-disable-line
     thisAmounts.push(thisAmount)
   }
 
@@ -520,8 +555,10 @@ function sendTokensTxnCreate(tokenHash, decimals) {
 
       const confirmationOutputs = []
 
-      const resAddrsTo = res.response.extended_transaction_unsigned.tx.transfer_token.addrs_to
-      const resAmounts = res.response.extended_transaction_unsigned.tx.transfer_token.amounts
+      const resAddrsTo =
+        res.response.extended_transaction_unsigned.tx.transfer_token.addrs_to
+      const resAmounts =
+        res.response.extended_transaction_unsigned.tx.transfer_token.amounts
       let totalTransferAmount = 0
 
       for (let i = 0; i < resAddrsTo.length; i += 1) {
@@ -542,19 +579,36 @@ function sendTokensTxnCreate(tokenHash, decimals) {
       const confirmation = {
         hash: res.txnHash,
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
-        from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-        from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
+        from_hex: helpers.rawAddressToHexAddress(
+          res.response.extended_transaction_unsigned.addr_from
+        ), // eslint-disable-line
+        from_b32: helpers.rawAddressToB32Address(
+          res.response.extended_transaction_unsigned.addr_from
+        ), // eslint-disable-line
         outputs: confirmationOutputs,
-        fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
-        tokenHash: res.response.extended_transaction_unsigned.tx.transfer_token.token_txhash,
+        fee:
+          res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
+        tokenHash:
+          res.response.extended_transaction_unsigned.tx.transfer_token
+            .token_txhash,
         otsKey: otsKey, // eslint-disable-line
       }
 
-      if (nodeReturnedValidResponse(request, confirmation, 'createTokenTransferTxn', decimals)) {
+      if (
+        nodeReturnedValidResponse(
+          request,
+          confirmation,
+          'createTokenTransferTxn',
+          decimals
+        )
+      ) {
         Session.set('tokenTransferConfirmation', confirmation)
         Session.set('tokenTransferConfirmationDetails', tokenDetails)
         Session.set('tokenTransferConfirmationResponse', res.response)
-        Session.set('tokenTransferConfirmationAmount', totalTransferAmount / Math.pow(10, decimals)) // eslint-disable-line
+        Session.set(
+          'tokenTransferConfirmationAmount',
+          totalTransferAmount / Math.pow(10, decimals)
+        ) // eslint-disable-line
 
         // Show confirmation
         $('#generateTransactionArea').hide()
@@ -577,7 +631,9 @@ function confirmTokenTransfer() {
 
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
-    XMSS_OBJECT.setIndex(parseInt(Session.get('tokenTransferConfirmation').otsKey, 10))
+    XMSS_OBJECT.setIndex(
+      parseInt(Session.get('tokenTransferConfirmation').otsKey, 10)
+    )
   }
 
   // Concatenate Uint8Arrays
@@ -615,7 +671,9 @@ function confirmTokenTransfer() {
   // Sign the transaction and relay into network.
   if (getXMSSDetails().walletType === 'seed') {
     // Sign the sha sum
-    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+    tx.extended_transaction_unsigned.tx.signature = binaryToBytes(
+      XMSS_OBJECT.sign(shaSum)
+    )
 
     // Calculate transaction hash
     const txnHashConcat = concatenateTypedArrays(
@@ -675,7 +733,9 @@ function checkResult(thisTxId, failureCount) {
   try {
     if (Session.get('txhash').transaction.header != null) {
       // Complete
-      const userMessage = `Complete - Transaction ${thisTxId} is in block ${Session.get('txhash').transaction.header.block_number} with 1 confirmation.`
+      const userMessage = `Complete - Transaction ${thisTxId} is in block ${
+        Session.get('txhash').transaction.header.block_number
+      } with 1 confirmation.`
       Session.set('txstatus', userMessage)
       Session.set('transactionConfirmed', 'true')
       $('.loading').hide()
@@ -693,7 +753,9 @@ function checkResult(thisTxId, failureCount) {
       // We attempt to find the transaction 5 times below absolutely failing.
       if (failureCount < 5) {
         // eslint-disable-next-line no-use-before-define
-        setTimeout(() => { pollTransaction(thisTxId, false, failureCount + 1) }, POLL_TXN_RATE)
+        setTimeout(() => {
+          pollTransaction(thisTxId, false, failureCount + 1)
+        }, POLL_TXN_RATE)
       } else {
         // Transaction error - Give up
         const errorMessage = `Error - ${Session.get('txhash').error}`
@@ -705,7 +767,9 @@ function checkResult(thisTxId, failureCount) {
     } else {
       // Poll again
       // eslint-disable-next-line no-use-before-define
-      setTimeout(() => { pollTransaction(thisTxId) }, POLL_TXN_RATE)
+      setTimeout(() => {
+        pollTransaction(thisTxId)
+      }, POLL_TXN_RATE)
     }
   } catch (err) {
     // Most likely is that the mempool is not replying the transaction.
@@ -715,7 +779,9 @@ function checkResult(thisTxId, failureCount) {
     // Continue to check the txn status until POLL_MAX_CHECKS is reached in failureCount
     if (failureCount < POLL_MAX_CHECKS) {
       // eslint-disable-next-line no-use-before-define
-      setTimeout(() => { pollTransaction(thisTxId, false, failureCount + 1) }, POLL_TXN_RATE)
+      setTimeout(() => {
+        pollTransaction(thisTxId, false, failureCount + 1)
+      }, POLL_TXN_RATE)
     } else {
       // Transaction error - Give up
       Session.set('txstatus', 'Error')
@@ -745,7 +811,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
     wrapMeteorCall('getTxnHash', request, (err, res) => {
       if (err) {
         if (failureCount < POLL_MAX_CHECKS) {
-          Session.set('txhash', { })
+          Session.set('txhash', {})
           Session.set('txstatus', 'Pending')
         } else {
           Session.set('txhash', { error: err, id: thisTxId })
@@ -807,7 +873,8 @@ function initialiseFormValidation() {
         },
         {
           type: 'maxDecimals',
-          prompt: 'You can only enter up to 9 decimal places in the amount field',
+          prompt:
+            'You can only enter up to 9 decimal places in the amount field',
         },
       ],
     }
@@ -857,7 +924,7 @@ function initialiseFormValidation() {
 
   // Max of 9 decimals
   $.fn.form.settings.rules.maxDecimals = function (value) {
-    return (countDecimals(value) <= 9)
+    return countDecimals(value) <= 9
   }
 
   // Address Validation
@@ -909,7 +976,10 @@ Template.appTransfer.onRendered(() => {
   updateBalanceField()
 
   // Warn if user is has opened the 0 byte address (test mode on Ledger)
-  if (getXMSSDetails().address === 'Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd') {
+  if (
+    getXMSSDetails().address ===
+    'Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd'
+  ) {
     $('#zeroBytesAddressWarning').modal('transition', 'disable').modal('show')
   }
 
@@ -920,10 +990,18 @@ Template.appTransfer.onRendered(() => {
         if (xmss !== null) {
           if (LocalStore.get('addressFormat') === 'bech32') {
             $('.qr-code-container').empty()
-            $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().addressB32 })
+            $('.qr-code-container').qrcode({
+              width: 142,
+              height: 142,
+              text: getXMSSDetails().addressB32,
+            })
           } else {
             $('.qr-code-container').empty()
-            $('.qr-code-container').qrcode({ width: 142, height: 142, text: getXMSSDetails().address })
+            $('.qr-code-container').qrcode({
+              width: 142,
+              height: 142,
+              text: getXMSSDetails().address,
+            })
           }
           $('#recQR').empty()
           $('#recQR').qrcode({ width: 142, height: 142, text: xmss.hexseed })
@@ -937,7 +1015,9 @@ Template.appTransfer.events({
   'click .transactionRecord': (event) => {
     event.preventDefault()
     event.stopPropagation()
-    const txhash = $(event.target).closest('.transactionRecord').attr('data-txhash')
+    const txhash = $(event.target)
+      .closest('.transactionRecord')
+      .attr('data-txhash')
 
     FlowRouter.go(`/verify-txid/${txhash}`)
   },
@@ -975,23 +1055,27 @@ Template.appTransfer.events({
   'click #confirmTransaction': () => {
     $('#confirmTransaction').attr('disabled', true)
     $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
-    setTimeout(() => { confirmTransaction() }, 200)
+    setTimeout(() => {
+      confirmTransaction()
+    }, 200)
   },
   'click #confirmTokenTransaction': () => {
     $('#relayingTokenXfer').show()
-    setTimeout(() => { confirmTokenTransfer() }, 200)
+    setTimeout(() => {
+      confirmTokenTransfer()
+    }, 200)
   },
   'click #cancelTransaction': () => {
     cancelTransaction()
   },
   'click #quantaJsonClick': () => {
-    if (!($('#quantaJsonbox').html())) {
+    if (!$('#quantaJsonbox').html()) {
       setRawDetail()
     }
     $('#quantaJsonbox').toggle()
   },
   'click #tokenJsonClick': () => {
-    if (!($('#tokenJsonbox').html())) {
+    if (!$('#tokenJsonbox').html()) {
       setRawDetail()
     }
     $('#tokenJsonbox').toggle()
@@ -1004,7 +1088,10 @@ Template.appTransfer.events({
     event.stopPropagation()
 
     // Prevent adding more than 2 additional recipients when using Ledger Nano
-    if ((getRecipientIds().length > 2) && (getXMSSDetails().walletType === 'ledger')) {
+    if (
+      getRecipientIds().length > 2 &&
+      getXMSSDetails().walletType === 'ledger'
+    ) {
       $('#maxRecipientsReached').modal('show')
     } else {
       // Increment count of recipients
@@ -1035,8 +1122,7 @@ Template.appTransfer.events({
     event.stopPropagation()
 
     // Remove the recipient
-    $(event.currentTarget).parent().parent().parent()
-      .remove()
+    $(event.currentTarget).parent().parent().parent().remove()
 
     // Initialise form validation
     initialiseFormValidation()
@@ -1075,7 +1161,7 @@ Template.appTransfer.events({
     if (event.keyCode === 13) {
       const x = parseInt($('#paginator').val(), 10)
       const max = Session.get('pages').length
-      if ((x < (max + 1)) && (x > 0)) {
+      if (x < max + 1 && x > 0) {
         loadAddressTransactions(getXMSSDetails().address, x)
       }
     }
@@ -1132,8 +1218,12 @@ Template.appTransfer.helpers({
   },
   transactionConfirmationFee() {
     try {
-      if (Session.get('transactionConfirmationResponse') === undefined) { return false }
-      const transactionConfirmationFee = Session.get('transactionConfirmationResponse').extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
+      if (Session.get('transactionConfirmationResponse') === undefined) {
+        return false
+      }
+      const transactionConfirmationFee =
+        Session.get('transactionConfirmationResponse')
+          .extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA
       return transactionConfirmationFee
     } catch (e) {
       return false
@@ -1152,7 +1242,10 @@ Template.appTransfer.helpers({
     return otsKeysRemaining
   },
   nodeExplorerUrl() {
-    if ((Session.get('nodeExplorerUrl') === '') || (Session.get('nodeExplorerUrl') === null)) {
+    if (
+      Session.get('nodeExplorerUrl') === '' ||
+      Session.get('nodeExplorerUrl') === null
+    ) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }
     return Session.get('nodeExplorerUrl')
@@ -1179,7 +1272,9 @@ Template.appTransfer.helpers({
   },
   txDetail() {
     try {
-      if (Session.get('txhash') === undefined) { return false }
+      if (Session.get('txhash') === undefined) {
+        return false
+      }
       const txDetail = Session.get('txhash').transaction.tx.transfer
       txDetail.amount /= SHOR_PER_QUANTA
       txDetail.fee /= SHOR_PER_QUANTA
@@ -1192,7 +1287,9 @@ Template.appTransfer.helpers({
     try {
       const confirmation = Session.get('tokenTransferConfirmation')
       if (confirmation !== undefined) {
-        confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString('hex')
+        confirmation.tokenHash = Buffer.from(confirmation.tokenHash).toString(
+          'hex'
+        )
       }
       return confirmation
     } catch (e) {
@@ -1215,7 +1312,7 @@ Template.appTransfer.helpers({
   addressTransactions() {
     const transactions = Session.get('addressTransactions')
     const formatted = []
-    _.each(transactions, (transaction => {
+    _.each(transactions, (transaction) => {
       const txOut = transaction
       if (transaction.tx.transactionType === 'transfer_token') {
         const lookFor = transaction.tx.transfer_token.token_txhash
@@ -1232,7 +1329,7 @@ Template.appTransfer.helpers({
         }
       }
       formatted.push(txOut)
-    }))
+    })
     return formatted
   },
   addressHasTransactions() {
@@ -1336,7 +1433,7 @@ Template.appTransfer.helpers({
   tokensHeld() {
     const tokens = []
     _.each(Session.get('tokensHeld'), (token) => {
-      token.shortHash = token.hash.slice(-5)  // eslint-disable-line
+      token.shortHash = token.hash.slice(-5) // eslint-disable-line
       tokens.push(token)
     })
     return tokens
@@ -1373,10 +1470,11 @@ Template.appTransfer.helpers({
     const active = Session.get('active')
     if (Session.get('pages').length > 0) {
       ret = Session.get('pages')
-      if ((active - 5) <= 0) {
+      if (active - 5 <= 0) {
         ret = ret.slice(0, 9)
       } else {
-        if ((active + 10) > ret.length) { // eslint-disable-line
+        if (active + 10 > ret.length) {
+          // eslint-disable-line
           ret = ret.slice(ret.length - 10, ret.length)
         } else {
           ret = ret.slice(active - 5, active + 4)

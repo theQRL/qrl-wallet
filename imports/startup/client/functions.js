@@ -327,7 +327,7 @@ toBigendianUint64BytesUnsigned = (input, bufferResponse = false) => {
     const result = Buffer.from(byteArray)
     return result
   }
-  const result = new Uint8Array(byteArray)
+  const result = Uint8Array.from(byteArray)
   return result
 }
 

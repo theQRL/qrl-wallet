@@ -5,6 +5,7 @@
   "version": "1.7.0",
   "main": "index.js",
   "dependencies": {
+    "electrify-qrl": "^0.2.3",
     "grpc": "^1.14.0",
     "grpc-promise": "^1.1.0",
     "meteor-electrify": "^4.0.0"
