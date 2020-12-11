@@ -9,8 +9,16 @@ app.on('ready', function() {
   loading = new BrowserWindow({
     width: 850, height: 340,
     nodeIntegration: false,
-    icon: __dirname + '/assets/qrl.png'
+    icon: __dirname + '/assets/qrl.png',
   });
+    loading.webContents.on('will-navigate', ev => {
+      ev.preventDefault();
+    });
+    loading.removeMenu();
+    loading.setMenuBarVisibility(false);
+    loading.setMinimizable(false);
+    loading.setMaximizable(false);
+    loading.setResizable(false);
   loading.loadURL(`file://${__dirname}/loading.html`)
 
   // Electrify Start
@@ -29,15 +37,15 @@ app.on('ready', function() {
     window.loadURL(meteor_root_url);
 
     // Set About menu for MacOS
-    if (process.platform === 'darwin') {
+    // if (process.platform === 'darwin') {
       app.setAboutPanelOptions({
         applicationName: "QRL Wallet",
         applicationVersion: "1.7.0",
-        version: "Electron 1.8.8",
+        version: "Electron 10.1.7",
         copyright: "Die QRL Stiftung, Zug Switzerland",
         credits: "The QRL Developers"
       });
-    }
+    // }
 
     // Setup content menu, and enable copy/paste actions
     window.webContents.on('contextmenu', () => {
