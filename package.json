@@ -46,6 +46,7 @@
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
     "eslint": "^5.16.0",
+    "electron-wix-msi-qrl": "^2.1.2",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-import-resolver-meteor": "^0.4.0",
     "eslint-plugin-import": "^2.18.2",

@@ -14,3 +14,5 @@ local.json
 .DS_Store
 .snap
 /mainnet.json
+.electrify/dist
+.electrify/.dist

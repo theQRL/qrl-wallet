@@ -525,10 +525,10 @@ Template.appAddressOpen.helpers({
     ledgerDetails.pubkey = Session.get('ledgerDetailsPkHex')
     return ledgerDetails
   },
-  isWindows() {
-    return !(window.navigator.platform.indexOf('Win'))
+  isWindowsNotElectron() {
+    return (!(window.navigator.platform.indexOf('Win')) && !isElectrified())
   },
-  isNotWindows() {
-    return (window.navigator.platform.indexOf('Win'))
+  isNotWindowsNotElectron() {
+    return !(!(window.navigator.platform.indexOf('Win')) && !isElectrified())
   }
 })
