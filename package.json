@@ -18,9 +18,10 @@
     "babel-polyfill": "^6.26.0",
     "bech32": "^1.1.4",
     "bignumber.js": "^7.2.1",
+    "browserify-aes": "^1.2.0",
     "core-js": "^3.8.1",
     "crypto-browserify": "^3.12.0",
-    "crypto-js": "^3.3.0",
+    "crypto-js": "^4.0.0",
     "grpc": "^1.24.4",
     "json-formatter-js": "^2.3.4",
     "mathjs": "^4.0.1",
@@ -29,9 +30,9 @@
     "run-script-os": "^1.0.3",
     "sha256": "^0.2.0",
     "snyk": "^1.305.0",
+    "stream-browserify": "^3.0.0",
     "tmp": "0.0.33"
   },
-  "private": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/theQRL/qrl-wallet.git"
@@ -45,8 +46,9 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
-    "eslint": "^5.16.0",
+    "@theqrl/electrify-qrl": "^1.0.2",
     "electron-wix-msi-qrl": "^2.1.2",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-import-resolver-meteor": "^0.4.0",
     "eslint-plugin-import": "^2.18.2",
@@ -69,7 +71,7 @@
     "electron": "electrify",
     "releaseready": "meteor lint",
     "build": "run-script-os",
-    "build:darwin": "electrify package -o .electrify/.dist/ --settings ./settings.json",
+    "build:darwin": "electrify package -o .electrify/.dist/ -- --tmpdir=/tmp/.pkg",
     "build:linux": "electrify package -o .electrify/.dist/",
     "build:win32": "electrify package -o .electrify\\dist\\",
     "installer": "run-script-os",
@@ -78,5 +80,8 @@
     "installer:win32": "node build-msi.js",
     "desktop": "meteor-desktop"
   },
+  "workspaces": [
+    ".electrify"
+  ],
   "snyk": true
 }

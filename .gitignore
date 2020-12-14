@@ -16,3 +16,4 @@ local.json
 /mainnet.json
 .electrify/dist
 .electrify/.dist
+/.yarn

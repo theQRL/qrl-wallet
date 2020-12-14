@@ -512,7 +512,7 @@ const getObject = (request, callback) => {
 
 const helpersaddressTransactions = (response) => {
   const output = []
-  console.log(response)
+  // console.log(response)
   _.each(response.transactions_detail, (tx) => {
     const txEdited = tx
     if (tx.tx.transfer) {

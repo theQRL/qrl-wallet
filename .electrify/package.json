@@ -27,5 +27,8 @@
   },
   "devDependencies": {
     "electron-wix-msi-qrl": "^2.1.2"
-  }
+  },
+  "workspaces": [
+    ".electrify"
+  ]
 }

@@ -5,6 +5,7 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
+import randomBytes from 'randombytes'
 import './create.html'
 
 // eslint-disable-next-line consistent-return
@@ -42,7 +43,7 @@ function generateWallet() {
     if (passwordPolicyValid(passphrase)) {
       // Generate random seed for XMSS tree
       // eslint-disable-next-line global-require
-      const randomSeed = toUint8Vector(require('crypto').randomBytes(48))
+      const randomSeed = toUint8Vector(randomBytes(48))
 
       // Generate XMSS object.
       // eslint-disable-next-line no-global-assign,new-cap
