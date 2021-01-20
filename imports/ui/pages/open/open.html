@@ -23,9 +23,10 @@
             <option value="file">Wallet File</option>
             <option value="mnemonic">Mnemonic Phrase</option>
             <option value="hexseed">Hexseed</option>
-            <option value="ledgernano">Ledger Nano</option>
+            {{#if isNotWindowsNotElectron}}<option value="ledgernano">Ledger Nano</option>{{/if}}
           </select>
         </div>
+        {{#if isWindowsNotElectron}}<p>To use a Ledger Nano device on Windows, download the desktop wallet from https://theqrl.org</p>{{/if}}
       </div>
 
       <div id="passphraseArea">
