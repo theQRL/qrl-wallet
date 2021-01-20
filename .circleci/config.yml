@@ -24,7 +24,7 @@ jobs:
           name: Install dependencies
           command: |
             npm install -g n
-            sudo n 8.11.4
+            sudo n 12.14.0
             brew update
             brew cleanup
             # brew cask install google-chrome
@@ -32,10 +32,10 @@ jobs:
 
       # Prepare app
       - run:
-          name: Install meteor v1.8.0.2
+          name: Install meteor v1.12
           command: |
             if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
-            if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
+            if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.12 | sh; fi
       # - run:
       #     name: update npm to latest
       #     command: |
@@ -72,7 +72,7 @@ jobs:
       #      until curl --max-time 300 http://localhost:3000/; do sleep 1; done
       #      #npm install -g chimp
       #      #npm install -g selenium-standalone
-      #      #/usr/local/Cellar/node/8.7.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
+      #      #/usr/local/Cellar/node/12.14.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
 
       # Create package on master
       - deploy:
@@ -80,7 +80,7 @@ jobs:
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               npm install -g electrify-qrl
               npm install
-              export NODEPATH=/usr/local/Cellar/node/8.7.0
+              export NODEPATH=/usr/local/Cellar/node/12.14.0
               export PATH="$NODEPATH/bin:$PATH"
               # Package Electron App
               npm run cleanDist
@@ -94,7 +94,7 @@ jobs:
             if [ "${CIRCLE_BRANCH}" == "devnet" ]; then
               npm install -g electrify-qrl
               npm install
-              export NODEPATH=/usr/local/Cellar/node/8.7.0
+              export NODEPATH=/usr/local/Cellar/node/12.14.0
               export PATH="$NODEPATH/bin:$PATH"
               # Package Electron App
               npm run cleanDist
