@@ -10,7 +10,7 @@ import async from 'async'
 import './open.html'
 import helpers from '@theqrl/wallet-helpers'
 
-import { isElectrified,  createTransport, ledgerReturnedError } from '../../../startup/client/functions'
+import { isElectrified, createTransport, ledgerReturnedError } from '../../../startup/client/functions'
 
 Template.appAddressOpen.onCreated(() => {
   Session.set('modalEventTriggered', false)
@@ -42,7 +42,7 @@ async function getLedgerState(callback) {
         console.log('> Got Ledger Nano State from WebUSB')
         console.log(data)
         if (ledgerReturnedError()) {
-          console.log(`-- Ledger error: ${error} --`)
+          console.log(`-- Ledger error: ${data.error_message} --`)
           showError()
         } else {
           callback(null, data)
@@ -50,8 +50,7 @@ async function getLedgerState(callback) {
       }, e => {
         ledgerReturnedError()
         showError()
-      }
-      ).catch(e => {
+      }).catch(e => {
         console.log(`-- Ledger error: ${e} --`)
         showError()
       }).catch(e => {
@@ -90,28 +89,27 @@ async function getLedgerPubkey(callback) {
           // Convert Uint to hex
           const pkHex = Buffer.from(data.public_key).toString('hex')
           // Get address from pk
-           const qAddress = QRLLIB.getAddress(pkHex)
-           const ledgerQAddress = `Q${qAddress}`
-           Session.set('ledgerDetailsAddress', ledgerQAddress)
-           Session.set('ledgerDetailsPkHex', pkHex)
-           $('#walletCode').val(ledgerQAddress)
-           callback(null, data)
-          }
-        }, e => {
-          ledgerReturnedError()
-          showError()
+          const qAddress = QRLLIB.getAddress(pkHex)
+          const ledgerQAddress = `Q${qAddress}`
+          Session.set('ledgerDetailsAddress', ledgerQAddress)
+          Session.set('ledgerDetailsPkHex', pkHex)
+          $('#walletCode').val(ledgerQAddress)
+          callback(null, data)
         }
-        ).catch(e => {
-          console.log(`-- Ledger error: ${e} --`)
-          showError()
-        }).catch(e => {
-          console.log(`-- Ledger error: ${e} --`)
-          showError()
-        })
       }, e => {
         ledgerReturnedError()
         showError()
+      }).catch(e => {
+        console.log(`-- Ledger error: ${e} --`)
+        showError()
+      }).catch(e => {
+        console.log(`-- Ledger error: ${e} --`)
+        showError()
       })
+    }, e => {
+      ledgerReturnedError()
+      showError()
+    })
   }
 }
 
@@ -120,7 +118,10 @@ async function getLedgerVersion(callback) {
   if (isElectrified()) {
     Meteor.call('ledgerAppVersion', [], (err, data) => {
       console.log('> Got Ledger App Version from USB')
-      Session.set('ledgerDetailsAppVersion', data.major + '.' + data.minor + '.' + data.patch)
+      Session.set(
+        'ledgerDetailsAppVersion',
+        data.major + '.' + data.minor + '.' + data.patch
+      )
       callback(null, data)
     })
   } else {
@@ -227,7 +228,7 @@ function refreshLedger() {
             },
             // Get the local QrlLedger JS library version
             function (cb) {
-              getLedgerLibraryVersion(function(data) {
+              getLedgerLibraryVersion(function (data) {
                 cb()
               })
             },
@@ -480,7 +481,7 @@ Template.appAddressOpen.events({
     $('#ledgerKeysGeneratingError').hide()
     $('#ledgerKeysGeneratingDeviceError').hide()
     $('#ledgerKeysGeneratingComplete').hide()
-    setTimeout(() => { refreshLedger() }, 50)
+    setTimeout(() => { refreshLedger() }, 1000)
   },
   'change #walletType': () => {
     updateWalletType()
@@ -524,4 +525,10 @@ Template.appAddressOpen.helpers({
     ledgerDetails.pubkey = Session.get('ledgerDetailsPkHex')
     return ledgerDetails
   },
+  isWindowsNotElectron() {
+    return (!(window.navigator.platform.indexOf('Win')) && !isElectrified())
+  },
+  isNotWindowsNotElectron() {
+    return !(!(window.navigator.platform.indexOf('Win')) && !isElectrified())
+  }
 })

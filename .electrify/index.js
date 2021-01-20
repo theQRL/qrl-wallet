@@ -1,16 +1,48 @@
 const { app, BrowserWindow, Menu } = require('electron');
-const electrify = require('electrify-qrl')(__dirname);
+const electrify = require('@theqrl/electrify-qrl')(__dirname);
 
 let window;
 let loading;
 
 app.on('ready', function() {
+
+    var template = [{
+        label: "Application",
+        submenu: [
+            { label: "About QRL Wallet", selector: "orderFrontStandardAboutPanel:" },
+            { type: "separator" },
+            { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+        ]}, {
+        label: "Edit",
+        submenu: [
+            { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+            { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+            { type: "separator" },
+            { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+            { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+            { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+            { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+        ]}
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  
   // Create the loading screen
   loading = new BrowserWindow({
     width: 850, height: 340,
     nodeIntegration: false,
-    icon: __dirname + '/assets/qrl.png'
+    icon: __dirname + '/assets/qrl.png',
   });
+    loading.webContents.on('will-navigate', ev => {
+      ev.preventDefault();
+    });
+    loading.removeMenu();
+    loading.setMenuBarVisibility(false);
+    loading.setMinimizable(false);
+    loading.setMaximizable(false);
+    loading.setResizable(false);
+    loading.webContents.on('contextmenu', () => {
+        menu.popup(window);
+    });
   loading.loadURL(`file://${__dirname}/loading.html`)
 
   // Electrify Start
@@ -32,8 +64,8 @@ app.on('ready', function() {
     if (process.platform === 'darwin') {
       app.setAboutPanelOptions({
         applicationName: "QRL Wallet",
-        applicationVersion: "1.6.6",
-        version: "Electron 1.8.8",
+        applicationVersion: "1.7.0",
+        version: "Electron 10.1.7",
         copyright: "Die QRL Stiftung, Zug Switzerland",
         credits: "The QRL Developers"
       });
@@ -48,26 +80,6 @@ app.on('ready', function() {
     window.webContents.on('will-navigate', ev => {
       ev.preventDefault()
     });
-
-    var template = [{
-        label: "Application",
-        submenu: [
-            { label: "About QRL Wallet", selector: "orderFrontStandardAboutPanel:" },
-            { type: "separator" },
-            { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
-        ]}, {
-        label: "Edit",
-        submenu: [
-            { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-            { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-            { type: "separator" },
-            { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-            { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-            { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-            { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-        ]}
-    ];
-    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   });
 });
 

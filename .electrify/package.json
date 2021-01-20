@@ -2,10 +2,10 @@
   "name": "QRLWallet",
   "productName": "QRLWallet",
   "projectName": "qrl-wallet",
-  "version": "1.6.6",
+  "version": "1.7.0",
   "main": "index.js",
   "dependencies": {
-    "electrify-qrl": "0.2.3",
+    "@theqrl/electrify-qrl": "^1.0.0",
     "grpc": "^1.14.0",
     "grpc-promise": "^1.1.0"
   },
@@ -24,5 +24,11 @@
       "ProductName": "QRLWallet",
       "InternalName": "QRLWallet.exe"
     }
-  }
+  },
+  "devDependencies": {
+    "electron-wix-msi-qrl": "^2.1.2"
+  },
+  "workspaces": [
+    ".electrify"
+  ]
 }
