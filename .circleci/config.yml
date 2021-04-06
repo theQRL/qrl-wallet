@@ -1,117 +1,104 @@
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@1.1
 jobs:
-  build_wallet:
-    macos:
-      xcode: "12.2.0"
-
+  build:
+    executor:
+      name: node/default
+      tag: '12.14'
     steps:
-      # Checkout repo
       - checkout
-
-      # Save/Restore cache
-      #- save_cache:
-      #    key: wallet_cache
-      #    paths:
-      #      - node_modules
-      #      - ~/.npm
-      #      - ~/.meteor
-
-      #- restore_cache:
-      #    key: wallet_cache
-      
-      # Install dependencies
+      - restore_cache:
+          key: build-temp-{{ checksum ".meteor/release" }}-{{ checksum ".circleci/config.yml" }}
+      - restore_cache:
+          key: meteor-release-{{ checksum ".meteor/release" }}-{{ checksum ".meteor/versions" }}-{{ checksum ".circleci/config.yml" }}
+      - restore_cache:
+          key: meteor-packages
+      - restore_cache:
+          key: npm-packages-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}-{{ checksum ".circleci/config.yml" }}
       - run:
-          name: Install dependencies
+          name: restore cached meteor binary
           command: |
-            npm install -g n
-            sudo n 8.11.4
-            brew update
-            brew cleanup
-            # brew cask install google-chrome
-            # brew cask install chromedriver
-
-      # Prepare app
-      - run:
-          name: Install meteor v1.8.0.2
-          command: |
-            if [ -d ~/.meteor ]; then sudo ln -s ~/.meteor/meteor /usr/local/bin/meteor; fi
-            if [ ! -e $HOME/.meteor/meteor ]; then curl https://install.meteor.com/?release=1.8.0.2 | sh; fi
-      # - run:
-      #     name: update npm to latest
-      #     command: |
-      #       npm i npm@latest -g
-      - run:
-          name: install snyk globally
-          command: |
-            npm i snyk -g && sudo chown -R $USER:$(id -gn $USER) /Users/distiller/.config
-      - run:
-          name: install dependencies
-          command: |
-            rm package-lock.json && rm .electrify/package-lock.json && npm install
-      - run:
-          name: install electrify-qrl globally
-          command: |
-            npm install -g electrify-qrl
-      - run:
-          name: report meteor node version
-          command: |
-            meteor node -e 'console.log("I am Node.js %s!", process.version);'
-
-      # Start meteor in background
-      #- run:
-      #    name: Start Meteor
-      #    command: |
-      #      meteor npm install --unsafe-perm
-      #      npm run dev
-      #    background: true
-
-      # Run unit tests
-      #- run:
-      #    name: Run selenium tests
-      #    command: |
-      #      until curl --max-time 300 http://localhost:3000/; do sleep 1; done
-      #      #npm install -g chimp
-      #      #npm install -g selenium-standalone
-      #      #/usr/local/Cellar/node/8.7.0/bin/chimp --ddp=http://localhost:3000 --browser=chrome --path=tests
-
-      # Create package on master
-      - deploy:
-          command:  |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              npm install -g electrify-qrl
-              npm install
-              export NODEPATH=/usr/local/Cellar/node/8.7.0
-              export PATH="$NODEPATH/bin:$PATH"
-              # Package Electron App
-              npm run cleanDist
-              npm run releaseready
-              npm run build
-              # Build Macos DMG
-              npm run installer
-              # Clear Electron build folder
-              rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
+            if [ -e ~/build-temp/meteor-bin ]
+            then
+                echo "Cached Meteor bin found, restoring it."
+                sudo cp ~/build-temp/meteor-bin /usr/local/bin/meteor
+            else
+                echo "No cached Meteor bin found."
             fi
-            if [ "${CIRCLE_BRANCH}" == "devnet" ]; then
-              npm install -g electrify-qrl
-              npm install
-              export NODEPATH=/usr/local/Cellar/node/8.7.0
-              export PATH="$NODEPATH/bin:$PATH"
-              # Package Electron App
-              npm run cleanDist
-              npm run releaseready
-              npm run build
-              # Build Macos DMG
-              npm run installer
-              # Clear Electron build folder
-              rm -rf ./.electrify/.dist/QRLWallet-darwin-x64
-            fi
-      # Save artifacts
-      - store_artifacts:
-          path: .electrify/.dist/
-          destination: build
+      - run:
+          name: install meteor
+          command: |
+            # only install meteor if bin isn't found
+            command -v meteor >/dev/null 2>&1 || curl https://install.meteor.com | /bin/sh
+      - run:
+          name: check versions
+          command: |
+            echo "Meteor version:"
+            # this forces Meteor to download whatever release your project is using
+            meteor --version
+            which meteor
+            echo "Meteor node version:"
+            meteor node -v
+            echo "Meteor npm version:"
+            meteor npm -v
+      - run:
+          name: copy meteor bin to build cache
+          command: |
+            mkdir -p ~/build-temp
+            cp /usr/local/bin/meteor ~/build-temp/meteor-bin
+      - save_cache:
+          key: build-temp-{{ checksum ".meteor/release" }}-{{ checksum ".circleci/config.yml" }}
+          paths:
+            - ~/build-temp
+      - run:
+          name: install npm packages
+          command: meteor npm i
+      - save_cache:
+          key: npm-packages-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}-{{ checksum ".circleci/config.yml" }}
+          paths:
+            - ./node_modules/
+            - ~/.npm/
+      - run:
+          name: run tests
+          command: meteor test
+      - save_cache:
+          key: meteor-release-{{ checksum ".meteor/release" }}-{{ checksum ".meteor/versions" }}-{{ checksum ".circleci/config.yml" }}
+          paths:
+            - ~/.meteor
+      - save_cache:
+          key: meteor-packages-{{ epoch }}
+          paths:
+            - .meteor/local
 
-workflows:
-  version: 2
-  build_all:
-    jobs:
-      - build_wallet
+
+# version: 2
+# machine:
+#   node:
+#     version: 0.10.43
+# dependencies:
+#   override:
+#     - curl https://install.meteor.com | /bin/sh
+#     - npm install
+# checkout:
+#   post:
+#     - git submodule update --init
+#       # Start meteor in background
+#       - run:
+#           name: Start Meteor
+#           command: |
+#             meteor npm install --unsafe-perm
+#             npm run dev
+#           background: true
+
+#       # Test run
+#       - run:
+#           name: Ensure runs
+#           command: |
+#             until curl --max-time 300 http://localhost:3000/; do sleep 1; done
+
+# workflows:
+#   version: 2
+#   build_all:
+#     jobs:
+#       - build

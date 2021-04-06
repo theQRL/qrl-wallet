@@ -125,7 +125,7 @@ const loadMultisigs = (a, p) => {
   const request = {
     address: addresstx,
     network: selectedNetwork(),
-    item_per_page: 10,
+    item_per_page: 500,
     page_number: p,
     filter_type: 6,
   }

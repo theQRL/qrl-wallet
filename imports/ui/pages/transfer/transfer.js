@@ -864,8 +864,12 @@ function initialiseFormValidation() {
       identifier: 'amounts_' + id,
       rules: [
         {
+          type: 'validFloat',
+          prompt: 'You must enter a valid amount to send',
+        },
+        {
           type: 'empty',
-          prompt: 'You must enter an amount to send',
+          prompt: 'You must enter a valid amount to send',
         },
         {
           type: 'number',
@@ -922,9 +926,22 @@ function initialiseFormValidation() {
     ],
   }
 
+  // Valid float
+  $.fn.form.settings.rules.validFloat = function (value) {
+    // == is intended here
+    if (parseFloat(value) == value && parseFloat(value).toString().length === value.length) { // eslint-disable-line
+      return true
+    }
+    return false
+  }
+
   // Max of 9 decimals
   $.fn.form.settings.rules.maxDecimals = function (value) {
-    return countDecimals(value) <= 9
+    try {
+      return countDecimals(value) <= 9
+    } catch (e) {
+      return false
+    }
   }
 
   // Address Validation
@@ -942,6 +959,8 @@ function initialiseFormValidation() {
   // Initialise the form validation
   $('.ui.form').form({
     fields: validationRules,
+    inline: true,
+    on: 'blur',
   })
 }
 
