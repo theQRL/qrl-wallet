@@ -16,7 +16,7 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v8.11.3
+[NodeJS](https://nodejs.org/en/) v12.14.x
 
 [Meteor](https://www.meteor.com/install)
 
