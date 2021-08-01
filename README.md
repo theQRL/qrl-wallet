@@ -20,9 +20,9 @@ The following dependencies are required for a functional local development envir
 
 [Meteor](https://www.meteor.com/install)
 
-[electrify-qrl](https://www.npmjs.com/package/electrify-qrl)
+[@theqrl/electrify-qrl](https://www.npmjs.com/package/@theqrl/electrify-qrl)
 
-	npm install -g electrify-qrl
+	npm install -g @theqrl/electrify-qrl
 
 [node-gyp](https://github.com/nodejs/node-gyp)
 
