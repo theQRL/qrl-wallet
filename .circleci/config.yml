@@ -61,7 +61,7 @@ jobs:
             - ~/.npm/
       - run:
           name: run tests
-          command: meteor test
+          command: meteor test --driver-package meteortesting:mocha
       - save_cache:
           key: meteor-release-{{ checksum ".meteor/release" }}-{{ checksum ".meteor/versions" }}-{{ checksum ".circleci/config.yml" }}
           paths:
