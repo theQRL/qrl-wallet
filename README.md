@@ -16,17 +16,22 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v12.14.x
+[NodeJS](https://nodejs.org/en/) v12
+
+We recommend using nvm to manage NodeJS versions and using the version of NodeJS as specified in the .nvmrc file
 
 [Meteor](https://www.meteor.com/install)
 
-[electrify-qrl](https://www.npmjs.com/package/electrify-qrl)
+[@theqrl/electrify-qrl](https://www.npmjs.com/package/@theqrl/electrify-qrl)
 
-	npm install -g electrify-qrl
+	npm install -g @theqrl/electrify-qrl
 
 [node-gyp](https://github.com/nodejs/node-gyp)
 
 	npm install -g node-gyp
+
+Linux only: libudev-dev
+	sudo apt-get install libudev-dev
 
 Mac only: create-dmg
 
@@ -45,17 +50,17 @@ Windows Only - [Wix Toolset Build Tools](http://wixtoolset.org/releases/) and el
 	cd qrl-wallet
 	npm install
 
-## Run QRL Wallet
+## Run QRL Wallet (web wallet)
 
-	npm run dev
+	meteor
+
+A locally running wallet will be available at http://localhost:3000
 
 ## Run Tests
 
-Note: QRL Wallet must already be running for this to work!
+	meteor test --driver-package meteortesting:mocha
 
-	npm run test
-
-## Run Electron Client (Dev Mode)
+## Run QRL Wallet (desktop client)
 
 	npm run electron
 
@@ -85,3 +90,4 @@ Ensure the node, mongo and mongod for the platform being built for are in the .e
 	
 	npm run installer
 
+If you have issues, the [QRL Discord](https://discord.gg/jBT6BEp) is a good place to ask for help.
