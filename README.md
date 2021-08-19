@@ -16,9 +16,9 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v12.14.x
+[NodeJS](https://nodejs.org/en/) v12
 
-We recommend using nvm to manage NodeJS versions.
+We recommend using nvm to manage NodeJS versions and using the version of NodeJS as specified in the .nvmrc file
 
 [Meteor](https://www.meteor.com/install)
 
@@ -29,6 +29,9 @@ We recommend using nvm to manage NodeJS versions.
 [node-gyp](https://github.com/nodejs/node-gyp)
 
 	npm install -g node-gyp
+
+Linux only: libudev-dev
+	sudo apt-get install libudev-dev
 
 Mac only: create-dmg
 
