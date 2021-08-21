@@ -69,7 +69,7 @@
     "releaseready": "meteor lint",
     "build": "run-script-os",
     "build:darwin": "electrify package -o .electrify/.dist/ -- --tmpdir=/tmp/.pkg",
-    "build:linux": "electrify package -o .electrify/.dist/",
+    "build:linux": "electrify package -o .electrify/.dist/ && mv /tmp/.build_tmp/package/QRLWallet-linux-x64/ .electrify/.dist/",
     "build:win32": "electrify package -o .electrify\\dist\\",
     "installer": "run-script-os",
     "installer:darwin": "cd .electrify/.dist/QRLWallet-darwin-x64 && create-dmg QRLWallet.app",
