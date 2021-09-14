@@ -21,7 +21,7 @@
         {{> QRCode text=transactionHash size="128px"}}
       </div>
       <div class="content">
-        <a class="header">{{messageDetails.message}}</a>
+        <a class="header" style="word-break: break-all;">{{messageDetails.message}}</a>
         <div class="meta">
           <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
