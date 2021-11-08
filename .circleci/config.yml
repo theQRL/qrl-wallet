@@ -13,6 +13,10 @@ jobs:
           command: |
             sudo apt-get update && sudo apt-get upgrade -y
       - run:
+          name: install dependencies
+          command: |
+            sudo apt-get install -y libusb-dev libudev-dev
+      - run:
           name: install meteor
           command: |
             curl https://install.meteor.com/ | sh
