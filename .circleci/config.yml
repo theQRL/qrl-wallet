@@ -11,7 +11,7 @@ jobs:
       - run:
           name: install meteor
           command: |
-            npm install -g meteor
+            curl https://install.meteor.com/ | sh
       - run:
           name: install npm packages
           command: meteor npm i
