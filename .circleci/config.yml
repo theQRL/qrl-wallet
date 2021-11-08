@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  node: circleci/node@1.1
+  node: circleci/node@4.7.0
 jobs:
   build:
     executor:
@@ -8,6 +8,10 @@ jobs:
       tag: '12.14'
     steps:
       - checkout
+      - run:
+          name: update certificates
+          command: |
+            sudo apt-get update && sudo apt-get upgrade -y
       - run:
           name: install meteor
           command: |
