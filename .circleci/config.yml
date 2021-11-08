@@ -30,7 +30,7 @@ jobs:
           name: install meteor
           command: |
             # only install meteor if bin isn't found
-            command -v meteor >/dev/null 2>&1 || curl https://install.meteor.com | /bin/sh
+            command -v meteor >/dev/null 2>&1 || npm install -g meteor
       - run:
           name: check versions
           command: |
