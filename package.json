@@ -33,7 +33,8 @@
     "sha256": "^0.2.0",
     "snyk": "^1.305.0",
     "stream-browserify": "^3.0.0",
-    "tmp": "0.0.33"
+    "tmp": "0.0.33",
+    "usb": "^1.9.0"
   },
   "repository": {
     "type": "git",

@@ -30,8 +30,10 @@ We recommend using nvm to manage NodeJS versions and using the version of NodeJS
 
 	npm install -g node-gyp
 
-Linux only: libudev-dev
-	sudo apt-get install libudev-dev
+Linux only: libudev-dev, libusb-dev and libusb-1.0-0-dev
+
+	sudo apt-get install libudev-dev libusb-dev libusb-1.0-0-dev
+
 
 Mac only: create-dmg
 
