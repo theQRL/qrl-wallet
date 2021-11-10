@@ -11,22 +11,19 @@ import './messageConfirm.html'
 async function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
   console.log('-- Getting QRL Ledger Nano App createMessageTx --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call(
-        'ledgerCreateMessageTx',
-        sourceAddr,
-        fee,
-        message,
-        (err, data) => {
-          if (data.error_message !== 'Timeout') {
-            console.log('> Got Ledger Nano createMessageTx from USB')
-            console.log(data)
-            Meteor.clearInterval(retry)
-            callback(null, data)
-          }
+    Meteor.call(
+      'ledgerCreateMessageTx',
+      sourceAddr,
+      fee,
+      message,
+      (err, data) => {
+        if (data.error_message !== 'Timeout') {
+          console.log('> Got Ledger Nano createMessageTx from USB')
+          console.log(data)
+          callback(null, data)
         }
-      )
-    }, 2000)
+      }
+    )
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.createMessageTx(sourceAddr, fee, message).then(data => {
@@ -39,16 +36,13 @@ async function getLedgerCreateMessageTx(sourceAddr, fee, message, callback) {
 async function getLedgerRetrieveSignature(request, callback) {
   console.log('-- Getting QRL Ledger Nano App Signature --')
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Got Ledger Nano retrieveSignature from USB')
-          console.log(data)
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerRetrieveSignature', request, (err, data) => {
+      if (data.error_message !== 'Timeout') {
+        console.log('> Got Ledger Nano retrieveSignature from USB')
+        console.log(data)
+        callback(null, data)
+      }
+    })
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.retrieveSignature(request).then(data => {
