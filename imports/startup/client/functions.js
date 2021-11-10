@@ -596,7 +596,15 @@ loadAddressTransactions = (a, p) => {
         }
         y.thisReceivedAmount = numberToString(thisReceivedAmount)
         y.totalTransferred = totalSent
-        transactions.push(y)
+        const tokensToShow = Session.get('tokensHeldFiltered')
+        console.log('tokensToShow: ', tokensToShow)
+        if (y.tx.transactionType === 'transfer_token') {
+          if (tokensToShow.find(t => t.hash === y.tx.transfer_token.token_txhash)) {
+            transactions.push(y)
+          }
+        } else {
+          transactions.push(y)
+        }
         Session.set('addressTransactions', transactions)
       })
       Session.set('loadingTransactions', false)
