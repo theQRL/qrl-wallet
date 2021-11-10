@@ -11,7 +11,7 @@
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
-
+import BetterStorage from 'meteor-better-storage'
 import 'babel-polyfill'
 import Qrl from '@theqrl/hw-app-qrl'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
@@ -240,6 +240,8 @@ resetWalletStatus = () => {
   Session.set('tokenSearch', [])
   Session.set('searchShown', false)
   Session.set('tokenList', [])
+  Session.set('tokensHeld', [])
+  Session.set('tokensHeldFiltered', [])
 }
 
 passwordPolicyValid = (password) => {
@@ -604,12 +606,25 @@ loadAddressTransactions = (a, p) => {
   })
 }
 
+const getFromStorage = (addr) => {
+  Session.set('tokenList', [])
+  try {
+    if (BetterStorage.fetch('tokenList')[addr].length > 0) {
+      Session.set('tokenList', BetterStorage.fetch('tokenList')[addr])
+    }
+  } catch (e) {
+    return null
+  }
+  return null
+}
+
 const getTokenBalances = (getAddress, callback) => {
   const request = {
     address: Buffer.from(getAddress.substring(1), 'hex'),
     network: selectedNetwork(),
   }
   const tokensHeld = []
+  const tokensHeldFiltered = []
   Meteor.call('getFullAddressState', request, (err, res) => {
     if (err) {
       // TODO - Error handling
@@ -617,6 +632,9 @@ const getTokenBalances = (getAddress, callback) => {
       // Now for each res.state.token we find, go discover token name and symbol
       // eslint-disable-next-line
       if (res.state.address !== '') {
+        // TODO: filter tokens HERE
+        getFromStorage(res.state.address)
+        const tokensToShow = Session.get('tokenList')
         Object.keys(res.state.tokens).forEach((key) => {
           const tokenHash = key
           const tokenBalance = res.state.tokens[key]
@@ -643,11 +661,16 @@ const getTokenBalances = (getAddress, callback) => {
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
                 thisToken.symbol = bytesToString(tokenDetails.symbol) // eslint-disable-next-line
-                thisToken.balance = tokenBalance / Math.pow(10, tokenDetails.decimals)
+                thisToken.balance =
+                  tokenBalance / Math.pow(10, tokenDetails.decimals)
                 thisToken.decimals = tokenDetails.decimals
                 tokensHeld.push(thisToken)
 
                 Session.set('tokensHeld', tokensHeld)
+                if (tokensToShow.filter(t => t.hash === key).length > 0) {
+                  tokensHeldFiltered.push(thisToken)
+                  Session.set('tokensHeldFiltered', tokensHeldFiltered)
+                }
               }
             }
           })

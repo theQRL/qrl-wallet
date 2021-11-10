@@ -1451,7 +1451,7 @@ Template.appTransfer.helpers({
   },
   tokensHeld() {
     const tokens = []
-    _.each(Session.get('tokensHeld'), (token) => {
+    _.each(Session.get('tokensHeldFiltered'), (token) => {
       token.shortHash = token.hash.slice(-5) // eslint-disable-line
       tokens.push(token)
     })
