@@ -19,7 +19,7 @@
     {{else}}
       <div class="ui container">
         <div class="ui segment pageSegment">
-          <p>No tokens listed.</p>
+          <p style="color: #fff;">No tokens listed.</p>
         </div>
       </div>
     {{/if}}
@@ -61,7 +61,11 @@
       <button class="ui red button" id="searchButton">Search</button>
     </div>
     {{else}}
-            No Tokens found with balance greater than 0.
+      <div class="ui container">
+        <div class="ui segment pageSegment">
+          <p style="color: #fff;">No Tokens found with balance greater than 0.</p>
+        </div>
+      </div>
     {{/if}}
     {{/if}}
   </div>

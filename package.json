@@ -27,6 +27,7 @@
     "crypto-js": "^4.0.0",
     "json-formatter-js": "^2.3.4",
     "mathjs": "^4.0.1",
+    "meteor-better-storage": "^2.0.2",
     "meteor-node-stubs": "^1.0.1",
     "qrllib": "^1.2.1",
     "run-script-os": "^1.0.3",

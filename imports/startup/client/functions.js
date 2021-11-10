@@ -237,6 +237,9 @@ resetWalletStatus = () => {
   Session.set('tokenTransferConfirmationDetails', false)
   Session.set('tokenTransferConfirmationResponse', false)
   Session.set('tokenTransferConfirmationAmount', false)
+  Session.set('tokenSearch', [])
+  Session.set('searchShown', false)
+  Session.set('tokenList', [])
 }
 
 passwordPolicyValid = (password) => {
