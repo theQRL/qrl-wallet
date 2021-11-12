@@ -636,7 +636,6 @@ loadAddressTransactions = (a, p) => {
         y.thisReceivedAmount = numberToString(thisReceivedAmount)
         y.totalTransferred = totalSent
         let tokensToShow = Session.get('tokenList')
-        console.log('tokensToShow: ', tokensToShow)
         try {
           if (BetterStorage.fetch('tokenList')[thisAddress].length > 0) {
             tokensToShow = BetterStorage.fetch('tokenList')[thisAddress]
@@ -644,7 +643,6 @@ loadAddressTransactions = (a, p) => {
         } catch (e) {
           tokensToShow = []
         }
-        console.log('y.tx = ', y.tx)
         if (y.tx.transactionType === 'transfer_token') {
           if (
             tokensToShow.find(
