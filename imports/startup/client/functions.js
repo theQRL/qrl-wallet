@@ -10,12 +10,11 @@
 
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
-import helpers from '@theqrl/explorer-helpers'
+import helpers, { tokens } from '@theqrl/explorer-helpers'
 import BetterStorage from 'meteor-better-storage'
 import 'babel-polyfill'
 import Qrl from '@theqrl/hw-app-qrl'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-
 
 bech32 = require('bech32') // eslint-disable-line
 
@@ -30,7 +29,11 @@ export function ledgerReturnedError(e) {
     r = false
   }
   try {
-    if (e.name === 'TransportStatusError' || e instanceof TransportStatusError || e.name === 'TransportOpenUserCancelled') {
+    if (
+      e.name === 'TransportStatusError' ||
+      e instanceof TransportStatusError ||
+      e.name === 'TransportOpenUserCancelled'
+    ) {
       r = true
     }
   } catch (err) {
@@ -65,9 +68,17 @@ selectedNetwork = () => {
 // BECH32 Address is built from the extended PK
 // bech32(descr + sha2(ePK))
 pkRawToB32Address = (pkRaw) => {
-  const rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
+  const rawDescriptor = Uint8Array.from([
+    pkRaw.get(0),
+    pkRaw.get(1),
+    pkRaw.get(2),
+  ])
   const ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw)) // Uint8Vector -> Uint8Array conversion
-  const descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
+  const descriptorAndHash = concatenateTypedArrays(
+    Uint8Array,
+    rawDescriptor,
+    ePkHash
+  )
   return helpers.b32Encode(descriptorAndHash)
 }
 
@@ -188,13 +199,15 @@ isWalletFileDeprecated = (wallet) => {
   // We can determine if they are unencrypted by checking their lengths.
   // If addressB32 field is 64 characters in length, and pk field is 134 characters in length.
   if (
-    (typeof wallet[0].encrypted !== 'undefined')
-    && (typeof wallet[0].addressB32 !== 'undefined')
-    && (typeof wallet[0].pk !== 'undefined')) {
+    typeof wallet[0].encrypted !== 'undefined' &&
+    typeof wallet[0].addressB32 !== 'undefined' &&
+    typeof wallet[0].pk !== 'undefined'
+  ) {
     if (
-      (wallet[0].encrypted === true)
-      && (wallet[0].addressB32.length === 64)
-      && (wallet[0].pk.length === 134)) {
+      wallet[0].encrypted === true &&
+      wallet[0].addressB32.length === 64 &&
+      wallet[0].pk.length === 134
+    ) {
       return true
     }
   }
@@ -246,7 +259,11 @@ resetWalletStatus = () => {
 
 passwordPolicyValid = (password) => {
   // If password length >=8, and password contains a digit and password contains a letter
-  if ((password.length >= 8) && (/\d/.test(password)) && (/[a-zA-Z]+/.test(password))) {
+  if (
+    password.length >= 8 &&
+    /\d/.test(password) &&
+    /[a-zA-Z]+/.test(password)
+  ) {
     return true
   }
   return false
@@ -254,7 +271,8 @@ passwordPolicyValid = (password) => {
 
 // Wait for QRLLIB to load before running specified callback function
 waitForQRLLIB = (callBack) => {
-  setTimeout(() => { // eslint-disable-line
+  setTimeout(() => {
+    // eslint-disable-line
     // Test the QRLLIB object has the str2bin function.
     // This is sufficient to tell us QRLLIB has loaded.
     if (typeof QRLLIB.str2bin === 'function') {
@@ -283,24 +301,28 @@ binaryToBytes = (convertMe) => {
 }
 
 // Convert bytes to string
-bytesToString = (buf) => { // eslint-disable-line
+bytesToString = (buf) => {
+  // eslint-disable-line
   return String.fromCharCode.apply(null, new Uint8Array(buf))
 }
 
 // Convert bytes to hex
-bytesToHex = (byteArray) => { // eslint-disable-line
+bytesToHex = (byteArray) => {
+  // eslint-disable-line
   return Array.from(byteArray, function (byte) {
-    return ('00' + (byte & 0xFF).toString(16)).slice(-2) // eslint-disable-line no-bitwise
+    return ('00' + (byte & 0xff).toString(16)).slice(-2) // eslint-disable-line no-bitwise
   }).join('')
 }
 
 // Convert hex to bytes
-hexToBytes = (hex) => { // eslint-disable-line
+hexToBytes = (hex) => {
+  // eslint-disable-line
   return Buffer.from(hex, 'hex')
 }
 
 // Returns an address ready to send to gRPC API
-addressForAPI = (address) => { // eslint-disable-line
+addressForAPI = (address) => {
+  // eslint-disable-line
   return Buffer.from(address.substring(1), 'hex')
 }
 
@@ -347,12 +369,14 @@ toUint8Vector = (arr) => {
 // Concatenates multiple typed arrays into one.
 concatenateTypedArrays = (resultConstructor, ...arrays) => {
   let totalLength = 0
-  for (let arr of arrays) { // eslint-disable-line
+  for (let arr of arrays) {
+    // eslint-disable-line
     totalLength += arr.length
   }
   const result = new resultConstructor(totalLength) // eslint-disable-line
   let offset = 0
-  for (let arr of arrays) { // eslint-disable-line
+  for (let arr of arrays) {
+    // eslint-disable-line
     result.set(arr, offset)
     offset += arr.length
   }
@@ -368,9 +392,13 @@ countDecimals = (value) => {
 // Check if users web browser supports Web Assemblies
 supportedBrowser = () => {
   try {
-    if (typeof WebAssembly === 'object'
-      && typeof WebAssembly.instantiate === 'function') {
-      const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)) // eslint-disable-line
+    if (
+      typeof WebAssembly === 'object' &&
+      typeof WebAssembly.instantiate === 'function'
+    ) {
+      const module = new WebAssembly.Module(
+        Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
+      ) // eslint-disable-line
       if (module instanceof WebAssembly.Module) {
         return new WebAssembly.Instance(module) instanceof WebAssembly.Instance
       }
@@ -475,7 +503,9 @@ getBalance = (getAddress, callBack) => {
             Session.set('errorLoadingTransactions', true)
           } else {
             console.log('getOTS response: ', result)
-            const totalSignatures = qrlAddressValdidator.hexString(res.state.address).sig.number
+            const totalSignatures = qrlAddressValdidator.hexString(
+              res.state.address
+            ).sig.number
             const ots = otsParse(result, totalSignatures)
             res.ots = ots
             res.ots.keysConsumed = res.state.used_ots_key_count
@@ -497,9 +527,8 @@ getBalance = (getAddress, callBack) => {
                 console.log('> Got Ledger Nano State from USB')
                 Session.set('otsKeyEstimate', data.xmss_index)
                 // Get remaining OTS Keys
-                const validationResult = qrlAddressValdidator.hexString(
-                  getAddress
-                )
+                const validationResult =
+                  qrlAddressValdidator.hexString(getAddress)
                 const totalSignatures = validationResult.sig.number
                 const keysRemaining = totalSignatures - data.xmss_index
                 // Set keys remaining
@@ -514,7 +543,7 @@ getBalance = (getAddress, callBack) => {
           }, 2000)
         } else {
           const QrlLedger = await createTransport()
-          QrlLedger.get_state().then(data => {
+          QrlLedger.get_state().then((data) => {
             console.log('> Got Ledger Nano State from WebUSB')
             Session.set('otsKeyEstimate', data.xmss_index)
             // Get remaining OTS Keys
@@ -556,7 +585,9 @@ loadAddressTransactions = (a, p) => {
   Session.set('loadingTransactions', true)
 
   wrapMeteorCall('getTransactionsByAddress', request, (err, res) => {
-    if (err) { console.log('err:', err) }
+    if (err) {
+      console.log('err:', err)
+    }
     // console.log('res:', res)
     if (err) {
       Session.set('addressTransactions', { error: err })
@@ -570,7 +601,9 @@ loadAddressTransactions = (a, p) => {
         const y = transaction
         // Update timestamp from unix epoch to human readable time/date.
         if (moment.unix(transaction.timestamp).isValid()) {
-          y.timestamp = moment.unix(transaction.timestamp).format('HH:mm D MMM YYYY')
+          y.timestamp = moment
+            .unix(transaction.timestamp)
+            .format('HH:mm D MMM YYYY')
         } else {
           y.timestamp = 'Unconfirmed Tx'
         }
@@ -579,9 +612,13 @@ loadAddressTransactions = (a, p) => {
         let totalSent = 0
         if (y.tx.transactionType === 'transfer') {
           _.each(y.tx.transfer.addrs_to, (output, index) => {
-            totalSent += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+            totalSent += parseFloat(
+              y.tx.transfer.amounts[index] / SHOR_PER_QUANTA
+            )
             if (output === thisAddress) {
-              thisReceivedAmount += parseFloat(y.tx.transfer.amounts[index] / SHOR_PER_QUANTA)
+              thisReceivedAmount += parseFloat(
+                y.tx.transfer.amounts[index] / SHOR_PER_QUANTA
+              )
             }
           })
         }
@@ -590,16 +627,30 @@ loadAddressTransactions = (a, p) => {
           _.each(y.tx.transfer_token.addrs_to, (output, index) => {
             totalSent += parseFloat(y.tx.transfer_token.amounts[index])
             if (output === thisAddress) {
-              thisReceivedAmount += parseFloat(y.tx.transfer_token.amounts[index])
+              thisReceivedAmount += parseFloat(
+                y.tx.transfer_token.amounts[index]
+              )
             }
           })
         }
         y.thisReceivedAmount = numberToString(thisReceivedAmount)
         y.totalTransferred = totalSent
-        const tokensToShow = Session.get('tokensHeldFiltered')
+        let tokensToShow = Session.get('tokenList')
         console.log('tokensToShow: ', tokensToShow)
+        try {
+          if (BetterStorage.fetch('tokenList')[thisAddress].length > 0) {
+            tokensToShow = BetterStorage.fetch('tokenList')[thisAddress]
+          }
+        } catch (e) {
+          tokensToShow = []
+        }
+        console.log('y.tx = ', y.tx)
         if (y.tx.transactionType === 'transfer_token') {
-          if (tokensToShow.find(t => t.hash === y.tx.transfer_token.token_txhash)) {
+          if (
+            tokensToShow.find(
+              (t) => t.hash === y.tx.transfer_token.token_txhash
+            )
+          ) {
             transactions.push(y)
           }
         } else {
@@ -675,7 +726,7 @@ const getTokenBalances = (getAddress, callback) => {
                 tokensHeld.push(thisToken)
 
                 Session.set('tokensHeld', tokensHeld)
-                if (tokensToShow.filter(t => t.hash === key).length > 0) {
+                if (tokensToShow.filter((t) => t.hash === key).length > 0) {
                   tokensHeldFiltered.push(thisToken)
                   Session.set('tokensHeldFiltered', tokensHeldFiltered)
                 }
@@ -745,8 +796,8 @@ refreshTransferPage = (callback) => {
       while (pages.length !== numPages) {
         pages.push({
           number: pages.length + 1,
-          from: ((pages.length + 1) * 10) + 1,
-          to: ((pages.length + 1) * 10) + 10,
+          from: (pages.length + 1) * 10 + 1,
+          to: (pages.length + 1) * 10 + 10,
         })
       }
       Session.set('pages', pages)
@@ -761,7 +812,8 @@ refreshTransferPage = (callback) => {
 ledgerHasNoTokenSupport = () => {
   // Ledger Nano not supported here.
   if (getXMSSDetails().walletType === 'ledger') {
-    $('#ledgerNotSupported').modal('transition', 'disable')
+    $('#ledgerNotSupported')
+      .modal('transition', 'disable')
       .modal({
         onApprove: () => {
           const reloadPath = FlowRouter.path('/transfer', {})
@@ -775,7 +827,8 @@ ledgerHasNoTokenSupport = () => {
           const reloadPath = FlowRouter.path('/transfer', {})
           FlowRouter.go(reloadPath)
         },
-      }).modal('show')
+      })
+      .modal('show')
   }
 }
 
@@ -810,7 +863,7 @@ function logRequestResponse(request, response) {
 nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
   // First validate fields shared across all transaction types
   // Validate fee
-  if ((request.fee / SHOR_PER_QUANTA) !== response.fee) {
+  if (request.fee / SHOR_PER_QUANTA !== response.fee) {
     console.log('Transaction Validation - Fee mismatch')
     logRequestResponse(request, response)
     return false
@@ -845,7 +898,12 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Now check that all outputs are identical
     for (let i = 0; i < requestOutputs.length; i += 1) {
-      if (!Buffer.from(requestOutputs[i].address).equals(Buffer.from(response.outputs[i].address))) { // eslint-disable-line
+      if (
+        !Buffer.from(requestOutputs[i].address).equals(
+          Buffer.from(response.outputs[i].address)
+        )
+      ) {
+        // eslint-disable-line
         console.log('Transaction Validation - Output address mismatch')
         logRequestResponse(request, response)
         return false
@@ -859,8 +917,9 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // If we got here, everything matches the request
     return true
-  // Validate that the request payload matches the response data for a token transfer transaction
-  } else if (type === 'createTokenTransferTxn') { // eslint-disable-line
+    // Validate that the request payload matches the response data for a token transfer transaction
+  } else if (type === 'createTokenTransferTxn') {
+    // eslint-disable-line
     // Validate From address
     if (!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - From address mismatch')
@@ -869,7 +928,10 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
 
     // Validate token hash
-    if (bytesToString(request.tokenHash) !== Buffer.from(response.tokenHash).toString('hex')) {
+    if (
+      bytesToString(request.tokenHash) !==
+      Buffer.from(response.tokenHash).toString('hex')
+    ) {
       console.log('Transaction Validation - Token Hash mismatch')
       logRequestResponse(request, response)
       return false
@@ -895,7 +957,12 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Now check that all outputs are identical
     for (let i = 0; i < requestOutputs.length; i += 1) {
-      if (!Buffer.from(requestOutputs[i].address).equals(Buffer.from(response.outputs[i].address))) { // eslint-disable-line
+      if (
+        !Buffer.from(requestOutputs[i].address).equals(
+          Buffer.from(response.outputs[i].address)
+        )
+      ) {
+        // eslint-disable-line
         console.log('Transaction Validation - Output address mismatch')
         logRequestResponse(request, response)
         return false
@@ -908,7 +975,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     // If we got here, everything matches the request
     return true
-  // Validate that the request payload matches the response data for a token creation transaction
+    // Validate that the request payload matches the response data for a token creation transaction
   } else if (type === 'createTokenTxn') {
     // Validate From address
     if (!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
@@ -954,12 +1021,20 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Now check that all initial balances  are identical
     for (let i = 0; i < request.initialBalances.length; i += 1) {
-      if (!Buffer.from(request.initialBalances[i].address).equals(Buffer.from(response.initialBalances[i].address))) { //eslint-disable-line
+      if (
+        !Buffer.from(request.initialBalances[i].address).equals(
+          Buffer.from(response.initialBalances[i].address)
+        )
+      ) {
+        //eslint-disable-line
         console.log('Transaction Validation - Initial balance address mismatch')
         logRequestResponse(request, response)
         return false
       }
-      if (request.initialBalances[i].amount !== parseInt(response.initialBalances[i].amount, 10)) {
+      if (
+        request.initialBalances[i].amount !==
+        parseInt(response.initialBalances[i].amount, 10)
+      ) {
         console.log('Transaction Validation - Initial balance amount mismatch')
         logRequestResponse(request, response)
         return false
@@ -1006,7 +1081,9 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     let testOutputs = true
     _.each(request.signatories, (item, index) => {
-      if (!Buffer.from(item).equals(Buffer.from(response.outputs[index].address))) {
+      if (
+        !Buffer.from(item).equals(Buffer.from(response.outputs[index].address))
+      ) {
         console.log('Transaction Validation - Signatories mismatch')
         logRequestResponse(request, response)
         testOutputs = false
@@ -1017,7 +1094,9 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
         testOutputs = false
       }
     })
-    if (testOutputs === false) { return false }
+    if (testOutputs === false) {
+      return false
+    }
     if (request.threshold !== response.threshold) {
       console.log('Transaction Validation - Threshold mismatch')
       logRequestResponse(request, response)
@@ -1031,7 +1110,11 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // if we've made it here all the MS_CREATE details match
     return true
   } else if (type === 'multiSigSpend') {
-    if (!Buffer.from(request.multi_sig_address).equals(Buffer.from(response.multi_sig_address))) {
+    if (
+      !Buffer.from(request.multi_sig_address).equals(
+        Buffer.from(response.multi_sig_address)
+      )
+    ) {
       console.log('Transaction Validation - Multisig Address mismatch')
       logRequestResponse(request, response)
       return false
@@ -1043,19 +1126,27 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     let testOutputs = true
     _.each(request.addrs_to, (item, index) => {
-      if (!Buffer.from(item).equals(Buffer.from(response.outputs[index].address))) {
+      if (
+        !Buffer.from(item).equals(Buffer.from(response.outputs[index].address))
+      ) {
         console.log('Transaction Validation - Recipient address mismatch')
         logRequestResponse(request, response)
         testOutputs = false
       }
-      if (request.amounts[index] !== parseInt(response.outputs[index].amount, 10)) {
+      if (
+        request.amounts[index] !== parseInt(response.outputs[index].amount, 10)
+      ) {
         console.log('Transaction Validation - Send amount mismatch')
         logRequestResponse(request, response)
         testOutputs = false
       }
     })
-    if (testOutputs === false) { return false }
-    if (request.expiry_block_number !== parseInt(response.expiry_block_number, 10)) {
+    if (testOutputs === false) {
+      return false
+    }
+    if (
+      request.expiry_block_number !== parseInt(response.expiry_block_number, 10)
+    ) {
       console.log('Transaction Validation - Expiry block number mismatch')
       logRequestResponse(request, response)
       return false
@@ -1073,7 +1164,9 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
       logRequestResponse(request, response)
       return false
     }
-    if (!Buffer.from(request.shared_key).equals(Buffer.from(response.shared_key))) {
+    if (
+      !Buffer.from(request.shared_key).equals(Buffer.from(response.shared_key))
+    ) {
       console.log('Transaction Validation - Shared key mismatch')
       logRequestResponse(request, response)
       return false
@@ -1122,34 +1215,43 @@ export function checkIfLedgerTreesMatch() {
       })
     }, 2000)
   } else {
-    createTransport().then(QrlLedger => {
-      QrlLedger.publickey().then(data => {
-        if (ledgerReturnedError()) {
-          console.log('-- Ledger error --')
-        } else {
-          console.log('> Got Ledger Public Key from WebUSB')
-          // Convert Uint to hex
-          const pkHex = Buffer.from(data.public_key).toString('hex')
-          // Get address from pk
-          const qAddress = QRLLIB.getAddress(pkHex)
-          const ledgerQAddress = `Q${qAddress}`
-          console.log(ledgerQAddress)
-          if (appLedger !== ledgerQAddress) {
-            console.log('Trees switched: logout!')
-            Session.set('closedWithError', 'XMSS-trees-change')
-            FlowRouter.go('/close')
-          }
-          // callback(null, data)
-        }
-      }, e => {
+    createTransport().then(
+      (QrlLedger) => {
+        QrlLedger.publickey()
+          .then(
+            (data) => {
+              if (ledgerReturnedError()) {
+                console.log('-- Ledger error --')
+              } else {
+                console.log('> Got Ledger Public Key from WebUSB')
+                // Convert Uint to hex
+                const pkHex = Buffer.from(data.public_key).toString('hex')
+                // Get address from pk
+                const qAddress = QRLLIB.getAddress(pkHex)
+                const ledgerQAddress = `Q${qAddress}`
+                console.log(ledgerQAddress)
+                if (appLedger !== ledgerQAddress) {
+                  console.log('Trees switched: logout!')
+                  Session.set('closedWithError', 'XMSS-trees-change')
+                  FlowRouter.go('/close')
+                }
+                // callback(null, data)
+              }
+            },
+            (e) => {
+              console.log(`-- Ledger error: ${e} --`)
+            }
+          )
+          .catch((e) => {
+            console.log(`-- Ledger error: ${e} --`)
+          })
+          .catch((e) => {
+            console.log(`-- Ledger error: ${e} --`)
+          })
+      },
+      (e) => {
         console.log(`-- Ledger error: ${e} --`)
-      }).catch(e => {
-        console.log(`-- Ledger error: ${e} --`)
-      }).catch(e => {
-        console.log(`-- Ledger error: ${e} --`)
-      })
-    }, e => {
-      console.log(`-- Ledger error: ${e} --`)
-    })
+      }
+    )
   }
 }
