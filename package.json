@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/theQRL/qrl-wallet#readme",
   "devDependencies": {
-    "@theqrl/electrify-qrl": "^1.1.1",
+    "@theqrl/electrify-qrl": "^1.1.2",
     "electron-wix-msi-qrl": "^2.1.2",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
@@ -70,7 +70,7 @@
     "win:create_dist": "if not exist .electrify\\dist mkdir .electrify\\dist",
     "electron": "electrify",
     "releaseready": "meteor lint",
-    "acquire:node": "cp \"$(which node)\" .electrify/bin",
+    "acquire:node": "cp \"$(which node)\" .electrify/bin/node",
     "build": "run-script-os",
     "build:darwin": "electrify package -o .electrify/.dist/ -- --tmpdir=/tmp/.pkg",
     "build:linux": "electrify package -o .electrify/.dist/ && mv /tmp/.build_tmp/package/QRLWallet-linux-x64/ .electrify/.dist/",
