@@ -65,7 +65,7 @@ app.on('ready', function() {
       app.setAboutPanelOptions({
         applicationName: "QRL Wallet",
         applicationVersion: "1.8.0",
-        version: "Electron 10.1.7",
+        version: "Electron 16.0.1",
         copyright: "Die QRL Stiftung, Zug Switzerland",
         credits: "The QRL Developers"
       });
