@@ -34,6 +34,13 @@ Linux only: libudev-dev, libusb-dev and libusb-1.0-0-dev
 
 	sudo apt-get install libudev-dev libusb-dev libusb-1.0-0-dev
 
+Redhat Linux: electron-installer-redhat installed globally
+
+``npm i -g electron-installer-redhat``
+
+Debian/Ubuntu Linux: electron-installer-debian installed globally
+
+``npm i -g electron-installer-debian``
 
 Mac only: create-dmg
 
