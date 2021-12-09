@@ -1,104 +1,25 @@
 version: 2.1
 orbs:
-  node: circleci/node@1.1
+  node: circleci/node@4.7.0
 jobs:
   build:
     executor:
       name: node/default
-      tag: '12.14'
+      tag: '14.18'
     steps:
       - checkout
-      - restore_cache:
-          key: build-temp-{{ checksum ".meteor/release" }}-{{ checksum ".circleci/config.yml" }}
-      - restore_cache:
-          key: meteor-release-{{ checksum ".meteor/release" }}-{{ checksum ".meteor/versions" }}-{{ checksum ".circleci/config.yml" }}
-      - restore_cache:
-          key: meteor-packages
-      - restore_cache:
-          key: npm-packages-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}-{{ checksum ".circleci/config.yml" }}
       - run:
-          name: restore cached meteor binary
+          name: update certificates
           command: |
-            if [ -e ~/build-temp/meteor-bin ]
-            then
-                echo "Cached Meteor bin found, restoring it."
-                sudo cp ~/build-temp/meteor-bin /usr/local/bin/meteor
-            else
-                echo "No cached Meteor bin found."
-            fi
+            sudo apt-get update && sudo apt-get upgrade -y
+      - run:
+          name: install dependencies
+          command: |
+            sudo apt-get install -y libusb-dev libudev-dev
       - run:
           name: install meteor
           command: |
-            # only install meteor if bin isn't found
-            command -v meteor >/dev/null 2>&1 || curl https://install.meteor.com | /bin/sh
-      - run:
-          name: check versions
-          command: |
-            echo "Meteor version:"
-            # this forces Meteor to download whatever release your project is using
-            meteor --version
-            which meteor
-            echo "Meteor node version:"
-            meteor node -v
-            echo "Meteor npm version:"
-            meteor npm -v
-      - run:
-          name: copy meteor bin to build cache
-          command: |
-            mkdir -p ~/build-temp
-            cp /usr/local/bin/meteor ~/build-temp/meteor-bin
-      - save_cache:
-          key: build-temp-{{ checksum ".meteor/release" }}-{{ checksum ".circleci/config.yml" }}
-          paths:
-            - ~/build-temp
+            curl https://install.meteor.com/ | sh
       - run:
           name: install npm packages
           command: meteor npm i
-      - save_cache:
-          key: npm-packages-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}-{{ checksum ".circleci/config.yml" }}
-          paths:
-            - ./node_modules/
-            - ~/.npm/
-      # - run:
-      #     name: run tests
-      #     command: meteor test --driver-package meteortesting:mocha
-      - save_cache:
-          key: meteor-release-{{ checksum ".meteor/release" }}-{{ checksum ".meteor/versions" }}-{{ checksum ".circleci/config.yml" }}
-          paths:
-            - ~/.meteor
-      - save_cache:
-          key: meteor-packages-{{ epoch }}
-          paths:
-            - .meteor/local
-
-
-# version: 2
-# machine:
-#   node:
-#     version: 0.10.43
-# dependencies:
-#   override:
-#     - curl https://install.meteor.com | /bin/sh
-#     - npm install
-# checkout:
-#   post:
-#     - git submodule update --init
-#       # Start meteor in background
-#       - run:
-#           name: Start Meteor
-#           command: |
-#             meteor npm install --unsafe-perm
-#             npm run dev
-#           background: true
-
-#       # Test run
-#       - run:
-#           name: Ensure runs
-#           command: |
-#             until curl --max-time 300 http://localhost:3000/; do sleep 1; done
-
-# workflows:
-#   version: 2
-#   build_all:
-#     jobs:
-#       - build
