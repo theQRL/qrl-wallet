@@ -1,0 +1,12 @@
+{
+  "icon": "assets/qrl.png",
+  "options": {
+    "version": "1.8.0",
+    "icon": "assets/qrl.png",
+    "name":  "QRLWallet",
+    "productName": "QRLWallet",
+    "license": "MIT",
+    "description": "Desktop wallet for the QRL blockchain",
+    "productDescription": "Desktop wallet for the QRL blockchain"
+  }
+}

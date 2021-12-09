@@ -36,6 +36,10 @@ import '../../ui/pages/tools/multisig/multisigSpend.html'
 import '../../ui/pages/tools/multisig/multisigSpend.js'
 import '../../ui/pages/tools/multisig/multisigVote.html'
 import '../../ui/pages/tools/multisig/multisigVote.js'
+import '../../ui/pages/tools/addTokens/addTokens.html'
+import '../../ui/pages/tools/addTokens/addTokens.js'
+import '../../ui/pages/tools/NFT/NFT.html'
+import '../../ui/pages/tools/NFT/NFT.js'
 
 import '../../ui/pages/tokens/tokenCreate.js'
 import '../../ui/pages/tokens/tokenCreateConfirm.js'
@@ -321,6 +325,32 @@ FlowRouter.route('/tools/notarise/result', {
       BlazeLayout.render('appBody', { main: 'appNotariseResult' })
     } else {
       BlazeLayout.render('mobile', { main: 'appNotariseResult' })
+    }
+  },
+})
+
+// Add tokens to list
+FlowRouter.route('/tools/addTokens', {
+  name: 'App.addTokens',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appAddTokens' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appAddTokens' })
+    }
+  },
+})
+
+// Add tokens to list
+FlowRouter.route('/tools/NFT', {
+  name: 'App.NFT',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { FlowRouter.go('/open') }
+    if (useMobile()) {
+      BlazeLayout.render('appBody', { main: 'appNFT' })
+    } else {
+      BlazeLayout.render('mobile', { main: 'appNFT' })
     }
   },
 })

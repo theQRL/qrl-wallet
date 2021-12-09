@@ -1,0 +1,72 @@
+<template name="appAddTokens">
+  <h1>Current Listed Tokens</h1>
+    <div class="ui container">
+    {{#if tokens}}
+      <table class="ui table">
+        <tr>
+          <td>Symbol</td>
+          <td>Name</td>
+          <td>&nbsp;</td>
+        </tr>
+        {{#each tokens}}
+        <tr>
+          <td>{{this.symbol}}</td>
+          <td>{{this.name}}</td>
+          <td><button class="ui red button removeClick" hash="{{this.hash}}"><i class="trash icon" hash="{{this.hash}}"></i></button></td>
+        </tr>
+        {{/each}}
+      </table>
+    {{else}}
+      <div class="ui container">
+        <div class="ui segment pageSegment">
+          <p style="color: #fff;">No tokens listed.</p>
+        </div>
+      </div>
+    {{/if}}
+  </div>
+  <h1>Add Tokens by Hash</h1>
+  <div class="ui container">
+    <div class="ui segment pageSegment">
+      <div class="ui large label" style="background-color: unset !important;">
+        Token by Creation TxHash
+      </div> 
+      <div class="ui form">
+        <div class="field">
+          <input type="text" placeholder="TxHash">
+        </div>
+        <button class="ui red button">Add Token</button>
+      </div>
+    </div>
+  </div>
+  <h1>Search Chain for Tokens</h1>
+  <div class="ui container">
+    {{#if tokenSearch}}
+      <table class="ui table">
+        <tr>
+          <td>Symbol</td>
+          <td>Name</td>
+          <td>&nbsp;</td>
+        </tr>
+        {{#each tokenSearch}}
+        <tr>
+          <td>{{this.symbol}}</td>
+          <td>{{this.name}}</td>
+          <td><button class="ui red button addClick" hash={{this.hash}}><i class="plus icon" hash="{{this.hash}}"></i> Add</button></td>
+        </tr>
+        {{/each}}
+      </table>
+    {{else}}
+    {{#if searchItemsFound}}
+    <div class="ui segment pageSegment">
+      <button class="ui red button" id="searchButton">Search</button>
+    </div>
+    {{else}}
+      <div class="ui container">
+        <div class="ui segment pageSegment">
+          <p style="color: #fff;">No Tokens found with balance greater than 0.</p>
+        </div>
+      </div>
+    {{/if}}
+    {{/if}}
+  </div>
+</template>

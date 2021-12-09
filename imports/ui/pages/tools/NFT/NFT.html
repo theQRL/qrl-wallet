@@ -1,6 +1,5 @@
-<template name="appTokenCreate">
-
-<div class="small ui modal" id="lowOtsKeyWarning">
+<template name="appNFT">
+  <div class="small ui modal" id="lowOtsKeyWarning">
   <div class="header">OTS Keys Running Low!</div>
   <div class="content">
     <div class="ui warning icon message">
@@ -103,7 +102,7 @@
 <h4 class="ui header pageHeader">
   <i class="tags icon"></i>
   <div class="content">
-    Create Token
+    Create NFT
   </div>
 </h4>
 
@@ -113,19 +112,26 @@
 
   <form id="generateTokenForm" class="ui form">
 
-    <h4 class="ui dividing header">Token Creator</h4>
-
     <h4 id="transferFormFromAddress" class="breakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
     <h4 class="breakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
     <h4 class="ui horizontal divider header">
-      <i class="tags icon"></i>
-      Token Details
+      <i class="cogs icon"></i>
+      NFT data
     </h4>
+    <div class="field">
+      <textarea>
+{
 
+}
+      </textarea>
+      <button class="ui white button">Validate</button>
+      <span>NFT data not yet checked</span>
+    </div>
+    <div style="display: none;">
     <div class="field">
       <label>Owner Address</label>
-      <input type="text" id="owner" autocomplete="off">
+      <input type="text" id="owner" autocomplete="off" value="{{transferFrom.address}}">
     </div>
     <div class="field">
       <label>Token Symbol</label>
@@ -137,7 +143,7 @@
     </div>
     <div class="field">
       <label>Decimals</label>
-      <input type="text" id="decimals" value="10" autocomplete="off">
+      <input type="text" id="decimals" value="0" autocomplete="off">
     </div>
     
     
@@ -151,10 +157,10 @@
         <label>Holder Balance</label>
         <div class="three fields">
           <div class="ten wide field">
-            <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address" autocomplete="off">
+            <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address" autocomplete="off" value="{{transferFrom.address}}">
           </div>
           <div class="five wide field">
-            <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" placeholder="Token Balance" autocomplete="off">
+            <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" placeholder="Token Balance" autocomplete="off" value="1">
           </div>
           <div class="one wide field">
             <button class="ui red button removeTokenHolder"><i class="remove user icon"></i></button>
@@ -167,15 +173,15 @@
       <i class="add user icon"></i>
       Add Another Holder
     </button>
-
+    </div>
     <h4 class="ui horizontal divider header">
       <i class="file icon"></i>
       Transaction Details
     </h4>
 
     <div class="field">
-      <label>Token Creation Fee (In Quanta)</label>
-      <input type="text" id="fee" value="100" autocomplete="off" disabled>
+      <label>NFT Creation Fee (In Quanta)</label>
+      <input type="text" id="fee" value="10" autocomplete="off" disabled>
     </div>
 
     <div class="field">
@@ -196,7 +202,7 @@
     </div>
 
     <div class="field">
-      <button id="createToken" class="ui huge primary button red" style="float: left;">Create Token</button>
+      <button id="createToken" class="ui huge primary button red" style="float: left;">Create NFT</button>
       <br />
     </div>
 
@@ -220,6 +226,4 @@
   <h4>Token Creation Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenCreationError}}</p>
 </div>
-
-
 </template>
