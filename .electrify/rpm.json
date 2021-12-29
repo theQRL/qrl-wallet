@@ -1,7 +1,7 @@
 {
   "icon": "assets/qrl.png",
   "options": {
-    "version": "1.8.0",
+    "version": "1.8.1",
     "icon": "assets/qrl.png",
     "name":  "QRLWallet",
     "productName": "QRLWallet",

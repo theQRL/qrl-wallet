@@ -64,7 +64,7 @@ app.on('ready', function() {
     if (process.platform === 'darwin') {
       app.setAboutPanelOptions({
         applicationName: "QRL Wallet",
-        applicationVersion: "1.8.0",
+        applicationVersion: "1.8.1",
         version: "Electron 16.0.1",
         copyright: "Die QRL Stiftung, Zug Switzerland",
         credits: "The QRL Developers"
