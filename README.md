@@ -30,6 +30,8 @@ We recommend using nvm to manage NodeJS versions and using the version of NodeJS
 
 	npm install -g node-gyp
 
+_node-gyp issues can generally be solved with updating npm (npm i -g npm) and rebuilding modules (npm rebuild)_
+
 Linux only: libudev-dev, libusb-dev and libusb-1.0-0-dev
 
 	sudo apt-get install libudev-dev libusb-dev libusb-1.0-0-dev

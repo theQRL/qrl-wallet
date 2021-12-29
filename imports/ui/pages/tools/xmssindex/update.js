@@ -35,15 +35,12 @@ const getNodeXMSSIndex = () => {
 
 async function updateLedgerIdx(otsKey, callback) {
   if (isElectrified()) {
-    const retry = Meteor.setInterval(() => {
-      Meteor.call('ledgerSetIdx', otsKey, (err, data) => {
-        if (data.error_message !== 'Timeout') {
-          console.log('> Set Ledger OTS Key via USB')
-          Meteor.clearInterval(retry)
-          callback(null, data)
-        }
-      })
-    }, 2000)
+    Meteor.call('ledgerSetIdx', otsKey, (err, data) => {
+      if (data.error_message !== 'Timeout') {
+        console.log('> Set Ledger OTS Key via USB')
+        callback(null, data)
+      }
+    })
   } else {
     const QrlLedger = await createTransport()
     QrlLedger.setIdx(otsKey).then(idxResponse => {

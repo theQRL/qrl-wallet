@@ -17,3 +17,5 @@ local.json
 .electrify/dist
 .electrify/.dist
 /.yarn
+yarn.lock
+.electrify/yarn.lock
