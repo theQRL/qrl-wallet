@@ -1,5 +1,5 @@
 /* eslint no-console:0, max-len: 0 */
-/* global decimalToBinary, getQrlProtoShasum, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
+/* global _, decimalToBinary, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
@@ -14,6 +14,7 @@ import CryptoJS from 'crypto-js'
 import util from 'util'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import Qrl from '@theqrl/hw-app-qrl/lib/Qrl'
+import { QRLPROTO_SHA256 } from '@theqrl/qrl-proto-sha256'
 
 const PROTO_PATH = Assets.absoluteFilePath('qrlbase.proto').split(
   'qrlbase.proto'
@@ -89,126 +90,125 @@ const loadGrpcClient = (endpoint, callback) => {
               if (allowUnchecksummedNodes !== true) {
                 allowUnchecksummedNodes = false
               }
-              // Validate proto file matches node version
-              getQrlProtoShasum(res.version, (verifiedProtoSha256HashEntry) => {
-                // If we get null back, we were unable to identify a verified sha256 hash against this qrl node verison.
+              // Now read the saved qrl.proto file so we can calculate a hash from it
+              fs.readFile(qrlProtoFilePath, (errR, contents) => {
+                if (fsErr) {
+                  console.log(fsErr)
+                  throw fsErr
+                }
+
+                // Calculate the hash of the qrl.proto file contents
+                const protoFileWordArray = CryptoJS.lib.WordArray.create(
+                  contents
+                )
+                const calculatedProtoHash = CryptoJS.SHA256(
+                  protoFileWordArray
+                ).toString(CryptoJS.enc.Hex)
+                // If the calculated qrl.proto hash matches the verified one for this version,
+                // continue to verify the grpc object loaded from the proto also matches the correct
+                // shasum.
+                console.log(
+                  'proto: checking that calc of '
+                    + calculatedProtoHash
+                    + ' is valid'
+                )
+                let verified = false
+                QRLPROTO_SHA256.forEach((value) => {
+                  if (value.protoSha256) {
+                    if (value.protoSha256 === calculatedProtoHash) {
+                      verified = true
+                    }
+                  }
+                  if (value.walletProto) {
+                    if (value.walletProto === calculatedProtoHash) {
+                      verified = true
+                    }
+                  }
+                })
                 if (
-                  verifiedProtoSha256HashEntry === null
-                  && allowUnchecksummedNodes === false
+                  verified === true
+                  || allowUnchecksummedNodes === true
                 ) {
+                  protoloader
+                    .load(qrlProtoFilePath, options)
+                    .then((packageDefinition) => {
+                      const grpcObject = grpc.loadPackageDefinition(
+                        packageDefinition
+                      )
+
+                      // Inspect the object and convert to string.
+                      const grpcObjectString = JSON.stringify(
+                        util.inspect(grpcObject, {
+                          showHidden: true,
+                          depth: 4,
+                        })
+                      )
+
+                      // Calculate the hash of the grpc object string returned
+                      const protoObjectWordArray = CryptoJS.lib.WordArray.create(
+                        grpcObjectString
+                      )
+                      const calculatedObjectHash = CryptoJS.SHA256(
+                        protoObjectWordArray
+                      ).toString(CryptoJS.enc.Hex)
+
+                      // If the grpc object shasum matches, establish the grpc connection.
+                      console.log(
+                        'object: checking that calc of '
+                          + calculatedObjectHash
+                          + ' is valid'
+                      )
+                      let verifiedObject = false
+                      QRLPROTO_SHA256.forEach((value) => {
+                        if (value.objectSha256) {
+                          if (value.objectSha256 === calculatedObjectHash) {
+                            verifiedObject = true
+                          }
+                        }
+                        if (value.walletProto) {
+                          if (value.walletProto === calculatedObjectHash) {
+                            verifiedObject = true
+                          }
+                        }
+                      })
+                      if (verifiedObject === true || allowUnchecksummedNodes === true) {
+                        // Create the gRPC Connection
+                        console.log('Making GRPC PublicAPI connection to ' + endpoint)
+                        qrlClient[endpoint] = new grpcObject.qrl.PublicAPI(
+                          endpoint,
+                          grpc.credentials.createInsecure()
+                        )
+
+                        console.log(`qrlClient loaded for ${endpoint}`)
+
+                        callback(null, true)
+                      } else {
+                        // grpc object shasum does not match verified known shasum
+                        // Could be local side attack changing the proto file in between validation
+                        // and grpc connection establishment
+                        console.log(
+                          `Invalid qrl.proto grpc object shasum - node version: ${res.version}, qrl.proto object sha256: ${calculatedObjectHash}`
+                        )
+                        const myError = errorCallback(
+                          err,
+                          `Invalid qrl.proto grpc object shasum - node version: ${res.version}, qrl.proto object sha256: ${calculatedObjectHash}`,
+                          '**ERROR/connect**'
+                        )
+                        callback(myError, null)
+                      }
+                    })
+                } else {
+                  // qrl.proto file shasum does not match verified known shasum
+                  // Could be node acting in bad faith.
                   console.log(
-                    `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`
+                    `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}`
                   )
                   const myError = errorCallback(
                     err,
-                    `Cannot verify QRL node version on: ${endpoint} - Version: ${res.version}`,
+                    `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}`,
                     '**ERROR/connect**'
                   )
                   callback(myError, null)
-                } else {
-                  let verifiedProtoSha256Hash = {}
-                  if (verifiedProtoSha256HashEntry === null) {
-                    verifiedProtoSha256Hash.objectSha256 = ''
-                  } else {
-                    verifiedProtoSha256Hash = verifiedProtoSha256HashEntry
-                  }
-                  // Now read the saved qrl.proto file so we can calculate a hash from it
-                  fs.readFile(qrlProtoFilePath, (errR, contents) => {
-                    if (fsErr) {
-                      console.log(fsErr)
-                      throw fsErr
-                    }
-
-                    // Calculate the hash of the qrl.proto file contents
-                    const protoFileWordArray = CryptoJS.lib.WordArray.create(
-                      contents
-                    )
-                    const calculatedProtoHash = CryptoJS.SHA256(
-                      protoFileWordArray
-                    ).toString(CryptoJS.enc.Hex)
-                    // If the calculated qrl.proto hash matches the verified one for this version,
-                    // continue to verify the grpc object loaded from the proto also matches the correct
-                    // shasum.
-                    console.log(
-                      'proto: checking that calc of '
-                        + calculatedProtoHash
-                        + ' = expected '
-                        + verifiedProtoSha256Hash.protoSha256
-                    )
-                    if (
-                      calculatedProtoHash
-                        === verifiedProtoSha256Hash.protoSha256
-                      || allowUnchecksummedNodes === true
-                    ) {
-                      protoloader
-                        .load(qrlProtoFilePath, options)
-                        .then((packageDefinition) => {
-                          const grpcObject = grpc.loadPackageDefinition(
-                            packageDefinition
-                          )
-
-                          // Inspect the object and convert to string.
-                          const grpcObjectString = JSON.stringify(
-                            util.inspect(grpcObject, {
-                              showHidden: true,
-                              depth: 4,
-                            })
-                          )
-
-                          // Calculate the hash of the grpc object string returned
-                          const protoObjectWordArray = CryptoJS.lib.WordArray.create(
-                            grpcObjectString
-                          )
-                          const calculatedObjectHash = CryptoJS.SHA256(
-                            protoObjectWordArray
-                          ).toString(CryptoJS.enc.Hex)
-
-                          // If the grpc object shasum matches, establish the grpc connection.
-                          console.log(
-                            'object: checking that calc of '
-                              + calculatedObjectHash
-                              + ' = expected '
-                              + verifiedProtoSha256Hash.objectSha256
-                          )
-                          if (calculatedObjectHash === verifiedProtoSha256Hash.objectSha256 || allowUnchecksummedNodes === true) {
-                            // Create the gRPC Connection
-                            qrlClient[endpoint] = new grpcObject.qrl.PublicAPI(
-                              endpoint,
-                              grpc.credentials.createInsecure()
-                            )
-
-                            console.log(`qrlClient loaded for ${endpoint}`)
-
-                            callback(null, true)
-                          } else {
-                            // grpc object shasum does not match verified known shasum
-                            // Could be local side attack changing the proto file in between validation
-                            // and grpc connection establishment
-                            console.log(
-                              `Invalid qrl.proto grpc object shasum - node version: ${res.version}, qrl.proto object sha256: ${calculatedObjectHash}, expected: ${verifiedProtoSha256Hash.objectSha256}`
-                            )
-                            const myError = errorCallback(
-                              err,
-                              `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedObjectHash}, expected: ${verifiedProtoSha256Hash.objectSha256}`,
-                              '**ERROR/connect**'
-                            )
-                            callback(myError, null)
-                          }
-                        })
-                    } else {
-                      // qrl.proto file shasum does not match verified known shasum
-                      // Could be node acting in bad faith.
-                      console.log(
-                        `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}, expected: ${verifiedProtoSha256Hash.protoSha256}`
-                      )
-                      const myError = errorCallback(
-                        err,
-                        `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}, expected: ${verifiedProtoSha256Hash.protoSha256}`,
-                        '**ERROR/connect**'
-                      )
-                      callback(myError, null)
-                    }
-                  })
                 }
               })
             })
@@ -310,22 +310,27 @@ const connectToNode = (endpoint, callback) => {
 }
 
 const checkNetworkHealth = (userNetwork, callback) => {
-  let networkHealthy = false
+  try {
+    let networkHealthy = false
 
-  // Determine current active nodes
-  DEFAULT_NETWORKS.forEach((network) => {
-    // Only look at health of userNetwork
-    if (network.id === userNetwork) {
-      if (network.healthy === true) {
-        networkHealthy = true
+    // Determine current active nodes
+    DEFAULT_NETWORKS.forEach((network) => {
+      // Only look at health of userNetwork
+      if (network.id === userNetwork) {
+        if (network.healthy === true) {
+          networkHealthy = true
+        }
       }
-    }
-  })
+    })
 
-  if (networkHealthy === true) {
-    callback(null, true)
-  } else {
-    callback(true, { error: 'Network unhealthy' })
+    if (networkHealthy === true) {
+      callback(null, true)
+    } else {
+      callback(true, { error: 'Network unhealthy' })
+    }
+  } catch (err) {
+    console.log('Exception in checkNetworkHealth')
+    console.log(err)
   }
 }
 
@@ -431,6 +436,7 @@ const qrlApi = (api, request, callback) => {
     }
   } else {
     // Handle custom and localhost connections
+    console.log('Handling custom API call')
     const apiEndpoint = request.network
     // Delete network from request object
     delete request.network
@@ -1563,7 +1569,7 @@ const confirmTokenCreation = (request, callback) => {
     initialBalancesFormatted.push(itemFormatted)
   })
 
-  // Overwrite inital_balances with our updated one
+  // Overwrite initial_balances with our updated one
   confirmTxn.transaction_signed.token.initial_balances = initialBalancesFormatted
   confirmTxn.network = request.network
 
@@ -2045,7 +2051,7 @@ const confirmTokenTransfer = (request, callback) => {
                 console.log(`Error: Failed to send transaction through ${node.grpc} - ${err}`)
                 cb()
               } else {
-                console.log(`Token Xfer Transaction sent via ${node.grpc}`)
+                console.log(`Token transfer Transaction sent via ${node.grpc}`)
                 relayedThrough.push(node.grpc)
                 cb()
               }
