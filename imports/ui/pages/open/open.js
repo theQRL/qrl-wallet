@@ -120,7 +120,7 @@ async function getLedgerVersion(callback) {
       console.log('> Got Ledger App Version from USB')
       Session.set(
         'ledgerDetailsAppVersion',
-        data.major + '.' + data.minor + '.' + data.patch
+        data.version
       )
       callback(null, data)
     })
