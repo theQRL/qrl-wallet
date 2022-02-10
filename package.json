@@ -10,7 +10,7 @@
     "@grpc/proto-loader": "^0.5.5",
     "@ledgerhq/hw-transport-node-hid": "^5.34.0",
     "@ledgerhq/hw-transport-webusb": "^5.34.1",
-    "@theqrl/explorer-helpers": "^2.0.2",
+    "@theqrl/explorer-helpers": "^2.5.0",
     "@theqrl/hw-app-qrl": "^5.34.0",
     "@theqrl/node-helpers": "^0.6.1",
     "@theqrl/qrl-proto-sha256": "^3.4.1",
