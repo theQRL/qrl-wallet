@@ -57,7 +57,7 @@ function createTokenTxn() {
       initialBalancesAddressAmount[i].value
     )
     const thisAmount = convertAmountToBigNumber
-      .times(Math.pow(10, decimals))
+      .times(10 ** decimals)
       .toNumber() // eslint-disable-line
 
     const thisHolder = {
@@ -298,7 +298,78 @@ Template.appNFT.onRendered(() => {
   })
 })
 
+async function validateJSON(JSONtext) {
+  let valid = { valid: false, message: '' }
+  try {
+    const data = JSON.parse(JSONtext)
+
+    if (!data.provider) {
+      valid = { valid: false, message: 'provider JSON key not present' }
+    }
+    if (!data.metadata) {
+      valid = { valid: false, message: 'metadata JSON key not present' }
+    }
+    if (data.filehash.length !== 128) {
+      valid = { valid: false, message: 'invalid filehash length' }
+    }
+    if (data.metahash.length !== 128) {
+      valid = { valid: false, message: 'invalid metahash length' }
+    }
+    if (data.standard !== 1) {
+      valid = { valid: false, message: 'invalid standard version' }
+    }
+    if (valid.message.length === 0) {
+      $('#validateJSON').addClass('disabled')
+      $('#validateJSON').text('checking...')
+      const response = await fetch(
+        'https://charming-frosted-lift.glitch.me/lint',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }
+      )
+      const text = await response.text()
+      console.log(text)
+      $('#validateJSON').removeClass('disabled')
+      $('#validateJSON').text('Validate')
+      const jsonR = JSON.parse(text)
+      if (jsonR.valid) {
+        console.log('===== VALID JSON =====')
+        valid = { valid: true, message: 'validated JSON' }
+        $('#validateJSON').addClass('disabled')
+      } else {
+        valid = { valid: false, message: jsonR.message }
+        console.log('===== INVALID JSON =====')
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    valid = { valid: false, message: e.message }
+    console.log('===== INVALID JSON (errored parsing) =====')
+    // document.querySelector('#valid').textContent = 'FAIL - Invalid JSON / unable to parse form'
+  }
+  if (valid.valid) {
+    $('#validateResult').text(`PASS: ${valid.message}`)
+    $('#createToken').removeClass('disabled')
+  } else {
+    $('#validateResult').text(`INVALID JSON: ${valid.message}`)
+  }
+}
+
 Template.appNFT.events({
+  'click #validateJSON': function (event) {
+    event.preventDefault()
+    // Get JSON
+    const json = $('#json').val()
+    // Validate JSON
+    validateJSON(json)
+  },
+  'keyup #json': function () {
+    $('#createToken').addClass('disabled')
+    $('#validateResult').text('NFT data not yet checked')
+    $('#validateJSON').removeClass('disabled')
+  },
   'click #addTokenHolder': (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -337,7 +408,8 @@ Template.appNFT.events({
     countRecipientsForValidation -= 1
 
     // Remove the token holder
-    $(event.currentTarget).parent().parent().parent().remove()
+    $(event.currentTarget).parent().parent().parent()
+      .remove()
 
     // Initialise Form Validation
     initialiseFormValidation()
@@ -394,8 +466,8 @@ Template.appNFT.helpers({
   },
   nodeExplorerUrl() {
     if (
-      Session.get('nodeExplorerUrl') === '' ||
-      Session.get('nodeExplorerUrl') === null
+      Session.get('nodeExplorerUrl') === ''
+      || Session.get('nodeExplorerUrl') === null
     ) {
       return DEFAULT_NETWORKS[0].explorerUrl
     }

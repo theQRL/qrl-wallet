@@ -120,13 +120,13 @@
       NFT data
     </h4>
     <div class="field">
-      <textarea>
+      <textarea id="json">
 {
 
 }
       </textarea>
-      <button class="ui white button">Validate</button>
-      <span>NFT data not yet checked</span>
+      <button class="ui white button" id="validateJSON">Validate</button>
+      <span id="validateResult">NFT data not yet checked</span>
     </div>
     <div style="display: none;">
     <div class="field">
@@ -202,7 +202,7 @@
     </div>
 
     <div class="field">
-      <button id="createToken" class="ui huge primary button red" style="float: left;">Create NFT</button>
+      <button id="createToken" class="ui huge primary button red disabled" style="float: left;">Create NFT</button>
       <br />
     </div>
 
