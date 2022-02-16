@@ -110,7 +110,7 @@
 
 
 
-  <form id="generateTokenForm" class="ui form">
+  <form id="generateNFTForm" class="ui form">
 
     <h4 id="transferFormFromAddress" class="breakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
     <h4 class="breakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
@@ -128,20 +128,24 @@
       <button class="ui white button" id="validateJSON">Validate</button>
       <span id="validateResult">NFT data not yet checked</span>
     </div>
-    <div style="display: none;">
-    <div class="field">
-      <label>Owner Address</label>
+    <div>
+      <div class="field">
+        <label>NFT Provider Reference (Optional)</label>
+        <input type="text" id="providerRef" placeholder="FFFFFFFF" value="00000000" autocomplete="off">
+      </div>
+    <div class="field" style="display: none;">
+      <label>Creator Address</label>
       <input type="text" id="owner" autocomplete="off" value="{{transferFrom.address}}">
     </div>
-    <div class="field">
+    <div class="field" style="display: none;">
       <label>Token Symbol</label>
       <input type="text" id="symbol" placeholder="eg: TST, QRL, etc" autocomplete="off">
     </div>
-    <div class="field">
+    <div class="field" style="display: none;">
       <label>Token Name</label>
       <input type="text" id="name" autocomplete="off">
     </div>
-    <div class="field">
+    <div class="field" style="display: none;">
       <label>Decimals</label>
       <input type="text" id="decimals" value="0" autocomplete="off">
     </div>
@@ -149,27 +153,27 @@
     
     <h4 class="ui horizontal divider header">
       <i class="users icon"></i>
-      Initial Token Holders
+      Initial NFT Owner
     </h4>
 
     <div id="tokenHolders">
       <div class="field">
-        <label>Holder Balance</label>
+        <label>Owner's Address</label>
         <div class="three fields">
-          <div class="ten wide field">
+          <div class="sixteen wide field">
             <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address" autocomplete="off" value="{{transferFrom.address}}">
           </div>
-          <div class="five wide field">
+          <div class="five wide field" style="display: none;">
             <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" placeholder="Token Balance" autocomplete="off" value="1">
           </div>
-          <div class="one wide field">
+          <div class="one wide field" style="display: none;">
             <button class="ui red button removeTokenHolder"><i class="remove user icon"></i></button>
           </div>
         </div>
       </div>
     </div>
 
-    <button id="addTokenHolder" class="ui green button">
+    <button id="addTokenHolder" class="ui green button" style="display: none;">
       <i class="add user icon"></i>
       Add Another Holder
     </button>

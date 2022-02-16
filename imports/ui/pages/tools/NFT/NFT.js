@@ -8,6 +8,8 @@
 // import './tokenCreate.html'
 import { BigNumber } from 'bignumber.js'
 import helpers from '@theqrl/explorer-helpers'
+import stableStringify from 'json-stable-stringify'
+import crypto from 'crypto-browserify'
 
 let countRecipientsForValidation = 1
 
@@ -19,13 +21,37 @@ function maxAllowedDecimals(tokenTotalSupply) {
   return Math.max(Math.floor(19 - getBaseLog(10, tokenTotalSupply)), 0)
 }
 
+function getNFTBytesForTransfer(idHexString, cryptoHashHexString) {
+  // given an idHexString and cryptoHashHexString, return the bytes for the NFT
+  // idHexString is a hex string of the NFT id
+  // cryptoHashHexString is a hex string of the NFT cryptoHash
+  // return a Buffer of the NFT bytes
+  const nftIdentifier = Buffer.from('00FF00FF', 'hex')
+  const idBytes = Buffer.from(idHexString, 'hex')
+  const cryptoHashBytes = Buffer.from(cryptoHashHexString, 'hex')
+  const nftBytes = Buffer.concat([nftIdentifier, idBytes, cryptoHashBytes])
+  return {
+    symbolBytes: Buffer.from(nftBytes.slice(0, 10)),
+    nameBytes: Buffer.from(nftBytes.slice(10, 40)),
+  }
+}
+
 function createTokenTxn() {
   // Get to/amount details
+
+  const providerRef = $('#providerRef').val()
+  const jsonR = $('#json').val()
+  const hash = crypto.createHash('sha256')
+  const hashData = hash.update(stableStringify(jsonR), 'utf-8')
+  const generatedHash = hashData.digest('hex')
+
+  const nftBytes = getNFTBytesForTransfer(providerRef, generatedHash)
+
   const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
-  const owner = anyAddressToRawAddress(document.getElementById('owner').value)
-  const symbol = document.getElementById('symbol').value
-  const name = document.getElementById('name').value
-  const decimals = document.getElementById('decimals').value
+  const owner = anyAddressToRawAddress(Session.get('transferFromAddress'))
+  // const symbol = document.getElementById('symbol').value
+  // const name = document.getElementById('name').value
+  const decimals = '0'
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
 
@@ -40,8 +66,7 @@ function createTokenTxn() {
 
   // Convert strings to bytes
   const pubKey = hexToBytes(XMSS_OBJECT.getPK())
-  const symbolBytes = stringToBytes(symbol)
-  const nameBytes = stringToBytes(name)
+  const { symbolBytes, nameBytes } = nftBytes
 
   // Collect Token Holders and create payload
   const initialBalancesAddress = document.getElementsByName(
@@ -299,12 +324,16 @@ Template.appNFT.onRendered(() => {
 })
 
 async function validateJSON(JSONtext) {
+  const sendFromCheck = Session.get('transferFromAddress').toLowerCase()
   let valid = { valid: false, message: '' }
   try {
     const data = JSON.parse(JSONtext)
 
     if (!data.provider) {
       valid = { valid: false, message: 'provider JSON key not present' }
+    }
+    if (data.provider.toLowerCase() !== sendFromCheck) {
+      valid = { valid: false, message: 'provider QRL address is not the same as this wallet address' }
     }
     if (!data.metadata) {
       valid = { valid: false, message: 'metadata JSON key not present' }
@@ -338,6 +367,11 @@ async function validateJSON(JSONtext) {
         console.log('===== VALID JSON =====')
         valid = { valid: true, message: 'validated JSON' }
         $('#validateJSON').addClass('disabled')
+        $('#json').val(jsonR.linted)
+        const hash = crypto.createHash('sha256')
+        const hashData = hash.update(stableStringify(jsonR.linted), 'utf-8')
+        const generatedHash = hashData.digest('hex')
+        console.log(generatedHash)
       } else {
         valid = { valid: false, message: jsonR.message }
         console.log('===== INVALID JSON =====')
@@ -345,9 +379,8 @@ async function validateJSON(JSONtext) {
     }
   } catch (e) {
     console.log(e)
-    valid = { valid: false, message: e.message }
+    valid = { valid: false, message: 'JSON is incorrectly structured: see the docs' }
     console.log('===== INVALID JSON (errored parsing) =====')
-    // document.querySelector('#valid').textContent = 'FAIL - Invalid JSON / unable to parse form'
   }
   if (valid.valid) {
     $('#validateResult').text(`PASS: ${valid.message}`)
@@ -408,13 +441,12 @@ Template.appNFT.events({
     countRecipientsForValidation -= 1
 
     // Remove the token holder
-    $(event.currentTarget).parent().parent().parent()
-      .remove()
+    $(event.currentTarget).parent().parent().parent().remove()
 
     // Initialise Form Validation
     initialiseFormValidation()
   },
-  'submit #generateTokenForm': (event) => {
+  'click #createToken': (event) => {
     event.preventDefault()
     event.stopPropagation()
     $('#generating').show()
