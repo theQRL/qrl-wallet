@@ -329,7 +329,8 @@
       <div id="sendReceiveTabs" class="ui top attached tabular menu">
         <a class="item active" data-tab="send">Send</a>
         <a class="item" data-tab="receive">Receive</a>
-        <a class="item" data-tab="tokenBalances">Token Balances</a>
+        <a class="item" data-tab="tokenBalances">Tokens</a>
+        <a class="item" data-tab="nftBalances">NFTs</a>
       </div>
       <div class="ui bottom attached tab segment active" data-tab="send">
 
@@ -837,6 +838,55 @@
             </div>
           </div>
           {{/each}}
+        </div>
+      </div>
+
+      <div class="ui bottom attached tab segment" data-tab="nftBalances">
+        <h2 class="ui header">
+          <div class="content">
+            NFTs
+          </div>
+        </h2>
+
+      <div id="nftBalancesLoading" class="ui icon message">
+          <br /><br />
+          <i class="notched circle loading icon"></i>
+          <div class="content">
+            <div class="header">
+              Just a moment
+            </div>
+            <p>NFTs are loading...</p>
+          </div>
+        </div>
+
+        <div class="ui middle aligned divided list">
+          {{#if ownNFTs}}
+          {{#each tokensHeld}}
+          <div class="item">
+            <i class="large tags middle aligned icon"></i>
+            <div class="content">
+              {{#if heldTokenIsNFT}}
+              <p class="header">
+                {{#if this.nft.providerDetails.known}}
+                <a href="{{this.nft.providerDetails.url}}/{{this.nft.txhash}}">
+                {{this.nft.providerDetails.name}} (0x{{this.nft.id}})</a>
+                <i class="ui certificate icon"></i>Verified Provider
+                {{else}}
+                <i class="ui warning icon"></i>Unverified Provider (0x{{this.nft.id}})
+                {{/if}}
+              </p>
+              <div class="description tc-w">
+                <a href="/tx/{{this.nft.txhash}}">{{this.nft.txhash}}</a>
+              </div>
+              {{else}}
+
+              {{/if}}
+            </div>
+          </div>
+          {{/each}}
+          {{else}}
+            No NFTs owned
+          {{/if}}
         </div>
       </div>
 
