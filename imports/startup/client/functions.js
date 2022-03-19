@@ -7,7 +7,8 @@
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
-
+import _ from 'underscore'
+import qrlNft from '@theqrl/nft-providers'
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers, { tokens } from '@theqrl/explorer-helpers'
@@ -721,20 +722,64 @@ const getTokenBalances = (getAddress, callback) => {
                 // TODO - Error handling here
               } else {
                 const tokenDetails = objRes.transaction.tx.token
-
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
                 thisToken.symbol = bytesToString(tokenDetails.symbol) // eslint-disable-next-line
                 thisToken.balance =
                   tokenBalance / 10 ** tokenDetails.decimals
                 thisToken.decimals = tokenDetails.decimals
+                let nft = {}
+                const symbol = Buffer.from(tokenDetails.symbol).toString('hex')
+                if (symbol.slice(0, 8) === '00ff00ff') {
+                  const nftBytes = Buffer.concat([
+                    Buffer.from(tokenDetails.symbol),
+                    Buffer.from(tokenDetails.name),
+                  ])
+                  const idBytes = Buffer.from(nftBytes.slice(4, 8))
+                  const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+                  const id = Buffer.from(idBytes).toString('hex')
+                  const provider = `Q${Buffer.from(
+                    objRes.transaction.addr_from
+                  ).toString('hex')}`
+                  const providerDetails = {
+                    known: false,
+                  }
+                  _.each(qrlNft.providers, (providerList) => {
+                    if (providerList.id.slice(2, 10) === id) {
+                      _.each(providerList.addresses, (address) => {
+                        if (address === provider) {
+                          providerDetails.known = true
+                          providerDetails.name = providerList.name
+                          providerDetails.url = providerList.url
+                        }
+                      })
+                    }
+                  })
+                  nft = {
+                    provider,
+                    providerDetails,
+                    txhash: Buffer.from(
+                      objRes.transaction.tx.transaction_hash
+                    ).toString('hex'),
+                    type: 'CREATE NFT',
+                    id,
+                    hash: Buffer.from(cryptoHashBytes).toString('hex'),
+                  }
+                  thisToken.nft = nft
+                }
                 tokensHeld.push(thisToken)
-
-                Session.set('tokensHeld', tokensHeld)
-                if (tokensToShow.filter((t) => t.hash === key).length > 0) {
+                if (symbol.slice(0, 8) === '00ff00ff') {
                   tokensHeldFiltered.push(thisToken)
                   Session.set('tokensHeldFiltered', tokensHeldFiltered)
                 }
+                Session.set('tokensHeld', tokensHeld)
+                if (tokensToShow.filter((t) => t.hash === key).length > 0) {
+                  if (symbol.slice(0, 8) !== '00ff00ff') {
+                    tokensHeldFiltered.push(thisToken)
+                    Session.set('tokensHeldFiltered', tokensHeldFiltered)
+                  }
+                }
+                Session.set('tokensHeldFiltered', tokensHeldFiltered)
               }
             }
           })
@@ -743,6 +788,7 @@ const getTokenBalances = (getAddress, callback) => {
     }
   })
   $('#tokenBalancesLoading').hide()
+  $('#nftBalancesLoading').hide()
 }
 
 updateBalanceField = () => {

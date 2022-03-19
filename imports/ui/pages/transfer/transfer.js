@@ -1,5 +1,5 @@
 /* eslint no-console:0, no-len: 0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global _, QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
@@ -7,7 +7,7 @@
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
-
+import qrlNft from '@theqrl/nft-providers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 import {
@@ -1195,6 +1195,103 @@ Template.appTransfer.events({
 })
 
 Template.appTransfer.helpers({
+  ownNFTs() {
+    const tokens = Session.get('tokensHeld')
+    let count = tokens.length
+    if (count > 0) {
+      _.each(tokens, (token) => {
+        if (!token.nft) {
+          count -= 1
+        }
+      })
+    }
+    if (count > 0) {
+      return true
+    }
+    return false
+  },
+  ownTokens() {
+    const tokens = Session.get('tokensHeldFiltered')
+    let count = tokens.length
+    if (count > 0) {
+      _.each(tokens, (token) => {
+        if (token.nft) {
+          count -= 1
+        }
+      })
+    }
+    if (count > 0) {
+      return true
+    }
+    return false
+  },
+  isCreateNFT() {
+    console.log(this)
+    try {
+      if (this.token.nft.type === 'CREATE NFT') {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
+  },
+  heldTokenIsNFT() {
+    if (this.nft) {
+      return true
+    }
+    return false
+  },
+  knownProvider() {
+    const { id } = this.token.nft
+    const from = Session.get('address').state.address
+    let known = false
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        _.each(provider.addresses, (address) => {
+          if (address === from) {
+            known = true
+          }
+        })
+      }
+    })
+    return known
+  },
+  knownProviderNonSpecific() {
+    const from = Session.get('address').state.address
+    let known = false
+    _.each(qrlNft.providers, (provider) => {
+      _.each(provider.addresses, (address) => {
+        if (address === from) {
+          known = true
+        }
+      })
+    })
+    return known
+  },
+  providerURL() {
+    const { id } = this.token.nft
+    let url = ''
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        url = provider.url
+      }
+    })
+    return url
+  },
+  providerName() {
+    const { id } = this.token.nft
+    let name = ''
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        name = provider.name
+      }
+    })
+    return name
+  },
+  providerID() {
+    return `0x${this.token.nft.id}`
+  },
   includesMessage() {
     try {
       const m = Session.get('transactionConfirmationMessage')
@@ -1347,7 +1444,33 @@ Template.appTransfer.helpers({
           txOut.tx.transfer_token.decimals = found.decimals
         }
       }
+      console.log('type:', transaction.tx.transactionType)
+      if (transaction.tx.transactionType === 'token') {
+        console.log('found a token')
+        console.log(transaction.tx)
+        // first check if NFT
+        let nft = {}
+        const { symbol } = txOut.tx.token
+        console.log('symbol: ', symbol)
+        if (symbol.slice(0, 8) === '00ff00ff') {
+          const nftBytes = Buffer.concat([
+            hexToBytes(txOut.tx.token.symbol),
+            hexToBytes(txOut.tx.token.name),
+          ])
+          const idBytes = Buffer.from(nftBytes.slice(4, 8))
+          const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+          nft = {
+            type: 'CREATE NFT',
+            id: Buffer.from(idBytes).toString('hex'),
+            hash: Buffer.from(cryptoHashBytes).toString('hex'),
+          }
+          console.log('Found an NFT')
+          txOut.nft = nft
+        }
+      }
       formatted.push(txOut)
+      console.log('pushed: ')
+      console.log(txOut)
     })
     return formatted
   },
