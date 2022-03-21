@@ -368,7 +368,11 @@
                     <select id="amountType" class="ui compact selection dropdown">
                       <option value="quanta">Quanta</option>
                       {{#each tokensHeld}}
+                      {{#if heldTokenIsNFT}}
+                      <option value="token-{{this.hash}}-{{this.decimals}}">NFT ({{this.shortHash}})</option>
+                      {{else}}
                       <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}} ({{this.shortHash}})</option>
+                      {{/if}}
                       {{/each}}
                     </select>
                   </div>
@@ -890,6 +894,7 @@
 
               {{/if}}
             </div>
+            <a href="#" style="display: table-cell;" class="sendNFT" data-txhash="{{this.nft.txhash}}">&nbsp;<i class="large send middle aligned icon"></i></a>
           </div>
           {{/each}}
           {{else}}

@@ -499,7 +499,6 @@ getBalance = (getAddress, callBack) => {
             Session.set('otsBitfield', {})
             Session.set('errorLoadingTransactions', true)
           } else {
-            console.log('getOTS response: ', result)
             const totalSignatures = qrlAddressValdidator.hexString(
               res.state.address
             ).sig.number
@@ -807,9 +806,14 @@ updateBalanceField = () => {
 
       // Now calculate the token balance.
       _.each(Session.get('tokensHeld'), (token) => {
+        console.log(token)
         if (token.hash === tokenHash) {
           Session.set('balanceAmount', token.balance)
-          Session.set('balanceSymbol', token.symbol)
+          if (!token.nft) {
+            Session.set('balanceSymbol', token.symbol)
+          } else {
+            Session.set('balanceSymbol', 'NFT')
+          }
         }
       })
     }

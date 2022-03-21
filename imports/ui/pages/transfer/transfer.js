@@ -1031,6 +1031,19 @@ Template.appTransfer.onRendered(() => {
 })
 
 Template.appTransfer.events({
+  'click .sendNFT': function (event) {
+    event.preventDefault()
+    console.log(this)
+    $('#amountType').val('NFT')
+    $('#amountType')
+      .val(
+        `token-${this.hash}-0`
+      )
+      .change()
+    $.tab('change tab', 'send')
+    $('#sendReceiveTabs > a').first().addClass('active')
+    $('#sendReceiveTabs > a').last().removeClass('active')
+  },
   'click .transactionRecord': (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -1226,7 +1239,6 @@ Template.appTransfer.helpers({
     return false
   },
   isCreateNFT() {
-    console.log(this)
     try {
       if (this.nft.type === 'CREATE NFT') {
         return true
@@ -1244,18 +1256,22 @@ Template.appTransfer.helpers({
   },
   knownProvider() {
     const { id } = this.nft
-    const from = Session.get('address').state.address
-    let known = false
-    _.each(qrlNft.providers, (provider) => {
-      if (provider.id === `0x${id}`) {
-        _.each(provider.addresses, (address) => {
-          if (address === from) {
-            known = true
-          }
-        })
-      }
-    })
-    return known
+    try {
+      const from = Session.get('address').state.address
+      let known = false
+      _.each(qrlNft.providers, (provider) => {
+        if (provider.id === `0x${id}`) {
+          _.each(provider.addresses, (address) => {
+            if (address === from) {
+              known = true
+            }
+          })
+        }
+      })
+      return known
+    } catch (e) {
+      return false
+    }
   },
   knownProviderNonSpecific() {
     const from = Session.get('address').state.address
