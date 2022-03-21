@@ -1228,7 +1228,7 @@ Template.appTransfer.helpers({
   isCreateNFT() {
     console.log(this)
     try {
-      if (this.token.nft.type === 'CREATE NFT') {
+      if (this.nft.type === 'CREATE NFT') {
         return true
       }
       return false
@@ -1243,7 +1243,7 @@ Template.appTransfer.helpers({
     return false
   },
   knownProvider() {
-    const { id } = this.token.nft
+    const { id } = this.nft
     const from = Session.get('address').state.address
     let known = false
     _.each(qrlNft.providers, (provider) => {
@@ -1270,7 +1270,7 @@ Template.appTransfer.helpers({
     return known
   },
   providerURL() {
-    const { id } = this.token.nft
+    const { id } = this.nft
     let url = ''
     _.each(qrlNft.providers, (provider) => {
       if (provider.id === `0x${id}`) {
@@ -1280,7 +1280,7 @@ Template.appTransfer.helpers({
     return url
   },
   providerName() {
-    const { id } = this.token.nft
+    const { id } = this.nft
     let name = ''
     _.each(qrlNft.providers, (provider) => {
       if (provider.id === `0x${id}`) {
@@ -1290,7 +1290,7 @@ Template.appTransfer.helpers({
     return name
   },
   providerID() {
-    return `0x${this.token.nft.id}`
+    return `0x${this.nft.id}`
   },
   includesMessage() {
     try {
@@ -1444,14 +1444,10 @@ Template.appTransfer.helpers({
           txOut.tx.transfer_token.decimals = found.decimals
         }
       }
-      console.log('type:', transaction.tx.transactionType)
       if (transaction.tx.transactionType === 'token') {
-        console.log('found a token')
-        console.log(transaction.tx)
         // first check if NFT
         let nft = {}
         const { symbol } = txOut.tx.token
-        console.log('symbol: ', symbol)
         if (symbol.slice(0, 8) === '00ff00ff') {
           const nftBytes = Buffer.concat([
             hexToBytes(txOut.tx.token.symbol),
@@ -1464,13 +1460,10 @@ Template.appTransfer.helpers({
             id: Buffer.from(idBytes).toString('hex'),
             hash: Buffer.from(cryptoHashBytes).toString('hex'),
           }
-          console.log('Found an NFT')
           txOut.nft = nft
         }
       }
       formatted.push(txOut)
-      console.log('pushed: ')
-      console.log(txOut)
     })
     return formatted
   },
