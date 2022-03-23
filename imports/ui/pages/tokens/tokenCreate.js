@@ -95,20 +95,51 @@ function createTokenTxn() {
       $('#tokenCreationFailed').show()
       $('#tokenCreateForm').hide()
     } else {
+      let symbolConfirm
+      let nameConfirm
+      let nft = {}
+      const symbolTest = Buffer.from(
+        res.response.extended_transaction_unsigned.tx.token.symbol
+      ).toString('hex')
+      if (symbolTest.slice(0, 8) === '00ff00ff') {
+        // this is an NFT
+        symbolConfirm = symbolTest
+        nameConfirm = Buffer.from(
+          res.response.extended_transaction_unsigned.tx.token.name
+        ).toString('hex')
+        const nftBytes = Buffer.concat([
+          Buffer.from(res.response.extended_transaction_unsigned.tx.token.symbol),
+          Buffer.from(res.response.extended_transaction_unsigned.tx.token.name),
+        ])
+        const idBytes = Buffer.from(nftBytes.slice(4, 8))
+        const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+        nft = {
+          type: 'CREATE NFT',
+          id: Buffer.from(idBytes).toString('hex'),
+          hash: Buffer.from(cryptoHashBytes).toString('hex'),
+        }
+      } else {
+        // token
+        symbolConfirm = bytesToString(res.response.extended_transaction_unsigned.tx.token.symbol)
+        nameConfirm = bytesToString(
+          res.response.extended_transaction_unsigned.tx.token.name
+        )
+      }
       const confirmation = {
         hash: res.txnHash,
         from: Buffer.from(res.response.extended_transaction_unsigned.addr_from),
         from_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
         from_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.addr_from), // eslint-disable-line
-        symbol: bytesToString(res.response.extended_transaction_unsigned.tx.token.symbol),
-        name: bytesToString(res.response.extended_transaction_unsigned.tx.token.name),
+        symbol: symbolConfirm,
+        name: nameConfirm,
         owner: Buffer.from(res.response.extended_transaction_unsigned.tx.token.owner),
         owner_hex: helpers.rawAddressToHexAddress(res.response.extended_transaction_unsigned.tx.token.owner), // eslint-disable-line
         owner_b32: helpers.rawAddressToB32Address(res.response.extended_transaction_unsigned.tx.token.owner), // eslint-disable-line
         decimals: res.response.extended_transaction_unsigned.tx.token.decimals,
         fee: res.response.extended_transaction_unsigned.tx.fee / SHOR_PER_QUANTA,
         initialBalances: res.response.extended_transaction_unsigned.tx.token.initial_balances,
-        otsKey: otsKey, // eslint-disable-line
+        otsKey,
+        nft,
       }
 
       if (nodeReturnedValidResponse(request, confirmation, 'createTokenTxn')) {
