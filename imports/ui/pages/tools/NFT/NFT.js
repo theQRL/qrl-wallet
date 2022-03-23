@@ -350,14 +350,11 @@ async function validateJSON(JSONtext) {
     if (valid.message.length === 0) {
       $('#validateJSON').addClass('disabled')
       $('#validateJSON').text('checking...')
-      const response = await fetch(
-        'https://charming-frosted-lift.glitch.me/lint',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        }
-      )
+      const response = await fetch('https://nft-linter.theqrl.org/lint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
       const text = await response.text()
       console.log(text)
       $('#validateJSON').removeClass('disabled')
