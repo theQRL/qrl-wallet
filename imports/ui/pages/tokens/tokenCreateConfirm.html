@@ -22,14 +22,13 @@
   <div class="ui items">
     <div class="item">
       <div class="content">
-        <a class="header">
+        <a style="color: #fff;" class="header">
         {{#if isNFT}}
         {{#if verifiedProvider}}
-        <i class="ui certificate icon" title="Verified NFT Provider"></i>Verified Provider - {{detailsNFT.name}}
+        <i style="color: #fff;" class="ui certificate icon" title="Verified NFT Provider"></i>Verified NFT Provider - {{detailsNFT.name}}
         {{else}}
-        <i class="ui warning icon" title="Unverified NFT Provider"></i>Unverified Provider (0x{{detailsNFT.id}})
+        <i style="color: #fff;" class="ui warning icon" title="Unverified NFT Provider"></i>Unverified NFT Provider (0x{{detailsNFT.id}})
         {{/if}}
-          Verified/Unverified data
         {{else}}
           {{tokenCreationConfirmation.name}} ({{tokenCreationConfirmation.symbol}})
         {{/if}}

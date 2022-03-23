@@ -7,7 +7,8 @@
 
 import JSONFormatter from 'json-formatter-js'
 import './tokenCreateResult.html'
-
+import qrlNft from '@theqrl/nft-providers'
+import _ from 'underscore'
 
 function setRawDetail() {
   const myJSON = Session.get('txhash').transaction
@@ -119,6 +120,59 @@ Template.appTokenCreationResult.helpers({
   transactionRelayedThrough() {
     const status = Session.get('transactionRelayedThrough')
     return status
+  },
+  verifiedProvider() {
+    const details = Session.get('txhash').transaction.tx.token
+    const nftBytes = Buffer.concat([
+      Buffer.from(details.symbol),
+      Buffer.from(details.name),
+    ])
+    const idBytes = Buffer.from(nftBytes.slice(4, 8))
+    const id = Buffer.from(idBytes).toString('hex')
+    const from = rawToHexOrB32(Buffer.from(details.owner))
+    let known = false
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        _.each(provider.addresses, (address) => {
+          if (address === from) {
+            known = true
+          }
+        })
+      }
+    })
+    return known
+  },
+  detailsNFT() {
+    const details = Session.get('txhash').transaction.tx.token
+    const nftBytes = Buffer.concat([
+      Buffer.from(details.symbol),
+      Buffer.from(details.name),
+    ])
+    const idBytes = Buffer.from(nftBytes.slice(4, 8))
+    const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+    const id = Buffer.from(idBytes).toString('hex')
+    let name = ''
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        name = provider.name
+      }
+    })
+    return {
+      name,
+      id,
+      hash: Buffer.from(cryptoHashBytes).toString('hex'),
+    }
+  },
+  isNFT() {
+    const details = Session.get('txhash').transaction.tx.token
+    console.log(details)
+    const symbolTest = Buffer.from(
+      details.symbol
+    ).toString('hex')
+    if (symbolTest.slice(0, 8) === '00ff00ff') {
+      return true
+    }
+    return false
   },
   tokenDetails() {
     const details = Session.get('txhash').transaction.tx.token

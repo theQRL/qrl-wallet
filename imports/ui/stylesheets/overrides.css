@@ -654,6 +654,9 @@ h1, h2, h3, h4, h5 {
 .qr-code-container canvas {
   background-color: #FFF !important;
 }
+.qr-code {
+  background-color: #FFF !important;
+}
 small {
   text-transform: uppercase !important;
   color: #4AAFFF !important;
