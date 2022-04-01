@@ -39,7 +39,14 @@ function getNFTBytesForTransfer(idHexString, cryptoHashHexString) {
 function createTokenTxn() {
   // Get to/amount details
 
-  const providerRef = $('#providerRef').val()
+  let providerRef = $('#providerRef').val()
+  try {
+    if (providerRef.slice(0, 2).toLowerCase() === '0x') {
+      providerRef = providerRef.slice(2, providerRef.length)
+    }
+  } catch (e) {
+    // keep as entered
+  }
   const jsonR = $('#json').val()
   const hash = crypto.createHash('sha256')
   const hashData = hash.update(stableStringify(jsonR), 'utf-8')

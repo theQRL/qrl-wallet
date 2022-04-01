@@ -550,6 +550,9 @@ function sendTokensTxnCreate(tokenHash, decimals) {
           tokenDetails.name = token.symbol
           tokenDetails.token_txhash = token.hash
           tokenDetails.decimals = token.decimals
+          if (token.nft) {
+            tokenDetails.nft = token.nft
+          }
         }
       })
 
@@ -1033,7 +1036,6 @@ Template.appTransfer.onRendered(() => {
 Template.appTransfer.events({
   'click .sendNFT': function (event) {
     event.preventDefault()
-    console.log(this)
     $('#amountType').val('NFT')
     $('#amountType')
       .val(
@@ -1114,6 +1116,15 @@ Template.appTransfer.events({
   },
   'change #amountType': () => {
     updateBalanceField()
+    if (Session.get('balanceSymbol') === 'NFT') {
+      $('#amounts_1').prop('disabled', true)
+      $('#amounts_1').val('1')
+      $('#addTransferRecipient').hide()
+    } else {
+      $('#amounts_1').prop('disabled', false)
+      $('#amounts_1').val('')
+      $('#addTransferRecipient').show()
+    }
   },
   'click #addTransferRecipient': (event) => {
     event.preventDefault()
@@ -1247,6 +1258,12 @@ Template.appTransfer.helpers({
     } catch (e) {
       return false
     }
+  },
+  confirmationForNFT() {
+    if (Session.get('tokenTransferConfirmationDetails').nft) {
+      return true
+    }
+    return false
   },
   heldTokenIsNFT() {
     if (this.nft) {

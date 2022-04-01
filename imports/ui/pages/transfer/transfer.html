@@ -525,7 +525,7 @@
               </div>
             </div>
             <div class="floatright">
-              {{tokenTransferConfirmationAmount}} {{tokenDetails.symbol}}
+              {{tokenTransferConfirmationAmount}} {{#if confirmationForNFT}}NFT{{else}}{{tokenDetails.symbol}}{{/if}}
             </div>
           </div>
 
@@ -535,7 +535,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{this.amount}} {{#if confirmationForNFT}}NFT{{else}}{{this.name}}{{/if}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -686,7 +686,7 @@
               </div>
             </div>
             <div class="floatright">
-              {{tokenTransferConfirmationAmount}} {{tokenDetails.symbol}}
+              {{tokenTransferConfirmationAmount}} {{#if confirmationForNFT}}NFT{{else}}{{tokenDetails.symbol}}{{/if}}
             </div>
           </div>
 
@@ -696,7 +696,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{this.amount}} {{#if confirmationForNFT}}NFT{{else}}{{this.name}}{{/if}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
