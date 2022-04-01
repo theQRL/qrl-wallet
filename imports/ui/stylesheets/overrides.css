@@ -633,6 +633,11 @@ margin-right: 5% !important;
 .list a.item:hover {
   color: #FFA729 !important;
 }
+.ui.list .list>.item a.header,
+.ui.list>.item a.header {
+  color: #FFA729 !important;
+}
+
 .ui.form .grouped.fields > label, .ui.checkbox label {
   color: #EAEFF5 !important;
 }
@@ -647,6 +652,9 @@ h1, h2, h3, h4, h5 {
   font-weight: 300 !important;
 }
 .qr-code-container canvas {
+  background-color: #FFF !important;
+}
+.qr-code {
   background-color: #FFF !important;
 }
 small {

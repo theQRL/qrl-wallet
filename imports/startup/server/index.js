@@ -529,11 +529,22 @@ const helpersaddressTransactions = (response) => {
       txEdited.tx.transfer.addrs_to = hexlified
     }
     if (tx.tx.token) {
-      txEdited.tx.token.name = Buffer.from(tx.tx.token.name).toString()
-      txEdited.tx.token.symbol = Buffer.from(tx.tx.token.symbol).toString()
-      txEdited.tx.token.owner = `Q${Buffer.from(tx.tx.token.owner).toString(
-        'hex'
-      )}`
+      console.log(tx.tx.token)
+      if (
+        Buffer.from(tx.tx.token.symbol).toString('hex').slice(0, 8) !== '00ff00ff'
+      ) {
+        txEdited.tx.token.name = Buffer.from(tx.tx.token.name).toString()
+        txEdited.tx.token.symbol = Buffer.from(tx.tx.token.symbol).toString()
+        txEdited.tx.token.owner = `Q${Buffer.from(tx.tx.token.owner).toString(
+          'hex'
+        )}`
+      } else {
+        txEdited.tx.token.name = Buffer.from(tx.tx.token.name).toString('hex')
+        txEdited.tx.token.symbol = Buffer.from(tx.tx.token.symbol).toString('hex')
+        txEdited.tx.token.owner = `Q${Buffer.from(tx.tx.token.owner).toString(
+          'hex'
+        )}`
+      }
     }
     if (tx.tx.transfer_token) {
       const hexlified = []

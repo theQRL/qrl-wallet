@@ -329,7 +329,8 @@
       <div id="sendReceiveTabs" class="ui top attached tabular menu">
         <a class="item active" data-tab="send">Send</a>
         <a class="item" data-tab="receive">Receive</a>
-        <a class="item" data-tab="tokenBalances">Token Balances</a>
+        <a class="item" data-tab="tokenBalances">Tokens</a>
+        <a class="item" data-tab="nftBalances">NFTs</a>
       </div>
       <div class="ui bottom attached tab segment active" data-tab="send">
 
@@ -367,7 +368,11 @@
                     <select id="amountType" class="ui compact selection dropdown">
                       <option value="quanta">Quanta</option>
                       {{#each tokensHeld}}
+                      {{#if heldTokenIsNFT}}
+                      <option value="token-{{this.hash}}-{{this.decimals}}">NFT ({{this.shortHash}})</option>
+                      {{else}}
                       <option value="token-{{this.hash}}-{{this.decimals}}">{{this.symbol}} ({{this.shortHash}})</option>
+                      {{/if}}
                       {{/each}}
                     </select>
                   </div>
@@ -520,7 +525,7 @@
               </div>
             </div>
             <div class="floatright">
-              {{tokenTransferConfirmationAmount}} {{tokenDetails.symbol}}
+              {{tokenTransferConfirmationAmount}} {{#if confirmationForNFT}}NFT{{else}}{{tokenDetails.symbol}}{{/if}}
             </div>
           </div>
 
@@ -530,7 +535,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{this.amount}} {{#if confirmationForNFT}}NFT{{else}}{{this.name}}{{/if}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -681,7 +686,7 @@
               </div>
             </div>
             <div class="floatright">
-              {{tokenTransferConfirmationAmount}} {{tokenDetails.symbol}}
+              {{tokenTransferConfirmationAmount}} {{#if confirmationForNFT}}NFT{{else}}{{tokenDetails.symbol}}{{/if}}
             </div>
           </div>
 
@@ -691,7 +696,7 @@
               <div class="ui visible message">
                 <p class="wordBreak">
                   {{#each tokenTransferConfirmation.outputs}}
-                    {{this.amount}} {{this.name}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
+                    {{this.amount}} {{#if confirmationForNFT}}NFT{{else}}{{this.name}}{{/if}} -> {{# if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}<br /><br />
                   {{/each}}
                 </p>
               </div>
@@ -827,7 +832,11 @@
         </div>
 
         <div class="ui middle aligned divided list">
+          {{#if ownTokens}}
           {{#each tokensHeld}}
+          {{#if heldTokenIsNFT}}
+
+          {{else}}
           <div class="item">
             <i class="large tags middle aligned icon"></i>
             <div class="content">
@@ -836,7 +845,61 @@
               <div class="description wordBreak"><strong>Hash:</strong> {{this.hash}}</div>
             </div>
           </div>
+          {{/if}}
           {{/each}}
+          {{else}}
+            No owned tokens added to wallet
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="ui bottom attached tab segment" data-tab="nftBalances">
+        <h2 class="ui header">
+          <div class="content">
+            NFTs
+          </div>
+        </h2>
+
+      <div id="nftBalancesLoading" class="ui icon message">
+          <br /><br />
+          <i class="notched circle loading icon"></i>
+          <div class="content">
+            <div class="header">
+              Just a moment
+            </div>
+            <p>NFTs are loading...</p>
+          </div>
+        </div>
+
+        <div class="ui middle aligned divided list">
+          {{#if ownNFTs}}
+          {{#each tokensHeld}}
+          <div class="item">
+            <i class="large tags middle aligned icon"></i>
+            <div class="content">
+              {{#if heldTokenIsNFT}}
+              <p class="header">
+                {{#if this.nft.providerDetails.known}}
+                <a href="{{this.nft.providerDetails.url}}/{{this.nft.txhash}}">
+                {{this.nft.providerDetails.name}} (0x{{this.nft.id}})</a>
+                <i class="ui certificate icon"></i>Verified Provider
+                {{else}}
+                <i class="ui warning icon"></i>Unverified Provider (0x{{this.nft.id}})
+                {{/if}}
+              </p>
+              <div class="description wordBreak tc-w">
+                <a href="/tx/{{this.nft.txhash}}">{{this.nft.txhash}}</a>
+              </div>
+              {{else}}
+
+              {{/if}}
+            </div>
+            <a href="#" style="display: table-cell;" class="sendNFT" data-txhash="{{this.nft.txhash}}">&nbsp;<i class="large send middle aligned icon"></i></a>
+          </div>
+          {{/each}}
+          {{else}}
+            No NFTs owned
+          {{/if}}
         </div>
       </div>
 
@@ -913,7 +976,20 @@
             <img class="transactionTypeImage" src="/img/icons/send.svg" />
             <div class="content">
               <div class="header">
+                {{#if isCreateNFT}}
+                Create NFT - 
+                        {{#if knownProvider}}
+                        <i class="ui certificate icon"></i>
+                        {{/if}}
+                        {{#if knownProvider}}
+                        <a href="{{providerURL}}/{{this.transaction_hash}}">{{providerName}}</a> ({{providerID}})
+                        {{else}}
+                        Unknown provider {{providerID}} |
+                        {{/if}}
+                        {{this.timestamp}}
+                {{else}}
                 Token Creation - {{this.tx.token.name}} ({{this.tx.token.symbol}}) | {{this.timestamp}}
+                {{/if}}
               </div>
               <p class="transactionAddress">
                 {{this.tx.transaction_hash}}

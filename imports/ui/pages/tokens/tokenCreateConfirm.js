@@ -7,6 +7,8 @@
 
 import './tokenCreateConfirm.html'
 import helpers from '@theqrl/explorer-helpers'
+import qrlNft from '@theqrl/nft-providers'
+import _ from 'underscore'
 
 function confirmTokenCreation() {
   const tx = Session.get('tokenCreationConfirmationResponse')
@@ -112,6 +114,59 @@ Template.appTokenCreationConfirm.events({
 })
 
 Template.appTokenCreationConfirm.helpers({
+  verifiedProvider() {
+    const details = Session.get('tokenCreationConfirmationResponse')
+    const nftBytes = Buffer.concat([
+      Buffer.from(details.extended_transaction_unsigned.tx.token.symbol),
+      Buffer.from(details.extended_transaction_unsigned.tx.token.name),
+    ])
+    const idBytes = Buffer.from(nftBytes.slice(4, 8))
+    const id = Buffer.from(idBytes).toString('hex')
+    const from = `Q${Buffer.from(details.extended_transaction_unsigned.addr_from).toString('hex')}`
+    let known = false
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        _.each(provider.addresses, (address) => {
+          if (address === from) {
+            known = true
+          }
+        })
+      }
+    })
+    return known
+  },
+  detailsNFT() {
+    const details = Session.get('tokenCreationConfirmationResponse')
+    const nftBytes = Buffer.concat([
+      Buffer.from(details.extended_transaction_unsigned.tx.token.symbol),
+      Buffer.from(details.extended_transaction_unsigned.tx.token.name),
+    ])
+    const idBytes = Buffer.from(nftBytes.slice(4, 8))
+    const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+    const id = Buffer.from(idBytes).toString('hex')
+    let name = ''
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        name = provider.name
+      }
+    })
+    return {
+      name,
+      id,
+      hash: Buffer.from(cryptoHashBytes).toString('hex'),
+    }
+  },
+  isNFT() {
+    const details = Session.get('tokenCreationConfirmationResponse')
+    console.log(details)
+    const symbolTest = Buffer.from(
+      details.extended_transaction_unsigned.tx.token.symbol
+    ).toString('hex')
+    if (symbolTest.slice(0, 8) === '00ff00ff') {
+      return true
+    }
+    return false
+  },
   bech32() {
     if (LocalStore.get('addressFormat') === 'bech32') {
       return true

@@ -7,7 +7,8 @@
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
-
+import _ from 'underscore'
+import qrlNft from '@theqrl/nft-providers'
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers, { tokens } from '@theqrl/explorer-helpers'
@@ -30,9 +31,9 @@ export function ledgerReturnedError(e) {
   }
   try {
     if (
-      e.name === 'TransportStatusError' ||
-      e instanceof TransportStatusError ||
-      e.name === 'TransportOpenUserCancelled'
+      e.name === 'TransportStatusError'
+      || e instanceof TransportStatusError
+      || e.name === 'TransportOpenUserCancelled'
     ) {
       r = true
     }
@@ -199,14 +200,14 @@ isWalletFileDeprecated = (wallet) => {
   // We can determine if they are unencrypted by checking their lengths.
   // If addressB32 field is 64 characters in length, and pk field is 134 characters in length.
   if (
-    typeof wallet[0].encrypted !== 'undefined' &&
-    typeof wallet[0].addressB32 !== 'undefined' &&
-    typeof wallet[0].pk !== 'undefined'
+    typeof wallet[0].encrypted !== 'undefined'
+    && typeof wallet[0].addressB32 !== 'undefined'
+    && typeof wallet[0].pk !== 'undefined'
   ) {
     if (
-      wallet[0].encrypted === true &&
-      wallet[0].addressB32.length === 64 &&
-      wallet[0].pk.length === 134
+      wallet[0].encrypted === true
+      && wallet[0].addressB32.length === 64
+      && wallet[0].pk.length === 134
     ) {
       return true
     }
@@ -260,9 +261,9 @@ resetWalletStatus = () => {
 passwordPolicyValid = (password) => {
   // If password length >=8, and password contains a digit and password contains a letter
   if (
-    password.length >= 8 &&
-    /\d/.test(password) &&
-    /[a-zA-Z]+/.test(password)
+    password.length >= 8
+    && /\d/.test(password)
+    && /[a-zA-Z]+/.test(password)
   ) {
     return true
   }
@@ -301,30 +302,26 @@ binaryToBytes = (convertMe) => {
 }
 
 // Convert bytes to string
-bytesToString = (buf) => {
+bytesToString = (buf) =>
   // eslint-disable-line
-  return String.fromCharCode.apply(null, new Uint8Array(buf))
-}
+  String.fromCharCode.apply(null, new Uint8Array(buf))
 
 // Convert bytes to hex
-bytesToHex = (byteArray) => {
+bytesToHex = (byteArray) =>
   // eslint-disable-line
-  return Array.from(byteArray, function (byte) {
+  Array.from(byteArray, function (byte) {
     return ('00' + (byte & 0xff).toString(16)).slice(-2) // eslint-disable-line no-bitwise
   }).join('')
-}
 
 // Convert hex to bytes
-hexToBytes = (hex) => {
+hexToBytes = (hex) =>
   // eslint-disable-line
-  return Buffer.from(hex, 'hex')
-}
+  Buffer.from(hex, 'hex')
 
 // Returns an address ready to send to gRPC API
-addressForAPI = (address) => {
+addressForAPI = (address) =>
   // eslint-disable-line
-  return Buffer.from(address.substring(1), 'hex')
-}
+  Buffer.from(address.substring(1), 'hex')
 
 // Create human readable QRL Address from API Binary response
 binaryToQrlAddress = (binary) => {
@@ -369,13 +366,13 @@ toUint8Vector = (arr) => {
 // Concatenates multiple typed arrays into one.
 concatenateTypedArrays = (resultConstructor, ...arrays) => {
   let totalLength = 0
-  for (let arr of arrays) {
+  for (const arr of arrays) {
     // eslint-disable-line
     totalLength += arr.length
   }
   const result = new resultConstructor(totalLength) // eslint-disable-line
   let offset = 0
-  for (let arr of arrays) {
+  for (const arr of arrays) {
     // eslint-disable-line
     result.set(arr, offset)
     offset += arr.length
@@ -393,8 +390,8 @@ countDecimals = (value) => {
 supportedBrowser = () => {
   try {
     if (
-      typeof WebAssembly === 'object' &&
-      typeof WebAssembly.instantiate === 'function'
+      typeof WebAssembly === 'object'
+      && typeof WebAssembly.instantiate === 'function'
     ) {
       const module = new WebAssembly.Module(
         Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
@@ -502,7 +499,6 @@ getBalance = (getAddress, callBack) => {
             Session.set('otsBitfield', {})
             Session.set('errorLoadingTransactions', true)
           } else {
-            console.log('getOTS response: ', result)
             const totalSignatures = qrlAddressValdidator.hexString(
               res.state.address
             ).sig.number
@@ -527,8 +523,7 @@ getBalance = (getAddress, callBack) => {
                 console.log('> Got Ledger Nano State from USB')
                 Session.set('otsKeyEstimate', data.xmss_index)
                 // Get remaining OTS Keys
-                const validationResult =
-                  qrlAddressValdidator.hexString(getAddress)
+                const validationResult = qrlAddressValdidator.hexString(getAddress)
                 const totalSignatures = validationResult.sig.number
                 const keysRemaining = totalSignatures - data.xmss_index
                 // Set keys remaining
@@ -675,6 +670,18 @@ const getFromStorage = (addr) => {
   return null
 }
 
+function checkSymbolBytesIsNFT(tokenSymbolBytes) {
+  // check if tokenSymbolBytes (a Buffer) is a NFT
+  // if tokenSymbolBytes is a NFT, return true
+  // if tokenSymbolBytes is not a NFT, return false
+  if (
+    Buffer.from('00FF00FF', 'hex').compare(tokenSymbolBytes.slice(0, 4)) === 0
+  ) {
+    return true
+  }
+  return false
+}
+
 const getTokenBalances = (getAddress, callback) => {
   const request = {
     address: Buffer.from(getAddress.substring(1), 'hex'),
@@ -714,20 +721,64 @@ const getTokenBalances = (getAddress, callback) => {
                 // TODO - Error handling here
               } else {
                 const tokenDetails = objRes.transaction.tx.token
-
                 thisToken.hash = tokenHash
                 thisToken.name = bytesToString(tokenDetails.name)
                 thisToken.symbol = bytesToString(tokenDetails.symbol) // eslint-disable-next-line
                 thisToken.balance =
-                  tokenBalance / Math.pow(10, tokenDetails.decimals)
+                  tokenBalance / 10 ** tokenDetails.decimals
                 thisToken.decimals = tokenDetails.decimals
+                let nft = {}
+                const symbol = Buffer.from(tokenDetails.symbol).toString('hex')
+                if (symbol.slice(0, 8) === '00ff00ff') {
+                  const nftBytes = Buffer.concat([
+                    Buffer.from(tokenDetails.symbol),
+                    Buffer.from(tokenDetails.name),
+                  ])
+                  const idBytes = Buffer.from(nftBytes.slice(4, 8))
+                  const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+                  const id = Buffer.from(idBytes).toString('hex')
+                  const provider = `Q${Buffer.from(
+                    objRes.transaction.addr_from
+                  ).toString('hex')}`
+                  const providerDetails = {
+                    known: false,
+                  }
+                  _.each(qrlNft.providers, (providerList) => {
+                    if (providerList.id.slice(2, 10) === id) {
+                      _.each(providerList.addresses, (address) => {
+                        if (address === provider) {
+                          providerDetails.known = true
+                          providerDetails.name = providerList.name
+                          providerDetails.url = providerList.url
+                        }
+                      })
+                    }
+                  })
+                  nft = {
+                    provider,
+                    providerDetails,
+                    txhash: Buffer.from(
+                      objRes.transaction.tx.transaction_hash
+                    ).toString('hex'),
+                    type: 'CREATE NFT',
+                    id,
+                    hash: Buffer.from(cryptoHashBytes).toString('hex'),
+                  }
+                  thisToken.nft = nft
+                }
                 tokensHeld.push(thisToken)
-
-                Session.set('tokensHeld', tokensHeld)
-                if (tokensToShow.filter((t) => t.hash === key).length > 0) {
+                if (symbol.slice(0, 8) === '00ff00ff') {
                   tokensHeldFiltered.push(thisToken)
                   Session.set('tokensHeldFiltered', tokensHeldFiltered)
                 }
+                Session.set('tokensHeld', tokensHeld)
+                if (tokensToShow.filter((t) => t.hash === key).length > 0) {
+                  if (symbol.slice(0, 8) !== '00ff00ff') {
+                    tokensHeldFiltered.push(thisToken)
+                    Session.set('tokensHeldFiltered', tokensHeldFiltered)
+                  }
+                }
+                Session.set('tokensHeldFiltered', tokensHeldFiltered)
               }
             }
           })
@@ -736,6 +787,7 @@ const getTokenBalances = (getAddress, callback) => {
     }
   })
   $('#tokenBalancesLoading').hide()
+  $('#nftBalancesLoading').hide()
 }
 
 updateBalanceField = () => {
@@ -754,9 +806,14 @@ updateBalanceField = () => {
 
       // Now calculate the token balance.
       _.each(Session.get('tokensHeld'), (token) => {
+        console.log(token)
         if (token.hash === tokenHash) {
           Session.set('balanceAmount', token.balance)
-          Session.set('balanceSymbol', token.symbol)
+          if (!token.nft) {
+            Session.set('balanceSymbol', token.symbol)
+          } else {
+            Session.set('balanceSymbol', 'NFT')
+          }
         }
       })
     }
@@ -916,7 +973,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // If we got here, everything matches the request
     return true
     // Validate that the request payload matches the response data for a token transfer transaction
-  } else if (type === 'createTokenTransferTxn') {
+  } if (type === 'createTokenTransferTxn') {
     // eslint-disable-line
     // Validate From address
     if (!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
@@ -927,8 +984,8 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // Validate token hash
     if (
-      bytesToString(request.tokenHash) !==
-      Buffer.from(response.tokenHash).toString('hex')
+      bytesToString(request.tokenHash)
+      !== Buffer.from(response.tokenHash).toString('hex')
     ) {
       console.log('Transaction Validation - Token Hash mismatch')
       logRequestResponse(request, response)
@@ -974,74 +1031,154 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     // If we got here, everything matches the request
     return true
     // Validate that the request payload matches the response data for a token creation transaction
-  } else if (type === 'createTokenTxn') {
-    // Validate From address
-    if (!Buffer.from(request.addressFrom).equals(Buffer.from(response.from))) {
-      console.log('Transaction Validation - From address mismatch')
-      logRequestResponse(request, response)
-      return false
-    }
-
-    // Validate Owner address
-    if (!Buffer.from(request.owner).equals(Buffer.from(response.owner))) {
-      console.log('Transaction Validation - Owner address mismatch')
-      logRequestResponse(request, response)
-      return false
-    }
-
-    // Validate Token Symbol
-    if (bytesToString(request.symbol) !== response.symbol) {
-      console.log('Transaction Validation - Token symbol mismatch')
-      logRequestResponse(request, response)
-      return false
-    }
-
-    // Validate Token Name
-    if (bytesToString(request.name) !== response.name) {
-      console.log('Transaction Validation - Token name mismatch')
-      logRequestResponse(request, response)
-      return false
-    }
-
-    // Validate Token decimals
-    if (request.decimals !== response.decimals) {
-      console.log('Transaction Validation - Token decimals mismatch')
-      logRequestResponse(request, response)
-      return false
-    }
-
-    // Now check count of initial balances
-    if (request.initialBalances.length !== response.initialBalances.length) {
-      console.log('Transaction Validation - Initial balances length mismatch')
-      logRequestResponse(request, response)
-      return false
-    }
-
-    // Now check that all initial balances  are identical
-    for (let i = 0; i < request.initialBalances.length; i += 1) {
+  } if (type === 'createTokenTxn') {
+    if (checkSymbolBytesIsNFT(request.symbol)) {
+      console.log('VALIDATING NFT CREATION TRANSACTION')
+      // NFT
+      // Validate From address
       if (
-        !Buffer.from(request.initialBalances[i].address).equals(
-          Buffer.from(response.initialBalances[i].address)
-        )
+        !Buffer.from(request.addressFrom).equals(Buffer.from(response.from))
       ) {
-        //eslint-disable-line
-        console.log('Transaction Validation - Initial balance address mismatch')
+        console.log('Transaction Validation - From address mismatch')
         logRequestResponse(request, response)
         return false
       }
-      if (
-        request.initialBalances[i].amount !==
-        parseInt(response.initialBalances[i].amount, 10)
-      ) {
-        console.log('Transaction Validation - Initial balance amount mismatch')
+
+      // Validate Owner address
+      if (!Buffer.from(request.owner).equals(Buffer.from(response.owner))) {
+        console.log('Transaction Validation - Owner address mismatch')
         logRequestResponse(request, response)
         return false
       }
-    }
 
+      // Validate Token Symbol
+      if (!Buffer.from(request.symbol).equals(Buffer.from(response.symbol, 'ascii'))) {
+        console.log('Transaction Validation - Token symbol mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Validate Token Name
+      if (!Buffer.from(request.name).equals(Buffer.from(response.name, 'ascii'))) {
+        console.log('Transaction Validation - Token name mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Validate Token decimals
+      if (request.decimals !== response.decimals) {
+        console.log('Transaction Validation - Token decimals mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Now check count of initial balances
+      if (request.initialBalances.length !== response.initialBalances.length) {
+        console.log('Transaction Validation - Initial balances length mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Now check that all initial balances  are identical
+      for (let i = 0; i < request.initialBalances.length; i += 1) {
+        if (
+          !Buffer.from(request.initialBalances[i].address).equals(
+            Buffer.from(response.initialBalances[i].address)
+          )
+        ) {
+          //eslint-disable-line
+          console.log(
+            'Transaction Validation - Initial balance address mismatch'
+          )
+          logRequestResponse(request, response)
+          return false
+        }
+        if (
+          request.initialBalances[i].amount
+          !== parseInt(response.initialBalances[i].amount, 10)
+        ) {
+          console.log(
+            'Transaction Validation - Initial balance amount mismatch'
+          )
+          logRequestResponse(request, response)
+          return false
+        }
+      }
+    } else {
+      // Standard token
+      // Validate From address
+      if (
+        !Buffer.from(request.addressFrom).equals(Buffer.from(response.from))
+      ) {
+        console.log('Transaction Validation - From address mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Validate Owner address
+      if (!Buffer.from(request.owner).equals(Buffer.from(response.owner))) {
+        console.log('Transaction Validation - Owner address mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Validate Token Symbol
+      if (bytesToString(request.symbol) !== response.symbol) {
+        console.log('Transaction Validation - Token symbol mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Validate Token Name
+      if (bytesToString(request.name) !== response.name) {
+        console.log('Transaction Validation - Token name mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Validate Token decimals
+      if (request.decimals !== response.decimals) {
+        console.log('Transaction Validation - Token decimals mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Now check count of initial balances
+      if (request.initialBalances.length !== response.initialBalances.length) {
+        console.log('Transaction Validation - Initial balances length mismatch')
+        logRequestResponse(request, response)
+        return false
+      }
+
+      // Now check that all initial balances  are identical
+      for (let i = 0; i < request.initialBalances.length; i += 1) {
+        if (
+          !Buffer.from(request.initialBalances[i].address).equals(
+            Buffer.from(response.initialBalances[i].address)
+          )
+        ) {
+          //eslint-disable-line
+          console.log(
+            'Transaction Validation - Initial balance address mismatch'
+          )
+          logRequestResponse(request, response)
+          return false
+        }
+        if (
+          request.initialBalances[i].amount
+          !== parseInt(response.initialBalances[i].amount, 10)
+        ) {
+          console.log(
+            'Transaction Validation - Initial balance amount mismatch'
+          )
+          logRequestResponse(request, response)
+          return false
+        }
+      }
+    }
     // If we got here, everything matches the request
     return true
-  } else if (type === 'createMessageTxn') {
+  } if (type === 'createMessageTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
       console.log('Transaction Validation - Message mismatch')
@@ -1051,7 +1188,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // If we got here, everything matches the request
     return true
-  } else if (type === 'createGithubTxn') {
+  } if (type === 'createGithubTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
       console.log('Transaction Validation - Github Message mismatch')
@@ -1061,7 +1198,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // If we got here, everything matches the request
     return true
-  } else if (type === 'createKeybaseTxn') {
+  } if (type === 'createKeybaseTxn') {
     // Validate Message
     if (bytesToString(request.message) !== response.message) {
       console.log('Transaction Validation - Keybase Message mismatch')
@@ -1071,7 +1208,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
 
     // If we got here, everything matches the request
     return true
-  } else if (type === 'multiSigCreate') {
+  } if (type === 'multiSigCreate') {
     if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - Creator mismatch')
       logRequestResponse(request, response)
@@ -1107,7 +1244,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     // if we've made it here all the MS_CREATE details match
     return true
-  } else if (type === 'multiSigSpend') {
+  } if (type === 'multiSigSpend') {
     if (
       !Buffer.from(request.multi_sig_address).equals(
         Buffer.from(response.multi_sig_address)
@@ -1156,7 +1293,7 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     // if we've made it here all the MS_SPEND details match
     return true
-  } else if (type === 'multiSigVote') {
+  } if (type === 'multiSigVote') {
     if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - Creator mismatch')
       logRequestResponse(request, response)

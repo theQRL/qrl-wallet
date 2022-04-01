@@ -12,19 +12,39 @@
 
   <h4 class="ui horizontal divider header">
     <i class="tags icon"></i>
+    {{#if isNFT}}
+    New NFT Details
+    {{else}}
     New Token Details
+    {{/if}}
   </h4>
 
   <div class="ui items">
     <div class="item">
       <div class="content">
-        <a class="header">{{tokenCreationConfirmation.name}} ({{tokenCreationConfirmation.symbol}})</a>
+        <a style="color: #fff;" class="header">
+        {{#if isNFT}}
+        {{#if verifiedProvider}}
+        <i style="color: #fff;" class="ui certificate icon" title="Verified NFT Provider"></i>Verified NFT Provider - {{detailsNFT.name}}
+        {{else}}
+        <i style="color: #fff;" class="ui warning icon" title="Unverified NFT Provider"></i>Unverified NFT Provider (0x{{detailsNFT.id}})
+        {{/if}}
+        {{else}}
+          {{tokenCreationConfirmation.name}} ({{tokenCreationConfirmation.symbol}})
+        {{/if}}
+        </a>
         <div class="description">
           <p></p>
         </div>
-        <div class="extra wordBreak">
+        <div style="color: #fff;" class="extra wordBreak">
+          {{#if isNFT}}
+          Creator: {{#if bech32}}{{tokenCreationConfirmation.owner_b32}}{{else}}{{tokenCreationConfirmation.owner_hex}}{{/if}}<br />
+          Provider ID: 0x{{detailsNFT.id}}<br />
+          Hash: {{detailsNFT.hash}}<br />
+          {{else}}
           Owner: {{#if bech32}}{{tokenCreationConfirmation.owner_b32}}{{else}}{{tokenCreationConfirmation.owner_hex}}{{/if}}<br />
-          Decimals: {{tokenCreationConfirmation.decimals}}
+          Decimals: {{tokenCreationConfirmation.decimals}}          
+          {{/if}}
         </div>
       </div>
     </div>
@@ -33,16 +53,24 @@
 
   <h4 class="ui horizontal divider header">
     <i class="users icon"></i>
+    {{#if isNFT}}
+    Initial NFT Owner
+    {{else}}
     Initial Token Holders
+    {{/if}}
   </h4>
 
   <div class="ui relaxed divided list">
   {{#each tokenHolders}}
     <div class="item">
-      <i class="large user middle aligned icon"></i>
+      <i style="color: #fff;" class="large user middle aligned icon"></i>
       <div class="content">
         <a class="header wordBreak">{{#if bech32}}{{this.address_b32}}{{else}}{{this.address_hex}}{{/if}}</a>
+        {{#if isNFT}}
+
+        {{else}}
         <div class="description">{{tokenCreationConfirmation.symbol}}: {{this.amount}}</div>
+        {{/if}}
       </div>
     </div>
   {{/each}}
