@@ -16,7 +16,7 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) Exactly version 14.0.0 (nvm install 14.0.0) (nvm use 14.0.0)
+[NodeJS](https://nodejs.org/en/)  |  Exactly version 14.0.0 ``nvm install 14.0.0`` ``nvm use 14.0.0``
 
 We recommend using nvm to manage NodeJS versions and using the version of NodeJS as specified in the .nvmrc file
 
@@ -42,7 +42,7 @@ Redhat Linux: electron-installer-redhat installed globally
 
 Debian/Ubuntu Linux: electron-installer-debian installed globally
 
-``npm i -g electron-installer-debian``
+``npm i -g electron-installer-debian``  |  May need to temporarily use node version 18.0.0 ``nvm install 18.0.0`` ``nvm use 18.0.0``
 
 Mac only: create-dmg
 
