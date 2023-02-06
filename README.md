@@ -16,7 +16,7 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v14
+[NodeJS](https://nodejs.org/en/) Exactly version 14
 
 We recommend using nvm to manage NodeJS versions and using the version of NodeJS as specified in the .nvmrc file
 
