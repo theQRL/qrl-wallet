@@ -1,5 +1,5 @@
 /* eslint no-console:0, no-len: 0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
+/* global _, QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
@@ -7,7 +7,7 @@
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
-
+import qrlNft from '@theqrl/nft-providers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers from '@theqrl/explorer-helpers'
 import {
@@ -550,6 +550,9 @@ function sendTokensTxnCreate(tokenHash, decimals) {
           tokenDetails.name = token.symbol
           tokenDetails.token_txhash = token.hash
           tokenDetails.decimals = token.decimals
+          if (token.nft) {
+            tokenDetails.nft = token.nft
+          }
         }
       })
 
@@ -1031,6 +1034,18 @@ Template.appTransfer.onRendered(() => {
 })
 
 Template.appTransfer.events({
+  'click .sendNFT': function (event) {
+    event.preventDefault()
+    $('#amountType').val('NFT')
+    $('#amountType')
+      .val(
+        `token-${this.hash}-0`
+      )
+      .change()
+    $.tab('change tab', 'send')
+    $('#sendReceiveTabs > a').first().addClass('active')
+    $('#sendReceiveTabs > a').last().removeClass('active')
+  },
   'click .transactionRecord': (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -1101,6 +1116,15 @@ Template.appTransfer.events({
   },
   'change #amountType': () => {
     updateBalanceField()
+    if (Session.get('balanceSymbol') === 'NFT') {
+      $('#amounts_1').prop('disabled', true)
+      $('#amounts_1').val('1')
+      $('#addTransferRecipient').hide()
+    } else {
+      $('#amounts_1').prop('disabled', false)
+      $('#amounts_1').val('')
+      $('#addTransferRecipient').show()
+    }
   },
   'click #addTransferRecipient': (event) => {
     event.preventDefault()
@@ -1195,6 +1219,112 @@ Template.appTransfer.events({
 })
 
 Template.appTransfer.helpers({
+  ownNFTs() {
+    const tokens = Session.get('tokensHeld')
+    let count = tokens.length
+    if (count > 0) {
+      _.each(tokens, (token) => {
+        if (!token.nft) {
+          count -= 1
+        }
+      })
+    }
+    if (count > 0) {
+      return true
+    }
+    return false
+  },
+  ownTokens() {
+    const tokens = Session.get('tokensHeldFiltered')
+    let count = tokens.length
+    if (count > 0) {
+      _.each(tokens, (token) => {
+        if (token.nft) {
+          count -= 1
+        }
+      })
+    }
+    if (count > 0) {
+      return true
+    }
+    return false
+  },
+  isCreateNFT() {
+    try {
+      if (this.nft.type === 'CREATE NFT') {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
+  },
+  confirmationForNFT() {
+    if (Session.get('tokenTransferConfirmationDetails').nft) {
+      return true
+    }
+    return false
+  },
+  heldTokenIsNFT() {
+    if (this.nft) {
+      return true
+    }
+    return false
+  },
+  knownProvider() {
+    const { id } = this.nft
+    try {
+      const from = Session.get('address').state.address
+      let known = false
+      _.each(qrlNft.providers, (provider) => {
+        if (provider.id === `0x${id}`) {
+          _.each(provider.addresses, (address) => {
+            if (address === from) {
+              known = true
+            }
+          })
+        }
+      })
+      return known
+    } catch (e) {
+      return false
+    }
+  },
+  knownProviderNonSpecific() {
+    const from = Session.get('address').state.address
+    let known = false
+    _.each(qrlNft.providers, (provider) => {
+      _.each(provider.addresses, (address) => {
+        if (address === from) {
+          known = true
+        }
+      })
+    })
+    return known
+  },
+  providerURL() {
+    const { id } = this.nft
+    let url = ''
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        url = provider.url
+      }
+    })
+    return url
+  },
+  providerName() {
+    const { id } = this.nft
+    let name = ''
+    _.each(qrlNft.providers, (provider) => {
+      if (provider.id === `0x${id}`) {
+        name = provider.name
+      }
+    })
+    return name
+  },
+  providerID() {
+    return `0x${this.nft.id}`
+  },
   includesMessage() {
     try {
       const m = Session.get('transactionConfirmationMessage')
@@ -1345,6 +1475,25 @@ Template.appTransfer.helpers({
           txOut.tx.transfer_token.name = found.name
           txOut.tx.transfer_token.symbol = found.symbol
           txOut.tx.transfer_token.decimals = found.decimals
+        }
+      }
+      if (transaction.tx.transactionType === 'token') {
+        // first check if NFT
+        let nft = {}
+        const { symbol } = txOut.tx.token
+        if (symbol.slice(0, 8) === '00ff00ff') {
+          const nftBytes = Buffer.concat([
+            hexToBytes(txOut.tx.token.symbol),
+            hexToBytes(txOut.tx.token.name),
+          ])
+          const idBytes = Buffer.from(nftBytes.slice(4, 8))
+          const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40))
+          nft = {
+            type: 'CREATE NFT',
+            id: Buffer.from(idBytes).toString('hex'),
+            hash: Buffer.from(cryptoHashBytes).toString('hex'),
+          }
+          txOut.nft = nft
         }
       }
       formatted.push(txOut)
