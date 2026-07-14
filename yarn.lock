@@ -364,10 +364,10 @@
     "regenerator-runtime" "^0.13.7"
     "sha.js" "^2.3.6"
 
-"@theqrl/nft-providers@^0.0.1":
-  "integrity" "sha512-W3BZcg6qAhEVIonmPaOOT/gTHG9Dlyvqnfsc7FXmpksDxxoRCzQQ1coHxjMBj+ZhIo6Gb/LolN3QYmX5BIowuA=="
-  "resolved" "https://registry.npmjs.org/@theqrl/nft-providers/-/nft-providers-0.0.1.tgz"
-  "version" "0.0.1"
+"@theqrl/nft-providers@^1.0.1":
+  "integrity" "sha512-dNWhGim+6XTgMBz8GepFxykXVlPRFpLrmXmRzYJUf4YfQglhbYQ8i1Zg2yzgCE5Klo97Qk3CgaBR5z/0hQ7+tA=="
+  "resolved" "https://registry.npmjs.org/@theqrl/nft-providers/-/nft-providers-1.0.1.tgz"
+  "version" "1.0.1"
   dependencies:
     "yamljs" "^0.3.0"
 

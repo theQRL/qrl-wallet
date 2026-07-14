@@ -12,7 +12,7 @@
     "@ledgerhq/hw-transport-webusb": "^6.24.1",
     "@theqrl/explorer-helpers": "^2.7.0",
     "@theqrl/hw-app-qrl": "^5.34.0",
-    "@theqrl/nft-providers": "^0.0.1",
+    "@theqrl/nft-providers": "^1.0.1",
     "@theqrl/node-helpers": "^0.6.1",
     "@theqrl/qrl-proto-sha256": "^3.5.0",
     "@theqrl/validate-qrl-address": "^3.0.0",
