@@ -2212,6 +2212,13 @@ const ledgerCreateMessageTx = async (sourceAddr, fee, message, cb) => {
 // Define Meteor Methods
 Meteor.methods({
   connectToNode(request) {
+    let { allowCustomNodes } = Meteor.settings
+    if (allowCustomNodes !== true) {
+      allowCustomNodes = false
+    }
+    if (!allowCustomNodes) {
+      throw new Meteor.Error(403, 'Custom node connections are disabled')
+    }
     this.unblock()
     check(request, String)
     const response = Meteor.wrapAsync(connectToNode)(request)
