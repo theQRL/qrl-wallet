@@ -2925,6 +2925,13 @@ const ledgerCreateMessageTx = async (sourceAddr, fee, message, cb) => {
 // Define Meteor Methods
 Meteor.methods({
   async connectToNode(request) {
+    let { allowCustomNodes } = Meteor.settings
+    if (allowCustomNodes !== true) {
+      allowCustomNodes = false
+    }
+    if (!allowCustomNodes) {
+      throw new Meteor.Error(403, 'Custom node connections are disabled')
+    }
     check(request, String)
     if (lockCustomEndpoints) {
       // Build allowlist of gRPC endpoints from pre-configured networks
