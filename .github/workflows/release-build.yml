@@ -70,6 +70,15 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Exclude build paths from Windows Defender
+        if: runner.os == 'Windows'
+        shell: pwsh
+        # Real-time scanning of the many thousands of files Meteor writes to
+        # .meteor/local and the --directory bundle is the dominant cause of the
+        # Windows-only slowdown that was blowing the packaging step's timeout.
+        run: |
+          Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE","$env:LOCALAPPDATA\.meteor" -ErrorAction SilentlyContinue
+
       - name: Install Linux packages
         if: runner.os == 'Linux'
         run: |
@@ -128,8 +137,23 @@ jobs:
       - name: Clean dist directory
         run: node -e "const fs=require('fs');fs.rmSync('.electrify/.dist',{recursive:true,force:true});fs.mkdirSync('.electrify/.dist',{recursive:true});"
 
+      - name: Cache Meteor build artifacts
+        uses: actions/cache@v4
+        with:
+          # Meteor's build cache (isopacks / bundler-cache / plugin-cache) so the
+          # bundle + minify phases aren't cold on every run.
+          path: .meteor/local
+          key: meteor-local-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('.meteor/versions', '.meteor/release', 'package-lock.json') }}
+          restore-keys: |
+            meteor-local-${{ runner.os }}-${{ matrix.arch }}-
+
       - name: Package desktop app
-        timeout-minutes: 45
+        timeout-minutes: 90
+        env:
+          # Emits per-phase build timings periodically. Doubles as a heartbeat:
+          # in non-TTY CI Meteor suppresses its spinner, so this is what tells a
+          # slow-but-alive build apart from a genuinely stuck one.
+          METEOR_PROFILE: 1000
         run: node node_modules/@theqrl/electrify-qrl/bin/cli.js package -o .electrify/.dist --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
       - name: Harden packaged app
