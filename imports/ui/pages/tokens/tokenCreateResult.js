@@ -98,7 +98,7 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
 
 Template.appTokenCreationResult.onRendered(() => {
-  $('.ui.dropdown').dropdown()
+  window.walletUi.initDropdowns('select')
 
   // Start polling this transcation
   pollTransaction(Session.get('transactionHash'), true)

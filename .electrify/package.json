@@ -2,18 +2,28 @@
   "name": "QRLWallet",
   "productName": "QRLWallet",
   "projectName": "qrl-wallet",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "main": "index.js",
   "dependencies": {
-    "@theqrl/electrify-qrl": "^1.1.3",
-    "grpc": "^1.14.0",
-    "grpc-promise": "^1.1.0"
+    "@theqrl/electrify-qrl": "1.1.1",
+    "@grpc/grpc-js": "^1.12.0",
+    "electron": "^40.0.0",
+    "@electron/packager": "^18.3.1"
   },
   "electronPackager": {
     "icon": {
       "win32": "./assets/qrl.ico",
       "darwin": "./assets/qrl.icns"
     },
+    "asar": {
+      "unpack": "**/*.node",
+      "unpackDir": "{app,bin}"
+    },
+    "ignore": [
+      "^/\\.dist($|/)",
+      "^/dist($|/)"
+    ],
+    "prune": false,
     "version-string": {
       "CompanyName": "The QRL",
       "LegalCopyright": "Copyright 2020 Die QRL Stiftung, Zug Switzerland",
@@ -25,10 +35,10 @@
       "InternalName": "QRLWallet.exe"
     }
   },
+  "scripts": {
+    "postinstall": "node ../.scripts/patch-ledger-exports.js"
+  },
   "devDependencies": {
     "electron-wix-msi-qrl": "^2.1.2"
-  },
-  "workspaces": [
-    ".electrify"
-  ]
+  }
 }

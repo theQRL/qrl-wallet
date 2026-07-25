@@ -1,25 +1,42 @@
 <template name="appVerify">
 
-<h4 class="ui header pageHeader">
-  <i class="icon"><img height="32px" src="/img/icons/verify.svg" style="margin-top: -5px;"></i>
-  <div class="content">
-    Verify Transaction
+<!-- Page Header -->
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-info/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
   </div>
-</h4>
-  
-<div class="ui segment pageSegment">
-
-  <!-- View Transaction -->
-  <div class="ui center aligned grid stackable">
-    <div class="row">
-      <div class="sixteen wide column">
-        <div class="ui input" style="width: 80%">
-          <input id="transactionId" type="text" placeholder="Transaction Id" autocomplete="off">
-          <div type="submit" class="ui button red">Verify Transaction</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <h1 class="text-2xl font-bold text-base-content">Verify Transaction</h1>
 </div>
+
+<!-- Main Card -->
+<div class="card bg-base-200 border border-base-300 shadow-sm">
+  <div class="card-body gap-5">
+    <p class="text-base-content/70">Enter a transaction ID to verify its details on the QRL network.</p>
+
+    <form id="verifyTransactionForm" class="space-y-4" novalidate>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Transaction ID</legend>
+        <div class="join w-full">
+          <input id="transactionId" type="text" placeholder="64-character transaction hash" autocomplete="off" class="input input-bordered join-item w-full bg-base-100" />
+          <button id="verifyTransactionButton" type="submit" class="btn btn-primary join-item gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Verify
+          </button>
+        </div>
+        <p class="label">Paste the transaction hash exactly as shown in wallet history or explorer.</p>
+      </fieldset>
+
+      {{#if verifyInputError}}
+        <div role="alert" class="alert alert-warning">
+          <span>{{verifyInputError}}</span>
+        </div>
+      {{/if}}
+    </form>
+  </div>
+</div>
+
 </template>

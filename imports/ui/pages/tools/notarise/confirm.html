@@ -1,131 +1,141 @@
 <template name="appNotariseConfirm">
 
-<div class="small ui modal" id="ledgerConfirmationModal">
-  <div class="header">Send Document Notarisation Transaction?</div>
-  <div class="content">
-    <div class="ui stackable grid">
-      <div class="four wide column">
-        <img class="svg" src="/img/ledger-nano.svg" />
-      </div>
-      <div class="twelve wide column">
-        <div class="description pl-10">
-          <p>Your transaction requires confirmation on your Ledger Nano S device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
-          <div class="ui container">
-            <table class="ui stackable table">
-              <tr>
-                <td>
-                  <div class="ui label fw">FROM</div>
-                </td>
-                <td class="no-wrap">{{transferFrom.address}}</td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="ui label fw">MESSAGE</div>
-                </td>
-                <td class="no-wrap">
-                  {{ledgerVerificationMessage}}
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="ui label fw">FEE</div>
-                </td>
-                <td class="no-wrap">{{notariseCreationConfirmation.fee}} Quanta</td>
-              </tr>
-            </table>
+<dialog class="modal ledger-signing-modal" id="ledgerConfirmationModal">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">Send Document Notarisation Transaction?</div>
+      <div class="">
+        <div class="grid gap-4">
+          <div class="">
+            <img class="svg" src="/img/ledger-nano.svg" />
+          </div>
+          <div class="">
+            <div class="description pl-10">
+              <p>Your transaction requires confirmation on your Ledger device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
+              <div class="container">
+                <table class="table table-zebra w-full">
+                  <tr>
+                    <td>
+                      <div class="badge badge-outline fw">FROM</div>
+                    </td>
+                    <td class="no-wrap">{{transferFrom.address}}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="badge badge-outline fw">MESSAGE</div>
+                    </td>
+                    <td class="no-wrap">
+                      {{ledgerVerificationMessage}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="badge badge-outline fw">FEE</div>
+                    </td>
+                    <td class="no-wrap">{{notariseCreationConfirmation.fee}} Quanta</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <div class="modal-action">
+        <div id="awaitingLedgerConfirmation" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content">
+          <h3>Awaiting confirmation on Ledger device
+            <div class="loading loading-spinner inline-block"></div>
+          </h3>
+        </div>
+
+        <div id="signOnLedgerRejected" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content" style="display: none;">
+          <h3>The Transaction has been rejected on Ledger device</h3>
+          <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
+        </div>
+
+        <div id="signOnLedgerTimeout" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content" style="display: none;">
+          <h3>Timed out waiting for response from Ledger device. To save an OTS Key, you should reject the transaction on your Ledger device and try again.</h3>
+        </div>
+
+        <div id="signOnLedgerError" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content" style="display: none;">
+          <h3>Error communicating with Ledger device. To save an OTS Key, you should reject the transaction on your Ledger device and try again.</h3>
+        </div>
+
+        <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <span class="text-success">✔</span></p>
+
+        <button type="button" class="btn btn-success confirm" id="relayLedgerTxnButton" style="display:none;">Send transaction</button>
+        <button type="button" class="btn btn-error">Cancel</button>
+      </div>
   </div>
-  <div class="actions">
-    <div id="awaitingLedgerConfirmation" class="ui inverted segment">
-      <h3>Awaiting confirmation on Ledger device
-        <div class="ui active inline loader"></div>
-      </h3>
-    </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-    <div id="signOnLedgerRejected" class="ui inverted segment" style="display: none;">
-      <h3>The Transaction has been rejected on Ledger device</h3>
-      <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
-    </div>
-
-    <div id="signOnLedgerTimeout" class="ui inverted segment" style="display: none;">
-      <h3>Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
-    </div>
-
-    <div id="signOnLedgerError" class="ui inverted segment" style="display: none;">
-      <h3>Error communicating with Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
-    </div>
-
-    <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <i class="ui check icon"></i></p>
-
-    <div class="ui positive confirm button" id="relayLedgerTxnButton" style="display:none;">Send transaction</div>
-    <div class="ui negative button">Cancel</div>
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-5m-7-7l6 6m0 0l-6 6m6-6H9" />
+    </svg>
   </div>
+  <h1 class="text-2xl font-bold text-base-content">Document Notarisation</h1>
 </div>
 
-<h2 class="ui header pageHeader">
-  <i class="tiny edit icon"></i>
-  <div class="content">
-    Document Notarisation
-  </div>
-</h2>
+<div id="notariseCreationConfirmation" class="card-gradient p-4 pageSegment">
 
-<div id="notariseCreationConfirmation" class="ui red segment pageSegment">
-
-  <h4 class="ui horizontal divider header">
-    <i class="edit icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="edit"></i>
     Notarisation Details
   </h4>
 
-  <div class="ui items">
-    <div class="item">
-      <div class="content">
-        <span>Notary <a class="ui">{{transferFrom.address}}</a></span>
+  <div class="">
+    <div class="">
+      <div class="">
+        <span>Notary <a class="wordBreak">{{transferFrom.address}}</a></span>
         <br />
-        <span>File Name (Not saved on chain) <a class="ui">{{notariseCreationConfirmation.file_name}}</a></span>
+        <span>File Name (Not saved on chain) <a class="">{{notariseCreationConfirmation.file_name}}</a></span>
         <br />
-        <span>File Hash <a class="ui">{{notariseCreationConfirmation.fileHash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
+        <span>File Hash <a class="wordBreak">{{notariseCreationConfirmation.fileHash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
         <br />
-        <span>Additional Text <a class="ui">{{notariseCreationConfirmation.additional_text}}</a></span>
+        <span>Additional Text <a class="wordBreak">{{notariseCreationConfirmation.additional_text}}</a></span>
       </div>
     </div>
   </div>
 
   {{#if isLedgerWallet}}
   <br />
-  <h4 class="ui horizontal divider header">
-    <i class="envelope icon"></i>
-    Message as displayed on your Ledger Nano for verification
+  <h4 class="text-lg font-semibold divider">
+    <i class="envelope"></i>
+    Message as displayed on your Ledger device for verification
   </h4>
-  <div class="ui items">
-    <div class="item">
-      <div class="content">
+  <div class="">
+    <div class="">
+      <div class="">
         <p style="word-wrap: break-word; word-break: break-all;">{{ledgerVerificationMessage}}</p>
       </div>
     </div>
   </div>
   {{/if}}
 
-  <h4 class="ui horizontal divider header">
-    <i class="file icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="file"></i>
     Transaction Details
   </h4>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
-      <span style="word-wrap: break-word; word-break: break-all;">Encoded Notarisation Message <a class="ui">{{notariseCreationConfirmation.message_hex}}</a></span>
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
+      <span class="wordBreak">Encoded Notarisation Message <a class="wordBreak">{{notariseCreationConfirmation.message_hex}}</a></span>
       <br />
-      <span>Fee <a class="ui">{{notariseCreationConfirmation.fee}}</a></span>
+      <span>Fee <a class="">{{notariseCreationConfirmation.fee}}</a></span>
       <br />
-      <span>OTS Key Index <a class="ui">{{notariseCreationConfirmation.otsKey}}</a></span>
+      <span>OTS Key Index <a class="">{{notariseCreationConfirmation.otsKey}}</a></span>
     </div>
   </div>
 
-  <div class="ui stackable two column grid">
-    <div class="column center aligned">
-      <button id="confirmMessage" class="ui huge primary button red">
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="text-center">
+      <button id="confirmMessage" class="btn btn-md btn-success gap-2">
+        {{#if isSeedWallet}}
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        {{/if}}
         {{#if isSeedWallet}}
           Confirm Document Notarisation
         {{else}}
@@ -133,16 +143,16 @@
         {{/if}}
       </button>
     </div>
-    <div class="column center aligned">
-      <button id="cancelMessage" class="ui huge red button plain">Cancel Document Notarisation</button>
+    <div class="text-center">
+      <button id="cancelMessage" class="btn btn-md btn-outline">Cancel Document Notarisation</button>
     </div>
   </div>
 
-  <div id="relaying" class="ui icon message" style="display: none;">
+  <div id="relaying" class="alert gap-3" style="display: none;">
     <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div class="header">
+    <span class="loading loading-spinner loading-md"></span>
+    <div class="">
+      <div class="text-lg font-semibold">
         Just a moment
       </div>
       <p id="tokenRelayingMsg">Your notarisation is being relayed into the QRL network...</p>
@@ -151,7 +161,7 @@
 
 </div>
 
-<div id="transactionFailed" class="ui red segment pageSegment" style="display: none;">
+<div id="transactionFailed" class="card-gradient p-4 pageSegment" style="display: none;">
   <h4>Transaction Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">
     Error! Your notarisation has failed to relay into the QRL network.<br />

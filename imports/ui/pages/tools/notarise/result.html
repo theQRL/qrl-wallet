@@ -1,36 +1,38 @@
 <template name="appNotariseResult">
 
-<h2 class="ui header pageHeader">
-  <i class="tiny edit icon"></i>
-  <div class="content">
-    Document Notarisation Result
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-5m-7-7l6 6m0 0l-6 6m6-6H9" />
+    </svg>
   </div>
-</h2>
+  <h1 class="text-2xl font-bold text-base-content">Document Notarisation Result</h1>
+</div>
 
-<div id="transactionComplete" class="ui red segment pageSegment">
+<div id="transactionComplete" class="card-gradient p-4 pageSegment">
 
-  <h4 class="ui horizontal divider header">
-    <i class="edit icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="edit"></i>
     Notarisation Details
   </h4>
 
-  <div class="ui items">
-    <div class="item">
+  <div class="">
+    <div class="">
       <div class="image">
         {{> QRCode text=transactionHash size="128px"}}
       </div>
-      <div class="content">
+      <div class="">
 
-        <span>Notary <a class="ui">{{transferFrom.address}}</a></span>
+        <span>Notary <a class="">{{transferFrom.address}}</a></span>
         <br />
-        <span>File Name (Not saved on chain) <a class="ui">{{notariseCreationConfirmation.file_name}}</a></span>
+        <span>File Name (Not saved on chain) <a class="">{{notariseCreationConfirmation.file_name}}</a></span>
         <br />
-        <span>File Hash <a class="ui">{{notariseCreationConfirmation.fileHash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
+        <span>File Hash <a class="">{{notariseCreationConfirmation.fileHash}} - {{notariseCreationConfirmation.hash_function}}</a></span>
         <br />
-        <span>Additional Text <a class="ui">{{notariseCreationConfirmation.additional_text}}</a></span>
+        <span>Additional Text <a class="">{{notariseCreationConfirmation.additional_text}}</a></span>
 
         <div class="meta">
-          <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
+          <span>Transaction Hash <a  id="confirmedMessageHash" class="badge badge-outline purple" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
         <br /><br />
         If someone has shared the file '{{notariseCreationConfirmation.file_name}}' with you, you can send them the transaction hash link above to prove you have notarised this document.
@@ -40,45 +42,45 @@
     </div>
   </div>
 
-  <h4 class="ui horizontal divider header">
-    <i class="signal icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="signal"></i>
     Transaction Status
   </h4>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
       <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
         Success! Your notarisation has been relayed into the QRL network through the following nodes, and is pending validation.
       </p>
     </div>
   </div>
 
-  <div class="ui mini horizontal divided list">
+  <div class="">
   {{#each transactionRelayedThrough}}
-    <div class="item">
-      <i class="checkmark icon green"></i>
-      <div class="content">
-        <div class="header">{{this}}</div>
+    <div class="">
+      <span class="text-success">✔</span>
+      <div class="">
+        <div class="text-lg font-semibold">{{this}}</div>
       </div>
     </div>
   {{/each}}
   </div>
 
-  <div id="relaying" class="ui icon message">
+  <div id="relaying" class="alert gap-3">
     <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div id="loadingHeader" class="header">
+    <span class="loading loading-spinner loading-md"></span>
+    <div class="">
+      <div id="loadingHeader" class="text-lg font-semibold">
         Just a moment
       </div>
       <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
     </div>
   </div>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
-      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
-      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
+      <button class="btn btn-sm jsonclick">Raw Transaction Details <span aria-hidden="true">▾</span></button>
+      <div class="rounded-xl border border-base-300 bg-base-100/80 p-4 raised jsonbox json unbreakable" style="display: none"></div>
     </div>
   </div>
   

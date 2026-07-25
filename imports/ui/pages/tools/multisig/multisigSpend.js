@@ -2,7 +2,7 @@
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
-refreshTransferPage */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -292,7 +292,7 @@ function generateTransaction() {
   } else {
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('One or more of the recipients is invalid: please check the addresses carefully')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -315,7 +315,7 @@ function generateTransaction() {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Insufficient balance in wallet for transaction fee')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -327,7 +327,7 @@ function generateTransaction() {
     console.log('Insufficient balance in multisig wallet for the outputs listed')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('There are not enough funds in the multisig wallet for this transaction')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -407,7 +407,7 @@ function generateTransaction() {
         // Hide generating component
         $('#generating').hide()
         // Show warning modal
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -499,11 +499,16 @@ function confirmTransaction() {
     tx.network = selectedNetwork()
 
     wrapMeteorCall('confirmMultiSigSpend', tx, (err, res) => {
-      if (res.error) {
+      if (err || !res || res.error) {
         $('#transactionConfirmation').hide()
         $('#transactionFailed').show()
 
-        Session.set('transactionFailed', res.error)
+        const errorMessage = (res && res.error)
+          || (err && (err.reason || err.message))
+          || 'Failed to relay transaction'
+        Session.set('transactionFailed', errorMessage)
+        advanceSeedOtsAfterRelayFailure('transactionConfirmation')
+        enableSendButton()
       } else {
         Session.set('transactionHash', txnHash)
         Session.set('transactionSignature', res.response.signature)
@@ -612,7 +617,7 @@ function initialiseFormValidation() {
   }
 
   // Address Validation
-  $.fn.form.settings.rules.qrlAddressValid = function (value) {
+  window.walletUi.addFormRule('qrlAddressValid', function (value) {
     try {
       const rawAddress = anyAddressToRawAddress(value)
       const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
@@ -621,10 +626,10 @@ function initialiseFormValidation() {
     } catch (e) {
       return false
     }
-  }
+  })
 
   // Initialise the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
   })
 }
@@ -634,7 +639,7 @@ Template.multisigSpend.events({
     Session.set('multisigTransferFromAddressSet', false)
     // call api to get addresses
     loadMultisigs(getXMSSDetails().address, 1)
-    $('#chooseSpendAddress').modal('show')
+    window.walletUi.showModal('#chooseSpendAddress')
   },
   'click #addTransferRecipient': (event) => {
     event.preventDefault()
@@ -646,10 +651,10 @@ Template.multisigSpend.events({
       <div>
         <div class="field">
           <label>Additional Recipient</label>
-          <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
+          <div class="grid gap-2 md:grid-cols-10" id="amountFields" style="width: 100%; margin-bottom: 10px;">
             <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
             <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
-            <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+            <button class="btn btn-error btn-sm removeTransferRecipient" style="width: 10%"><span aria-hidden="true">−</span></button>
           </div>
         </div>
       </div>
@@ -686,7 +691,7 @@ Template.multisigSpend.events({
   },
   'click #confirmTransaction': () => {
     $('#confirmTransaction').attr('disabled', true)
-    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
+    $('#confirmTransaction').html('<span class="loading loading-spinner loading-sm"></span>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #quantaJsonClick': () => {
@@ -736,6 +741,6 @@ Template.msTable.events({
     Session.set('multisigTransferFromBalance', b)
     Session.set('multisigTransferFromAddressSet', true)
     estimateExpiry(true) // estimate expiry getting a fresh block height
-    $('#chooseSpendAddress').modal('hide')
+    window.walletUi.hideModal('#chooseSpendAddress')
   },
 })

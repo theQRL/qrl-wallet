@@ -1,108 +1,156 @@
 <template name="appCreateAddress">
 
-<div class="small ui modal" id="saveItModal">
-  <div class="header">Save your wallet file now!</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <p>You must save the details on this page or risk losing funds sent or allocated to this wallet address.</p>
-      </div>
+<!-- Save Reminder Modal -->
+<dialog class="modal" id="saveItModal">
+  <div class="modal-box wallet-modal-box">
+    <h3 class="font-bold text-lg">Save your wallet file now!</h3>
+    <div role="alert" class="alert alert-warning mt-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <p>You must save the details on this page or risk losing funds sent or allocated to this wallet address.</p>
+    </div>
+    <div class="modal-action">
+      <button class="btn btn-primary" id="saveItApprove">I understand, I will save the details!</button>
+      <form method="dialog">
+        <button class="btn btn-ghost">Cancel</button>
+      </form>
     </div>
   </div>
-  <div class="actions">
-    <div class="ui approve button red">I understand, I will save the details on this page!</div>
-    <div class="ui cancel red button plain">Cancel</div>
-  </div>
-</div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-<div class="small ui modal" id="saveItEducationModal">
-  <div class="header">Please read about wallet basics!</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <p>
-          Please read our <a href="https://docs.theqrl.org/wallet/basics/" target="_blank">wallet basics</a> documentation before proceeding to create your wallet.<br /><br />
-          When you've done this, come back and re-create your QRL wallet.
-        </p>
+<!-- Education Modal -->
+<dialog class="modal" id="saveItEducationModal">
+  <div class="modal-box wallet-modal-box">
+    <h3 class="font-bold text-lg">Please read about wallet basics!</h3>
+    <div role="alert" class="alert alert-warning mt-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <p>Please read our <a href="https://docs.theqrl.org/wallet/basics/" target="_blank" class="link link-primary">wallet basics</a> documentation before proceeding to create your wallet.</p>
+        <p class="mt-2">When you've done this, come back and re-create your QRL wallet.</p>
       </div>
     </div>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-success">Okay</button>
+      </form>
+    </div>
   </div>
-  <div class="actions">
-    <div class="ui approve green button">Okay</div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<!-- Insecure Wallet Warning Modal -->
+<dialog class="modal" id="insecureModal">
+  <div class="modal-box wallet-modal-box">
+    <h3 class="font-bold text-lg">Whoa there buddy!!</h3>
+    <div role="alert" class="alert alert-warning mt-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <h4 class="font-bold">Security Notice</h4>
+        <p class="text-sm">You have opted to save an insecure wallet file. This means your Mnemonic Phrase and Hexseed will be saved in plain text. If anyone ever gets this file, they will have full access to all Quanta and Tokens associated with this wallet. It is strongly recommended to save a secure wallet file unless you are absolutely sure you know what you're doing.</p>
+      </div>
+    </div>
+    <div class="modal-action">
+      <button class="btn btn-error" id="insecureApprove">I understand the risks, save the insecure file!</button>
+      <form method="dialog">
+        <button class="btn btn-ghost">Cancel</button>
+      </form>
+    </div>
   </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<!-- Page Header -->
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-success/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h1 class="text-2xl font-bold text-base-content">Your New Wallet Details</h1>
 </div>
 
-<div class="small ui modal" id="insecureModal">
-  <div class="header">Whoa there buddy!!</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          Security Notice
+<!-- Main Card -->
+<div class="card-gradient">
+  <div class="card-body">
+    <!-- Public Address Info -->
+    <div role="alert" class="alert alert-success mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Your Public Address</h3>
+        <p class="text-sm">This is your public QRL address which can be shared with others.</p>
+      </div>
+    </div>
+
+    <!-- QRL Address -->
+    <div class="flex flex-col lg:flex-row gap-4 items-start">
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold mb-2">QRL Address</h2>
+        <div class="bg-base-300 p-4 rounded-lg">
+          <p id="newAddress" class="font-mono text-sm break-all text-primary">{{# if bech32}}{{newAddress.addressB32}}{{else}}{{newAddress.address}}{{/if}}</p>
         </div>
-        <p>You have opted to save an insecure wallet file. This means your Mnemonic Phrase and Hexseed will be saved in plain text. If anyone ever gets this file, they will have full access to all Quanta and Tokens associated with this wallet. It is strongly recommended to save a secure wallet file unless you are absolutely sure you know what you're doing.</p>
       </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve button red">I understand the risks, save the insecure file!</div>
-    <div class="ui cancel red button plain">Cancel</div>
-  </div>
-</div>
-
-<h4 id="createWallet" class="ui pageHeader header">
-  <i class="tiny plus icon"></i>
-  <div class="content">
-    Your new wallet details
-  </div>
-</h4>
-
-<div class="ui segment pageSegment">
-  <div class="ui warning icon message">
-    <i class="warning icon"></i>
-    <div class="content">
-      <div class="header">
-        Security Notice
-      </div>
-      <p>The details shown below are private, and should never be shared with anyone! You should write these details down, and store them in a secure location to ensure no losses are incurred.</p>
-    </div>
-  </div>
-
-  <div class="ui stackable two column grid">
-    <div class="column fourteen wide">
-      <h4 class="ui header">QRL Address</h4>
-      <div class="ui inverted segment">
-        <p id="newAddress" style="word-wrap: break-word;">{{# if bech32}}{{newAddress.addressB32}}{{else}}{{newAddress.address}}{{/if}}</p>
+      <div class="flex-shrink-0">
+        {{> QRCode text=QRText size="88px"}}
       </div>
     </div>
 
-    <div class="column two wide right aligned">
-      {{> QRCode text=QRText size="88px"}}
-    </div>
-  </div>
+    <hr class="mt-4 mb-4 border-base-300" />
 
-  <h4 class="ui header">Mnemonic Phrase</h4>
-  <div class="ui inverted segment">
-    <p id="newAddressMnemonic">{{newAddress.mnemonic}}</p>
-  </div>
-
-  <h4 class="ui header">Hexseed</h4>
-  <div class="ui inverted segment">
-    <p id="newAddressHexseed" style="word-wrap: break-word;">{{newAddress.hexseed}}</p>
-  </div>
-
-  <div class="ui stackable three column grid">
-    <div class="column center aligned">
-      <button id="openWalletButton" class="ui huge red button red">Open Wallet</button>
+    <!-- Security Warning -->
+    <div role="alert" class="alert alert-error mb-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Security Notice</h3>
+        <p class="text-sm">The details shown below are private, and should never be shared with anyone! You should write these details down, and store them in a secure location to ensure no losses are incurred.</p>
+      </div>
     </div>
-    <div class="column center aligned">
-      <button id="saveUnencrypted" class="ui huge green button plain">Save Unencrypted Wallet File</button>
+
+    <!-- Mnemonic Phrase -->
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Mnemonic Phrase</h2>
+      <div class="bg-base-300 p-4 rounded-lg">
+        <p id="newAddressMnemonic" class="font-mono text-sm break-normal">{{newAddress.mnemonic}}</p>
+      </div>
     </div>
-    <div class="column center aligned">
-      <button id="saveEncrypted" class="ui huge green button plain">Save Secure Wallet File</button>
+
+    <!-- Hexseed -->
+    <div class="mb-3">
+      <h2 class="text-lg font-semibold mb-2">Hexseed</h2>
+      <div class="bg-base-300 p-4 rounded-lg">
+        <p id="newAddressHexseed" class="font-mono text-sm break-all">{{newAddress.hexseed}}</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <button id="openWalletButton" class="btn btn-primary btn-md gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+        </svg>
+        Open Wallet
+      </button>
+      <button id="saveUnencrypted" class="btn btn-outline btn-error btn-md gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Save Unencrypted
+      </button>
+      <button id="saveEncrypted" class="btn btn-success btn-md gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        Save Secure Wallet
+      </button>
     </div>
   </div>
 </div>

@@ -1,233 +1,236 @@
 <template name="appNFT">
-  <div class="small ui modal" id="lowOtsKeyWarning">
-  <div class="header">OTS Keys Running Low!</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          Warning: Your OTS Keys are running low.
-        </div>
-        <p>You only have <strong>{{otsKeysRemaining}}</strong> OTS Keys remaining. When you have used all of these, you will no longer be able to send QRL or Tokens from this wallet.</p>
-        <p>It is strongly suggested that you create a new wallet, and move all your QRL and Tokens to it to ensure you do not lose access to your funds.</p>
-        <p><a href="https://docs.theqrl.org/developers/ots/" target="_blank">Click here to learn what OTS Keys are.</a></p>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve green button red">Okay</div>
-  </div>
-</div>
-
-<div class="small ui modal" id="invalidNodeResponse">
-  <div class="header">WARNING - Bad Response</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          WARNING - The node you've requested this transaction from replied with bad data that doesn't match your intended transaction parameters.
-          <br /><br />
-          This transaction has been cancelled automatically to protect your funds.
-          <br /><br />
-          Please report this issue through a Github issue, or directly to the QRL Team via email: info@theqrl.org
-        </div>
-        <p></p>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve green button red">Okay</div>
-  </div>
-</div>
-
-<div class="small ui modal" id="maxDecimalsReached">
-  <div class="header">Error - Decimals value too large</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          You have selected a decimal value that is too large for the total supply of your token. With your current allocation of {{tokenTotalSupply}} tokens, you can use up to {{maxDecimals}} decimals.
-          <br /><br />
-          Please adjust your decimals value and try again.
-        </div>
-        <p></p>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve green button red">Okay</div>
-  </div>
-</div>
-
-<div class="small ui modal" id="ledgerNotSupported">
-  <div class="header">Ledger Not Supported</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          Ledger Nano not Supported for Tokens
-        </div>
-        <p>Sorry, Ledger Nano support for Token Creation and Token Transfers is still being developed and tested. We will enable this functionality at a later stage.</p>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve green button">Okay</div>
-  </div>
-</div>
-
-<div class="small ui modal" id="otsKeyReuseDetected">
-  <div class="header">OTS Key Reuse</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
-          <br /><br />
-          Please recreate your transaction using a unique OTS Key Index.
-        </div>
-        <p></p>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui approve green button">Okay</div>
-  </div>
-</div>
-
-<h4 class="ui header pageHeader">
-  <i class="tags icon"></i>
-  <div class="content">
-    Create NFT
-  </div>
-</h4>
-
-<div class="ui left aligned segment pageSegment" id="tokenCreateForm">
-
-
-
-  <form id="generateNFTForm" class="ui form">
-
-    <h4 id="transferFormFromAddress" class="breakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
-    <h4 class="breakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
-
-    <h4 class="ui horizontal divider header">
-      <i class="cogs icon"></i>
-      NFT data
-    </h4>
-    <small>Generated at <a href="https://nft-tools.theqrl.org">nft-tools.theqrl.org</a> or with CLI tools</small>
-    <div class="field">
-      <textarea id="json">
-{
-
-}
-      </textarea>
-      <button class="ui white button" id="validateJSON">Validate</button>
-      <span id="validateResult">NFT data not yet checked</span>
-    </div>
-    <div>
-      <div class="field">
-        <label>NFT Provider Reference (Optional)</label>
-        <input type="text" id="providerRef" placeholder="FFFFFFFF" value="00000000" autocomplete="off">
-      </div>
-    <div class="field" style="display: none;">
-      <label>Creator Address</label>
-      <input type="text" id="owner" autocomplete="off" value="{{transferFrom.address}}">
-    </div>
-    <div class="field" style="display: none;">
-      <label>Token Symbol</label>
-      <input type="text" id="symbol" placeholder="eg: TST, QRL, etc" autocomplete="off">
-    </div>
-    <div class="field" style="display: none;">
-      <label>Token Name</label>
-      <input type="text" id="name" autocomplete="off">
-    </div>
-    <div class="field" style="display: none;">
-      <label>Decimals</label>
-      <input type="text" id="decimals" value="0" autocomplete="off">
-    </div>
-    
-    
-    <h4 class="ui horizontal divider header">
-      <i class="users icon"></i>
-      Initial NFT Owner
-    </h4>
-
-    <div id="tokenHolders">
-      <div class="field">
-        <label>Owner's Address</label>
-        <div class="three fields">
-          <div class="sixteen wide field">
-            <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address" autocomplete="off" value="{{transferFrom.address}}">
-          </div>
-          <div class="five wide field" style="display: none;">
-            <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" placeholder="Token Balance" autocomplete="off" value="1">
-          </div>
-          <div class="one wide field" style="display: none;">
-            <button class="ui red button removeTokenHolder"><i class="remove user icon"></i></button>
+  <dialog class="modal" id="lowOtsKeyWarning">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">OTS Keys Running Low!</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              Warning: Your OTS Keys are running low.
+            </div>
+            <p>You only have <strong>{{otsKeysRemaining}}</strong> OTS Keys remaining. When you have used all of these, you will no longer be able to send QRL or Tokens from this wallet.</p>
+            <p>It is strongly suggested that you create a new wallet, and move all your QRL and Tokens to it to ensure you do not lose access to your funds.</p>
+            <p><a href="https://docs.theqrl.org/developers/ots/" target="_blank">Click here to learn what OTS Keys are.</a></p>
           </div>
         </div>
       </div>
-    </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-error">Okay</button>
+      </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-    <button id="addTokenHolder" class="ui green button" style="display: none;">
-      <i class="add user icon"></i>
-      Add Another Holder
-    </button>
-    </div>
-    <h4 class="ui horizontal divider header">
-      <i class="file icon"></i>
-      Transaction Details
-    </h4>
+<dialog class="modal" id="invalidNodeResponse">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">WARNING - Bad Response</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              WARNING - The node you've requested this transaction from replied with bad data that doesn't match your intended transaction parameters.
+              <br /><br />
+              This transaction has been cancelled automatically to protect your funds.
+              <br /><br />
+              Please report this issue through a Github issue, or directly to the QRL Team via email: info@theqrl.org
+            </div>
+            <p></p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-error">Okay</button>
+      </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-    <div class="field">
-      <label>NFT Creation Fee (In Quanta)</label>
-      <input type="text" id="fee" value="10" autocomplete="off" disabled>
-    </div>
+<dialog class="modal" id="maxDecimalsReached">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">Error - Decimals value too large</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              You have selected a decimal value that is too large for the total supply of your token. With your current allocation of {{tokenTotalSupply}} tokens, you can use up to {{maxDecimals}} decimals.
+              <br /><br />
+              Please adjust your decimals value and try again.
+            </div>
+            <p></p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-error">Okay</button>
+      </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-    <div class="field">
-      <label>OTS Key Index</label>
-      <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off">
-    </div>
+<dialog class="modal" id="ledgerNotSupported">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">Ledger Not Supported</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              Ledger Nano not Supported for Tokens
+            </div>
+            <p>Sorry, Ledger Nano support for Token Creation and Token Transfers is still being developed and tested. We will enable this functionality at a later stage.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-success">Okay</button>
+      </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-    <div class="field">
-      <div class="ui warning icon message" style="display: inline-flex;">
-        <i class="warning icon"></i>
-        <div class="content">
-          <div class="header">
+<dialog class="modal" id="otsKeyReuseDetected">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">OTS Key Reuse</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
+              <br /><br />
+              Please recreate your transaction using a unique OTS Key Index.
+            </div>
+            <p></p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-success">Okay</button>
+      </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6-6a2.5 2.5 0 013.536 3.536l-6 6M6 14l-3 7 7-3" />
+    </svg>
+  </div>
+  <h1 class="text-2xl font-bold text-base-content">Create NFT</h1>
+</div>
+
+<div class="card-gradient text-left pageSegment" id="tokenCreateForm">
+  <div class="card-body">
+    <form id="generateNFTForm" class="space-y-6">
+      <div class="grid gap-3">
+        <div class="rounded-lg border border-base-300/80 bg-base-100/60 p-3">
+          <p class="text-xs uppercase tracking-wide text-base-content/60">From Address</p>
+          <p id="transferFormFromAddress" class="break-all font-mono text-sm text-base-content">{{transferFrom.address}}</p>
+        </div>
+        <div class="rounded-lg border border-base-300/80 bg-base-100/60 p-3">
+          <p class="text-xs uppercase tracking-wide text-base-content/60">Quanta Balance</p>
+          <p class="text-sm font-semibold text-base-content">{{transferFrom.balance}}</p>
+        </div>
+      </div>
+
+      <div class="divider text-sm font-semibold">NFT Data</div>
+
+      <p class="text-sm text-base-content/70">
+        Generated at
+        <a href="https://nft-tools.theqrl.org" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer" class="link link-primary">nft-tools.theqrl.org</a>
+        or with CLI tools.
+      </p>
+
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">NFT JSON</legend>
+        <textarea id="json" class="textarea textarea-bordered min-h-56 w-full bg-base-100 font-mono text-sm">{
+
+}</textarea>
+      </fieldset>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="btn btn-secondary gap-2" id="validateJSON" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Validate
+        </button>
+        <span id="validateResult" class="text-sm text-base-content/70">NFT data not yet checked</span>
+      </div>
+
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">NFT Provider Reference (Optional)</legend>
+        <input type="text" id="providerRef" class="input input-bordered w-full bg-base-100" placeholder="FFFFFFFF" value="00000000" autocomplete="off">
+      </fieldset>
+
+      <div class="hidden">
+        <input type="text" id="owner" autocomplete="off" value="{{transferFrom.address}}">
+        <input type="text" id="symbol" placeholder="eg: TST, QRL, etc" autocomplete="off">
+        <input type="text" id="name" autocomplete="off">
+        <input type="text" id="decimals" value="0" autocomplete="off">
+      </div>
+
+      <div class="divider text-sm font-semibold">Initial NFT Owner</div>
+
+      <div id="tokenHolders" class="space-y-3">
+        <div class="token-holder-entry rounded-lg border border-base-300/80 bg-base-100/60 p-3">
+          <fieldset class="fieldset w-full">
+            <legend class="fieldset-legend">Owner Address</legend>
+            <input type="text" id="initialBalancesAddress_1" name="initialBalancesAddress[]" class="input input-bordered w-full bg-base-100" placeholder="Token Holder QRL Address" autocomplete="off" value="{{transferFrom.address}}">
+          </fieldset>
+          <fieldset class="fieldset w-full hidden">
+            <legend class="fieldset-legend">Owner Balance</legend>
+            <input type="text" id="initialBalancesAddressAmount_1" name="initialBalancesAddressAmount[]" class="input input-bordered w-full bg-base-100" placeholder="Token Balance" autocomplete="off" value="1">
+          </fieldset>
+          <div class="hidden">
+            <button class="btn btn-error btn-sm removeTokenHolder" type="button">Remove Holder</button>
+          </div>
+        </div>
+      </div>
+
+      <button id="addTokenHolder" type="button" class="btn btn-success btn-sm gap-2" style="display: none;">
+        <span aria-hidden="true">＋</span>
+        Add Another Holder
+      </button>
+
+      <div class="divider text-sm font-semibold">Transaction Details</div>
+
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">NFT Creation Fee (In Quanta)</legend>
+        <input type="text" id="fee" class="input input-bordered w-full bg-base-100" value="10" autocomplete="off" disabled>
+      </fieldset>
+
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">OTS Key Index</legend>
+        <input type="text" id="otsKey" class="input input-bordered w-full bg-base-100" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off">
+      </fieldset>
+
+      <div class="alert alert-warning gap-3">
+        <div>
+          <div class="text-lg font-semibold">
             OTS Key Index Warning
           </div>
           <p>The <strong>OTS (One Time Signature)</strong> Key Index in the field above is estimated based on data provided by the QRL node you're connected to. You should <b>never</b> re-use the same OTS Key for more than 1 transaction. If you are unsure, it is safest to write down all used OTS Key Indexes, and store them in a safe place.</p>
         </div>
       </div>
-    </div>
 
-    <div class="field">
-      <button id="createToken" class="ui huge primary button red disabled" style="float: left;">Create NFT</button>
-      <br />
-    </div>
+      <div class="pt-2">
+        <button id="createToken" class="btn btn-md btn-success gap-2 disabled" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Create NFT
+        </button>
+      </div>
 
-    <div class="field">
-      <br />
-      <div id="generating" style="display: none;" class="ui icon message">
-        <i class="notched circle loading icon"></i>
-        <div class="content">
-          <div class="header">
+      <div id="generating" style="display: none;" class="alert gap-3">
+        <span class="loading loading-spinner loading-md"></span>
+        <div class="">
+          <div class="text-lg font-semibold">
             Just one moment
           </div>
           <p>Generating your new token transaction...</p>
         </div>
       </div>
-    </div>   
-
-  </form>
+    </form>
+  </div>
 </div>
 
-<div id="tokenCreationFailed" class="ui red segment pageSegment" style="display: none;">
+<div id="tokenCreationFailed" class="card-gradient p-4 pageSegment" style="display: none;">
   <h4>Token Creation Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{tokenCreationError}}</p>
 </div>

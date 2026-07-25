@@ -1,73 +1,74 @@
 <template name="appMessageResult">
 
-<h2 class="ui header pageHeader">
-  <i class="tiny envelope icon"></i>
-  <div class="content">
-    Message Creation Result
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8m-8 4h5m4 7H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414A1 1 0 0118 8.414V19a2 2 0 01-2 2z" />
+    </svg>
   </div>
-</h2>
+  <h1 class="text-2xl font-bold text-base-content">Message Creation Result</h1>
+</div>
 
+<div id="transactionComplete" class="card-gradient p-4 pageSegment">
 
-<div id="transactionComplete" class="ui red segment pageSegment">
-
-  <h4 class="ui horizontal divider header">
-    <i class="envelope icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="envelope"></i>
     Your Message
   </h4>
 
-  <div class="ui items">
-    <div class="item">
+  <div class="">
+    <div class="">
       <div class="image">
         {{> QRCode text=transactionHash size="128px"}}
       </div>
-      <div class="content">
-        <a class="header" style="word-break: break-all;">{{messageDetails.message}}</a>
+      <div class="">
+        <a class="text-lg font-semibold" style="word-break: break-all;">{{messageDetails.message}}</a>
         <div class="meta">
-          <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
+          <span>Transaction Hash <a  id="confirmedMessageHash" class="badge badge-outline purple" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
       </div>
     </div>
   </div>
 
-  <h4 class="ui horizontal divider header">
-    <i class="signal icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="signal"></i>
     Transaction Status
   </h4>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
       <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
         Success! Your message has been relayed into the QRL network through the following nodes, and is pending validation.
       </p>
     </div>
   </div>
 
-  <div class="ui mini horizontal divided list">
+  <div class="">
   {{#each transactionRelayedThrough}}
-    <div class="item">
-      <i class="checkmark icon green"></i>
-      <div class="content">
-        <div class="header">{{this}}</div>
+    <div class="">
+      <span class="text-success">✔</span>
+      <div class="">
+        <div class="text-lg font-semibold">{{this}}</div>
       </div>
     </div>
   {{/each}}
   </div>
 
-  <div id="relaying" class="ui icon message">
+  <div id="relaying" class="alert gap-3">
     <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div id="loadingHeader" class="header">
+    <span class="loading loading-spinner loading-md"></span>
+    <div class="">
+      <div id="loadingHeader" class="text-lg font-semibold">
         Just a moment
       </div>
       <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
     </div>
   </div>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
-      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
-      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
+      <button class="btn btn-sm jsonclick">Raw Transaction Details <span aria-hidden="true">▾</span></button>
+      <div class="rounded-xl border border-base-300 bg-base-100/80 p-4 raised jsonbox json unbreakable" style="display: none"></div>
     </div>
   </div>
   

@@ -1,3 +1,4 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
@@ -5,44 +6,52 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import aes256 from 'aes256'
 import './address.html'
+import {
+  buildEncryptedEnvelope,
+  buildUnencryptedEnvelope,
+  downloadWalletFile,
+  normalizeWalletRecord,
+} from '../../lib/wallet-crypto'
 
 let passphrase
 
-function saveWallet(encrypted) {
-  const walletDetail = getXMSSDetails()
+function closeAllOpenDialogs() {
+  const openDialogs = document.querySelectorAll('dialog[open]')
+  openDialogs.forEach((dialog) => {
+    try {
+      dialog.close()
+    } catch (error) {
+      // Ignore dialog close errors during route transitions.
+    }
+  })
+}
 
-  // Encrypt wallet data if secure wallet requested.
-  if (encrypted === true) {
-    walletDetail.encrypted = true
-    walletDetail.address = aes256.encrypt(passphrase, walletDetail.address)
-    walletDetail.mnemonic = aes256.encrypt(passphrase, walletDetail.mnemonic)
-    walletDetail.hexseed = aes256.encrypt(passphrase, walletDetail.hexseed)
-    walletDetail.addressB32 = aes256.encrypt(passphrase, walletDetail.addressB32)
-    walletDetail.pk = aes256.encrypt(passphrase, walletDetail.pk)
-  } else {
-    walletDetail.encrypted = false
+async function saveWallet(encrypted) {
+  const walletDetail = getXMSSDetails()
+  const normalizedWallet = normalizeWalletRecord(walletDetail)
+
+  if (encrypted === true && !passphrase) {
+    throw new Error('Passphrase is required for encrypted wallet save')
   }
 
-  const walletJson = ['[', JSON.stringify(walletDetail), ']'].join('')
-  const binBlob = new Blob([walletJson])
-  const a = window.document.createElement('a')
-  a.href = window.URL.createObjectURL(binBlob, { type: 'text/plain' })
-  a.download = 'wallet.json'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  const walletEnvelope = encrypted
+    ? await buildEncryptedEnvelope(normalizedWallet, passphrase)
+    : buildUnencryptedEnvelope(normalizedWallet)
+
+  downloadWalletFile(walletEnvelope, 'wallet.json')
 }
 
 function userDenyWalletSaveNotice() {
   setTimeout(function () {
-    $('#saveItEducationModal').modal({
-      onHide: () => {
+    const educationModal = document.getElementById('saveItEducationModal')
+    if (educationModal) {
+      educationModal.addEventListener('close', () => {
         const path = FlowRouter.path('/', {})
         FlowRouter.go(path)
-      },
-    }).modal('show')
+      }, { once: true })
+      educationModal.showModal()
+    }
   }, 250)
 }
 
@@ -54,51 +63,60 @@ Template.appCreateAddress.onCreated(() => {
 })
 
 Template.appCreateAddress.onRendered(() => {
-  $('#insecureModal').modal()
-  $('#saveItEducationModal').modal()
-
-  $('#saveItModal').modal({
-    onApprove: () => {
-      Session.set('modalEventTriggered', true)
-    },
-    onDeny: () => {
-      Session.set('modalEventTriggered', true)
-      userDenyWalletSaveNotice()
-    },
-    onHide: () => {
+  // Show save reminder modal
+  const saveItModal = document.getElementById('saveItModal')
+  if (saveItModal) {
+    // Handle approve button
+    const approveBtn = document.getElementById('saveItApprove')
+    if (approveBtn) {
+      approveBtn.addEventListener('click', () => {
+        Session.set('modalEventTriggered', true)
+        saveItModal.close()
+      })
+    }
+    // Handle modal close (cancel or backdrop)
+    saveItModal.addEventListener('close', () => {
       if (Session.get('modalEventTriggered') === false) {
         userDenyWalletSaveNotice()
       }
       Session.set('modalEventTriggered', false)
-    },
-  }).modal('show')
+    }, { once: true })
 
-  Tracker.autorun(function () {
-    if (LocalStore.get('addressFormat') === 'bech32') {
-      $('.qr-code-container').empty()
-      $('.qr-code-container').qrcode({ width: 88, height: 88, text: getXMSSDetails().addressB32 })
-    } else {
-      $('.qr-code-container').empty()
-      $('.qr-code-container').qrcode({ width: 88, height: 88, text: getXMSSDetails().address })
-    }
-  })
+    saveItModal.showModal()
+  }
+})
+
+Template.appCreateAddress.onDestroyed(() => {
+  closeAllOpenDialogs()
 })
 
 Template.appCreateAddress.events({
   'click #openWalletButton': () => {
+    closeAllOpenDialogs()
     const params = {}
     const path = FlowRouter.path('/open', params)
     FlowRouter.go(path)
   },
   'click #saveEncrypted': () => {
-    saveWallet(true)
+    saveWallet(true).catch((error) => {
+      console.error('Failed to save encrypted wallet:', error)
+    })
   },
   'click #saveUnencrypted': () => {
-    $('#insecureModal').modal({
-      onApprove: () => {
-        saveWallet(false)
-      },
-    }).modal('show')
+    const insecureModal = document.getElementById('insecureModal')
+    if (insecureModal) {
+      // Set up approve handler
+      const approveBtn = document.getElementById('insecureApprove')
+      if (approveBtn) {
+        approveBtn.onclick = () => {
+          saveWallet(false).catch((error) => {
+            console.error('Failed to save unencrypted wallet:', error)
+          })
+          insecureModal.close()
+        }
+      }
+      insecureModal.showModal()
+    }
   },
 })
 
@@ -113,6 +131,9 @@ Template.appCreateAddress.helpers({
     return getXMSSDetails()
   },
   QRText() {
+    if (LocalStore.get('addressFormat') === 'bech32') {
+      return getXMSSDetails().addressB32
+    }
     return getXMSSDetails().address
   },
 })

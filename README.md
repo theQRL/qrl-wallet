@@ -83,16 +83,17 @@ A locally running wallet will be available at http://localhost:3000
 
 Ensure the node, mongo and mongod for the platform being built for are in the .electrify/bin directory (these are found in .meteor/local/dev_bundle after a successful local run)
 
-1. Clean the dist folder
+1. Clean only the target platform output in `.electrify/.dist`
 
-> MacOS and Linux
+> MacOS, Linux and Windows
 
 	npm run cleanDist
 
-> Windows
+For explicit platform cleanup:
 
-	npm run win:remove_dist
-	npm run win:create_dist
+	npm run cleanDist:darwin
+	npm run cleanDist:linux
+	npm run cleanDist:win32
 
 2. Package Electron App
 
@@ -100,6 +101,12 @@ Ensure the node, mongo and mongod for the platform being built for are in the .e
 
 	npm run releaseready
 	npm run build
+
+For explicit platform packaging:
+
+	npm run build:darwin
+	npm run build:linux
+	npm run build:win32
 
 ## Build Installer
 	

@@ -3,7 +3,8 @@
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'
-import { BrowserPolicy } from 'meteor/browser-policy-common'
+import { WebApp } from 'meteor/webapp'
+import crypto from 'crypto'
 import helpers from '@theqrl/explorer-helpers'
 import grpc from '@grpc/grpc-js'
 import protoloader from '@grpc/proto-loader'
@@ -16,27 +17,208 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import Qrl from '@theqrl/hw-app-qrl/lib/Qrl'
 import { QRLPROTO_SHA256 } from '@theqrl/qrl-proto-sha256'
 
+// Local compatibility additions for node versions newer than the published
+// qrl-proto-sha256 package.
+const QRLPROTO_SHA256_OVERRIDES = [
+  {
+    version: '4.0.0 python',
+    protoSha256: '0d70a3372c4668a1bf4fd42983ae01f2e0fb54b4030b808bbea78e5adadb23f0',
+    objectSha256: 'b1de7b4968bb3605a00670d9c946b993017c17d5cd12d8fedb1ac5c47ea2ef76',
+    walletProto: 'b1de7b4968bb3605a00670d9c946b993017c17d5cd12d8fedb1ac5c47ea2ef76',
+  },
+  {
+    version: '4.0.1 python',
+    protoSha256: '0d70a3372c4668a1bf4fd42983ae01f2e0fb54b4030b808bbea78e5adadb23f0',
+    objectSha256: '14369669c53fa09df90204b47d4b62cabdfa618485849b3210c4316fd36be149',
+    walletProto: '14369669c53fa09df90204b47d4b62cabdfa618485849b3210c4316fd36be149',
+  },
+]
+const TRUSTED_QRLPROTO_SHA256 = [...QRLPROTO_SHA256, ...QRLPROTO_SHA256_OVERRIDES]
+
 const PROTO_PATH = Assets.absoluteFilePath('qrlbase.proto').split(
   'qrlbase.proto'
 )[0]
 
-// Apply BrowserPolicy
-BrowserPolicy.content.disallowInlineScripts()
-BrowserPolicy.content.allowStyleOrigin('fonts.googleapis.com')
-BrowserPolicy.content.allowFontOrigin('cdn.jsdelivr.net')
-BrowserPolicy.content.allowStyleOrigin('cdn.jsdelivr.net')
-BrowserPolicy.content.allowFontOrigin('fonts.gstatic.com')
-BrowserPolicy.content.allowFontOrigin('fonts.cdnfonts.com')
-BrowserPolicy.content.allowStyleOrigin('fonts.cdnfonts.com')
-BrowserPolicy.content.allowFontDataUrl()
-BrowserPolicy.content.allowDataUrlForAll()
+// When true, reject any custom/user-supplied gRPC endpoints.
+// Only the pre-configured networks (mainnet, testnet, devnet) are allowed.
+// Setting lives under Meteor.settings.public so the client can also read it.
+let lockCustomEndpoints = (Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints) === true
+
+// CSP nonce generation middleware
+WebApp.connectHandlers.use((req, res, next) => {
+  const nonce = crypto.randomBytes(16).toString('base64')
+  res.locals = res.locals || {}
+  res.locals.cspNonce = nonce
+
+  // qrllib (Emscripten glue) and protobufjs runtime codegen still rely on
+  // dynamic function creation, so 'unsafe-eval' remains required for now.
+  const cspHeader = [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-eval' 'nonce-${nonce}'`,
+    "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net fonts.cdnfonts.com",
+    "font-src 'self' data: cdn.jsdelivr.net fonts.gstatic.com fonts.cdnfonts.com",
+    "img-src 'self' data:",
+    "connect-src 'self' data: https://nft-linter.theqrl.org",
+    "worker-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+  ].join('; ')
+
+  res.setHeader('Content-Security-Policy', cspHeader)
+  next()
+})
+
+// HTML modification middleware to inject nonce into script tags
+WebApp.connectHandlers.use((req, res, next) => {
+  if (!res.locals || !res.locals.cspNonce) {
+    return next()
+  }
+
+  const originalWrite = res.write
+  const originalEnd = res.end
+  const chunks = []
+
+  res.write = function (chunk) {
+    chunks.push(Buffer.from(chunk))
+  }
+
+  res.end = function (chunk) {
+    if (chunk) {
+      chunks.push(Buffer.from(chunk))
+    }
+
+    if (chunks.length === 0) {
+      res.write = originalWrite
+      res.end = originalEnd
+      return originalEnd.call(res)
+    }
+
+    const body = Buffer.concat(chunks).toString('utf8')
+    const nonce = res.locals.cspNonce
+
+    // Add nonce to all script tags that don't already have one
+    const modifiedBody = body.replace(
+      /<script(?![^>]*nonce=)/g,
+      `<script nonce="${nonce}"`
+    )
+
+    res.write = originalWrite
+    res.end = originalEnd
+    res.end(modifiedBody)
+  }
+
+  next()
+})
 
 // An array of grpc connections and associated proto file paths
 const qrlClient = []
 
+const normalizeEndpoint = (endpoint) => {
+  if (typeof endpoint !== 'string') {
+    return ''
+  }
+  return endpoint.trim()
+}
+
+const extractBlockHeightFromNodeState = (nodeState) => {
+  if (!nodeState || typeof nodeState !== 'object') {
+    return 0
+  }
+
+  const possibleHeights = [
+    nodeState.info && nodeState.info.block_height,
+    nodeState.node_info && nodeState.node_info.block_height,
+    nodeState.block_height,
+    nodeState.node_state && nodeState.node_state.block_height,
+  ]
+
+  for (const value of possibleHeights) {
+    const parsed = parseInt(value, 10)
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed
+    }
+  }
+
+  return 0
+}
+
 function toBuffer(ab) {
   const buffer = Buffer.from(ab)
   return buffer
+}
+
+function toHexString(value) {
+  if (value === null || value === undefined) {
+    return ''
+  }
+  if (typeof value === 'string') {
+    return value.startsWith('0x') ? value.slice(2) : value
+  }
+  try {
+    return Buffer.from(value).toString('hex')
+  } catch (err) {
+    return ''
+  }
+}
+
+function parseGrpcErrorCode(value) {
+  if (value === null || value === undefined || value === '') {
+    return 0
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0
+  }
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  try {
+    const codeBytes = Buffer.from(value)
+    if (codeBytes.length === 0) {
+      return 0
+    }
+    return codeBytes.readUIntBE(0, codeBytes.length)
+  } catch (err) {
+    return 0
+  }
+}
+
+function getPushTransactionError(response) {
+  if (!response || typeof response !== 'object') {
+    return 'Empty pushTransaction response'
+  }
+
+  const errorCode = parseGrpcErrorCode(
+    response.error_code || response.errorCode
+  )
+  const errorDescription = String(
+    response.error_description
+    || response.errorDescription
+    || ''
+  ).trim()
+  const hasTxHash = toHexString(response.tx_hash).length > 0
+
+  if (errorCode !== 0) {
+    if (errorDescription) {
+      return `Node rejected transaction (${errorCode}): ${errorDescription}`
+    }
+    return `Node rejected transaction (${errorCode})`
+  }
+
+  if (
+    errorDescription.length > 0
+    && errorDescription.toLowerCase() !== 'no error'
+  ) {
+    return `Node rejected transaction: ${errorDescription}`
+  }
+
+  if (!hasTxHash) {
+    return 'Missing tx hash in pushTransaction response'
+  }
+
+  return null
 }
 
 const errorCallback = (error, message, alert) => {
@@ -52,6 +234,17 @@ const errorCallback = (error, message, alert) => {
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (endpoint, callback) => {
+  const normalizedEndpoint = normalizeEndpoint(endpoint)
+  if (!normalizedEndpoint) {
+    const myError = errorCallback(
+      'Invalid gRPC endpoint',
+      'Cannot connect to remote node: empty endpoint',
+      '**ERROR/connect**'
+    )
+    callback(myError, null)
+    return
+  }
+
   const options = {
     keepCase: true,
     longs: String,
@@ -66,13 +259,24 @@ const loadGrpcClient = (endpoint, callback) => {
       .load(`${PROTO_PATH}qrlbase.proto`)
       .then((packageDefinitionBase) => {
         const baseGrpcObject = grpc.loadPackageDefinition(packageDefinitionBase)
-        const client = new baseGrpcObject.qrl.Base(
-          endpoint,
-          grpc.credentials.createInsecure()
-        )
+        let client = null
+        try {
+          client = new baseGrpcObject.qrl.Base(
+            normalizedEndpoint,
+            grpc.credentials.createInsecure()
+          )
+        } catch (grpcError) {
+          const myError = errorCallback(
+            grpcError,
+            `Cannot access node: ${normalizedEndpoint}`,
+            '**ERROR/connect**'
+          )
+          callback(myError, null)
+          return
+        }
         client.getNodeInfo({}, (err, res) => {
           if (err) {
-            console.log(`Error fetching qrl.proto from ${endpoint}`)
+            console.log(`Error fetching qrl.proto from ${normalizedEndpoint}`)
             callback(err, null)
           } else {
             // Write a new temp file for this grpc connection
@@ -92,9 +296,9 @@ const loadGrpcClient = (endpoint, callback) => {
               }
               // Now read the saved qrl.proto file so we can calculate a hash from it
               fs.readFile(qrlProtoFilePath, (errR, contents) => {
-                if (fsErr) {
-                  console.log(fsErr)
-                  throw fsErr
+                if (errR) {
+                  console.log(errR)
+                  throw errR
                 }
 
                 // Calculate the hash of the qrl.proto file contents
@@ -113,7 +317,7 @@ const loadGrpcClient = (endpoint, callback) => {
                     + ' is valid'
                 )
                 let verified = false
-                QRLPROTO_SHA256.forEach((value) => {
+                TRUSTED_QRLPROTO_SHA256.forEach((value) => {
                   if (value.protoSha256) {
                     if (value.protoSha256 === calculatedProtoHash) {
                       verified = true
@@ -159,7 +363,7 @@ const loadGrpcClient = (endpoint, callback) => {
                           + ' is valid'
                       )
                       let verifiedObject = false
-                      QRLPROTO_SHA256.forEach((value) => {
+                      TRUSTED_QRLPROTO_SHA256.forEach((value) => {
                         if (value.objectSha256) {
                           if (value.objectSha256 === calculatedObjectHash) {
                             verifiedObject = true
@@ -173,13 +377,13 @@ const loadGrpcClient = (endpoint, callback) => {
                       })
                       if (verifiedObject === true || allowUnchecksummedNodes === true) {
                         // Create the gRPC Connection
-                        console.log('Making GRPC PublicAPI connection to ' + endpoint)
-                        qrlClient[endpoint] = new grpcObject.qrl.PublicAPI(
-                          endpoint,
+                        console.log('Making GRPC PublicAPI connection to ' + normalizedEndpoint)
+                        qrlClient[normalizedEndpoint] = new grpcObject.qrl.PublicAPI(
+                          normalizedEndpoint,
                           grpc.credentials.createInsecure()
                         )
 
-                        console.log(`qrlClient loaded for ${endpoint}`)
+                        console.log(`qrlClient loaded for ${normalizedEndpoint}`)
 
                         callback(null, true)
                       } else {
@@ -230,41 +434,64 @@ const loadGrpcClient = (endpoint, callback) => {
 // If there is no active server side connection for the requested node,
 // this function will call loadGrpcClient to establish one.
 const connectToNode = (endpoint, callback) => {
+  const normalizedEndpoint = normalizeEndpoint(endpoint)
+  if (!normalizedEndpoint) {
+    const myError = errorCallback(
+      'Invalid gRPC endpoint',
+      'Cannot connect to remote node: empty endpoint',
+      '**ERROR/connection** '
+    )
+    callback(myError, null)
+    return
+  }
+
   // First check if there is an existing object to store the gRPC connection
-  if (qrlClient.hasOwnProperty(endpoint) === true) { // eslint-disable-line
+  if (qrlClient.hasOwnProperty(normalizedEndpoint) === true) { // eslint-disable-line
     // eslint-disable-line
     console.log(
       'Existing connection found for ',
-      endpoint,
+      normalizedEndpoint,
       ' - attempting getNodeState'
     )
     // There is already a gRPC object for this server stored.
     // Attempt to connect to it.
     try {
-      qrlClient[endpoint].getNodeState({}, (err, response) => {
+      qrlClient[normalizedEndpoint].getNodeState({}, (err, response) => {
         if (err) {
-          console.log('Error fetching node state for ', endpoint)
+          console.log('Error fetching node state for ', normalizedEndpoint)
           // If it errors, we're going to remove the object and attempt to connect again.
-          delete qrlClient[endpoint]
+          delete qrlClient[normalizedEndpoint]
 
-          console.log('Attempting re-connection to ', endpoint)
+          console.log('Attempting re-connection to ', normalizedEndpoint)
 
-          loadGrpcClient(endpoint, (loadErr, loadResponse) => {
+          loadGrpcClient(normalizedEndpoint, (loadErr) => {
             if (loadErr) {
-              console.log(`Failed to re-connect to node ${endpoint}`)
+              console.log(`Failed to re-connect to node ${normalizedEndpoint}`)
               const myError = errorCallback(
-                err,
+                loadErr,
                 'Cannot connect to remote node',
                 '**ERROR/connection** '
               )
               callback(myError, null)
             } else {
-              console.log(`Connected to ${endpoint}`)
-              callback(null, loadResponse)
+              qrlClient[normalizedEndpoint].getNodeState({}, (errState, reconnectResponse) => {
+                if (errState) {
+                  const myError = errorCallback(
+                    errState,
+                    'Cannot access API/getNodeState',
+                    '**ERROR/getNodeState**'
+                  )
+                  callback(myError, null)
+                  return
+                }
+
+                console.log(`Connected to ${normalizedEndpoint}`)
+                callback(null, reconnectResponse)
+              })
             }
           })
         } else {
-          console.log(`Node state for ${endpoint} ok`)
+          console.log(`Node state for ${normalizedEndpoint} ok`)
           callback(null, response)
         }
       })
@@ -278,11 +505,11 @@ const connectToNode = (endpoint, callback) => {
       callback(myError, null)
     }
   } else {
-    console.log(`Establishing new connection to ${endpoint}`)
+    console.log(`Establishing new connection to ${normalizedEndpoint}`)
     // We've not connected to this node before, let's establish a connection to it.
-    loadGrpcClient(endpoint, (err) => {
+    loadGrpcClient(normalizedEndpoint, (err) => {
       if (err) {
-        console.log(`Failed to connect to node ${endpoint}`)
+        console.log(`Failed to connect to node ${normalizedEndpoint}`)
         const myError = errorCallback(
           err,
           'Cannot connect to remote node',
@@ -290,10 +517,10 @@ const connectToNode = (endpoint, callback) => {
         )
         callback(myError, null)
       } else {
-        console.log(`Connected to ${endpoint}`)
-        qrlClient[endpoint].getNodeState({}, (errState, response) => {
+        console.log(`Connected to ${normalizedEndpoint}`)
+        qrlClient[normalizedEndpoint].getNodeState({}, (errState, response) => {
           if (errState) {
-            console.log(`Failed to query node state ${endpoint}`)
+            console.log(`Failed to query node state ${normalizedEndpoint}`)
             const myError = errorCallback(
               err,
               'Cannot connect to remote node',
@@ -326,7 +553,7 @@ const checkNetworkHealth = (userNetwork, callback) => {
     if (networkHealthy === true) {
       callback(null, true)
     } else {
-      callback(true, { error: 'Network unhealthy' })
+      callback({ error: `Network '${userNetwork}' is not yet healthy — nodes may still be connecting` }, null)
     }
   } catch (err) {
     console.log('Exception in checkNetworkHealth')
@@ -358,10 +585,7 @@ const connectNodes = () => {
           } else {
             console.log(`Connected to ${endpoint}`)
             DEFAULT_NETWORKS[networkIndex].nodes[nodeIndex].state = true
-            DEFAULT_NETWORKS[networkIndex].nodes[nodeIndex].height = parseInt(
-              res.info.block_height,
-              10
-            )
+            DEFAULT_NETWORKS[networkIndex].nodes[nodeIndex].height = extractBlockHeightFromNodeState(res)
             // At least one node in the network is online, set network as healthy
             DEFAULT_NETWORKS[networkIndex].healthy = true
           }
@@ -423,7 +647,7 @@ const qrlApi = (api, request, callback) => {
       delete request.network
       console.log('Making', api, 'request to', bestNode.grpc)
       qrlClient[bestNode.grpc][api](request, (error, response) => {
-        if (api === 'pushTransaction') {
+        if (!error && api === 'pushTransaction' && response) {
           response.relayed = bestNode.grpc
         }
         if (error) {
@@ -436,23 +660,67 @@ const qrlApi = (api, request, callback) => {
     }
   } else {
     // Handle custom and localhost connections
+    if (lockCustomEndpoints) {
+      const myError = errorCallback(
+        'Custom gRPC endpoints are disabled (lockCustomEndpoints is enabled)',
+        'Cannot connect to custom API endpoint',
+        '**ERROR/api/locked**'
+      )
+      callback(myError, null)
+      return
+    }
     console.log('Handling custom API call')
-    const apiEndpoint = request.network
+    const apiEndpoint = normalizeEndpoint(request.network)
     // Delete network from request object
     delete request.network
+    if (!apiEndpoint) {
+      const myError = errorCallback(
+        'Invalid gRPC endpoint',
+        'Cannot connect to API: empty endpoint',
+        '**ERROR/api/custom**'
+      )
+      callback(myError, null)
+      return
+    }
+
     console.log('Making', api, 'request to', apiEndpoint)
 
-    qrlClient[apiEndpoint][api](request, (error, response) => {
-      if (api === 'pushTransaction') {
-        response.relayed = apiEndpoint
-      }
-      if (error) {
-        const myError = new Meteor.Error(500, error.details)
+    const executeApiCall = () => {
+      if (!qrlClient[apiEndpoint] || typeof qrlClient[apiEndpoint][api] !== 'function') {
+        const myError = errorCallback(
+          `No API connection available for endpoint: ${apiEndpoint}`,
+          `Cannot call API/${api} for endpoint: ${apiEndpoint}`,
+          '**ERROR/api/custom**'
+        )
         callback(myError, null)
-      } else {
-        callback(null, response)
+        return
       }
-    })
+
+      qrlClient[apiEndpoint][api](request, (error, response) => {
+        if (!error && api === 'pushTransaction' && response) {
+          response.relayed = apiEndpoint
+        }
+        if (error) {
+          const myError = new Meteor.Error(500, error.details)
+          callback(myError, null)
+        } else {
+          callback(null, response)
+        }
+      })
+    }
+
+    if (!qrlClient[apiEndpoint]) {
+      connectToNode(apiEndpoint, (connectErr) => {
+        if (connectErr) {
+          callback(connectErr, null)
+        } else {
+          executeApiCall()
+        }
+      })
+      return
+    }
+
+    executeApiCall()
   }
 }
 
@@ -1033,20 +1301,23 @@ const confirmTransaction = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            console.log(
-              'Relayed Txn: ',
-              Buffer.from(res.tx_hash).toString('hex')
-            )
-
             if (err) {
               console.log(`Error:  ${err.message}`)
               txnResponse = { error: err.message, response: err.message }
               wfcb()
             } else {
+              const pushTxnError = getPushTransactionError(res)
+              if (pushTxnError) {
+                console.log(`Error: ${pushTxnError}`)
+                txnResponse = { error: pushTxnError, response: pushTxnError }
+                wfcb()
+                return
+              }
+
+              const pushedTxnHash = toHexString(res.tx_hash)
+              console.log('Relayed Txn: ', pushedTxnHash)
               const hashResponse = {
-                txnHash: Buffer.from(
-                  confirmTxn.transaction_signed.transaction_hash
-                ).toString('hex'),
+                txnHash: pushedTxnHash,
                 signature: Buffer.from(
                   confirmTxn.transaction_signed.signature
                 ).toString('hex'),
@@ -2101,58 +2372,505 @@ const apiCall = (apiUrl, callback) => {
   }
 }
 
+// ============================================================================
+// Promise-based async wrappers for Meteor 3 compatibility
+// These replace Meteor.wrapAsync which was removed in Meteor 3
+// ============================================================================
+
+const connectToNodeAsync = (endpoint) => {
+  return new Promise((resolve, reject) => {
+    connectToNode(endpoint, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const checkNetworkHealthAsync = (userNetwork) => {
+  return new Promise((resolve, reject) => {
+    checkNetworkHealth(userNetwork, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getStatsAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getStats(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getKnownPeersAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getKnownPeers(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getHeightAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getHeight(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getObjectAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getObject(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getAddressStateAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getAddressState(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getFullAddressStateAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getFullAddressState(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getMultiSigAddressStateAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getMultiSigAddressState(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getTransactionsByAddressAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getTransactionsByAddress(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getTokensByAddressAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getTokensByAddress(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getMultiSigAddressesByAddressAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getMultiSigAddressesByAddress(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getMultiSigSpendTxsByAddressAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getMultiSigSpendTxsByAddress(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getOTSAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getOTS(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const getTxnHashAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    getTxnHash(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const transferCoinsAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    transferCoins(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const createMultiSigAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    createMultiSig(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const spendMultiSigAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    spendMultiSig(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const voteMultiSigAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    voteMultiSig(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmTransactionAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmTransaction(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmMultiSigCreateAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmMultiSigCreate(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmMultiSigSpendAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmMultiSigSpend(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmMultiSigVoteAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmMultiSigVote(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const createTokenTxnAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    createTokenTxn(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmTokenCreationAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmTokenCreation(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const createMessageTxnAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    createMessageTxn(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmMessageCreationAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmMessageCreation(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const createKeybaseTxnAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    createKeybaseTxn(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmKeybaseCreationAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmKeybaseCreation(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const createGithubTxnAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    createGithubTxn(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmGithubCreationAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmGithubCreation(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const createTokenTransferTxnAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    createTokenTransferTxn(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const confirmTokenTransferAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    confirmTokenTransfer(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const apiCallAsync = (apiUrl) => {
+  return new Promise((resolve, reject) => {
+    apiCall(apiUrl, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerGetStateAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    ledgerGetState(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerPublicKeyAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    ledgerPublicKey(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerAppVersionAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    ledgerAppVersion(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerLibraryVersionAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    ledgerLibraryVersion(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerVerifyAddressAsync = (request) => {
+  return new Promise((resolve, reject) => {
+    ledgerVerifyAddress(request, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerCreateTxAsync = (sourceAddr, fee, destAddr, destAmount) => {
+  return new Promise((resolve, reject) => {
+    ledgerCreateTx(sourceAddr, fee, destAddr, destAmount, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerRetrieveSignatureAsync = (txn) => {
+  return new Promise((resolve, reject) => {
+    ledgerRetrieveSignature(txn, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerSetIdxAsync = (otsKey) => {
+  return new Promise((resolve, reject) => {
+    ledgerSetIdx(otsKey, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+const ledgerCreateMessageTxAsync = (sourceAddr, fee, message) => {
+  return new Promise((resolve, reject) => {
+    ledgerCreateMessageTx(sourceAddr, fee, message, (err, res) => {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
 // Ledger Nano S Integration for Electron Desktop Apps
 
-let transport = null
+const LEDGER_USB_OPEN_PATH_ERROR = 'cannot open device with path'
 
-async function createTransport() {
-  transport = await TransportNodeHid.create(10)
-  const qrl = await new Qrl(transport)
-  return qrl
+const normalizeLedgerErrorMessage = (error) => {
+  if (!error) {
+    return 'Unknown Ledger error'
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  if (typeof error.details === 'string' && error.details.trim() !== '') {
+    return error.details
+  }
+  if (typeof error.message === 'string' && error.message.trim() !== '') {
+    return error.message
+  }
+  try {
+    return JSON.stringify(error)
+  } catch (stringifyError) {
+    return String(error)
+  }
+}
+
+const isLedgerUsbOpenPathError = (error) => {
+  const errorMessage = normalizeLedgerErrorMessage(error).toLowerCase()
+  return errorMessage.includes(LEDGER_USB_OPEN_PATH_ERROR)
+}
+
+const createLedgerMethodError = (methodName, error) => {
+  const rawMessage = normalizeLedgerErrorMessage(error)
+  const needsUsbReset = isLedgerUsbOpenPathError(error)
+  const recoveryHint = needsUsbReset
+    ? ' Ledger USB transport appears stale. Unplug and reinsert the device, unlock it, open the QRL app, and retry.'
+    : ''
+  return new Meteor.Error(
+    'ledger-device-error',
+    `${methodName} failed: ${rawMessage}${recoveryHint}`,
+    JSON.stringify({
+      method: methodName,
+      rawMessage,
+      needsUsbReset,
+      statusCode: error && error.statusCode ? error.statusCode : null,
+    })
+  )
+}
+
+const withLedgerTransport = async (operationName, action, cb) => {
+  let localTransport = null
+  try {
+    localTransport = await TransportNodeHid.create(10)
+    const qrlLedger = new Qrl(localTransport)
+    const response = await action(qrlLedger)
+    cb(null, response)
+  } catch (error) {
+    console.log(`-- ${operationName} failed --`)
+    console.log(error)
+    cb(error, null)
+  } finally {
+    if (localTransport) {
+      try {
+        await localTransport.close()
+      } catch (closeError) {
+        console.log(`-- ${operationName} transport close failed --`)
+        console.log(closeError)
+      }
+    }
+  }
 }
 
 const ledgerGetState = async (request, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.get_state().then(async (data) => {
+  await withLedgerTransport('ledgerGetState', async (qrlLedger) => {
+    const data = await qrlLedger.get_state()
     console.log(data)
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+    return data
+  }, cb)
 }
+
 const ledgerPublicKey = async (request, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.publickey().then(async (data) => {
+  await withLedgerTransport('ledgerPublicKey', async (qrlLedger) => {
+    const data = await qrlLedger.publickey()
     console.log(data)
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+    return data
+  }, cb)
 }
+
 const ledgerAppVersion = async (request, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.get_version().then(async (data) => {
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+  await withLedgerTransport('ledgerAppVersion', async (qrlLedger) => {
+    const data = await qrlLedger.get_version()
+    return data
+  }, cb)
 }
+
 const ledgerLibraryVersion = async (request, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.library_version().then(async (data) => {
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+  await withLedgerTransport('ledgerLibraryVersion', async (qrlLedger) => {
+    const data = await qrlLedger.library_version()
+    return data
+  }, cb)
 }
+
 const ledgerVerifyAddress = async (request, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.viewAddress().then(async (data) => {
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+  await withLedgerTransport('ledgerVerifyAddress', async (qrlLedger) => {
+    const data = await qrlLedger.viewAddress()
+    return data
+  }, cb)
 }
+
 const ledgerCreateTx = async (sourceAddr, fee, destAddr, destAmount, cb) => {
   const sourceAddrBuffer = Buffer.from(sourceAddr)
   const feeBuffer = Buffer.from(fee)
@@ -2164,54 +2882,49 @@ const ledgerCreateTx = async (sourceAddr, fee, destAddr, destAmount, cb) => {
     destAmountFinal.push(Buffer.from(destAmount[i]))
   }
 
-  const QrlLedger = await createTransport()
-  await QrlLedger.createTx(
-    sourceAddrBuffer,
-    feeBuffer,
-    destAddrFinal,
-    destAmountFinal
-  ).then(async (data) => {
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+  await withLedgerTransport('ledgerCreateTx', async (qrlLedger) => {
+    const data = await qrlLedger.createTx(
+      sourceAddrBuffer,
+      feeBuffer,
+      destAddrFinal,
+      destAmountFinal
+    )
+    return data
+  }, cb)
 }
+
 const ledgerRetrieveSignature = async (txn, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.retrieveSignature(txn).then(async (data) => {
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+  await withLedgerTransport('ledgerRetrieveSignature', async (qrlLedger) => {
+    const data = await qrlLedger.retrieveSignature(txn)
+    return data
+  }, cb)
 }
+
 const ledgerSetIdx = async (otsKey, cb) => {
-  const QrlLedger = await createTransport()
-  await QrlLedger.setIdx(otsKey).then(async (idxResponse) => {
-    await transport.close().then(() => {
-      cb(null, idxResponse)
-    })
-  })
+  await withLedgerTransport('ledgerSetIdx', async (qrlLedger) => {
+    const idxResponse = await qrlLedger.setIdx(otsKey)
+    return idxResponse
+  }, cb)
 }
+
 const ledgerCreateMessageTx = async (sourceAddr, fee, message, cb) => {
   const sourceAddrBuffer = Buffer.from(sourceAddr)
   const feeBuffer = Buffer.from(fee)
   const messageBuffer = Buffer.from(message)
 
-  const QrlLedger = await createTransport()
-  await QrlLedger.createMessageTx(
-    sourceAddrBuffer,
-    feeBuffer,
-    messageBuffer
-  ).then(async (data) => {
-    await transport.close().then(() => {
-      cb(null, data)
-    })
-  })
+  await withLedgerTransport('ledgerCreateMessageTx', async (qrlLedger) => {
+    const data = await qrlLedger.createMessageTx(
+      sourceAddrBuffer,
+      feeBuffer,
+      messageBuffer
+    )
+    return data
+  }, cb)
 }
 
 // Define Meteor Methods
 Meteor.methods({
-  connectToNode(request) {
+  async connectToNode(request) {
     let { allowCustomNodes } = Meteor.settings
     if (allowCustomNodes !== true) {
       allowCustomNodes = false
@@ -2219,98 +2932,100 @@ Meteor.methods({
     if (!allowCustomNodes) {
       throw new Meteor.Error(403, 'Custom node connections are disabled')
     }
-    this.unblock()
     check(request, String)
-    const response = Meteor.wrapAsync(connectToNode)(request)
+    if (lockCustomEndpoints) {
+      // Build allowlist of gRPC endpoints from pre-configured networks
+      const allowedEndpoints = new Set()
+      for (const network of DEFAULT_NETWORKS) {
+        for (const node of (network.nodes || [])) {
+          if (node.grpc) allowedEndpoints.add(node.grpc)
+        }
+      }
+      if (!allowedEndpoints.has(request)) {
+        throw new Meteor.Error(403, 'Custom gRPC endpoints are disabled (lockCustomEndpoints is enabled)')
+      }
+    }
+    const response = await connectToNodeAsync(request)
     return response
   },
-  checkNetworkHealth(request) {
-    this.unblock()
+  async checkNetworkHealth(request) {
     check(request, String)
-    const response = Meteor.wrapAsync(checkNetworkHealth)(request)
+    try {
+      const response = await checkNetworkHealthAsync(request)
+      return response
+    } catch (err) {
+      const msg = (err && err.error) || 'Network unhealthy'
+      throw new Meteor.Error('network-unhealthy', msg)
+    }
+  },
+  async status(request) {
+    check(request, Object)
+    const response = await getStatsAsync(request)
     return response
   },
-  status(request) {
-    this.unblock()
+  async getPeers(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(getStats)(request)
+    const response = await getKnownPeersAsync(request)
     return response
   },
-  getPeers(request) {
-    this.unblock()
+  async getHeight(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(getKnownPeers)(request)
+    const response = await getHeightAsync(request)
     return response
   },
-  getHeight(request) {
-    this.unblock()
+  async getObject(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(getHeight)(request)
+    const response = await getObjectAsync(request)
     return response
   },
-  getObject(request) {
+  async getAddressState(request) {
     check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getObject)(request)
+    const response = await getAddressStateAsync(request)
     return response
   },
-  getAddressState(request) {
-    this.unblock()
+  async getFullAddressState(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(getAddressState)(request)
+    const response = await getFullAddressStateAsync(request)
     return response
   },
-  getFullAddressState(request) {
+  async getMultiSigAddressState(request) {
     check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getFullAddressState)(request)
+    const response = await getMultiSigAddressStateAsync(request)
     return response
   },
-  getMultiSigAddressState(request) {
-    this.unblock()
+  async getTransactionsByAddress(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(getMultiSigAddressState)(request)
-    return response
-  },
-  getTransactionsByAddress(request) {
-    check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getTransactionsByAddress)(request)
+    const response = await getTransactionsByAddressAsync(request)
     return helpersaddressTransactions(response)
   },
-  getTokensByAddress(request) {
+  async getTokensByAddress(request) {
     check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getTokensByAddress)(request)
+    const response = await getTokensByAddressAsync(request)
     return response
   },
-  getMultiSigAddressesByAddress(request) {
+  async getMultiSigAddressesByAddress(request) {
     check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getMultiSigAddressesByAddress)(request)
+    const response = await getMultiSigAddressesByAddressAsync(request)
     console.table(response)
     return response
   },
-  getMultiSigSpendTxsByAddress(request) {
+  async getMultiSigSpendTxsByAddress(request) {
     check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getMultiSigSpendTxsByAddress)(request)
+    const response = await getMultiSigSpendTxsByAddressAsync(request)
     console.table(response)
     return response
   },
-  getTxnHash(request) {
-    this.unblock()
+  async getTxnHash(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(getTxnHash)(request)
+    const response = await getTxnHashAsync(request)
     return response
   },
 
-  txhash(request) {
-    this.unblock()
+  async txhash(request) {
     check(request, Object)
     let output
     // asynchronous call to API
-    const response = Meteor.wrapAsync(getTxnHash)(request)
+    const response = await getTxnHashAsync(request)
     if (response.transaction.tx.transactionType === 'transfer_token') {
       // Request Token Decimals / Symbol
       const symbolRequest = {
@@ -2320,7 +3035,7 @@ Meteor.methods({
         network: request.network,
       }
 
-      const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
+      const thisSymbolResponse = await getTxnHashAsync(symbolRequest)
       output = helpers.parseTokenAndTransferTokenTx(
         thisSymbolResponse,
         response
@@ -2331,49 +3046,44 @@ Meteor.methods({
     return output
   },
 
-  transferCoins(request) {
-    this.unblock()
+  async transferCoins(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(transferCoins)(request)
+    const response = await transferCoinsAsync(request)
     return response
   },
-  createMultiSig(request) {
-    this.unblock()
+  async createMultiSig(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(createMultiSig)(request)
+    const response = await createMultiSigAsync(request)
     return response
   },
-  spendMultiSig(request) {
-    this.unblock()
+  async spendMultiSig(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(spendMultiSig)(request)
+    const response = await spendMultiSigAsync(request)
     return response
   },
-  voteMultiSig(request) {
-    this.unblock()
+  async voteMultiSig(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(voteMultiSig)(request)
+    const response = await voteMultiSigAsync(request)
     return response
   },
-  getOTS(request) {
+  async getOTS(request) {
     check(request, Object)
-    this.unblock()
-    const response = Meteor.wrapAsync(getOTS)(request)
+    const response = await getOTSAsync(request)
     return response
   },
-  addressTransactions(request) {
+  async addressTransactions(request) {
     check(request, Object)
     const targets = request.tx
     const result = []
 
-    targets.forEach((arr) => {
+    for (const arr of targets) {
       const thisRequest = {
         query: arr.txhash,
         network: request.network,
       }
 
       try {
-        const thisTxnHashResponse = Meteor.wrapAsync(getTxnHash)(thisRequest)
+        const thisTxnHashResponse = await getTxnHashAsync(thisRequest)
 
         const output = helpers.txhash(thisTxnHashResponse)
 
@@ -2429,7 +3139,7 @@ Meteor.methods({
             ),
             network: request.network,
           }
-          const thisSymbolResponse = Meteor.wrapAsync(getTxnHash)(symbolRequest)
+          const thisSymbolResponse = await getTxnHashAsync(symbolRequest)
           const helpersResponse = helpers.parseTokenAndTransferTokenTx(
             thisSymbolResponse,
             thisTxnHashResponse
@@ -2480,7 +3190,7 @@ Meteor.methods({
               output.transaction.tx.signature.substring(0, 8),
               16
             ),
-            fee: output.transaction.tx.fe,
+            fee: output.transaction.tx.fee / SHOR_PER_QUANTA,
             block: output.transaction.header.block_number,
             timestamp: output.transaction.header.timestamp_seconds,
           }
@@ -2544,138 +3254,141 @@ Meteor.methods({
           `Error fetching transaction hash in addressTransactions '${arr.txhash}' - ${err}`
         )
       }
-    })
+    }
 
     return result
   },
-  confirmTransaction(request) {
-    this.unblock()
+  async confirmTransaction(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmTransaction)(request)
+    const response = await confirmTransactionAsync(request)
     return response
   },
-  confirmMultiSigCreate(request) {
-    this.unblock()
+  async confirmMultiSigCreate(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmMultiSigCreate)(request)
+    const response = await confirmMultiSigCreateAsync(request)
     return response
   },
-  confirmMultiSigSpend(request) {
-    this.unblock()
+  async confirmMultiSigSpend(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmMultiSigSpend)(request)
+    const response = await confirmMultiSigSpendAsync(request)
     return response
   },
-  confirmMultiSigVote(request) {
-    this.unblock()
+  async confirmMultiSigVote(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmMultiSigVote)(request)
+    const response = await confirmMultiSigVoteAsync(request)
     return response
   },
-  createMessageTxn(request) {
-    this.unblock()
+  async createMessageTxn(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(createMessageTxn)(request)
+    const response = await createMessageTxnAsync(request)
     return response
   },
-  createKeybaseTxn(request) {
-    this.unblock()
+  async createKeybaseTxn(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(createKeybaseTxn)(request)
+    const response = await createKeybaseTxnAsync(request)
     return response
   },
-  createGithubTxn(request) {
-    this.unblock()
+  async createGithubTxn(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(createGithubTxn)(request)
+    const response = await createGithubTxnAsync(request)
     return response
   },
-  confirmMessageCreation(request) {
-    this.unblock()
+  async confirmMessageCreation(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmMessageCreation)(request)
+    const response = await confirmMessageCreationAsync(request)
     return response
   },
-  confirmKeybaseCreation(request) {
-    this.unblock()
+  async confirmKeybaseCreation(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmKeybaseCreation)(request)
+    const response = await confirmKeybaseCreationAsync(request)
     return response
   },
-  confirmGithubCreation(request) {
-    this.unblock()
+  async confirmGithubCreation(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmGithubCreation)(request)
+    const response = await confirmGithubCreationAsync(request)
     return response
   },
-  createTokenTxn(request) {
-    this.unblock()
+  async createTokenTxn(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(createTokenTxn)(request)
+    const response = await createTokenTxnAsync(request)
     return response
   },
-  confirmTokenCreation(request) {
-    this.unblock()
+  async confirmTokenCreation(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmTokenCreation)(request)
+    const response = await confirmTokenCreationAsync(request)
     return response
   },
-  createTokenTransferTxn(request) {
-    this.unblock()
+  async createTokenTransferTxn(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(createTokenTransferTxn)(request)
+    const response = await createTokenTransferTxnAsync(request)
     return response
   },
-  confirmTokenTransfer(request) {
-    this.unblock()
+  async confirmTokenTransfer(request) {
     check(request, Object)
-    const response = Meteor.wrapAsync(confirmTokenTransfer)(request)
+    const response = await confirmTokenTransferAsync(request)
     return response
   },
-  QRLvalue() {
-    this.unblock()
-    const apiUrl = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-qrl'
-    const apiUrlUSD = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=usdt-btc'
-    // asynchronous call to API
-    const response = Meteor.wrapAsync(apiCall)(apiUrl)
-    const responseUSD = Meteor.wrapAsync(apiCall)(apiUrlUSD)
-    const usd = response.result[0].Last * responseUSD.result[0].Last
-    return usd
+  async QRLvalue() {
+    const apiUrl = 'https://market-data.automated.theqrl.org/'
+    try {
+      const response = await apiCallAsync(apiUrl)
+      const price = Number(response && response.price)
+      if (!Number.isFinite(price) || price <= 0) {
+        return null
+      }
+      return price
+    } catch (error) {
+      return null
+    }
   },
-  ledgerGetState(request) {
-    this.unblock()
+  async ledgerGetState(request) {
     check(request, Array)
-    const response = Meteor.wrapAsync(ledgerGetState)(request)
-    console.log('res')
-    console.log(response)
-    return response
+    try {
+      const response = await ledgerGetStateAsync(request)
+      console.log('res')
+      console.log(response)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerGetState', error)
+    }
   },
-  ledgerPublicKey(request) {
-    this.unblock()
+  async ledgerPublicKey(request) {
     check(request, Array)
-    const response = Meteor.wrapAsync(ledgerPublicKey)(request)
-    return response
+    try {
+      const response = await ledgerPublicKeyAsync(request)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerPublicKey', error)
+    }
   },
-  ledgerAppVersion(request) {
-    this.unblock()
+  async ledgerAppVersion(request) {
     check(request, Array)
-    const response = Meteor.wrapAsync(ledgerAppVersion)(request)
-    return response
+    try {
+      const response = await ledgerAppVersionAsync(request)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerAppVersion', error)
+    }
   },
-  ledgerLibraryVersion(request) {
-    this.unblock()
+  async ledgerLibraryVersion(request) {
     check(request, Array)
-    const response = Meteor.wrapAsync(ledgerLibraryVersion)(request)
-    return response
+    try {
+      const response = await ledgerLibraryVersionAsync(request)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerLibraryVersion', error)
+    }
   },
-  ledgerVerifyAddress(request) {
-    this.unblock()
+  async ledgerVerifyAddress(request) {
     check(request, Array)
-    const response = Meteor.wrapAsync(ledgerVerifyAddress)(request)
-    return response
+    try {
+      const response = await ledgerVerifyAddressAsync(request)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerVerifyAddress', error)
+    }
   },
-  ledgerCreateTx(sourceAddr, fee, destAddr, destAmount) {
-    this.unblock()
+  async ledgerCreateTx(sourceAddr, fee, destAddr, destAmount) {
     check(sourceAddr, Match.Any)
     check(fee, Match.Any)
     check(destAddr, Match.Any)
@@ -2692,37 +3405,50 @@ Meteor.methods({
       destAmount
     )
 
-    const response = Meteor.wrapAsync(ledgerCreateTx)(
-      sourceAddr,
-      fee,
-      destAddr,
-      destAmount
-    )
-    return response
+    try {
+      const response = await ledgerCreateTxAsync(
+        sourceAddr,
+        fee,
+        destAddr,
+        destAmount
+      )
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerCreateTx', error)
+    }
   },
-  ledgerCreateMessageTx(sourceAddr, fee, message) {
-    this.unblock()
+  async ledgerCreateMessageTx(sourceAddr, fee, message) {
     check(sourceAddr, Match.Any)
     check(fee, Match.Any)
     check(message, Match.Any)
-    const response = Meteor.wrapAsync(ledgerCreateMessageTx)(
-      sourceAddr,
-      fee,
-      message
-    )
-    return response
+    try {
+      const response = await ledgerCreateMessageTxAsync(
+        sourceAddr,
+        fee,
+        message
+      )
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerCreateMessageTx', error)
+    }
   },
-  ledgerRetrieveSignature(request) {
-    this.unblock()
+  async ledgerRetrieveSignature(request) {
     check(request, Match.Any)
-    const response = Meteor.wrapAsync(ledgerRetrieveSignature)(request)
-    return response
+    try {
+      const response = await ledgerRetrieveSignatureAsync(request)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerRetrieveSignature', error)
+    }
   },
-  ledgerSetIdx(request) {
-    this.unblock()
+  async ledgerSetIdx(request) {
     check(request, Match.Any)
-    const response = Meteor.wrapAsync(ledgerSetIdx)(request)
-    return response
+    try {
+      const response = await ledgerSetIdxAsync(request)
+      return response
+    } catch (error) {
+      throw createLedgerMethodError('ledgerSetIdx', error)
+    }
   },
 })
 

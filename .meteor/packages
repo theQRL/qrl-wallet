@@ -4,32 +4,26 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-meteor-base@1.5.1             # Packages every Meteor app needs to have
-mobile-experience@1.1.0       # Packages for a great mobile UX
+meteor-base@1.5.2             # Packages every Meteor app needs to have
+mobile-experience@1.1.2       # Packages for a great mobile UX
 blaze-html-templates    # Compile .html files into Meteor Blaze views
-tracker@1.2.0                 # Meteor's client-side reactive programming library
-standard-minifier-js@2.8.0    # JS minifier run for production mode
-es5-shim@4.8.0                # ECMAScript 5 compatibility for older browsers
-ecmascript@0.16.2              # Enable ECMAScript2015+ syntax in app code
+tracker@1.3.4                 # Meteor's client-side reactive programming library
+standard-minifier-js@3.2.0    # JS minifier run for production mode
+es5-shim@4.8.1                # ECMAScript 5 compatibility for older browsers
+ecmascript@0.17.0              # Enable ECMAScript2015+ syntax in app code
 
-kadira:flow-router      # FlowRouter is a very simple router for Meteor
-kadira:blaze-layout     # Layout manager for blaze (works well with FlowRouter)
-
+ostrio:flow-router-extra  # FlowRouter with Blaze layout support (Meteor 3 compatible)
 
 johanbrook:publication-collector  # Test a Meteor publication by collecting its output
-http
-session@1.2.0
-check@1.3.1
-jayuda:flx-qrcode
+fetch@0.1.6                   # Replaces deprecated http package
+session@1.2.2
+check@1.5.0
 momentjs:moment
-audit-argument-checks@1.0.7
-force-ssl@1.1.0
-semantic:ui
-semantic:ui-data
-juliancwirko:postcss
-less@2.8.0
-jquery@1.11.10
-qrl:browser-policy
-steeve:jquery-qrcode
-underscore@1.0.10
+audit-argument-checks
+force-ssl
+jquery
+underscore
 frozeman:storage
+browser-policy
+pwix:blaze-layout
+steeve:jquery-qrcode

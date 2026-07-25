@@ -8,6 +8,7 @@
 
 // import { QRLLIB } from 'qrllib/build/web-libjsqrl.js' // eslint-disable-line
 import { QRLLIBmodule } from 'qrllib/build/offline-libjsqrl' // eslint-disable-line
+import '../../ui/lib/ui-interactions'
 import './routes.js'
 import './functions.js'
 

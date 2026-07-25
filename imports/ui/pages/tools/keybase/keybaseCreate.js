@@ -1,3 +1,4 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
@@ -25,9 +26,9 @@ function createKeybaseTxn() {
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     if (getXMSSDetails().walletType === 'ledger') {
-      $('#ledgerOtsKeyReuseDetected').modal('show')
+      window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
     } else {
-      $('#otsKeyReuseDetected').modal('show')
+      window.walletUi.showModal('#otsKeyReuseDetected')
     }
     return
   }
@@ -79,7 +80,7 @@ function createKeybaseTxn() {
         const path = FlowRouter.path('/tools/keybase/confirm', params)
         FlowRouter.go(path)
       } else {
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -155,14 +156,14 @@ function initialiseFormValidation() {
   }
 
   // Initliase the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
   })
 }
 
 Template.appKeybaseCreate.onRendered(() => {
   // Initialise dropdowns
-  $('.ui.dropdown').dropdown()
+  window.walletUi.initDropdowns('select')
 
   // Initialise Form Validation
   initialiseFormValidation()
@@ -172,7 +173,7 @@ Template.appKeybaseCreate.onRendered(() => {
     // Show warning is otsKeysRemaining is low
     if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
-      $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+      window.walletUi.showModal('#lowOtsKeyWarning')
     }
   })
 })

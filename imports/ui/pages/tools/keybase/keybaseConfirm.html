@@ -1,92 +1,95 @@
 <template name="appKeybaseConfirm">
 
-<div class="small ui modal" id="ledgerConfirmationModal">
-  <div class="header">Send Keybase Transaction?</div>
-  <div class="content">
-    <div class="ui stackable grid">
-      <div class="four wide column">
-        <img class="svg" src="/img/ledger-nano.svg" />
-      </div>
-      <div class="twelve wide column">
-        <div class="description pl-10">
-          <p>Your transaction requires confirmation on your Ledger Nano S device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
-          <div class="ui container">
-            <table class="ui stackable table">
-              <tr>
-                <td>
-                  <div class="ui label fw">FROM</div>
-                </td>
-                <td class="no-wrap">{{transferFrom.address}}</td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="ui label fw">MESSAGE</div>
-                </td>
-                <td class="no-wrap">
-                  {{ledgerVerificationMessage}}
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="ui label fw">FEE</div>
-                </td>
-                <td class="no-wrap">{{messageCreationConfirmation.fee}} Quanta</td>
-              </tr>
-            </table>
+<dialog class="modal ledger-signing-modal" id="ledgerConfirmationModal">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">Send Keybase Transaction?</div>
+      <div class="">
+        <div class="grid gap-4">
+          <div class="">
+            <img class="svg" src="/img/ledger-nano.svg" />
+          </div>
+          <div class="">
+            <div class="description pl-10">
+              <p>Your transaction requires confirmation on your Ledger device. Check the details on the Ledger match those displayed below then click the sign option on your device:</p>
+              <div class="container">
+                <table class="table table-zebra w-full">
+                  <tr>
+                    <td>
+                      <div class="badge badge-outline fw">FROM</div>
+                    </td>
+                    <td class="no-wrap">{{transferFrom.address}}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="badge badge-outline fw">MESSAGE</div>
+                    </td>
+                    <td class="no-wrap">
+                      {{ledgerVerificationMessage}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="badge badge-outline fw">FEE</div>
+                    </td>
+                    <td class="no-wrap">{{messageCreationConfirmation.fee}} Quanta</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <div class="modal-action">
+        <div id="awaitingLedgerConfirmation" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content">
+          <h3>Awaiting confirmation on Ledger device
+            <div class="loading loading-spinner inline-block"></div>
+          </h3>
+        </div>
+
+        <div id="signOnLedgerRejected" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content" style="display: none;">
+          <h3>The Transaction has been rejected on Ledger device</h3>
+          <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
+        </div>
+
+        <div id="signOnLedgerTimeout" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content" style="display: none;">
+          <h3>Timed out waiting for response from Ledger device. To save an OTS Key, you should reject the transaction on your Ledger device and try again.</h3>
+        </div>
+
+        <div id="signOnLedgerError" class="rounded-xl border border-base-300 bg-base-100 p-4 bg-neutral text-neutral-content" style="display: none;">
+          <h3>Error communicating with Ledger device. To save an OTS Key, you should reject the transaction on your Ledger device and try again.</h3>
+        </div>
+
+        <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <span class="text-success">✔</span></p>
+
+        <button type="button" class="btn btn-success confirm" id="relayLedgerTxnButton" style="display:none;">Send transaction</button>
+        <button type="button" class="btn btn-error">Cancel</button>
+      </div>
   </div>
-  <div class="actions">
-    <div id="awaitingLedgerConfirmation" class="ui inverted segment">
-      <h3>Awaiting confirmation on Ledger device
-        <div class="ui active inline loader"></div>
-      </h3>
-    </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-    <div id="signOnLedgerRejected" class="ui inverted segment" style="display: none;">
-      <h3>The Transaction has been rejected on Ledger device</h3>
-      <h3 id="noRemainingSignatures" style="display: none;">There are no remaining signatures to sign a transaction with!</h3>
-    </div>
-
-    <div id="signOnLedgerTimeout" class="ui inverted segment" style="display: none;">
-      <h3>Timed out waiting for response from Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
-    </div>
-
-    <div id="signOnLedgerError" class="ui inverted segment" style="display: none;">
-      <h3>Error communicating with Ledger Nano. To save an OTS Key, you should reject the transaction on your Ledger and try again.</h3>
-    </div>
-
-    <p id="ledgerHasConfirmed" style="display:none;">Transaction signed on Ledger <i class="ui check icon"></i></p>
-
-    <div class="ui positive confirm button" id="relayLedgerTxnButton" style="display:none;">Send transaction</div>
-    <div class="ui negative button">Cancel</div>
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <img src="/img/keybase-w.svg" class="h-6 w-6" alt="Keybase">
   </div>
+  <h1 class="text-2xl font-bold text-base-content">Keybase Confirmation</h1>
 </div>
 
-<h2 class="ui header pageHeader">
-  <i class="icon"><img src="/img/keybase-w.svg"></i>
-  <div class="content">
-    Keybase Confirmation
-  </div>
-</h2>
+<div id="messageCreationConfirmation" class="card-gradient p-4 pageSegment">
 
-<div id="messageCreationConfirmation" class="ui red segment pageSegment">
-
-  <h4 class="ui horizontal divider header">
-    <i class="icon"><img src="/img/keybase.svg"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class=""><img src="/img/keybase.svg"></i>
     Your Keybase operation
   </h4>
 
-  <div class="ui items">
-    <div class="item">
-      <div class="content">
-        <div class="header">Keybase action</div>
-        <div class="description"><p><div class="ui label">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
-        <div class="header">Keybase username</div>
+  <div class="">
+    <div class="">
+      <div class="">
+        <div class="text-lg font-semibold">Keybase action</div>
+        <div class="description"><p><div class="badge badge-outline">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
+        <div class="text-lg font-semibold">Keybase username</div>
         <div class="description"><p>{{keybaseOperation.keybaseId}}</p><p>&nbsp;</p></div>
-        <div class="header">Keybase signature</div>
+        <div class="text-lg font-semibold">Keybase signature</div>
         <div class="description"><p>{{keybaseOperation.sigHash}}</p><p>&nbsp;</p></div>
       </div>
     </div>
@@ -94,37 +97,42 @@
 
   {{#if isLedgerWallet}}
   <br />
-  <h4 class="ui horizontal divider header">
-    <i class="envelope icon"></i>
-    Message as displayed on your Ledger Nano for verification
+  <h4 class="text-lg font-semibold divider">
+    <i class="envelope"></i>
+    Message as displayed on your Ledger device for verification
   </h4>
-  <div class="ui items">
-    <div class="item">
-      <div class="content">
+  <div class="">
+    <div class="">
+      <div class="">
         <p style="word-wrap: break-word; word-break: break-all;">{{ledgerVerificationMessage}}</p>
       </div>
     </div>
   </div>
   {{/if}}
 
-  <h4 class="ui horizontal divider header">
-    <i class="file icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="file"></i>
     Transaction Details
   </h4>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
-      <span>From <a class="ui" style="overflow-wrap: break-word;">{{transferFrom.address}}</a></span>
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
+      <span>From <a class="wordBreak">{{transferFrom.address}}</a></span>
       <br />
-      <span>Fee <a class="ui">{{messageCreationConfirmation.fee}}</a></span>
+      <span>Fee <a class="">{{messageCreationConfirmation.fee}}</a></span>
       <br />
-      <span>OTS Key Index <a class="ui">{{messageCreationConfirmation.otsKey}}</a></span>
+      <span>OTS Key Index <a class="">{{messageCreationConfirmation.otsKey}}</a></span>
     </div>
   </div>
 
-  <div class="ui stackable two column grid">
-    <div class="column center aligned">
-      <button id="confirmMessage" class="ui huge primary button red">
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="text-center">
+      <button id="confirmMessage" class="btn btn-md btn-success gap-2">
+        {{#if isSeedWallet}}
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        {{/if}}
         {{#if isSeedWallet}}
           Confirm Keybase Details
         {{else}}
@@ -132,16 +140,16 @@
         {{/if}}
       </button>
     </div>
-    <div class="column center aligned">
-      <button id="cancelMessage" class="ui huge red button plain">Cancel Message</button>
+    <div class="text-center">
+      <button id="cancelMessage" class="btn btn-md btn-outline">Cancel Message</button>
     </div>
   </div>
 
-  <div id="relaying" class="ui icon message" style="display: none;">
+  <div id="relaying" class="alert gap-3" style="display: none;">
     <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div class="header">
+    <span class="loading loading-spinner loading-md"></span>
+    <div class="">
+      <div class="text-lg font-semibold">
         Just a moment
       </div>
       <p id="tokenRelayingMsg">Your message is being relayed into the QRL network...</p>
@@ -150,7 +158,7 @@
 
 </div>
 
-<div id="transactionFailed" class="ui red segment pageSegment" style="display: none;">
+<div id="transactionFailed" class="card-gradient p-4 pageSegment" style="display: none;">
   <h4>Transaction Failed</h4>
   <p style="overflow-wrap: break-word">
     Error! Your message has failed to relay into the QRL network.<br /><br />

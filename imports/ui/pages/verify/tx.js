@@ -1,3 +1,4 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
@@ -5,55 +6,122 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import JSONFormatter from 'json-formatter-js'
 import './tx.html'
 
-Template.appVerifyTxid.onRendered(() => {
-  this.$('.value').popup()
+const TX_ID_HEX_REGEX = /^[a-f0-9]{64}$/i
+const PUBLIC_EXPLORER_TX_BASE_URL = 'https://explorer.theqrl.org/tx/'
 
-  Session.set('txhash', {})
-  Session.set('qrlValue', {})
+const resolveUsdAmount = () => {
+  const txhash = Session.get('txhash')
+  const qrlPrice = Number(Session.get('qrlValue'))
+
+  if (!txhash || !txhash.transaction || !txhash.transaction.tx || !Number.isFinite(qrlPrice) || qrlPrice <= 0) {
+    return null
+  }
+
+  const txAmount = Number(txhash.transaction.tx.amount)
+  if (!Number.isFinite(txAmount)) {
+    return null
+  }
+
+  const usdAmount = qrlPrice * txAmount
+  if (!Number.isFinite(usdAmount)) {
+    return null
+  }
+
+  return usdAmount.toFixed(2)
+}
+
+Template.appVerifyTxid.onRendered(() => {
+  Session.set('txhash', { loading: true })
+  Session.set('qrlValue', null)
   Session.set('status', {})
 
-  const thisTxId = FlowRouter.getParam('txId')
+  const thisTxId = (FlowRouter.getParam('txId') || '').trim()
   const request = {
     query: thisTxId,
     network: selectedNetwork(),
   }
 
-  if (thisTxId && thisTxId.length === 64) {
-    wrapMeteorCall('txhash', request, (err, res) => {
-      if (err) {
-        console.log(err)
-        Session.set('txhash', { error: err.message, id: thisTxId })
-      } else {
-        Session.set('txhash', res)
-      }
+  if (!TX_ID_HEX_REGEX.test(thisTxId)) {
+    Session.set('txhash', {
+      found: false,
+      loading: false,
+      id: thisTxId,
+      error: 'Invalid transaction ID. Please enter a 64-character hexadecimal hash.',
     })
-
-    Meteor.call('QRLvalue', (err, res) => {
-      if (err) {
-        Session.set('qrlValue', 'Error getting value from API')
-      } else {
-        Session.set('qrlValue', res)
-      }
-    })
-
-    wrapMeteorCall('status', { network: request.network }, (err, res) => {
-      if (err) {
-        Session.set('status', { error: err })
-      } else {
-        Session.set('status', res)
-      }
-    })
+    return
   }
-  if (thisTxId.length !== 64) {
-    Session.set('txhash', { error: 'Invalif txhash', id: thisTxId })
-  }
+
+  wrapMeteorCall('txhash', request, (err, res) => {
+    if (err) {
+      console.log(err)
+      Session.set('txhash', {
+        found: false,
+        loading: false,
+        id: thisTxId,
+        error: err.message || 'Unable to verify this transaction right now.',
+      })
+      return
+    }
+
+    if (!res || typeof res !== 'object') {
+      Session.set('txhash', {
+        found: false,
+        loading: false,
+        id: thisTxId,
+        error: 'Unable to verify this transaction right now.',
+      })
+      return
+    }
+
+    Session.set('txhash', { ...res, loading: false, id: thisTxId })
+  })
+
+  Meteor.call('QRLvalue', (err, res) => {
+    if (err) {
+      Session.set('qrlValue', null)
+      return
+    }
+
+    const price = Number(res)
+    Session.set('qrlValue', Number.isFinite(price) && price > 0 ? price : null)
+  })
+
+  wrapMeteorCall('status', { network: request.network }, (err, res) => {
+    if (err) {
+      Session.set('status', { error: err })
+    } else {
+      Session.set('status', res)
+    }
+  })
 })
 
 
 Template.appVerifyTxid.helpers({
+  isLoading() {
+    const txhash = Session.get('txhash') || {}
+    return txhash.loading === true
+  },
+  hasError() {
+    const txhash = Session.get('txhash') || {}
+    return Boolean(txhash.error)
+  },
+  error() {
+    const txhash = Session.get('txhash') || {}
+    return txhash.error
+  },
+  id() {
+    const txhash = Session.get('txhash') || {}
+    return txhash.id || (FlowRouter.getParam('txId') || '')
+  },
+  explorerTransactionUrl() {
+    const txId = (FlowRouter.getParam('txId') || '').trim()
+    if (!TX_ID_HEX_REGEX.test(txId)) {
+      return null
+    }
+    return `${PUBLIC_EXPLORER_TX_BASE_URL}${txId}`
+  },
   hasMessage() {
     try {
       if (this.tx.transfer.message_data.length > 0) {
@@ -82,7 +150,8 @@ Template.appVerifyTxid.helpers({
     return false
   },
   notFound() {
-    if (Session.get('txhash').found === false) {
+    const txhash = Session.get('txhash') || {}
+    if (txhash.found === false && !txhash.error) {
       return true
     }
     return false
@@ -90,17 +159,11 @@ Template.appVerifyTxid.helpers({
   header() {
     return Session.get('txhash').transaction.header
   },
-  qrl() {
-    const txhash = Session.get('txhash')
-    try {
-      const value = txhash.transaction.tx.amount
-      const x = Session.get('qrlValue')
-      const y = Math.round((x * value) * 100) / 100
-      if (y !== 0) { return y }
-    } catch (e) {
-      return '...'
-    }
-    return '...'
+  hasUsdAmount() {
+    return Boolean(resolveUsdAmount())
+  },
+  usdAmount() {
+    return resolveUsdAmount()
   },
   amount() {
     try {
@@ -143,17 +206,45 @@ Template.appVerifyTxid.helpers({
   color() {
     try {
       if (this.tx.transactionType === 'coinbase') {
-        return 'teal'
+        return 'badge-info'
       }
       if (this.tx.transactionType === 'stake') {
-        return 'red'
+        return 'badge-error'
       }
       if (this.tx.transactionType === 'transfer') {
-        return 'yellow'
+        return 'badge-warning'
       }
-      return 'sky'
+      return 'badge-primary'
     } catch (e) {
       return false
+    }
+  },
+  badgeClass() {
+    try {
+      if (this.explorer.type === 'TRANSFER') return 'badge-pill-transfer'
+      if (this.explorer.type === 'TRANSFER TOKEN') return 'badge-pill-token'
+      if (this.explorer.type === 'CREATE TOKEN') return 'badge-pill-token'
+      if (this.explorer.type === 'COINBASE') return 'badge-pill-coinbase'
+      if (this.explorer.type === 'MESSAGE' || this.explorer.type === 'DOCUMENT_NOTARISATION') return 'badge-pill-message'
+      if (this.explorer.type === 'SLAVE') return 'badge-pill-slave'
+      if (this.explorer.type === 'LATTICE PK') return 'badge-pill-lattice'
+      return 'badge-pill-multisig'
+    } catch (e) {
+      return 'badge-pill-transfer'
+    }
+  },
+  borderClass() {
+    try {
+      if (this.explorer.type === 'TRANSFER') return 'border-type-transfer'
+      if (this.explorer.type === 'TRANSFER TOKEN') return 'border-type-token'
+      if (this.explorer.type === 'CREATE TOKEN') return 'border-type-token'
+      if (this.explorer.type === 'COINBASE') return 'border-type-coinbase'
+      if (this.explorer.type === 'MESSAGE' || this.explorer.type === 'DOCUMENT_NOTARISATION') return 'border-type-message'
+      if (this.explorer.type === 'SLAVE') return 'border-type-slave'
+      if (this.explorer.type === 'LATTICE PK') return 'border-type-lattice'
+      return 'border-type-multisig'
+    } catch (e) {
+      return 'border-type-transfer'
     }
   },
   isToken() {
@@ -261,19 +352,5 @@ Template.appVerifyTxid.helpers({
       return output
     }
     return false
-  },
-})
-
-Template.appVerifyTxid.events({
-  'click .close': () => {
-    $('.message').hide()
-  },
-  'click .jsonclick': () => {
-    if (!($('.json').html())) {
-      const myJSON = Session.get('txhash').transaction
-      const formatter = new JSONFormatter(myJSON)
-      $('.json').html(formatter.render())
-    }
-    $('.jsonbox').toggle()
   },
 })

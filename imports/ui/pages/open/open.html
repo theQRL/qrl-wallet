@@ -1,151 +1,260 @@
 <template name="appAddressOpen">
 
-<h4 id="viewWallet" class="ui header pageHeader">
-  <i class="tiny unlock icon"></i>
-  <div class="content">
-    Open Wallet
+<!-- Page Header -->
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+    </svg>
   </div>
-</h4>
+  <h1 class="text-2xl font-bold text-base-content">Open Wallet</h1>
+</div>
 
-<div class="ui segment pageSegment">
-  <div class="ui bottom attached segment active">
-    <div class="ui form">
-      <div class="field">
-        <label>Wallet Seed / File</label>
-        <div class="ui action center aligned input"  id="addressFields" style="margin-bottom: 20px;">
-          <button id="eye" class="ui grey icon button">
-              <i class="eye icon" id="eyeicon"></i>
-            </button>
-          <input type="file" id="walletFile" accept="text/json" name="walletFile[]" style="width: 50%"/>
-          <input type="password" id="walletCode" name="walletCode" autocomplete="off" style="width: 50%;display: none;" />
-
-          <select id="walletType" class="ui compact selection dropdown" style="width: 160px !important;">
-            <option value="file">Wallet File</option>
-            <option value="mnemonic">Mnemonic Phrase</option>
-            <option value="hexseed">Hexseed</option>
-            {{#if isNotWindowsNotElectron}}<option value="ledgernano">Ledger Nano</option>{{/if}}
-          </select>
+<!-- Main Card -->
+<div class="card-gradient">
+  <div class="card-body">
+    <div class="space-y-6">
+      <!-- Wallet Type & Input -->
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">Wallet type</legend>
+        <div id="walletTypeTabs" class="tabs tabs-boxed w-full bg-base-200/70 p-1 mb-3">
+          <button type="button" class="tab flex-1 wallet-type-tab" data-wallet-type="file">Wallet File</button>
+          <button type="button" class="tab flex-1 wallet-type-tab" data-wallet-type="mnemonic">Mnemonic Phrase</button>
+          <button type="button" class="tab flex-1 wallet-type-tab" data-wallet-type="hexseed">Hexseed</button>
+          {{#if isNotWindowsNotElectron}}
+          <button type="button" class="tab flex-1 wallet-type-tab" data-wallet-type="ledgernano">Ledger Nano</button>
+          {{/if}}
         </div>
-        {{#if isWindowsNotElectron}}<p>To use a Ledger Nano device on Windows, download the desktop wallet from https://theqrl.org</p>{{/if}}
-      </div>
+        <select id="walletType" class="hidden" aria-hidden="true" tabindex="-1">
+          <option value="file">Wallet File</option>
+          <option value="mnemonic">Mnemonic Phrase</option>
+          <option value="hexseed">Hexseed</option>
+          {{#if isNotWindowsNotElectron}}<option value="ledgernano">Ledger Nano</option>{{/if}}
+        </select>
+        <div id="addressFields" class="flex flex-wrap gap-2 items-center">
+          <!-- Toggle visibility button -->
+          <button id="eye" class="btn btn-square btn-ghost">
+            <svg id="eyeicon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
 
-      <div id="passphraseArea">
-        <div class="field">
-          <label>Passphrase (Optional for Secure Wallet Files)</label>
-          <div class="ui left icon input">
-            <input type="password" id="passphrase" >
-            <i class="lock icon"></i>
-          </div>
+          <!-- File input -->
+          <input type="file" id="walletFile" accept="text/json" name="walletFile[]" class="file-input flex-1 min-w-[200px] bg-base-100" />
+
+          <!-- Text input for mnemonic/hexseed (hidden by default) -->
+          <input type="password" id="walletCode" name="walletCode" autocomplete="off" class="input flex-1 min-w-[200px] bg-base-100 hidden" placeholder="Enter mnemonic or hexseed" />
         </div>
-        <p><i>This passphrase decrypts the sensitive information contained in your wallet file, including your address, hexseed and mnemonic phrase. Only enter a password if you've selected a secure wallet file.</i></p>
-        <br />
+        {{#if isWindowsNotElectron}}
+        <p class="text-sm text-base-content/70 mt-2">To use a Ledger Nano device on Windows, download the desktop wallet from https://theqrl.org</p>
+        {{/if}}
+      </fieldset>
+
+      <!-- Passphrase Area -->
+      <div id="passphraseArea" class="space-y-4">
+        <fieldset class="fieldset w-full">
+          <legend class="fieldset-legend">Passphrase (Optional for Secure Wallet Files)</legend>
+          <label class="input w-full flex items-center gap-2 bg-base-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <input type="password" id="passphrase" class="grow" placeholder="Enter passphrase" />
+          </label>
+        </fieldset>
+        <p class="text-sm text-base-content/70 italic">This passphrase decrypts the sensitive information contained in your wallet file, including your address, hexseed and mnemonic phrase. Only enter a password if you've selected a secure wallet file.</p>
       </div>
 
-      <div id="ledgerArea" style="display: none;">
-        <div id="ledgerRefreshButton" class="ui huge primary button red">Open Ledger Nano</div>
+      <!-- Ledger Area (hidden by default) -->
+      <div id="ledgerArea" class="hidden">
+        <p class="text-sm text-base-content/70 mb-3">Connect and unlock your Ledger device.</p>
+        <button id="ledgerRefreshButton" class="btn btn-primary btn-md gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+          </svg>
+          Open Ledger device
+        </button>
       </div>
 
-      <div id="unlockButton" class="ui huge primary button red">Unlock Wallet</div>
-    </div>
-  </div>
-
-  <div id="unlocking" style="display: none;">
-    <div class="ui icon message">
-      <i class="notched circle loading icon"></i>
-      <div class="content">
-        <div class="header">
-          Just a moment
-        </div>
-        <p>Unlocking wallet...</p>
-      </div>
-    </div>
-  </div>
-
-  <div id="readingLedger" style="display: none;">
-    <div class="ui icon message">
-      <i class="notched circle loading icon"></i>
-      <div class="content">
-        <div class="header">
-          Just a moment
-        </div>
-        <p>Reading from Ledger Device...</p>
-      </div>
-    </div>
-  </div>
-
-  <div id="unlockError" style="display: none;">
-    <div class="ui red segment">
-      <h4>Error!</h4>
-      <p>There was an error unlocking the wallet. Please refresh this page and try again.</p>
-    </div>
-  </div>
-
-  <div id="noWalletFileSelected" style="display: none;">
-    <div class="ui red segment">
-      <h4>Error!</h4>
-      <p>Either your wallet file is invalid or it is encrypted and you forgot to enter its passphrase.</p>
-    </div>
-  </div>
-
-  <div id="ledgerReadError" style="display: none;">
-    <div class="ui red segment">
-      <h4>Error!</h4>
-      <p>There was an error connecting to your Ledger device. Please reconnect your device to your computer, unlock it, open the QRL app and try again.</p>
-    </div>
-  </div>
-
-  <div id="ledgerUninitialisedError" style="display: none;">
-    <div class="ui yellow segment">
-      <h4>Device Uninitialised!</h4>
-      <p>You have not initialised your QRL XMSS tree on your Ledger device yet! In the QRL App on your Ledger Device, scroll down to 'Init Device' and press both buttons. This will generate an address and associated XMSS tree on your device. This process takes approximately 45 minutes. You can track the progress on your Ledger Device. When complete, ensure you have the QRL App on your Ledger Device opened and come back here and click Open Ledger again.</p>
-    </div>
-  </div>
-
-  <div id="ledgerKeysGeneratingError" style="display: none;">
-    <div class="ui yellow segment">
-      <h4>Device Generating Keys!</h4>
-      <p>Your Ledger Device is currently generating an XMSS tree. You cannot use the wallet until this process has completed. You can track the progress both your Ledger Device and below.</p>
-      <div class="ui active progress" id="ledgerKeyGenerationProgressBar">
-        <div class="bar">
-          <div class="progress"></div>
-        </div>
-        <div class="label">Generating Keys</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="ledgerKeysGeneratingComplete" style="display: none;">
-    <div class="ui green segment">
-      <h4>Device Ready!</h4>
-      <p>Your Ledger Device is ready! Click Open Device to view you wallet.</p>
-    </div>
-  </div>
-
-  <div id="ledgerKeysGeneratingDeviceError" style="display: none;">
-    <div class="ui yellow segment">
-      <h4>Error Generating Keys!</h4>
-      <p>There was a problem while monitoring the Ledger devices key generation process, possibly the device was disconnected. Please reconnect the device, unlock it, open the QRL app, rerun the 'Init Device' function and click Open Ledger again.</p>
-    </div>
-  </div>
-
-  <div class="small ui modal" id="updateWalletFileFormat">
-    <div class="header">Warning</div>
-    <div class="content">
-      <div class="ui warning icon message">
-        <i class="warning icon"></i>
-        <div class="content">
-          <div class="header">
-            Update your wallet file
-          </div>
-          <p>Your existing wallet file format is now deprecated to a more secure wallet which is fully encrypted. Previously your bech32 address and public key were not encrypted. To improve privacy from unwanted eyes, we suggest upgrading to the new more secure encrypted wallet file by clicking the green button below.</p>
-        </div>
-      </div>
-    </div>
-    <div class="actions">
-      <div class="ui approve button green">Update wallet file.</div>
-      <div class="ui cancel red button plain">Ignore Warning</div>
+      <!-- Unlock Button -->
+      <button id="unlockButton" class="btn btn-primary btn-md gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+        </svg>
+        Unlock Wallet
+      </button>
     </div>
   </div>
 </div>
+
+<!-- Loading States -->
+<div id="unlocking" class="hidden mt-6">
+  <div role="alert" class="alert alert-info">
+    <span class="loading loading-spinner loading-md"></span>
+    <div>
+      <h3 class="font-bold">Just a moment</h3>
+      <p class="text-sm">Unlocking wallet...</p>
+    </div>
+  </div>
+</div>
+
+<div id="readingLedger" class="hidden mt-6">
+  <div role="alert" class="alert alert-info">
+    <span class="loading loading-spinner loading-md"></span>
+    <div>
+      <h3 class="font-bold">Just a moment</h3>
+      <p class="text-sm">Reading from Ledger Device...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Error States -->
+<div id="unlockError" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error!</h3>
+      <p class="text-sm">There was an error unlocking the wallet. Please refresh this page and try again.</p>
+    </div>
+  </div>
+</div>
+
+<div id="noWalletFileSelected" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error!</h3>
+      <p class="text-sm">Either your wallet file is invalid or it is encrypted and you forgot to enter its passphrase.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerReadError" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error!</h3>
+      <p class="text-sm">There was an error connecting to your Ledger device. Please reconnect your device to your computer, unlock it, open the QRL app and try again.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerLockedError" class="hidden mt-6">
+  <div role="alert" class="alert alert-warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Ledger Device Locked</h3>
+      <p class="text-sm">Unlock your Ledger device and open the QRL app, then click Open Ledger again.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerReadTimeout" class="hidden mt-6">
+  <div role="alert" class="alert alert-warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Ledger Device Not Found</h3>
+      <p class="text-sm">No Ledger device was detected within 10 seconds. Check the cable/connection, ensure the device is unlocked and the QRL app is open, then click Open Ledger again. If this keeps happening, unplug and reinsert the Ledger USB cable and retry.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerUsbResetError" class="hidden mt-6">
+  <div role="alert" class="alert alert-warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Ledger USB Needs Reset</h3>
+      <p class="text-sm">The Ledger USB connection appears stale. Unplug and reinsert the Ledger, unlock it, open the QRL app, then click Open Ledger again.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Ledger Status Messages -->
+<div id="ledgerUninitialisedError" class="hidden mt-6">
+  <div role="alert" class="alert alert-warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Device Uninitialised!</h3>
+      <p class="text-sm">You have not initialised your QRL XMSS tree on your Ledger device yet! In the QRL App on your Ledger Device, scroll down to 'Init Device' and press both buttons. This will generate an address and associated XMSS tree on your device. This process takes approximately 45 minutes. You can track the progress on your Ledger Device. When complete, ensure you have the QRL App on your Ledger Device opened and come back here and click Open Ledger again.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerKeysGeneratingError" class="hidden mt-6">
+  <div role="alert" class="alert alert-warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div class="flex-1">
+      <h3 class="font-bold">Device Generating Keys!</h3>
+      <p class="text-sm mb-4">Your Ledger Device is currently generating an XMSS tree. You cannot use the wallet until this process has completed. You can track the progress both your Ledger Device and below.</p>
+      <progress id="ledgerKeyGenerationProgressBar" class="progress progress-warning w-full" value="0" max="100"></progress>
+      <p class="text-xs mt-1">Generating Keys</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerKeysGeneratingComplete" class="hidden mt-6">
+  <div role="alert" class="alert alert-success">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Device Ready!</h3>
+      <p class="text-sm">Your Ledger Device is ready! Click Open Device to view your wallet.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ledgerKeysGeneratingDeviceError" class="hidden mt-6">
+  <div role="alert" class="alert alert-warning">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error Generating Keys!</h3>
+      <p class="text-sm">There was a problem while monitoring the Ledger devices key generation process, possibly the device was disconnected. Please reconnect the device, unlock it, open the QRL app, rerun the 'Init Device' function and click Open Ledger again.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Update Wallet File Format Modal -->
+<dialog class="modal" id="updateWalletFileFormat">
+  <div class="modal-box wallet-modal-box">
+    <h3 class="font-bold text-lg">Warning</h3>
+    <div role="alert" class="alert alert-warning mt-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <h4 class="font-bold">Update your wallet file</h4>
+        <p id="updateWalletFileFormatDescription" class="text-sm">Your wallet format is deprecated. We recommend saving an upgraded v3 wallet file now.</p>
+      </div>
+    </div>
+    <div class="modal-action">
+      <button class="btn btn-success" id="approveUpdateWallet">Update wallet file</button>
+      <form method="dialog">
+        <button class="btn btn-error btn-outline">Ignore Warning</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
 
 </template>

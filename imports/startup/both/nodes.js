@@ -7,7 +7,7 @@
 
 // Define the default networks available in the UI.
 // eslint-disable-next-line no-unused-vars, no-undef
-DEFAULT_NETWORKS = [{
+globalThis.DEFAULT_NETWORKS = [{
   id: 'mainnet',
   name: 'Mainnet',
   disabled: '',
@@ -21,8 +21,20 @@ DEFAULT_NETWORKS = [{
     height: 0,
   },
   {
+    id: 'mainnet-2',
+    grpc: 'mainnet-2.automated.theqrl.org:19009',
+    state: false,
+    height: 0,
+  },
+  {
     id: 'mainnet-3',
     grpc: 'mainnet-3.automated.theqrl.org:19009',
+    state: false,
+    height: 0,
+  },
+  {
+    id: 'mainnet-4',
+    grpc: 'mainnet-4.automated.theqrl.org:19009',
     state: false,
     height: 0,
   },
@@ -37,19 +49,25 @@ DEFAULT_NETWORKS = [{
   healthy: false,
   nodes: [{
     id: 'testnet-1',
-    grpc: 'testnet-1.automated.theqrl.org:19009',
+    grpc: 'testnet-1.automated.theqrl.org:29009',
     state: false,
     height: 0,
   },
   {
     id: 'testnet-2',
-    grpc: 'testnet-2.automated.theqrl.org:19009',
+    grpc: 'testnet-2.automated.theqrl.org:29009',
+    state: false,
+    height: 0,
+  },
+  {
+    id: 'testnet-3',
+    grpc: 'testnet-3.automated.theqrl.org:29009',
     state: false,
     height: 0,
   },
   {
     id: 'testnet-4',
-    grpc: 'testnet-4.automated.theqrl.org:19009',
+    grpc: 'testnet-4.automated.theqrl.org:29009',
     state: false,
     height: 0,
   },
@@ -77,10 +95,10 @@ try {
   if (Meteor.settings.public.defaultNetworks.length > 0) {
     // Reset DEFAULT_NETWORKS
     // eslint-disable-next-line no-unused-vars, no-undef
-    DEFAULT_NETWORKS = []
+    globalThis.DEFAULT_NETWORKS = []
     // Set DEFAULT_NETWORKS from Meteor settings
     // eslint-disable-next-line no-unused-vars, no-undef
-    DEFAULT_NETWORKS = Meteor.settings.public.defaultNetworks
+    globalThis.DEFAULT_NETWORKS = Meteor.settings.public.defaultNetworks
   }
 } catch (e) {
   // no configuration file used
@@ -89,7 +107,7 @@ try {
 // Function to search through the DEFAULT_NETWORKS array and identify and return an
 // object based on its 'id' value.
 // eslint-disable-next-line no-unused-vars, no-undef
-findNetworkData = (array, key) => {
+globalThis.findNetworkData = (array, key) => {
   if ((LocalStore.get('nodeId') === 'custom') && (LocalStore.get('nodeStatus') !== 'connecting')) {
     const nodeData = {
       id: 'custom',

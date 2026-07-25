@@ -2,3 +2,7 @@ build-msi.js
 build-deb.js
 build-dmg.js
 build-conf.js
+tailwind.config.js
+postcss.config.js
+nodejs.js
+index.js

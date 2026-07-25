@@ -1,72 +1,108 @@
 <template name="appAddTokens">
-  <h1>Current Listed Tokens</h1>
-    <div class="ui container">
-    {{#if tokens}}
-      <table class="ui table">
-        <tr>
-          <td>Symbol</td>
-          <td>Name</td>
-          <td>&nbsp;</td>
-        </tr>
-        {{#each tokens}}
-        <tr>
-          <td>{{this.symbol}}</td>
-          <td>{{this.name}}</td>
-          <td><button class="ui red button removeClick" hash="{{this.hash}}"><i class="trash icon" hash="{{this.hash}}"></i></button></td>
-        </tr>
-        {{/each}}
-      </table>
-    {{else}}
-      <div class="ui container">
-        <div class="ui segment pageSegment">
-          <p style="color: #fff;">No tokens listed.</p>
-        </div>
-      </div>
-    {{/if}}
-  </div>
-  <h1>Add Tokens by Hash</h1>
-  <div class="ui container">
-    <div class="ui segment pageSegment">
-      <div class="ui large label" style="background-color: unset !important;">
-        Token by Creation TxHash
-      </div> 
-      <div class="ui form">
-        <div class="field">
-          <input type="text" placeholder="TxHash">
-        </div>
-        <button class="ui red button">Add Token</button>
-      </div>
+  <div class="flex items-center gap-3 mb-6">
+    <div class="bg-primary/20 p-3 rounded-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.5 0-2.5.8-2.5 2s1 2 2.5 2 2.5.8 2.5 2-1 2-2.5 2m0-10v10m8-5a8 8 0 11-16 0 8 8 0 0116 0z" />
+      </svg>
     </div>
+    <h1 class="text-2xl font-bold text-base-content">Add / Remove Tokens</h1>
   </div>
-  <h1>Search Chain for Tokens</h1>
-  <div class="ui container">
-    {{#if tokenSearch}}
-      <table class="ui table">
-        <tr>
-          <td>Symbol</td>
-          <td>Name</td>
-          <td>&nbsp;</td>
-        </tr>
-        {{#each tokenSearch}}
-        <tr>
-          <td>{{this.symbol}}</td>
-          <td>{{this.name}}</td>
-          <td><button class="ui red button addClick" hash={{this.hash}}><i class="plus icon" hash="{{this.hash}}"></i> Add</button></td>
-        </tr>
-        {{/each}}
-      </table>
-    {{else}}
-    {{#if searchItemsFound}}
-    <div class="ui segment pageSegment">
-      <button class="ui red button" id="searchButton">Search</button>
-    </div>
-    {{else}}
-      <div class="ui container">
-        <div class="ui segment pageSegment">
-          <p style="color: #fff;">No Tokens found with balance greater than 0.</p>
-        </div>
+
+  <div class="space-y-6">
+    <div class="card-gradient p-4 pageSegment">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h2 class="text-lg font-semibold">Current Listed Tokens</h2>
       </div>
-    {{/if}}
-    {{/if}}
+      {{#if tokens}}
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Name</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each tokens}}
+            <tr>
+              <td>{{this.symbol}}</td>
+              <td>{{this.name}}</td>
+              <td class="text-right">
+                <button class="btn btn-error btn-sm gap-2 removeClick" hash="{{this.hash}}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" hash="{{this.hash}}">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7v10m6-10v10M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M10 4h4a1 1 0 011 1v2H9V5a1 1 0 011-1z" hash="{{this.hash}}" />
+                  </svg>
+                  Remove
+                </button>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="alert">
+        <span>No tokens listed.</span>
+      </div>
+      {{/if}}
+    </div>
+
+    <div class="card-gradient p-4 pageSegment">
+      <h2 class="text-lg font-semibold mb-3">Add Token by Hash</h2>
+      <fieldset class="fieldset w-full">
+        <legend class="fieldset-legend">Token Creation Tx Hash</legend>
+        <div class="join w-full">
+          <input type="text" placeholder="TxHash" class="input input-bordered join-item w-full bg-base-100">
+          <button class="btn btn-secondary join-item" type="button">Add Token</button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="card-gradient p-4 pageSegment">
+      <h2 class="text-lg font-semibold mb-3">Search Chain for Tokens</h2>
+      {{#if tokenSearch}}
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Name</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each tokenSearch}}
+            <tr>
+              <td>{{this.symbol}}</td>
+              <td>{{this.name}}</td>
+              <td class="text-right">
+                <button class="btn btn-success btn-sm gap-2 addClick" hash="{{this.hash}}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" hash="{{this.hash}}">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" hash="{{this.hash}}" />
+                  </svg>
+                  Add
+                </button>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+        {{#if searchItemsFound}}
+        <button class="btn btn-secondary gap-2" id="searchButton">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.6-4.4a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+          Search
+        </button>
+        {{else}}
+        <div class="alert">
+          <span>No tokens found with balance greater than 0.</span>
+        </div>
+        {{/if}}
+      {{/if}}
+    </div>
   </div>
 </template>

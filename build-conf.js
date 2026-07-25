@@ -1,34 +1,43 @@
-// Defines build configuration that is for each platform build.
-const path = require('path')
-const pjson = require('./package.json')
+const path = require('path');
+const pjson = require('./package.json');
 
-const config = {
+const buildArch = process.env.BUILD_ARCH || process.env.npm_config_arch || process.arch;
+const distRoot = path.resolve('.electrify/.dist');
+const installerOutPath = path.join(distRoot, 'installers');
+
+const linuxDebArchMap = {
+  x64: 'amd64',
+  arm64: 'arm64',
+};
+
+module.exports = {
   name: 'QRL Wallet',
   safeName: 'qrl-wallet',
   description: 'QRL Wallet',
   version: pjson.version,
   manufacturer: 'DIE QRL STIFTUNG, Zug Switzerland',
   homepage: 'https://www.theqrl.org/',
+  buildArch,
+  distRoot,
+  installerOutPath,
   windows: {
-    electronPath: path.resolve('.electrify/dist/QRLWallet-win32-x64'),
-    outPath: path.resolve('.electrify/dist'),
+    electronPath: path.join(distRoot, `QRLWallet-win32-${buildArch}`),
+    outPath: installerOutPath,
     installFolderName: 'QRL',
     icon: path.resolve('.electrify/assets/qrl.ico'),
     exeName: 'QRLWallet',
   },
   macos: {
-    electronPath: path.resolve('.electrify/.dist/QRLWallet-darwin-x64/QRLWallet.app'),
-    outPath: path.resolve('.electrify/.dist/'),
+    electronPath: path.join(distRoot, `QRLWallet-darwin-${buildArch}`, 'QRLWallet.app'),
+    outPath: installerOutPath,
     dmgTitle: 'QRL Wallet Installer',
-    dmgBackground: path.resolve('./.electrify/assets/dmgBackground.png'),
+    dmgBackground: path.resolve('.electrify/assets/dmgBackground.png'),
     dmgIcon: path.resolve('.electrify/assets/qrl.icns'),
   },
   deb: {
-    electronPath: path.resolve('.electrify/.dist/QRLWallet-linux-x64/'),
-    outPath: path.resolve('.electrify/.dist/'),
-    arch: 'amd64',
+    electronPath: path.join(distRoot, `QRLWallet-linux-${buildArch}`),
+    outPath: installerOutPath,
+    arch: linuxDebArchMap[buildArch] || buildArch,
     icon: path.resolve('.electrify/assets/qrl.ico'),
   },
-}
-
-module.exports = config
+};

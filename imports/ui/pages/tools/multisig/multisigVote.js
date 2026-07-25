@@ -2,7 +2,7 @@
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
-refreshTransferPage */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -272,7 +272,7 @@ function generateTransaction() {
   const msTxhash = Session.get('multisigTransferFromTxhash')
   const formUnvote = Session.get('unvote')
 
-  console.log('checkbox:', $('.checkbox').checkbox('is checked'))
+  console.log('checkbox:', window.walletUi.isCheckboxChecked('.checkbox'))
 
   // check enough balance for fee
   const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).toNumber()
@@ -282,7 +282,7 @@ function generateTransaction() {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Insufficient balance in your wallet for the transaction fee')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -355,7 +355,7 @@ function generateTransaction() {
         // Hide generating component
         $('#generating').hide()
         // Show warning modal
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -424,11 +424,16 @@ function confirmTransaction() {
     tx.network = selectedNetwork()
 
     wrapMeteorCall('confirmMultiSigVote', tx, (err, res) => {
-      if (res.error) {
+      if (err || !res || res.error) {
         $('#transactionConfirmation').hide()
         $('#transactionFailed').show()
 
-        Session.set('transactionFailed', res.error)
+        const errorMessage = (res && res.error)
+          || (err && (err.reason || err.message))
+          || 'Failed to relay transaction'
+        Session.set('transactionFailed', errorMessage)
+        advanceSeedOtsAfterRelayFailure('transactionConfirmation')
+        enableSendButton()
       } else {
         Session.set('transactionHash', txnHash)
         Session.set('transactionSignature', res.response.signature)
@@ -501,7 +506,7 @@ function initialiseFormValidation() {
   }
 
   // Address Validation
-  $.fn.form.settings.rules.qrlAddressValid = function (value) {
+  window.walletUi.addFormRule('qrlAddressValid', function (value) {
     try {
       const rawAddress = anyAddressToRawAddress(value)
       const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
@@ -510,10 +515,10 @@ function initialiseFormValidation() {
     } catch (e) {
       return false
     }
-  }
+  })
 
   // Initialise the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
   })
 }
@@ -523,7 +528,7 @@ Template.multisigVote.events({
     Session.set('multisigTransferFromAddressSet', false)
     // call api to get addresses
     loadMultisigs(getXMSSDetails().address, 1)
-    $('#chooseVoteAddress').modal('show')
+    window.walletUi.showModal('#chooseVoteAddress')
   },
   'click #generateTransaction': (event) => {
     event.preventDefault()
@@ -532,7 +537,7 @@ Template.multisigVote.events({
   },
   'click #confirmTransaction': () => {
     $('#confirmTransaction').attr('disabled', true)
-    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
+    $('#confirmTransaction').html('<span class="loading loading-spinner loading-sm"></span>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #quantaJsonClick': () => {
@@ -606,6 +611,6 @@ Template.msvTable.events({
     Session.set('multisigTransferFromProposer', c)
     Session.set('multisigTransferFromDetails', d)
     Session.set('multisigTransferFromAddressSet', true)
-    $('#chooseVoteAddress').modal('hide')
+    window.walletUi.hideModal('#chooseVoteAddress')
   },
 })

@@ -1,77 +1,89 @@
 <template name="mobile">
-  {{>customNode}}
-  <div class="mobile-wallet">
-    <div class="ui labeled icon bottom fixed {{menuItemsCount
-  }} item menu">
-
-        <a id="newWalletButton" href="/create" class="item {{menuNewWalletActive}}">
-          <img class="svg" src="/img/icons/new-wallet.svg" />
-          New
+  {{> customNode}}
+  <div data-theme="qrl" class="min-h-screen bg-base-100 pb-24">
+    <header class="sticky top-0 z-30 bg-base-200 border-b border-base-300 px-4 py-3">
+      <div class="flex items-center justify-between gap-3">
+        <a href="/" class="inline-flex items-center gap-2">
+          <img src="/img/qrl-logo-dark.png" class="h-7 w-7" alt="QRL Wallet" />
+          <span class="font-semibold text-base-content">QRL Wallet</span>
         </a>
-
-
-        <a id="openWalletButton" href="/open" class="item {{menuOpenWalletActive}}">
-          <img class="svg" src="/img/icons/open-wallet.svg" />
-          Open
-        </a>
-
-        <a id="closeWalletButton" href="/close" class="item {{menuCloseWalletActive}}">
-          <img class="svg" src="/img/icons/lock.svg" />
-          Close
-        </a>
-
-        <a id="sendAndReceiveButton" href="/transfer" class="item {{menuTransferActive}}">
-          <img class="svg" src="/img/icons/transfer.svg" />
-          Send &amp;<br />Receive
-        </a>
-
-      <!--            <a id="createTokenButton" href="/tokens/create" class="item {{menuTokensActive}}" style="{{walletStatus.menuHidden}}">
-              <img class="svg" src="/img/icons/transfer.svg" />
-              Create<br />Token
-            </a>
-      -->
-
-      <a id="toolsButton" href="/tools" class="item">
-        <img class="svg" src="/img/icons/cogs.svg" />
-        Tools
-      </a>
-
-        <a id="verifyButton" href="/verify" class="item {{menuVerifyActive}}">
-          <img class="svg" src="/img/icons/tick.svg" />
-          Verify<br />Transaction
-        </a>
-
-    </div>
-    <div class="ui selection dropdown floatright" id="networkDropdown">
-      <input id="network" type="hidden" value="{{nodeId}}">
-      <i class="dropdown icon"></i>
-      <div class="text"></div>
-      <div class="menu">
-        {{#each defaultNetworks}}
-        <div class="{{this.disabled}} item" data-value="{{this.id}}">{{this.name}}</div>
-        {{/each}}
-        {{#if customNodeCreated}}
-        <div class="item" data-value="custom">{{customNodeName}}</div>
-        {{/if}}
-        <div class="item" data-value="add">Add/Edit Custom Node</div>
-      </div>
-    </div>
-    {{> Template.dynamic template=main}}
-    <!-- Footer -->
-    <div class="footer">
-      <div class="ui center aligned container">
-        <a href="/">
-                  <img class="footerLogo" src="/img/qrl-logo-dark.png">
-                </a>
-        <br />
-        <div class="ui horizontal small divided link list">
-          <a class="item" target="_blank" href="http://theqrl.org/">theQRL.org</a>
-          <a class="item" target="_blank" href="http://theqrl.org/whitepaper/QRL_whitepaper.pdf">White Paper</a>
-          <a class="item" target="_blank" href="https://github.com/theQRL">Github</a>
-          <a class="item" target="_blank" href="https://github.com/theQRL/qrl-wallet/issues">Found a Problem?</a>
-          <a class="item" target="_blank" href="https://github.com/theQRL/qrl-wallet">qrl-wallet v{{qrlWalletVersion}}</a>
+        <div class="inline-flex items-center gap-2">
+          {{#if connectionStatus.connected}}
+            <span class="badge badge-success badge-sm">{{connectionStatus.label}}</span>
+          {{else}}
+            <span class="badge badge-error badge-sm">{{connectionStatus.label}}</span>
+          {{/if}}
         </div>
       </div>
-    </div>
+      <div class="mt-3">
+        <fieldset class="fieldset w-full">
+          <legend class="fieldset-legend text-xs uppercase tracking-wide text-base-content/70">Network</legend>
+          <select id="network" class="select select-sm w-full bg-base-100" disabled={{lockCustomEndpoints}}>
+            {{#each defaultNetworks}}
+              <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+            {{#unless lockCustomEndpoints}}
+            {{#if customNodeCreated}}
+              <option value="custom">{{customNodeName}}</option>
+            {{/if}}
+            <option value="add">+ Add Custom Node</option>
+            {{/unless}}
+          </select>
+        </fieldset>
+      </div>
+    </header>
+
+    <main class="px-4 py-4">
+      {{> Template.dynamic template=main}}
+      <div class="mt-10 text-center text-xs text-base-content/60">
+        <a href="https://github.com/theQRL/qrl-wallet" target="_blank" rel="noopener noreferrer" class="hover:text-primary">
+          qrl-wallet v{{qrlWalletVersion}}
+        </a>
+      </div>
+    </main>
+
+    <nav class="btm-nav btm-nav-md bg-base-200 border-t border-base-300 z-40">
+      {{#if showNewWalletTab}}
+        <a id="newWalletButton" href="/create" class="{{menuNewWalletActive}}">
+          <img src="/img/icons/new-wallet.svg" alt="" class="h-5 w-5" />
+          <span class="btm-nav-label">New</span>
+        </a>
+      {{/if}}
+
+      {{#if showOpenWalletTab}}
+        <a id="openWalletButton" href="/open" class="{{menuOpenWalletActive}}">
+          <img src="/img/icons/open-wallet.svg" alt="" class="h-5 w-5" />
+          <span class="btm-nav-label">Open</span>
+        </a>
+      {{/if}}
+
+      {{#if showCloseWalletTab}}
+        <a id="closeWalletButton" href="/close" class="{{menuCloseWalletActive}}">
+          <img src="/img/icons/lock.svg" alt="" class="h-5 w-5" />
+          <span class="btm-nav-label">Close</span>
+        </a>
+      {{/if}}
+
+      {{#if showTransferTab}}
+        <a id="sendAndReceiveButton" href="/transfer" class="{{menuTransferActive}}">
+          <img src="/img/icons/transfer.svg" alt="" class="h-5 w-5" />
+          <span class="btm-nav-label">Transfer</span>
+        </a>
+      {{/if}}
+
+      {{#if showToolsTab}}
+        <a id="toolsButton" href="/tools" class="{{menuToolsActive}}">
+          <img src="/img/icons/cogs.svg" alt="" class="h-5 w-5" />
+          <span class="btm-nav-label">Tools</span>
+        </a>
+      {{/if}}
+
+      {{#if showVerifyTab}}
+        <a id="verifyButton" href="/verify" class="{{menuVerifyActive}}">
+          <img src="/img/icons/tick.svg" alt="" class="h-5 w-5" />
+          <span class="btm-nav-label">Verify</span>
+        </a>
+      {{/if}}
+    </nav>
   </div>
 </template>

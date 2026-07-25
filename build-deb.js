@@ -1,26 +1,10 @@
-const installer = require('electron-installer-debian')
-const buildConfig = require('./build-conf.js')
+const path = require('path');
+const { spawnSync } = require('child_process');
 
-const options = {
-  src: buildConfig.deb.electronPath,
-  dest: buildConfig.deb.outPath,
-  arch: buildConfig.deb.arch,
-  options: {
-    name: buildConfig.safeName,
-    productName: buildConfig.name,
-    description: buildConfig.name,
-    version: buildConfig.version,
-    maintainer: buildConfig.manufacturer,
-    homepage: buildConfig.homepage,
-    icon: buildConfig.deb.icon,
-  },
-}
+const arch = process.env.BUILD_ARCH || process.env.npm_config_arch || process.arch;
+const scriptPath = path.resolve(__dirname, '.scripts/build-installer.js');
+const result = spawnSync(process.execPath, [scriptPath, '--platform=linux', `--arch=${arch}`], {
+  stdio: 'inherit',
+});
 
-console.log('Building Ubuntu DEB Installer for QRLWallet')
-
-installer(options)
-  .then(() => console.log(`Successfully created package at ${options.dest}`))
-  .catch(err => {
-    console.error(err, err.stack)
-    process.exit(1)
-  })
+process.exit(result.status || 0);

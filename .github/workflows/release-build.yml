@@ -1,0 +1,204 @@
+name: Release Build Matrix
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag to publish assets to (example: v1.9.0)'
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-build:
+    name: release-${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            platform: darwin
+            arch: x64
+            artifact_name: qrlwallet-release-darwin-x64
+          - runner: macos-14
+            platform: darwin
+            arch: arm64
+            artifact_name: qrlwallet-release-darwin-arm64
+          - runner: windows-latest
+            platform: win32
+            arch: x64
+            artifact_name: qrlwallet-release-win32-x64
+          - runner: windows-latest
+            platform: win32
+            arch: arm64
+            artifact_name: qrlwallet-release-win32-arm64
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: x64
+            artifact_name: qrlwallet-release-linux-x64
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: arm64
+            artifact_name: qrlwallet-release-linux-arm64
+
+    env:
+      CI: true
+      BUILD_ARCH: ${{ matrix.arch }}
+      LOGELECTRIFY: TRACE
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Linux packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libusb-dev libudev-dev libarchive-tools
+
+      - name: Install Meteor (macOS/Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          curl https://install.meteor.com/ | sh
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+
+      - name: Install Meteor (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bootstrapGz = Join-Path $env:TEMP 'meteor-bootstrap-os.windows.x86_64.tar.gz'
+          $extractDir = Join-Path $env:TEMP 'meteor-bootstrap-extract'
+          $meteorInstallDir = Join-Path $env:LOCALAPPDATA '.meteor'
+          if (Test-Path $extractDir) { Remove-Item -Recurse -Force $extractDir }
+          New-Item -ItemType Directory -Path $extractDir | Out-Null
+          Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64' -OutFile $bootstrapGz
+          tar -xzf $bootstrapGz -C $extractDir
+          $bootstrapTar = Get-ChildItem -Path $extractDir -Filter 'meteor-bootstrap-*.tar' -File -Recurse | Select-Object -First 1
+          if ($bootstrapTar) {
+            tar -xf $bootstrapTar.FullName -C $env:LOCALAPPDATA
+          } else {
+            $meteorDir = Get-ChildItem -Path $extractDir -Directory -Recurse -Force | Where-Object { $_.Name -eq '.meteor' } | Select-Object -First 1
+            if (-not $meteorDir) { throw 'Meteor bootstrap did not contain a .meteor directory after extraction.' }
+            if (Test-Path $meteorInstallDir) { Remove-Item -Recurse -Force $meteorInstallDir }
+            Copy-Item -Path $meteorDir.FullName -Destination $meteorInstallDir -Recurse -Force
+          }
+          "$env:LOCALAPPDATA\.meteor" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Verify toolchain
+        shell: pwsh
+        run: |
+          node -v
+          npm -v
+          meteor --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply compatibility patches
+        run: node .scripts/patch-ledger-exports.js
+
+      - name: Verify electrify patch state
+        run: node .scripts/verify-electrify-patches.js
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Clean dist directory
+        run: node -e "const fs=require('fs');fs.rmSync('.electrify/.dist',{recursive:true,force:true});fs.mkdirSync('.electrify/.dist',{recursive:true});"
+
+      - name: Package desktop app
+        timeout-minutes: 45
+        run: node node_modules/@theqrl/electrify-qrl/bin/cli.js package -o .electrify/.dist --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      - name: Harden packaged app
+        run: node .scripts/harden-electron-package.js --platform=${{ matrix.platform }}
+
+      - name: Build installer
+        run: node .scripts/build-installer.js --platform=${{ matrix.platform }} --arch=${{ matrix.arch }}
+
+      - name: Build portable zip (Windows)
+        if: matrix.platform == 'win32'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = node -p "require('./package.json').version"
+          $bundleDir = ".electrify/.dist/QRLWallet-win32-${{ matrix.arch }}"
+          $zipPath = ".electrify/.dist/installers/QRLWallet-$version-win32-${{ matrix.arch }}-portable.zip"
+          if (-not (Test-Path $bundleDir)) { throw "Missing bundle directory: $bundleDir" }
+          if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+          tar -a -c -f $zipPath -C ".electrify/.dist" "QRLWallet-win32-${{ matrix.arch }}"
+
+      - name: Upload release artifacts (Windows installer)
+        if: matrix.platform == 'win32'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: .electrify/.dist/installers/**
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Upload release artifacts (non-Windows)
+        if: matrix.platform != 'win32'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            .electrify/.dist/QRLWallet-${{ matrix.platform }}-${{ matrix.arch }}/**
+            .electrify/.dist/installers/**
+          include-hidden-files: true
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish Release Assets
+    runs-on: ubuntu-24.04
+    needs: release-build
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+    steps:
+      - name: Download matrix artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: qrlwallet-release-*
+          path: release-artifacts
+
+      - name: Show collected release assets
+        run: |
+          find release-artifacts -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.pacman' -o -name '*.exe' -o -name '*-portable.zip' \) -print | sort
+
+      - name: Upload assets to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          generate_release_notes: true
+          prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
+          files: |
+            release-artifacts/**/*.dmg
+            release-artifacts/**/*.deb
+            release-artifacts/**/*.pacman
+            release-artifacts/**/*-portable.zip
+            release-artifacts/**/*.exe

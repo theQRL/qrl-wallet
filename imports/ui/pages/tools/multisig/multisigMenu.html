@@ -1,176 +1,179 @@
 <template name="appMultisigMenu">
 
-  <div class="small ui modal" id="cancelWaitingForTransactionWarning">
-    <div class="header">Whoa there buddy!!</div>
-    <div class="content">
-      <div class="ui warning icon message">
-        <i class="warning icon"></i>
-        <div class="content">
-          <div class="header">
-            Are you sure?
+  <dialog class="modal" id="cancelWaitingForTransactionWarning">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">Whoa there buddy!!</div>
+        <div class="">
+          <div class="alert alert-warning gap-3"> <div class="">
+              <div class="text-lg font-semibold">
+                Are you sure?
+              </div>
+              <p>This transaction has not been confirmed on the network just yet! Leaving this page now may show incorrect balances and OTS key indexes on other pages. It is advised that you wait for the transaction to confirm before leaving this page.</p>
+            </div>
           </div>
-          <p>This transaction has not been confirmed on the network just yet! Leaving this page now may show incorrect balances and OTS key indexes on other pages. It is advised that you wait for the transaction to confirm before leaving this page.</p>
+        </div>
+        <div class="modal-action">
+          <button type="button" class="btn btn-error">I understand, leave now anyway</button>
+          <button type="button" class="btn btn-error btn-outline">Cancel</button>
+        </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<dialog class="modal" id="lowOtsKeyWarning">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">OTS Keys Running Low!</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              Warning: Your OTS Keys are running low.
+            </div>
+            <p>You only have <strong>{{otsKeysRemaining}}</strong> OTS Keys remaining. When you have used all of these, you will no longer be able to send QRL or Tokens from this wallet.</p>
+            <p>It is strongly suggested that you create a new wallet, and move all your QRL and Tokens to it to ensure you do not lose access to your funds.</p>
+            <p><a href="https://docs.theqrl.org/developers/ots/" target="_blank">Click here to learn what OTS Keys are.</a></p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="actions">
-      <div class="ui approve red button">I understand, leave now anyway</div>
-      <div class="ui cancel red button plain">Cancel</div>
-    </div>
-  </div>
-
-<div class="small ui modal" id="lowOtsKeyWarning">
-  <div class="header">OTS Keys Running Low!</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          Warning: Your OTS Keys are running low.
-        </div>
-        <p>You only have <strong>{{otsKeysRemaining}}</strong> OTS Keys remaining. When you have used all of these, you will no longer be able to send QRL or Tokens from this wallet.</p>
-        <p>It is strongly suggested that you create a new wallet, and move all your QRL and Tokens to it to ensure you do not lose access to your funds.</p>
-        <p><a href="https://docs.theqrl.org/developers/ots/" target="_blank">Click here to learn what OTS Keys are.</a></p>
+      <div class="modal-action">
+        <button type="button" class="btn btn-error">Okay</button>
       </div>
-    </div>
   </div>
-  <div class="actions">
-    <div class="ui approve green button red">Okay</div>
-  </div>
-</div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-<div class="small ui modal" id="invalidNodeResponse">
-  <div class="header">WARNING - Bad Response</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          WARNING - The node you've requested this transaction from replied with bad data that doesn't match your intended transaction parameters.
-          <br /><br />
-          This transaction has been cancelled automatically to protect your funds.
-          <br /><br />
-          Please report this issue through a Github issue, or directly to the QRL Team via email: info@theqrl.org
+<dialog class="modal" id="invalidNodeResponse">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">WARNING - Bad Response</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              WARNING - The node you've requested this transaction from replied with bad data that doesn't match your intended transaction parameters.
+              <br /><br />
+              This transaction has been cancelled automatically to protect your funds.
+              <br /><br />
+              Please report this issue through a Github issue, or directly to the QRL Team via email: info@theqrl.org
+            </div>
+            <p></p>
+          </div>
         </div>
-        <p></p>
       </div>
-    </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-error">Okay</button>
+      </div>
   </div>
-  <div class="actions">
-    <div class="ui approve green button red">Okay</div>
-  </div>
-</div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-<div class="small ui modal" id="otsKeyReuseDetected">
-  <div class="header">OTS Key Reuse</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
-          <br /><br />
-          Please recreate your transaction using a unique OTS Key Index.
+<dialog class="modal" id="otsKeyReuseDetected">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">OTS Key Reuse</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
+              <br /><br />
+              Please recreate your transaction using a unique OTS Key Index.
+            </div>
+            <p></p>
+          </div>
         </div>
-        <p></p>
       </div>
-    </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-success">Okay</button>
+      </div>
   </div>
-  <div class="actions">
-    <div class="ui approve green button">Okay</div>
-  </div>
-</div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-<div class="small ui modal" id="ledgerOtsKeyReuseDetected">
-  <div class="header">OTS Key Reuse</div>
-  <div class="content">
-    <div class="ui warning icon message">
-      <i class="warning icon"></i>
-      <div class="content">
-        <div class="header">
-          You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
-          <br /><br />
-          You need to update your Ledgers XMSS Index in Tools -> Set XMSS Index.
+<dialog class="modal" id="ledgerOtsKeyReuseDetected">
+  <div class="modal-box wallet-modal-box">
+    <div class="text-lg font-semibold">OTS Key Reuse</div>
+      <div class="">
+        <div class="alert alert-warning gap-3"> <div class="">
+            <div class="text-lg font-semibold">
+              You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
+              <br /><br />
+              You need to update your Ledgers XMSS Index in Tools -> Set XMSS Index.
+            </div>
+            <p></p>
+          </div>
         </div>
-        <p></p>
       </div>
-    </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-success">Okay</button>
+      </div>
   </div>
-  <div class="actions">
-    <div class="ui approve green button">Okay</div>
-  </div>
-</div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
-<h2 class="ui header pageHeader">
-  <i class="users icon"></i>
-  <div class="content">
+<h2 class="text-lg font-semibold pageHeader">
+  <i class="users"></i>
+  <div class="">
     Multisig Functions
   </div>
 </h2>
 
-<div class="ui left aligned segment pageSegment" id="multisigCreateForm">
+<div class="rounded-xl border border-base-300 bg-base-200 p-4 text-left pageSegment" id="multisigCreateForm">
 
-<div class="ui top attached tabular menu">
-  <a class="item {{isActiveTab 'create'}}" href="/tools/multisig/create" id="tabBtnCreate">Create</a>
-  <a class="item {{isActiveTab 'spend'}}" href="/tools/multisig/spend" id="tabBtnSpend">Spend</a>
-  <a class="item {{isActiveTab 'vote'}}" href="/tools/multisig/vote" id="tabBtnVote">Vote</a>
+<div id="multisigTabs" class="tabs tabs-boxed w-full bg-base-200/70 p-1 mb-3">
+  <a class="tab flex-1 {{isActiveTab 'create'}}" href="/tools/multisig/create" id="tabBtnCreate">Create</a>
+  <a class="tab flex-1 {{isActiveTab 'spend'}}" href="/tools/multisig/spend" id="tabBtnSpend">Spend</a>
+  <a class="tab flex-1 {{isActiveTab 'vote'}}" href="/tools/multisig/vote" id="tabBtnVote">Vote</a>
 </div>
-<div class="ui bottom attached active tab segment">
+<div class="rounded-xl border border-base-300 bg-base-200 p-4 block">
   {{> Template.dynamic template=multisig }}
 </div>
- <!--  <form id="generateMessageForm" class="ui form">
+ <!--  <form id="generateMessageForm" class="space-y-4">
 
-    <h4 class="ui dividing header">Add or remove Keybase identity</h4>
+    <h4 class="text-lg font-semibold dividing">Add or remove Keybase identity</h4>
 
-    <h4 id="transferFormFromAddress" class="breakable"><a class="ui purple label">From Address</a> {{transferFrom.address}}</h4>
-    <h4 class="breakable"><a class="ui yellow label">Quanta Balance</a> {{transferFrom.balance}}</h4>
+    <h4 id="transferFormFromAddress" class="breakable"><a class="badge badge-outline purple">From Address</a> {{transferFrom.address}}</h4>
+    <h4 class="breakable"><a class="badge badge-outline yellow">Quanta Balance</a> {{transferFrom.balance}}</h4>
 
-    <h4 class="ui horizontal divider header">
+    <h4 class="text-lg font-semibold divider">
       <img src="/img/keybase.svg">
       Keybase ID
     </h4>
 
-      <div class="grouped fields">
+      <div class="grid gap-3 md:grid-cols-3 grouped">
     <label>Keybase action</label>
-    <div class="field">
-      <div class="ui radio checkbox">
+    <div class="space-y-2">
+      <div class="flex items-center gap-2">
         <input type="radio" name="kb_action" id="kb_add" checked>
         <label>Add</label>
       </div>
     </div>
-    <div class="field">
-      <div class="ui radio checkbox">
+    <div class="space-y-2">
+      <div class="flex items-center gap-2">
         <input type="radio" name="kb_action" id="kb_remove">
         <label>Remove</label>
       </div>
     </div>
   </div>
 
-  <div class="field">
+  <div class="space-y-2">
     <label>Keybase Username</label>
     <input type="text" id="kb_username" autocomplete="off">
   </div>
 
-    <div class="field">
+    <div class="space-y-2">
       <label>Keybase Signature hash</label>
       <input type="text" id="message" autocomplete="off">
     </div>
 
-    <div class="field">
+    <div class="space-y-2">
       <label>Keybase ID Creation Fee (In Quanta)</label>
       <input type="text" id="fee" value="0.25" autocomplete="off">
     </div>
 
-    <div class="field">
+    <div class="space-y-2">
       <label>OTS Key Index</label>
       <input type="text" id="otsKey" placeholder="0" value="{{otsKeyEstimate}}" autocomplete="off" {{ledgerWalletDisabled}}>
     </div>
 
-    <div class="field">
-      <div class="ui warning icon message" style="display: inline-flex;">
-        <i class="warning icon"></i>
-        <div class="content">
-          <div class="header">
+    <div class="space-y-2">
+      <div class="alert alert-warning gap-3" style="display: inline-flex;"> <div class="">
+          <div class="text-lg font-semibold">
             OTS Key Index Warning
           </div>
           {{#if isLedgerWallet}}
@@ -182,17 +185,17 @@
       </div>
     </div>
 
-    <div class="field">
-      <button id="createMessage" class="ui huge primary button red" style="float: left;">Create Keybase Transaction</button>
+    <div class="space-y-2">
+      <button id="createMessage" class="btn btn-md btn-error" style="float: left;">Create Keybase Transaction</button>
       <br />
     </div>
 
-    <div class="field">
+    <div class="space-y-2">
       <br />
-      <div id="generating" style="display: none;" class="ui icon message">
-        <i class="notched circle loading icon"></i>
-        <div class="content">
-          <div class="header">
+      <div id="generating" style="display: none;" class="alert gap-3">
+        <span class="loading loading-spinner loading-md"></span>
+        <div class="">
+          <div class="text-lg font-semibold">
             Just one moment
           </div>
           <p>Generating your new message transaction...</p>
@@ -203,7 +206,7 @@
   </form>     -->
 </div>
 
-<div id="messageCreationFailed" class="ui red segment pageSegment" style="display: none;">
+<div id="messageCreationFailed" class="rounded-xl border border-base-300 bg-base-100 p-4 pageSegment" style="display: none;">
   <h4>Message Creation Failed</h4>
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{messageCreationError}}</p>
 </div>

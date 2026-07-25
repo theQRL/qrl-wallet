@@ -1,8 +1,9 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0, max-len:0 */
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS,
-refreshTransferPage */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -248,7 +249,7 @@ function generateTransaction() {
   } else {
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('One or more of the signatories is invalid: please check the addresses carefully')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -257,7 +258,7 @@ function generateTransaction() {
     console.log('Duplicate signatory found')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Duplicate signatory found')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -266,7 +267,7 @@ function generateTransaction() {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Insufficient balance in wallet for transaction fee')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -299,7 +300,7 @@ function generateTransaction() {
     } else {
       $('#checkWeightsModal p').text(cwt.error)
     }
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -365,7 +366,7 @@ function generateTransaction() {
         // Hide generating component
         $('#generating').hide()
         // Show warning modal
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -461,11 +462,16 @@ function confirmTransaction() {
     tx.network = selectedNetwork()
 
     wrapMeteorCall('confirmMultiSigCreate', tx, (err, res) => {
-      if (res.error) {
+      if (err || !res || res.error) {
         $('#transactionConfirmation').hide()
         $('#transactionFailed').show()
 
-        Session.set('transactionFailed', res.error)
+        const errorMessage = (res && res.error)
+          || (err && (err.reason || err.message))
+          || 'Failed to relay transaction'
+        Session.set('transactionFailed', errorMessage)
+        advanceSeedOtsAfterRelayFailure('transactionConfirmation')
+        enableSendButton()
       } else {
         Session.set('transactionHash', txnHash)
         Session.set('transactionSignature', res.response.signature)
@@ -493,7 +499,7 @@ function confirmTransaction() {
     $('#noRemainingSignatures').hide()
 
     // Show ledger sign modal
-    $('#ledgerConfirmationModal').modal({
+    window.walletUi.showModal('#ledgerConfirmationModal', {
       closable: false,
       onDeny: () => {
         // Clear session state for transaction
@@ -502,16 +508,20 @@ function confirmTransaction() {
       },
       onApprove: () => {
         // Hide modal, and show relaying message
-        $('#ledgerConfirmationModal').modal('hide')
+        window.walletUi.hideModal('#ledgerConfirmationModal')
         $('#relaying').show()
 
         // Relay the transaction
         wrapMeteorCall('confirmTransaction', Session.get('ledgerTransaction'), (err, res) => {
-          if (res.error) {
+          if (err || !res || res.error) {
             $('#transactionConfirmation').hide()
             $('#transactionFailed').show()
 
-            Session.set('transactionFailed', res.error)
+            const errorMessage = (res && res.error)
+              || (err && (err.reason || err.message))
+              || 'Failed to relay transaction'
+            Session.set('transactionFailed', errorMessage)
+            enableSendButton()
           } else {
             Session.set('transactionHash', Session.get('ledgerTransactionHash'))
             Session.set('transactionSignature', res.response.signature)
@@ -529,7 +539,7 @@ function confirmTransaction() {
           }
         })
       },
-    }).modal('show')
+    })
 
     // Create a transaction
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
@@ -676,7 +686,7 @@ function initialiseFormValidation() {
   }
 
   // Address Validation
-  $.fn.form.settings.rules.qrlAddressValid = function (value) {
+  window.walletUi.addFormRule('qrlAddressValid', function (value) {
     try {
       const rawAddress = anyAddressToRawAddress(value)
       const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
@@ -685,10 +695,10 @@ function initialiseFormValidation() {
     } catch (e) {
       return false
     }
-  }
+  })
 
   // Initialise the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
   })
 }
@@ -701,12 +711,17 @@ Template.multisigCreate.events({
 
     const newTransferRecipient = `
       <div>
-        <div class="field">
-          <label>Additional Signatory</label>
-          <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-            <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
-            <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Weight" style="width: 30%;">
-            <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+        <div class="field mt-4">
+          <label class="fieldset-legend">Additional Signatory</label>
+          <div class="grid gap-2 md:grid-cols-[1fr_170px_auto]">
+            <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" class="input input-bordered w-full bg-base-100">
+            <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Weight" class="input input-bordered w-full bg-base-100">
+            <button type="button" class="btn btn-error btn-sm removeTransferRecipient gap-1" aria-label="Remove signatory">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-3H10a1 1 0 00-1 1v2h6V5a1 1 0 00-1-1z" />
+              </svg>
+              Remove
+            </button>
           </div>
         </div>
       </div>
@@ -736,7 +751,7 @@ Template.multisigCreate.events({
   },
   'click #confirmTransaction': () => {
     $('#confirmTransaction').attr('disabled', true)
-    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
+    $('#confirmTransaction').html('<span class="loading loading-spinner loading-sm"></span>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #quantaJsonClick': () => {

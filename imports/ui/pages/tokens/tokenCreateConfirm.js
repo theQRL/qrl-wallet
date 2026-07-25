@@ -1,8 +1,9 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import './tokenCreateConfirm.html'
@@ -71,11 +72,15 @@ function confirmTokenCreation() {
   tx.network = selectedNetwork()
 
   wrapMeteorCall('confirmTokenCreation', tx, (err, res) => {
-    if (res.error) {
+    if (err || !res || res.error) {
       $('#tokenCreationConfirmation').hide()
       $('#transactionFailed').show()
 
-      Session.set('transactionFailed', res.error)
+      const errorMessage = (res && res.error)
+        || (err && (err.reason || err.message))
+        || 'Failed to relay transaction'
+      Session.set('transactionFailed', errorMessage)
+      advanceSeedOtsAfterRelayFailure('tokenCreationConfirmation')
     } else {
       Session.set('transactionHash', txnHash)
       Session.set('transactionSignature', res.response.signature)
@@ -100,7 +105,7 @@ function cancelTransaction() {
 }
 
 Template.appTokenCreationConfirm.onRendered(() => {
-  $('.ui.dropdown').dropdown()
+  window.walletUi.initDropdowns('select')
 })
 
 Template.appTokenCreationConfirm.events({

@@ -1,0 +1,774 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: qrl --default, qrl --prefersdark;
+}
+@plugin "daisyui/theme" {
+  name: "qrl";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #1a1a1a;
+  --color-base-200: #2d2d2d;
+  --color-base-300: #404040;
+  --color-base-content: #ffffff;
+
+  --color-primary: #ffa729;
+  --color-primary-content: #0b181e;
+  --color-secondary: #4aafff;
+  --color-secondary-content: #0b181e;
+  --color-accent: #523ae2;
+  --color-accent-content: #ffffff;
+  --color-neutral: #0b181e;
+  --color-neutral-content: #ffffff;
+
+  --color-info: #4aafff;
+  --color-info-content: #0b181e;
+  --color-success: #4fe296;
+  --color-success-content: #0b181e;
+  --color-warning: #fde047;
+  --color-warning-content: #0b181e;
+  --color-error: #ff6066;
+  --color-error-content: #0b181e;
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.3125rem;
+  --size-field: 0.3125rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@layer components {
+  .card-gradient {
+    border: 1px solid var(--color-base-300);
+    border-top: 2px solid transparent;
+    border-radius: var(--radius-box, 0.75rem);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    background-image:
+      linear-gradient(var(--color-base-200), var(--color-base-200)),
+      radial-gradient(circle at 12% -32%, rgba(255, 167, 41, 0.14), transparent 48%),
+      radial-gradient(circle at 88% -24%, rgba(74, 175, 255, 0.12), transparent 44%),
+      linear-gradient(90deg, rgba(255, 167, 41, 0.35), rgba(74, 175, 255, 0.16));
+    background-origin: border-box;
+    background-clip: padding-box, padding-box, padding-box, border-box;
+  }
+
+  #sendReceiveTabs {
+    margin-bottom: 0;
+    border: 1px solid color-mix(in oklab, var(--color-base-300) 85%, transparent);
+    border-bottom: 0;
+    border-radius: var(--radius-box, 0.75rem) var(--radius-box, 0.75rem) 0 0;
+    background-color: color-mix(in oklab, var(--color-base-200) 94%, transparent);
+  }
+
+  #sendReceiveTabs .tab,
+  #walletTypeTabs .tab {
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  #sendReceiveTabs .tab.tab-active,
+  #walletTypeTabs .tab.tab-active {
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+    border: 1px solid var(--color-primary);
+    font-weight: 700;
+    box-shadow: 0 4px 14px color-mix(in oklab, var(--color-primary) 32%, transparent);
+    transform: translateY(-1px);
+  }
+
+  #sendReceiveTabs .tab:not(.tab-active):hover,
+  #walletTypeTabs .tab:not(.tab-active):hover {
+    background: color-mix(in oklab, var(--color-base-300) 85%, transparent);
+  }
+
+  .transfer-tab-panel {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: 1px solid color-mix(in oklab, var(--color-base-300) 85%, transparent);
+    background-image:
+      linear-gradient(var(--color-base-200), var(--color-base-200)),
+      radial-gradient(circle at 12% -32%, rgba(255, 167, 41, 0.14), transparent 48%),
+      radial-gradient(circle at 88% -24%, rgba(74, 175, 255, 0.12), transparent 44%);
+    background-origin: border-box;
+    background-clip: padding-box, padding-box, padding-box;
+  }
+
+  .transactionRecord {
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: flex-start;
+    border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
+    background-color: color-mix(in oklab, var(--color-base-200) 88%, transparent);
+    border-radius: var(--radius-box, 0.75rem);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .transactionRecord > :nth-child(2) {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .tx-direction-icon {
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+  }
+
+  .tx-direction-outgoing {
+    border: 1px solid color-mix(in oklab, var(--color-primary) 40%, transparent);
+    background-color: color-mix(in oklab, var(--color-primary) 16%, transparent);
+    color: var(--color-primary);
+  }
+
+  .tx-direction-incoming {
+    border: 1px solid color-mix(in oklab, var(--color-secondary) 40%, transparent);
+    background-color: color-mix(in oklab, var(--color-secondary) 16%, transparent);
+    color: var(--color-secondary);
+  }
+
+  .transactionRecord:hover {
+    background-color: color-mix(in oklab, var(--color-base-200) 100%, transparent);
+    border-color: color-mix(in oklab, var(--color-primary) 28%, var(--color-base-300));
+  }
+
+  .transactionRecord.cursor-pointer:hover {
+    border-color: color-mix(in oklab, var(--color-primary) 72%, var(--color-secondary) 28%);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-primary) 35%, transparent),
+      0 10px 22px rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
+  }
+
+  .transactionRecord .transactionTitle {
+    font-size: 0.95rem;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--color-base-content);
+  }
+
+  .transactionRecord .transactionTimestamp {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.74rem;
+    line-height: 1.3;
+    font-weight: 500;
+    color: color-mix(in oklab, var(--color-base-content) 64%, transparent);
+  }
+
+  .transactionRecord .transactionAddress {
+    margin-top: 0.3rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  }
+
+  .transactionRecord .transactionAddress.transactionHashEllipsis {
+    display: block;
+    width: min(100%, 52ch);
+    max-width: min(100%, 52ch);
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .transactionRecord .floatright {
+    margin-left: 0;
+    align-self: flex-start;
+    justify-self: end;
+    min-width: 11.5rem;
+    text-align: right;
+    padding-top: 0.1rem;
+    white-space: nowrap;
+  }
+
+  .transactionRecord .floatright a,
+  .transactionRecord .floatright .txValueLink {
+    font-size: 0.84rem;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .transactionRecord .floatright a:hover {
+    text-decoration: underline;
+  }
+
+  .site-footer {
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid var(--color-base-300);
+    background-color: var(--color-base-200);
+    background-image:
+      radial-gradient(circle at 12% -40%, rgba(255, 167, 41, 0.2), transparent 50%),
+      radial-gradient(circle at 85% -25%, rgba(74, 175, 255, 0.18), transparent 45%);
+  }
+
+  .site-footer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255, 167, 41, 0), rgba(255, 167, 41, 0.8), rgba(74, 175, 255, 0.75), rgba(74, 175, 255, 0));
+  }
+
+  .site-footer-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .site-footer-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    }
+  }
+
+  .site-footer-brand {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .site-footer-logo-wrap {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .site-footer-brand-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    color: var(--color-base-content);
+  }
+
+  .site-footer-brand-copy {
+    max-width: 24rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  }
+
+  .site-footer-meta {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+  }
+
+  .site-footer-heading {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 0.2rem;
+    line-height: 1;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+  }
+
+  .site-footer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .site-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.75rem;
+  }
+
+  .site-footer-link {
+    position: relative;
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.25rem;
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .site-footer-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1px;
+    width: 0;
+    transition: width 0.2s ease;
+    background: linear-gradient(90deg, #ffa729, #4aafff);
+  }
+
+  .site-footer-link:hover {
+    color: var(--color-base-content);
+  }
+
+  .site-footer-link:hover::after {
+    width: 100%;
+  }
+
+  .site-footer-link:focus-visible,
+  .site-footer-utility-link:focus-visible {
+    outline: none;
+    border-radius: 0.125rem;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 70%, transparent), 0 0 0 4px var(--color-base-200);
+  }
+
+  .site-footer-bottom {
+    position: relative;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .site-footer-bottom {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .site-footer-utility {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .site-footer-utility-link {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .site-footer-utility-link:hover {
+    color: var(--color-primary);
+  }
+
+  .border-gradient-top {
+    position: relative;
+  }
+
+  .border-gradient-top::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ffa729, #4aafff, transparent);
+  }
+
+  .modal.modal-open,
+  .modal[open],
+  .modal:target,
+  .modal-toggle:checked + .modal {
+    background-color: transparent !important;
+  }
+
+  .modal::backdrop {
+    display: block !important;
+    background-color: rgb(0 0 0 / 0.94) !important;
+  }
+
+  .modal[open] .modal-backdrop,
+  .modal.modal-open .modal-backdrop,
+  .modal:target .modal-backdrop,
+  .modal-toggle:checked + .modal .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: rgb(0 0 0 / 0.94);
+  }
+
+  .modal[open] .modal-box,
+  .modal.modal-open .modal-box,
+  .modal:target .modal-box,
+  .modal-toggle:checked + .modal .modal-box {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ── Unlayered overrides (beat DaisyUI's @layer utilities) ── */
+
+/* Transaction type left borders */
+.border-type-transfer { border-left: 4px solid #FFA729; }
+.border-type-received { border-left: 4px solid #4AAFFF; }
+.border-type-coinbase { border-left: 4px solid #10B981; }
+.border-type-token    { border-left: 4px solid #4AAFFF; }
+.border-type-message  { border-left: 4px solid #A78BFA; }
+.border-type-slave    { border-left: 4px solid #F472B6; }
+.border-type-lattice  { border-left: 4px solid #34D399; }
+.border-type-multisig { border-left: 4px solid #FB923C; }
+
+/* Transaction type icon containers */
+.tx-direction-icon.tx-icon-transfer {
+  border: 1px solid color-mix(in oklab, #FFA729 40%, transparent);
+  background-color: color-mix(in oklab, #FFA729 16%, transparent);
+  color: #FFA729;
+}
+.tx-direction-icon.tx-icon-received {
+  border: 1px solid color-mix(in oklab, #4AAFFF 40%, transparent);
+  background-color: color-mix(in oklab, #4AAFFF 16%, transparent);
+  color: #4AAFFF;
+}
+.tx-direction-icon.tx-icon-coinbase {
+  border: 1px solid color-mix(in oklab, #10B981 40%, transparent);
+  background-color: color-mix(in oklab, #10B981 16%, transparent);
+  color: #10B981;
+}
+.tx-direction-icon.tx-icon-token {
+  border: 1px solid color-mix(in oklab, #4AAFFF 40%, transparent);
+  background-color: color-mix(in oklab, #4AAFFF 16%, transparent);
+  color: #4AAFFF;
+}
+.tx-direction-icon.tx-icon-message {
+  border: 1px solid color-mix(in oklab, #A78BFA 40%, transparent);
+  background-color: color-mix(in oklab, #A78BFA 16%, transparent);
+  color: #A78BFA;
+}
+.tx-direction-icon.tx-icon-slave {
+  border: 1px solid color-mix(in oklab, #F472B6 40%, transparent);
+  background-color: color-mix(in oklab, #F472B6 16%, transparent);
+  color: #F472B6;
+}
+.tx-direction-icon.tx-icon-lattice {
+  border: 1px solid color-mix(in oklab, #34D399 40%, transparent);
+  background-color: color-mix(in oklab, #34D399 16%, transparent);
+  color: #34D399;
+}
+.tx-direction-icon.tx-icon-multisig {
+  border: 1px solid color-mix(in oklab, #FB923C 40%, transparent);
+  background-color: color-mix(in oklab, #FB923C 16%, transparent);
+  color: #FB923C;
+}
+
+/* Badge pills (verify-tx page) */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.badge-pill-transfer {
+  border: 1px solid color-mix(in oklab, #FFA729 40%, transparent);
+  background-color: color-mix(in oklab, #FFA729 14%, transparent);
+  color: #FFA729;
+}
+.badge-pill-coinbase {
+  border: 1px solid color-mix(in oklab, #10B981 40%, transparent);
+  background-color: color-mix(in oklab, #10B981 14%, transparent);
+  color: #10B981;
+}
+.badge-pill-token {
+  border: 1px solid color-mix(in oklab, #4AAFFF 40%, transparent);
+  background-color: color-mix(in oklab, #4AAFFF 14%, transparent);
+  color: #4AAFFF;
+}
+.badge-pill-message {
+  border: 1px solid color-mix(in oklab, #A78BFA 40%, transparent);
+  background-color: color-mix(in oklab, #A78BFA 14%, transparent);
+  color: #A78BFA;
+}
+.badge-pill-slave {
+  border: 1px solid color-mix(in oklab, #F472B6 40%, transparent);
+  background-color: color-mix(in oklab, #F472B6 14%, transparent);
+  color: #F472B6;
+}
+.badge-pill-lattice {
+  border: 1px solid color-mix(in oklab, #34D399 40%, transparent);
+  background-color: color-mix(in oklab, #34D399 14%, transparent);
+  color: #34D399;
+}
+.badge-pill-multisig {
+  border: 1px solid color-mix(in oklab, #FB923C 40%, transparent);
+  background-color: color-mix(in oklab, #FB923C 14%, transparent);
+  color: #FB923C;
+}
+.badge-pill-confirmed {
+  border: 1px solid color-mix(in oklab, #10B981 40%, transparent);
+  background-color: color-mix(in oklab, #10B981 14%, transparent);
+  color: #10B981;
+}
+.badge-pill-unconfirmed {
+  border: 1px solid color-mix(in oklab, #FDE047 40%, transparent);
+  background-color: color-mix(in oklab, #FDE047 14%, transparent);
+  color: #FDE047;
+}
+
+/* Shared overflow helpers */
+.wordBreak {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.unbreakable {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.no-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+/* Ledger signing modal cleanup */
+.ledger-signing-modal .modal-box.wallet-modal-box {
+  width: min(100%, 54rem);
+  max-width: 54rem;
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 88%, transparent);
+  border-top: 2px solid color-mix(in oklab, var(--color-primary) 58%, var(--color-secondary) 42%);
+  border-radius: 1rem;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-base-100) 96%, transparent), color-mix(in oklab, var(--color-base-100) 96%, transparent)),
+    radial-gradient(circle at 8% -30%, rgba(255, 167, 41, 0.2), transparent 52%),
+    radial-gradient(circle at 84% -22%, rgba(74, 175, 255, 0.16), transparent 48%);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
+.ledger-signing-modal .modal-box > .text-lg.font-semibold:first-child {
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.ledger-signing-modal .grid.gap-4 {
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .ledger-signing-modal .grid.gap-4 {
+    grid-template-columns: minmax(0, 11.5rem) minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
+.ledger-signing-modal img.svg {
+  width: min(100%, 11rem);
+  margin-inline: auto;
+  display: block;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
+}
+
+.ledger-signing-modal .description {
+  padding-left: 0 !important;
+}
+
+.ledger-signing-modal .description > p {
+  margin-bottom: 0.75rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--color-base-content) 88%, transparent);
+}
+
+.ledger-signing-modal .container {
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 82%, transparent);
+  border-radius: 0.75rem;
+  background-color: color-mix(in oklab, var(--color-base-200) 94%, transparent);
+  overflow-x: auto;
+}
+
+.ledger-signing-modal .table {
+  margin: 0;
+}
+
+.ledger-signing-modal .table td {
+  vertical-align: top;
+  padding: 0.65rem 0.75rem;
+  border-color: color-mix(in oklab, var(--color-base-300) 75%, transparent);
+}
+
+.ledger-signing-modal .table td:first-child {
+  width: 7rem;
+  min-width: 7rem;
+}
+
+.ledger-signing-modal .table td:last-child {
+  min-width: 0;
+}
+
+.ledger-signing-modal .badge.badge-outline.fw {
+  font-size: 0.66rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-base-content) 92%, transparent);
+  border-color: color-mix(in oklab, var(--color-base-300) 95%, transparent);
+  background-color: color-mix(in oklab, var(--color-base-300) 30%, transparent);
+}
+
+.ledger-signing-modal .modal-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.ledger-signing-modal .modal-action > * {
+  margin: 0;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .ledger-signing-modal .modal-action {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+.ledger-signing-modal #awaitingLedgerConfirmation,
+.ledger-signing-modal #signOnLedgerRejected,
+.ledger-signing-modal #signOnLedgerTimeout,
+.ledger-signing-modal #signOnLedgerError,
+.ledger-signing-modal #ledgerHasConfirmed {
+  grid-column: 1 / -1;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem !important;
+}
+
+.ledger-signing-modal #awaitingLedgerConfirmation {
+  border: 1px solid color-mix(in oklab, var(--color-secondary) 42%, var(--color-base-300)) !important;
+  background-color: color-mix(in oklab, var(--color-secondary) 16%, var(--color-base-200)) !important;
+  color: color-mix(in oklab, var(--color-base-content) 96%, transparent) !important;
+}
+
+.ledger-signing-modal #signOnLedgerRejected,
+.ledger-signing-modal #signOnLedgerError {
+  border: 1px solid color-mix(in oklab, var(--color-error) 56%, var(--color-base-300)) !important;
+  background-color: color-mix(in oklab, var(--color-error) 16%, var(--color-base-200)) !important;
+  color: color-mix(in oklab, var(--color-base-content) 97%, transparent) !important;
+}
+
+.ledger-signing-modal #signOnLedgerTimeout {
+  border: 1px solid color-mix(in oklab, var(--color-warning) 52%, var(--color-base-300)) !important;
+  background-color: color-mix(in oklab, var(--color-warning) 15%, var(--color-base-200)) !important;
+  color: color-mix(in oklab, var(--color-base-content) 95%, transparent) !important;
+}
+
+.ledger-signing-modal #ledgerHasConfirmed {
+  border: 1px solid color-mix(in oklab, var(--color-success) 45%, var(--color-base-300));
+  background-color: color-mix(in oklab, var(--color-success) 16%, var(--color-base-200));
+  color: color-mix(in oklab, var(--color-base-content) 98%, transparent);
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.ledger-signing-modal #awaitingLedgerConfirmation h3,
+.ledger-signing-modal #signOnLedgerRejected h3,
+.ledger-signing-modal #signOnLedgerTimeout h3,
+.ledger-signing-modal #signOnLedgerError h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: inherit;
+}
+
+/* JSON formatter theme overrides */
+.jsonbox {
+  border-color: color-mix(in oklab, var(--color-base-300) 90%, transparent) !important;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-base-100) 96%, transparent), color-mix(in oklab, var(--color-base-100) 96%, transparent)),
+    radial-gradient(circle at 10% -30%, rgba(74, 175, 255, 0.14), transparent 56%);
+}
+
+.jsonbox .json-formatter-row,
+.jsonbox .json-formatter-row a,
+.jsonbox .json-formatter-row a:hover,
+.jsonbox .json-formatter-dark.json-formatter-row,
+.jsonbox .json-formatter-dark.json-formatter-row a,
+.jsonbox .json-formatter-dark.json-formatter-row a:hover {
+  color: color-mix(in oklab, var(--color-base-content) 94%, transparent) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.jsonbox .json-formatter-row .json-formatter-string,
+.jsonbox .json-formatter-row .json-formatter-stringifiable,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-string,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-stringifiable {
+  color: var(--color-success) !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.jsonbox .json-formatter-row .json-formatter-number,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-number {
+  color: var(--color-secondary) !important;
+}
+
+.jsonbox .json-formatter-row .json-formatter-boolean,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-boolean {
+  color: var(--color-warning) !important;
+}
+
+.jsonbox .json-formatter-row .json-formatter-null,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-null {
+  color: color-mix(in oklab, var(--color-warning) 75%, var(--color-base-content) 25%) !important;
+}
+
+.jsonbox .json-formatter-row .json-formatter-undefined,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-undefined,
+.jsonbox .json-formatter-row .json-formatter-function,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-function {
+  color: color-mix(in oklab, var(--color-error) 82%, var(--color-base-content) 18%) !important;
+}
+
+.jsonbox .json-formatter-row .json-formatter-key,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-key {
+  color: color-mix(in oklab, var(--color-info) 84%, var(--color-base-content) 16%) !important;
+  word-break: break-word;
+}
+
+.jsonbox .json-formatter-row .json-formatter-bracket,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-bracket,
+.jsonbox .json-formatter-row .json-formatter-toggler,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-toggler {
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent) !important;
+}
+
+.jsonbox .json-formatter-row .json-formatter-url,
+.jsonbox .json-formatter-dark.json-formatter-row .json-formatter-url {
+  color: var(--color-primary) !important;
+  text-decoration: underline;
+}

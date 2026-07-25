@@ -5,7 +5,10 @@
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
+import { BlazeLayout } from 'meteor/pwix:blaze-layout'
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 import './mobile.html'
+import { closeDialog, openDialog, resolve, setValue } from '../lib/dom'
 import {
   isElectrified,
 } from '../../startup/client/functions'
@@ -32,78 +35,60 @@ const checkNetworkHealth = (network, callback) => {
   })
 }
 
+const normalizeEndpoint = (endpoint) => {
+  if (typeof endpoint !== 'string') {
+    return ''
+  }
+  return endpoint.trim()
+}
 
-// TODO: refactor this -- duplicate code from ../body/body.js
-// Set session state based on selected network node.
-const updateNetwork = (selectedNetwork) => {
-  let userNetwork = selectedNetwork
+function setNetworkSelect(value) {
+  setValue('network', value)
+}
 
-  // If no network is selected, default to mainnet
-  if (selectedNetwork === '') {
-    $('#networkDropdown').dropdown('set selected', DEFAULT_NETWORKS[0].id)
+function currentPath() {
+  FlowRouter.watchPathChange()
+  const route = FlowRouter.current()
+  return (route && route.path) || '/'
+}
+
+const updateNetwork = (selectedValue) => {
+  let userNetwork = selectedValue
+
+  if (selectedValue === '') {
     userNetwork = DEFAULT_NETWORKS[0].id
+    setNetworkSelect(userNetwork)
   }
 
-  // Set node status to connecting
   Session.set('nodeStatus', 'connecting')
-  // Update local node connection details
+
   switch (userNetwork) {
     case 'add': {
-      $('#addNode').modal({
-        onDeny: () => {
-          Session.set('modalEventTriggered', true)
-          $('#networkDropdown').dropdown('set selected', 'mainnet')
-        },
-        onApprove: () => {
-          Session.set('nodeId', 'custom')
-          Session.set('nodeName', document.getElementById('customNodeName').value)
-          Session.set('nodeGrpc', document.getElementById('customNodeGrpc').value)
-          Session.set('nodeExplorerUrl', document.getElementById('customNodeExplorer').value)
-
-          LocalStore.set('customNodeName', document.getElementById('customNodeName').value)
-          LocalStore.set('customNodeGrpc', document.getElementById('customNodeGrpc').value)
-          LocalStore.set('customNodeExplorerUrl', document.getElementById('customNodeExplorer').value)
-
-          LocalStore.set('customNodeCreated', true)
-          Session.set('modalEventTriggered', true)
-
-          $('#networkDropdown').dropdown('refresh')
-
-          // Hacky workaround to https://github.com/Semantic-Org/Semantic-UI/issues/2247
-          setTimeout(() => {
-            $('#networkDropdown').dropdown('set selected', 'custom')
-          }, 100)
-        },
-        onHide: () => {
-          // onHide is triggered even after onApprove and onDeny.
-          // In those events, we set a LocalStorage value which we use inside here
-          // so that we only trigger when the modal is hidden without an approval or denial
-          // eg: pressing esc
-
-          // If the modal is hidden without approval, revert to mainnet
-          if (Session.get('modalEventTriggered') === false) {
-            $('#networkDropdown').dropdown('set selected', 'mainnet')
-          }
-
-          // Reset modalEventTriggered
-          Session.set('modalEventTriggered', false)
-        },
-      }).modal('show')
+      openDialog('addNodeModal')
       break
     }
     case 'custom': {
+      const customNodeGrpc = normalizeEndpoint(LocalStore.get('customNodeGrpc'))
+      if (!customNodeGrpc) {
+        Session.set('nodeStatus', 'failed')
+        Session.set('cancellingNetwork', true)
+        setNetworkSelect(Session.get('nodeId') || DEFAULT_NETWORKS[0].id)
+        openDialog('addNodeModal')
+        return
+      }
+
       const nodeData = {
         id: 'custom',
         name: LocalStore.get('customNodeName'),
         disabled: '',
         explorerUrl: LocalStore.get('customNodeExplorerUrl'),
         type: 'both',
-        grpc: LocalStore.get('customNodeGrpc'),
+        grpc: customNodeGrpc,
       }
 
       Session.set('nodeId', 'custom')
       Session.set('nodeName', LocalStore.get('customNodeName'))
-      Session.set('nodeGrpc', LocalStore.get('customNodeGrpc'))
+      Session.set('nodeGrpc', customNodeGrpc)
       Session.set('nodeExplorerUrl', LocalStore.get('customNodeExplorerUrl'))
 
       console.log('Connecting to custom remote gRPC node: ', nodeData.grpc)
@@ -126,7 +111,7 @@ const updateNetwork = (selectedNetwork) => {
       Session.set('nodeGrpc', nodeData.grpc)
 
       console.log('Connecting to network: ', nodeData.name)
-      checkNetworkHealth(nodeData.id, (err, res) => {
+      checkNetworkHealth(nodeData.id, (err) => {
         if (err) {
           console.log('the error: ', err)
           Session.set('nodeStatus', 'failed')
@@ -149,6 +134,7 @@ const tabHandler = (page) => {
     tools: true,
     transfer: true,
   }
+
   if (page === '/create' || page === '/open' || page === '/' || page === '/close') {
     output.create = true
     output.verify = true
@@ -157,6 +143,7 @@ const tabHandler = (page) => {
     output.transfer = false
     output.tools = false
   }
+
   if (Session.get('walletStatus').unlocked === false && page === '/verify') {
     output.create = true
     output.verify = true
@@ -165,77 +152,76 @@ const tabHandler = (page) => {
     output.transfer = false
     output.tools = false
   }
+
   return output
 }
 
-const numPages = (tabs) => {
-  const result = Object.keys(tabs).filter(x => tabs[x] !== false)
-  return result.length
-}
-
-const returnClass = (path) => {
-  const x = parseInt(path, 10)
-  switch (x) {
-    default:
-      return 'four'
-    case 3:
-      return 'three'
-    case 4:
-      return 'four'
-    case 5:
-      return 'five'
-    case 6:
-      return 'six'
-  }
-}
-
-const adjustClasses = () => {
-  const tabs = tabHandler(FlowRouter.current().path)
-  $('.menu').removeClass('three four five six')
-  $('.menu').addClass(returnClass(numPages(tabs)))
-  if (tabs.create) { $('#newWalletButton').show() } else { $('#newWalletButton').hide() }
-  if (tabs.verify) { $('#verifyButton').show() } else { $('#verifyButton').hide() }
-  if (tabs.open) { $('#openWalletButton').show() } else { $('#openWalletButton').hide() }
-  if (tabs.close) { $('#closeWalletButton').show() } else { $('#closeWalletButton').hide() }
-  if (tabs.transfer) { $('#sendAndReceiveButton').show() } else { $('#sendAndReceiveButton').hide() }
-  if (tabs.tools) { $('#toolsButton').show() } else { $('#toolsButton').hide() }
+function visibleTabs() {
+  return tabHandler(currentPath())
 }
 
 Template.mobile.onRendered(() => {
-  Session.set('modalEventTriggered', false)
-  $('#networkDropdown').dropdown({ allowReselection: true })
-  $('.small.modal').modal()
-
+  Session.set('cancellingNetwork', false)
+  setNetworkSelect(Session.get('nodeId') || DEFAULT_NETWORKS[0].id)
   updateNetwork(selectedNetwork())
-
-  Tracker.autorun(() => {
-    FlowRouter.watchPathChange()
-    adjustClasses()
-  })
 })
+
 Template.mobile.events({
-  click: () => {
-    // console.log($(event.currentTarget).attr('href'))
-    adjustClasses()
+  'change #network': (event) => {
+    const value = event.target.value
+    updateNetwork(value)
+
+    if (value !== 'add' && Session.get('cancellingNetwork') !== true) {
+      window.Reload._reload()
+    }
+    Session.set('cancellingNetwork', false)
   },
-  'change #network': () => {
-    updateNetwork(selectedNetwork())
+  'click #saveCustomNode': () => {
+    const customNodeNameField = resolve('customNodeName')
+    const customNodeGrpcField = resolve('customNodeGrpc')
+    const customNodeExplorerField = resolve('customNodeExplorer')
+
+    const customNodeName = customNodeNameField ? customNodeNameField.value : ''
+    const customNodeGrpc = customNodeGrpcField ? normalizeEndpoint(customNodeGrpcField.value) : ''
+    const customNodeExplorer = customNodeExplorerField ? customNodeExplorerField.value : ''
+
+    if (!customNodeGrpc) {
+      Session.set('nodeStatus', 'failed')
+      if (customNodeGrpcField) customNodeGrpcField.focus()
+      return
+    }
+
+    Session.set('nodeId', 'custom')
+    Session.set('nodeName', customNodeName)
+    Session.set('nodeGrpc', customNodeGrpc)
+    Session.set('nodeExplorerUrl', customNodeExplorer)
+
+    LocalStore.set('customNodeName', customNodeName)
+    LocalStore.set('customNodeGrpc', customNodeGrpc)
+    LocalStore.set('customNodeExplorerUrl', customNodeExplorer)
+    LocalStore.set('customNodeCreated', true)
+
+    setNetworkSelect('custom')
+    closeDialog('addNodeModal')
+    updateNetwork('custom')
+  },
+  'click #cancelCustomNode': () => {
+    Session.set('cancellingNetwork', true)
+    closeDialog('addNodeModal')
+    setNetworkSelect(Session.get('nodeId') || DEFAULT_NETWORKS[0].id || 'mainnet')
+  },
+  'close #addNodeModal': () => {
+    const network = resolve('network')
+    if (network && network.value === 'add') {
+      Session.set('cancellingNetwork', true)
+      network.value = Session.get('nodeId') || DEFAULT_NETWORKS[0].id || 'mainnet'
+    }
   },
 })
 
 Template.mobile.helpers({
   qrlWalletVersion() {
-    console.log(WALLET_VERSION)
     return WALLET_VERSION
-  },
-  menuItemsCount() {
-    return returnClass(numPages(tabHandler(FlowRouter.current().path)))
-  },
-  nodeId() {
-    if ((Session.get('nodeId') === '') || (Session.get('nodeId') === null)) {
-      return DEFAULT_NETWORKS[0].id
-    }
-    return Session.get('nodeId')
   },
   nodeName() {
     if ((Session.get('nodeName') === '') || (Session.get('nodeName') === null)) {
@@ -252,15 +238,11 @@ Template.mobile.helpers({
   defaultNetworks() {
     const visibleNodes = []
 
-    // Only return nodes specific to this (web/desktop/both).
     _.each(DEFAULT_NETWORKS, (node) => {
-      // Desktop Electrified Clients
       if ((node.type === 'desktop') && (isElectrified())) {
         visibleNodes.push(node)
-      // Web Non-Electrified Clients
       } else if ((node.type === 'web') && !isElectrified()) {
         visibleNodes.push(node)
-      // Everything else
       } else if (node.type === 'both') {
         visibleNodes.push(node)
       }
@@ -268,30 +250,43 @@ Template.mobile.helpers({
 
     return visibleNodes
   },
-  connectionStatus() {
-    const status = {}
-    if (Session.get('nodeStatus') === 'connecting') {
-      status.string = 'Connecting to'
-      status.colour = 'yellow'
-    } else if (Session.get('nodeStatus') === 'ok') {
-      status.string = 'Connected to'
-      status.colour = 'green'
-    } else {
-      status.string = 'Failed to connect to'
-      status.colour = 'red'
-    }
-    return status
-  },
-  walletStatus() {
-    return Session.get('walletStatus')
-  },
   customNodeCreated() {
+    if (Meteor.settings && Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints) return false
     return LocalStore.get('customNodeCreated')
   },
   customNodeName() {
     return LocalStore.get('customNodeName')
   },
-  /* Active Menu Item Helpers */
+  lockCustomEndpoints() {
+    return Meteor.settings && Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints === true
+  },
+  connectionStatus() {
+    if (Session.get('nodeStatus') === 'ok') {
+      return { connected: true, label: 'Connected' }
+    }
+    if (Session.get('nodeStatus') === 'connecting') {
+      return { connected: false, label: 'Connecting' }
+    }
+    return { connected: false, label: 'Disconnected' }
+  },
+  showNewWalletTab() {
+    return visibleTabs().create
+  },
+  showOpenWalletTab() {
+    return visibleTabs().open
+  },
+  showCloseWalletTab() {
+    return visibleTabs().close
+  },
+  showTransferTab() {
+    return visibleTabs().transfer
+  },
+  showToolsTab() {
+    return visibleTabs().tools
+  },
+  showVerifyTab() {
+    return visibleTabs().verify
+  },
   menuNewWalletActive() {
     if (
       (FlowRouter.getRouteName() === 'App.home')
@@ -324,17 +319,18 @@ Template.mobile.helpers({
     }
     return ''
   },
-  menuTokensActive() {
+  menuToolsActive() {
+    const routeName = FlowRouter.getRouteName() || ''
     if (
-      (FlowRouter.getRouteName() === 'App.tokens')
-      || (FlowRouter.getRouteName() === 'App.tokensView')
-      || (FlowRouter.getRouteName() === 'App.tokensCreate')
-      || (FlowRouter.getRouteName() === 'App.tokenCreationConfirm')
-      || (FlowRouter.getRouteName() === 'App.tokenCreationResult')
-      || (FlowRouter.getRouteName() === 'App.tokensTransfer')
-      || (FlowRouter.getRouteName() === 'App.tokensTransferLoad')
-      || (FlowRouter.getRouteName() === 'App.tokensTransferConfirm')
-      || (FlowRouter.getRouteName() === 'App.tokensTransferResult')) {
+      routeName.startsWith('App.tools')
+      || routeName.startsWith('App.message')
+      || routeName.startsWith('App.multisig')
+      || routeName.startsWith('App.keybase')
+      || routeName.startsWith('App.github')
+      || routeName.startsWith('App.notarise')
+      || routeName === 'App.addTokens'
+      || routeName === 'App.NFT'
+      || routeName === 'App.xmssIndexUpdate') {
       return 'active'
     }
     return ''

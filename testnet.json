@@ -1,5 +1,5 @@
 {
-  "public" :{
+  "public": {
     "defaultNetworks": [
       {
         "id": "testnet",
@@ -11,13 +11,13 @@
         "nodes": [
           {
             "id": "testnet",
-            "grpc": "testnet-1.automated.theqrl.org:19009",
+            "grpc": "testnet-3.automated.theqrl.org:19009",
             "state": false,
             "height": 0
           }
         ]
       }
-    ]
-  },
-  "allowUnchecksummedNodes": false
+    ],
+    "lockCustomEndpoints": true
+  }
 }

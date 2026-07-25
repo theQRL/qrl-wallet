@@ -1,0 +1,352 @@
+<template name="appBody">
+<div data-theme="qrl" class="min-h-screen bg-base-100">
+  <dialog class="modal" id="otsTrackerModal">
+    <div class="modal-box wallet-modal-box max-w-5xl">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v9a2 2 0 01-2 2z" />
+          </svg>
+          OTS Key Tracker
+        </h3>
+        <form method="dialog">
+          <button class="btn btn-ghost btn-sm" aria-label="Close OTS tracker">✕</button>
+        </form>
+      </div>
+
+      {{#if otsTrackerData.error}}
+      <div class="alert alert-warning mt-4">
+        <span>{{otsTrackerData.error}}</span>
+      </div>
+      {{else}}
+      <div class="mt-3 text-sm text-base-content/70">
+        <p>The OTS tracker uses on-chain data and may not include unconfirmed mempool transactions.</p>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+        <div class="rounded-lg border border-base-300 bg-base-200 px-3 py-2 text-center">
+          <p class="text-xs uppercase text-base-content/60">Total</p>
+          <p class="font-semibold">{{otsTrackerData.totalCount}}</p>
+        </div>
+        <div class="rounded-lg border border-base-300 bg-base-200 px-3 py-2 text-center">
+          <p class="text-xs uppercase text-base-content/60">Used</p>
+          <p class="font-semibold text-error">{{otsTrackerData.usedCount}}</p>
+        </div>
+        <div class="rounded-lg border border-base-300 bg-base-200 px-3 py-2 text-center">
+          <p class="text-xs uppercase text-base-content/60">Remaining</p>
+          <p class="font-semibold text-success">{{otsTrackerData.remainingCount}}</p>
+        </div>
+        <div class="rounded-lg border border-base-300 bg-base-200 px-3 py-2 text-center">
+          <p class="text-xs uppercase text-base-content/60">Next Suggested</p>
+          <p class="font-semibold">{{otsTrackerData.nextKey}}</p>
+        </div>
+      </div>
+
+      <div class="mt-4 max-h-[55vh] overflow-auto rounded-xl border border-base-300 bg-base-200/40 p-3">
+        {{#if otsTrackerData.cells}}
+        <div class="grid grid-cols-5 gap-1 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12">
+          {{#each otsTrackerData.cells}}
+          {{#if isUsed}}
+          <div class="rounded border border-error/40 bg-error/15 px-1 py-1 text-center font-mono text-[11px] text-error" title="OTS key {{key}} used">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 inline h-3 w-3 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{key}}
+          </div>
+          {{else}}
+          <div class="rounded border border-success/40 bg-success/15 px-1 py-1 text-center font-mono text-[11px] text-success" title="OTS key {{key}} available">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 inline h-3 w-3 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{key}}
+          </div>
+          {{/if}}
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="p-2 text-center text-xs text-base-content/70">No OTS keys found</div>
+        {{/if}}
+      </div>
+      {{/if}}
+
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn">Close</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+
+  <!-- DaisyUI Drawer for sidebar navigation -->
+  <div class="drawer lg:drawer-open">
+    <input id="wallet-drawer" type="checkbox" class="drawer-toggle" />
+    
+    <!-- Main Content Area -->
+    <div class="drawer-content flex flex-col">
+      <!-- Top Navbar (mobile) -->
+      <div class="navbar bg-base-200 lg:hidden border-b border-base-300">
+        <div class="flex-none">
+          <label for="wallet-drawer" class="btn btn-square btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </label>
+        </div>
+        <div class="flex-1">
+          <a href="/" class="btn btn-ghost text-xl">
+            <img src="/img/yellow.svg" class="h-8" alt="QRL Wallet" />
+          </a>
+        </div>
+        <div class="flex-none">
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-sm gap-2 normal-case">
+              <span class="max-w-24 truncate text-xs text-base-content/60">{{nodeName}}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 {{#if connectionStatus.connected}}text-success{{else}}text-error{{/if}}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+              </svg>
+              <span class="text-xs {{#if connectionStatus.connected}}text-success{{else}}text-error{{/if}}">
+                {{#if connectionStatus.connected}}Connected{{else}}Disconnected{{/if}}
+              </span>
+            </label>
+            <div tabindex="0" class="dropdown-content z-50 mt-2 w-72 rounded-box border border-base-300 bg-base-200 p-3 shadow-lg">
+              <fieldset class="fieldset w-full">
+                <legend class="fieldset-legend text-xs uppercase tracking-wide text-base-content/70">Network</legend>
+                <select id="networkMobile" class="select select-sm w-full bg-base-100">
+                  {{#each defaultNetworks}}
+                  <option value="{{this.id}}">{{this.name}}</option>
+                  {{/each}}
+                  {{#if customNodeCreated}}
+                  <option value="custom">{{customNodeName}}</option>
+                  {{/if}}
+                  {{#if lockCustomEndpoints}}
+                  {{else}}
+                  <option value="add">+ Add Custom Node</option>
+                  {{/if}}
+                </select>
+              </fieldset>
+              <p class="mt-2 text-xs text-base-content/70 truncate">{{nodeName}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallet Status Header -->
+      {{#if walletStatus.unlocked}}
+      <div class="px-4 lg:px-8">
+        <div class="card bg-base-100">
+          <div class="card-body p-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <h2 class="text-sm text-base-content/70 mb-1">Wallet Address</h2>
+                <p id="openWalletAddress" class="font-mono text-sm break-all text-primary">{{walletStatus.address}}</p>
+              </div>
+              <div class="flex gap-6 flex-shrink-0">
+                <div class="text-center">
+                  {{#if inProgress}}<span class="loading loading-spinner loading-sm"></span>{{/if}}
+                  <p class="text-2xl font-bold text-base-content">{{balanceAmount}}</p>
+                  <p class="text-xs text-base-content/70 uppercase">{{balanceSymbol}}</p>
+                </div>
+                <button
+                  id="openOtsTracker"
+                  type="button"
+                  class="text-center rounded-md px-1 transition-colors hover:bg-base-300/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  {{#if inProgress}}<span class="loading loading-spinner loading-sm"></span>{{/if}}
+                  <p class="text-2xl font-bold text-info">{{otsKeysRemaining}}</p>
+                  <p class="text-xs text-base-content/70 uppercase">OTS Keys Remaining</p>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{/if}}
+
+      <!-- Page Content -->
+      <main class="flex-1 p-4 lg:px-8 lg:pb-8 lg:pt-4">
+        <!-- Dynamic Page Content -->
+        <div class="w-full">
+          {{> Template.dynamic template=main}}
+        </div>
+
+      </main>
+
+      <!-- Footer -->
+      <footer class="site-footer border-gradient-top">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-9">
+          <div class="site-footer-grid">
+            <section class="site-footer-brand">
+              <a href="/" class="site-footer-logo-wrap">
+                <img class="h-8 w-auto" src="/img/icon.svg" alt="QRL Wallet" />
+                <span class="site-footer-brand-title">QRL Wallet</span>
+              </a>
+              <!-- <p class="site-footer-brand-copy">
+                Quantum Resistant Ledger wallet for secure cryptocurrency management.
+              </p> -->
+              <p class="site-footer-meta">
+                Version {{qrlWalletVersion}} · MIT License
+              </p>
+            </section>
+
+            <nav class="site-footer-nav" aria-label="Ecosystem links">
+              <h4 class="site-footer-heading">Ecosystem</h4>
+              <div class="site-footer-links">
+                <a href="https://theqrl.org/" target="_blank" rel="noopener noreferrer" class="site-footer-link">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span>theQRL.org</span>
+                </a>
+                <a href="{{nodeExplorerUrl}}" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer" class="site-footer-link">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>Block Explorer</span>
+                </a>
+                <a href="https://github.com/theQRL/qrl-wallet" target="_blank" rel="noopener noreferrer" class="site-footer-link">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  <span>GitHub</span>
+                </a>
+              </div>
+            </nav>
+          </div>
+
+          <div class="site-footer-bottom">
+            <p class="site-footer-meta">© {{currentYear}} The QRL Foundation</p>
+            <div class="site-footer-utility">
+              <a href="https://github.com/theQRL/qrl-wallet/blob/master/LICENSE" target="_blank" rel="noopener noreferrer" class="site-footer-utility-link">
+                License
+              </a>
+              <a href="https://github.com/theQRL/qrl-wallet/issues" target="_blank" rel="noopener noreferrer" class="site-footer-utility-link">
+                Issues
+              </a>
+              <a href="https://docs.theqrl.org/" target="_blank" rel="noopener noreferrer" class="site-footer-utility-link">
+                Docs
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- Sidebar -->
+    <div class="drawer-side z-40">
+      <label for="wallet-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+      <aside class="bg-base-200 w-64 min-h-full flex flex-col">
+        <!-- Logo -->
+        <div class="p-4 bg-primary">
+          <a href="/" class="flex items-center justify-center">
+            <img src="/img/white.svg" class="h-12 p-2" alt="QRL Wallet" />
+          </a>
+        </div>
+
+        <!-- Navigation Menu -->
+        <ul class="menu menu-md p-4 w-full flex-1 text-base-content">
+          <li class="menu-title"><span>Wallet</span></li>
+          <li style="{{walletStatus.menuHiddenInverse}}">
+            <a href="/create" class="{{menuNewWalletActive}} py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              New Wallet
+            </a>
+          </li>
+
+          <li style="{{walletStatus.menuHiddenInverse}}">
+            <a href="/open" class="{{menuOpenWalletActive}} py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+              </svg>
+              Open Wallet
+            </a>
+          </li>
+
+          <li style="{{walletStatus.menuHidden}}">
+            <a href="/close" class="py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Close Wallet
+            </a>
+          </li>
+
+          <li class="menu-title" style="{{walletStatus.menuHidden}}"><span>Actions</span></li>
+          <li style="{{walletStatus.menuHidden}}">
+            <a href="/transfer" class="{{menuTransferActive}} py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Send and Receive
+            </a>
+          </li>
+
+          <li style="{{walletStatus.menuHidden}}">
+            <a href="/tools" class="{{menuToolsActive}} py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Tools
+            </a>
+          </li>
+
+          <li class="menu-title"><span>Explore</span></li>
+          <li>
+            <a href="/verify" class="{{menuVerifyActive}} py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Verify Transaction
+            </a>
+          </li>
+
+          <li>
+            <a href="{{nodeExplorerUrl}}" class="py-2" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Explorer
+            </a>
+          </li>
+        </ul>
+
+        <!-- Network Selection -->
+        <div class="p-4 border-t border-base-300">
+          <fieldset class="fieldset w-full">
+            <legend class="fieldset-legend text-xs uppercase tracking-wide text-base-content/70">Network</legend>
+            <select id="network" class="select select-sm w-full bg-base-100">
+              {{#each defaultNetworks}}
+              <option value="{{this.id}}">{{this.name}}</option>
+              {{/each}}
+              {{#if customNodeCreated}}
+              <option value="custom">{{customNodeName}}</option>
+              {{/if}}
+              {{#if lockCustomEndpoints}}
+              {{else}}
+              <option value="add">+ Add Custom Node</option>
+              {{/if}}
+            </select>
+          </fieldset>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="p-4 border-t border-base-300">
+          <div class="flex items-center gap-2">
+            {{#if connectionStatus.connected}}
+            <span class="badge badge-success badge-sm">Connected</span>
+            {{else}}
+            <span class="badge badge-error badge-sm">Disconnected</span>
+            {{/if}}
+            <span class="text-xs text-base-content/50 truncate">{{nodeName}}</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Custom Node Modal -->
+  {{>customNode}}
+</div>
+</template>

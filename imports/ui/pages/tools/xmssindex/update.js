@@ -57,7 +57,7 @@ function updateLedgerOtsKeyIndex() {
   // Fail if OTS Key reuse is detected
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#updatingLedger').hide()
-    $('#otsKeyReuseDetected').modal('show')
+    window.walletUi.showModal('#otsKeyReuseDetected')
     return
   }
 

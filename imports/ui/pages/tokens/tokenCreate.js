@@ -1,3 +1,4 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
@@ -34,7 +35,7 @@ function createTokenTxn() {
   // Fail if OTS Key reuse is detected
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    $('#otsKeyReuseDetected').modal('show')
+    window.walletUi.showModal('#otsKeyReuseDetected')
     return
   }
 
@@ -68,7 +69,7 @@ function createTokenTxn() {
     Session.set('maxDecimals', maxAllowedDecimals(tokenTotalSupply))
     Session.set('tokenTotalSupply', tokenTotalSupply)
     $('#generating').hide()
-    $('#maxDecimalsReached').modal('show')
+    window.walletUi.showModal('#maxDecimalsReached')
     return
   }
 
@@ -154,7 +155,7 @@ function createTokenTxn() {
         // Hide generating component
         $('#generating').hide()
         // Show warning modal
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -271,12 +272,12 @@ function initialiseFormValidation() {
   }
 
   // Max of 9 decimals
-  $.fn.form.settings.rules.maxDecimals = function (value) {
+  window.walletUi.addFormRule('maxDecimals', function (value) {
     return (countDecimals(value) <= 9)
-  }
+  })
 
   // Initliase the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
   })
 }
@@ -286,7 +287,7 @@ Template.appTokenCreate.onRendered(() => {
   ledgerHasNoTokenSupport()
 
   // Initialise dropdowns
-  $('.ui.dropdown').dropdown()
+  window.walletUi.initDropdowns('select')
 
   // Set default transfer recipients to 1
   countRecipientsForValidation = 1
@@ -299,7 +300,7 @@ Template.appTokenCreate.onRendered(() => {
     // Show warning is otsKeysRemaining is low
     if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
-      $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+      window.walletUi.showModal('#lowOtsKeyWarning')
     }
   })
 })
@@ -313,18 +314,22 @@ Template.appTokenCreate.events({
     countRecipientsForValidation += 1
 
     const newTokenHolderHtml = `
-      <div class="field">
-        <label>Holder Balance</label>
-        <div class="three fields">
-          <div class="ten wide field">
-            <input type="text" id="initialBalancesAddress_${countRecipientsForValidation}" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address">
-          </div>
-          <div class="five wide field">
-            <input type="text" id="initialBalancesAddressAmount_${countRecipientsForValidation}" name="initialBalancesAddressAmount[]" placeholder="Token Balance">
-          </div>
-          <div class="one wide field">
-            <button class="ui red button removeTokenHolder"><i class="remove user icon"></i></button>
-          </div>
+      <div class="token-holder-entry rounded-lg border border-base-300/80 bg-base-100/60 p-3">
+        <fieldset class="fieldset w-full">
+          <legend class="fieldset-legend">Holder Address</legend>
+          <input type="text" id="initialBalancesAddress_${countRecipientsForValidation}" name="initialBalancesAddress[]" placeholder="Token Holder QRL Address" autocomplete="off" class="input input-bordered w-full bg-base-100">
+        </fieldset>
+        <fieldset class="fieldset w-full">
+          <legend class="fieldset-legend">Token Balance</legend>
+          <input type="text" id="initialBalancesAddressAmount_${countRecipientsForValidation}" name="initialBalancesAddressAmount[]" placeholder="Token Balance" autocomplete="off" class="input input-bordered w-full bg-base-100">
+        </fieldset>
+        <div class="mt-3 flex justify-end">
+          <button class="btn btn-error btn-sm gap-2 removeTokenHolder" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7v10m6-10v10M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M10 4h4a1 1 0 011 1v2H9V5a1 1 0 011-1z" />
+            </svg>
+            Remove
+          </button>
         </div>
       </div>
     `
@@ -343,8 +348,7 @@ Template.appTokenCreate.events({
     countRecipientsForValidation -= 1
 
     // Remove the token holder
-    $(event.currentTarget).parent().parent().parent()
-      .remove()
+    $(event.currentTarget).closest('.token-holder-entry').remove()
 
     // Initialise Form Validation
     initialiseFormValidation()
