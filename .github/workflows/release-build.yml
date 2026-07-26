@@ -91,8 +91,13 @@ jobs:
       - name: Install Meteor (macOS/Linux)
         if: runner.os != 'Windows'
         shell: bash
+        # Pin the tool to the project's release (.meteor/release = METEOR@3.4).
+        # Installing "latest" (now 3.5) forces a springboard down to 3.4 that
+        # silently fails to happen on Windows, running the build under the 3.5
+        # tool whose solver hangs in prepareProjectForBuild. Install 3.4 directly
+        # everywhere so no runner springboards.
         run: |
-          curl https://install.meteor.com/ | sh
+          curl 'https://install.meteor.com/?release=3.4' | sh
           echo "$HOME/.meteor" >> "$GITHUB_PATH"
 
       - name: Install Meteor (Windows)
@@ -105,7 +110,9 @@ jobs:
           $meteorInstallDir = Join-Path $env:LOCALAPPDATA '.meteor'
           if (Test-Path $extractDir) { Remove-Item -Recurse -Force $extractDir }
           New-Item -ItemType Directory -Path $extractDir | Out-Null
-          Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64' -OutFile $bootstrapGz
+          # release=3.4 pins the tool to the project's release (must be the bare
+          # version - release=METEOR@3.4 is not parsed and falls back to latest).
+          Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64&release=3.4' -OutFile $bootstrapGz
           tar -xzf $bootstrapGz -C $extractDir
           $bootstrapTar = Get-ChildItem -Path $extractDir -Filter 'meteor-bootstrap-*.tar' -File -Recurse | Select-Object -First 1
           if ($bootstrapTar) {
