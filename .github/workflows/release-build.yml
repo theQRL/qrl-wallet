@@ -36,11 +36,14 @@ jobs:
             platform: darwin
             arch: arm64
             artifact_name: qrlwallet-release-darwin-arm64
-          - runner: windows-latest
+          # Pinned to windows-2022: the moving `windows-latest` label rolled to
+          # windows-2025-vs2026, where Meteor's build hangs in prepareProjectForBuild
+          # (VS2026 / node-gyp toolchain drift). RC4 built cleanly on windows-2022.
+          - runner: windows-2022
             platform: win32
             arch: x64
             artifact_name: qrlwallet-release-win32-x64
-          - runner: windows-latest
+          - runner: windows-2022
             platform: win32
             arch: arm64
             artifact_name: qrlwallet-release-win32-arm64
@@ -148,6 +151,7 @@ jobs:
             meteor-local-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: Package desktop app
+        if: runner.os != 'Windows'
         timeout-minutes: 90
         env:
           # Emits per-phase build timings periodically. Doubles as a heartbeat:
@@ -155,6 +159,46 @@ jobs:
           # slow-but-alive build apart from a genuinely stuck one.
           METEOR_PROFILE: 1000
         run: node node_modules/@theqrl/electrify-qrl/bin/cli.js package -o .electrify/.dist --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      # Windows stalls in Meteor's `prepareProjectForBuild` phase with zero output.
+      # Run the packager as a background job and print a 30s heartbeat so we can tell
+      # a slow-but-progressing build (.meteor/local file count/size keeps growing,
+      # node burning CPU) from a genuine deadlock (frozen counts, idle process).
+      - name: Package desktop app (Windows, instrumented)
+        if: runner.os == 'Windows'
+        timeout-minutes: 90
+        shell: pwsh
+        env:
+          METEOR_PROFILE: 1000
+        run: |
+          Write-Host '--- Windows Defender exclusions in effect ---'
+          $ex = (Get-MpPreference).ExclusionPath
+          if ($ex) { $ex | ForEach-Object { Write-Host "  $_" } } else { Write-Host '  (none - exclusion did NOT apply)' }
+
+          $local = Join-Path $env:GITHUB_WORKSPACE '.meteor\local'
+          $arch = '${{ matrix.arch }}'
+          $build = Start-Job -ScriptBlock {
+            Set-Location $using:env:GITHUB_WORKSPACE
+            $env:METEOR_PROFILE = '1000'
+            node node_modules/@theqrl/electrify-qrl/bin/cli.js package -o .electrify/.dist --platform win32 --arch $using:arch 2>&1
+            if ($LASTEXITCODE -ne 0) { throw "packager exited with code $LASTEXITCODE" }
+          }
+
+          while ($build.State -eq 'Running') {
+            $c = 0; $mb = 0
+            if (Test-Path $local) {
+              $f = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue $local
+              $c = ($f | Measure-Object).Count
+              $mb = [math]::Round((($f | Measure-Object -Property Length -Sum).Sum) / 1MB, 1)
+            }
+            $procs = (Get-Process node, mongod -ErrorAction SilentlyContinue |
+              ForEach-Object { "$($_.ProcessName)#$($_.Id) cpu=$([math]::Round($_.CPU,0))s ws=$([math]::Round($_.WorkingSet64/1MB,0))MB" }) -join '; '
+            Write-Host ("[hb {0}] .meteor/local files={1} sizeMB={2} | procs: {3}" -f (Get-Date -Format HH:mm:ss), $c, $mb, $procs)
+            Receive-Job $build
+            Start-Sleep -Seconds 30
+          }
+          Receive-Job $build
+          if ($build.State -ne 'Completed') { throw "packager job ended in state: $($build.State)" }
 
       - name: Harden packaged app
         run: node .scripts/harden-electron-package.js --platform=${{ matrix.platform }}
