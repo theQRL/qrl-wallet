@@ -33,8 +33,8 @@
         </select>
         <div id="addressFields" class="flex flex-wrap gap-2 items-center">
           <!-- Toggle visibility button -->
-          <button id="eye" class="btn btn-square btn-ghost">
-            <svg id="eyeicon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button id="eye" type="button" class="btn btn-square btn-ghost" aria-label="Show or hide wallet seed" title="Show or hide wallet seed">
+            <svg id="eyeicon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
@@ -50,6 +50,23 @@
         <p class="text-sm text-base-content/70 mt-2">To use a Ledger Nano device on Windows, download the desktop wallet from https://theqrl.org</p>
         {{/if}}
       </fieldset>
+
+      <div id="legacyWalletWarning" class="hidden mt-4">
+        <div role="alert" class="alert alert-warning gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <h3 class="font-bold">This is an old wallet file format</h3>
+            <p class="text-sm">
+              Its password protection is weak by today's standards: anyone holding a copy of this file can try passwords against it offline, very quickly. Opening it here is safe, and you will be offered an upgrade afterwards.
+            </p>
+            <p class="text-sm mt-2">
+              Re-encrypting only protects this copy. If this backup may ever have been exposed — an old drive, a shared or cloud folder, an email attachment — treat the seed as compromised: create a new wallet and move your funds to it.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <!-- Passphrase Area -->
       <div id="passphraseArea" class="space-y-4">
@@ -129,6 +146,30 @@
     <div>
       <h3 class="font-bold">Error!</h3>
       <p class="text-sm">Either your wallet file is invalid or it is encrypted and you forgot to enter its passphrase.</p>
+    </div>
+  </div>
+</div>
+
+<div id="incorrectPassphrase" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Incorrect passphrase</h3>
+      <p class="text-sm">This wallet file could not be decrypted with the passphrase you entered. Check the passphrase and try again.</p>
+    </div>
+  </div>
+</div>
+
+<div id="passphraseRequired" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Passphrase required</h3>
+      <p class="text-sm">This wallet file is encrypted. Enter its passphrase to open it.</p>
     </div>
   </div>
 </div>

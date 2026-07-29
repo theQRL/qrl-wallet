@@ -326,7 +326,6 @@
   <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
 
-{{> recoverySeedModal }}
 
 <!-- Page Header -->
 <div class="flex items-center gap-3 mb-6">
@@ -832,16 +831,7 @@
               </div>
             </div>
           </div>
-          {{#if isSeedWallet}}
-          <div class="grid gap-4">
-            <div class="text-left mt-4">
-              <h4>View Recovery Seed</h4>
-              <div class="text-center">
-                <button id="showRecoverySeed" class="btn btn-md btn-error" style="width: 100%">Click to View</button>
-              </div>
-            </div>
-          </div>
-          {{else}}
+          {{#unless isSeedWallet}}
           <div class="grid gap-4">
             <div class="text-left">
               <h4>Verify Ledger Nano S Address</h4>
@@ -850,7 +840,7 @@
               </div>
             </div>
           </div>
-          {{/if}}
+          {{/unless}}
       </div>
 
       <!-- Token Balances -->
@@ -944,37 +934,28 @@
       </div>
 
     </div>
-    <div class="">
+    <section class="transaction-history-column" aria-labelledby="transactionHistoryHeading">
       
       <!-- Transaction History -->
-      <div id="transactionHistoryHeader" class="tabs tabs-boxed w-full p-1">
-        <div class="tab tab-active flex-1 justify-start gap-3 pointer-events-none text-base-content border-base-300">
-          <span class="bg-primary/20 p-2 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </span>
-          <span class="text-base font-semibold">Transaction History</span>
-        </div>
-      </div>
+      <header id="transactionHistoryHeader" class="transaction-history-header">
+        <svg xmlns="http://www.w3.org/2000/svg" class="transaction-history-header-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 id="transactionHistoryHeading">Transaction History</h2>
+      </header>
       {{#if loadingTransactions}}
-      <div id="loadingTransactions" class="alert gap-3">
-        <br /><br />
+      <div id="loadingTransactions" class="transaction-history-state">
         <span class="loading loading-spinner loading-md"></span>
-        <div class="">
-          <div class="text-lg font-semibold">
-            Just a moment
-          </div>
-          <p id="relayingMsg">Transaction history loading ...</p>
+        <div>
+          <h3>Loading transactions</h3>
+          <p id="relayingMsg">Fetching recent wallet activity.</p>
         </div>
       </div>
       {{/if}}
       {{#if errorLoadingTransactions}}
-      <div id="errorLoadingTransactions" class="alert gap-3">
-        <br /><br /> <div class="">
-          <div class="text-lg font-semibold">
-            Error loading transactions
-          </div>
+      <div id="errorLoadingTransactions" class="transaction-history-state transaction-history-state-error">
+        <div>
+          <h3>Error loading transactions</h3>
           <p id="txHistoryError">The wallet could not connect to the selected network</p>
         </div>
       </div>
@@ -1261,20 +1242,18 @@
         {{/if}}
 
       {{else}}
-        <div id="noTransactionsFound" style="display: none;" class="alert gap-3">
-          <br /><br />
-          <div class="">
-            <div class="text-lg font-semibold">
-              No transactions found
-            </div>
+        <div id="noTransactionsFound" style="display: none;" class="transaction-history-state">
+          <div>
+            <h3>No transactions found</h3>
+            <p>New activity will appear here after it is seen by the network.</p>
           </div>
         </div>
       {{/if}}
 
       {{#if openedAddress}}
-      <div class="mt-4">
+      <div class="transaction-history-action">
         <a
-          class="btn btn-secondary btn-sm w-full"
+          class="btn btn-outline btn-sm w-full"
           href="{{nodeExplorerUrl}}/a/{{openedAddress}}"
           target="_blank"
           rel="noopener noreferrer nofollow"
@@ -1287,7 +1266,7 @@
         </a>
       </div>
       {{/if}}
-    </div>
+    </section>
   </div>
 </div>
 
@@ -1296,28 +1275,4 @@
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
 </div>
 
-</template>
-
-<template name="recoverySeedModal">
-  <dialog class="modal" id="recoverySeedModal">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">Wallet Recovery Seed</div>
-      <div class="">
-        <div class="alert alert-warning gap-3"> <div>
-            <div class="text-lg font-semibold">
-              Warning: Keep this information private at all times!
-            </div>
-            <p class="break-words text-sm"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
-            <p class="break-all font-mono text-sm"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
-            <p class="wordBreak"><strong>Private key QR:</strong><div id="recQR" width="150" height="150"></div>
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="modal-action">
-        <button type="button" class="btn btn-error">Close</button>
-      </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
 </template>

@@ -3,7 +3,7 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, otsKeyValidationRules, feeValidationRules */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import './tokenCreate.html'
@@ -242,33 +242,11 @@ function initialiseFormValidation() {
   // Now set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter a fee',
-      },
-      {
-        type: 'number',
-        prompt: 'Fee must be a number',
-      },
-      {
-        type: 'maxDecimals',
-        prompt: 'You can only enter up to 9 decimal places in the fee field',
-      },
-    ],
+    rules: feeValidationRules({ maxDecimals: true }),
   }
   validationRules['otsKey'] = {
     id: 'otsKey',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter an OTS Key Index',
-      },
-      {
-        type: 'number',
-        prompt: 'OTS Key Index must be a number',
-      },
-    ],
+    rules: otsKeyValidationRules(),
   }
 
   // Max of 9 decimals

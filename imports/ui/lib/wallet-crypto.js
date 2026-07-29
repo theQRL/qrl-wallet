@@ -27,6 +27,68 @@ const LEGACY_SCRYPT_PARAMS = {
 const DEFAULT_IV_LEN = 12
 const TAG_LEN = 16
 
+// Codes let callers tell a passphrase problem apart from a malformed wallet file
+// so they can show the user which of the two actually went wrong.
+export const WALLET_PASSPHRASE_REQUIRED = 'WALLET_PASSPHRASE_REQUIRED'
+export const WALLET_PASSPHRASE_INCORRECT = 'WALLET_PASSPHRASE_INCORRECT'
+
+function walletError(message, code) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+
+// Bounds for scrypt parameters read out of a wallet file. These are wide enough
+// for anything this application has ever written (N=131072, r=8, p=1, dkLen=32)
+// while refusing the combinations that turn a 173-byte file into a
+// multi-gigabyte allocation or a derivation that never yields.
+const SCRYPT_LIMITS = {
+  minN: 1024,
+  maxN: 1 << 21,
+  minR: 1,
+  maxR: 32,
+  minP: 1,
+  maxP: 16,
+  minDkLen: 16,
+  maxDkLen: 64,
+  // scrypt's working array is 128 * r * N bytes; cap it well below the point
+  // where a renderer would be pushed into swap or an allocation failure.
+  maxMemoryBytes: 512 * 1024 * 1024,
+}
+
+function assertBoundedInteger(value, name, min, max) {
+  if (!Number.isSafeInteger(value) || value < min || value > max) {
+    throw new Error(
+      `Unsupported wallet KDF parameter: ${name} must be an integer between ${min} and ${max}`
+    )
+  }
+}
+
+function assertSupportedScryptParams(params) {
+  assertBoundedInteger(params.N, 'N', SCRYPT_LIMITS.minN, SCRYPT_LIMITS.maxN)
+  assertBoundedInteger(params.r, 'r', SCRYPT_LIMITS.minR, SCRYPT_LIMITS.maxR)
+  assertBoundedInteger(params.p, 'p', SCRYPT_LIMITS.minP, SCRYPT_LIMITS.maxP)
+  assertBoundedInteger(
+    params.dkLen,
+    'dkLen',
+    SCRYPT_LIMITS.minDkLen,
+    SCRYPT_LIMITS.maxDkLen
+  )
+
+  // scrypt requires N to be a power of two; a non-power-of-two reaches the
+  // vendored implementation and fails there instead of here.
+  if ((params.N & (params.N - 1)) !== 0) {
+    throw new Error('Unsupported wallet KDF parameter: N must be a power of two')
+  }
+
+  const memoryBytes = 128 * params.r * params.N
+  if (memoryBytes > SCRYPT_LIMITS.maxMemoryBytes) {
+    throw new Error(
+      'Unsupported wallet KDF parameters: requested memory exceeds the supported limit'
+    )
+  }
+}
+
 function encodeUtf8(text) {
   return new TextEncoder().encode(text)
 }
@@ -45,6 +107,11 @@ function hexToBytes(hex) {
   if (typeof hex !== 'string' || hex.length % 2 !== 0) {
     throw new Error('Invalid hex string')
   }
+  // parseInt returns NaN on non-hex, which a Uint8Array silently stores as 0x00,
+  // so reject the whole string rather than decoding it to zero bytes.
+  if (!/^[0-9a-fA-F]*$/.test(hex)) {
+    throw new Error('Invalid hex string')
+  }
   const out = new Uint8Array(hex.length / 2)
   for (let i = 0; i < hex.length; i += 2) {
     out[i / 2] = parseInt(hex.slice(i, i + 2), 16)
@@ -61,6 +128,13 @@ function bytesToHex(bytes) {
   return hex
 }
 
+// The AAD binds the KDF parameters and IV to the ciphertext, so tampering with
+// N/r/p/salt/iv in a wallet file fails authentication rather than being honoured.
+//
+// Note this serialises an object parsed back from the file, so it assumes JSON
+// property order survives the round-trip. That holds for files written by
+// buildEncryptedEnvelope; a file rewritten with different key ordering would
+// fail to open with a misleading "passphrase is incorrect".
 function buildAad(meta) {
   return encodeUtf8(JSON.stringify({
     version: meta.version,
@@ -250,7 +324,7 @@ export async function decryptV3Envelope(envelope, password, progressCallback) {
   }
 
   if (!password) {
-    throw new Error('Missing passphrase for encrypted wallet')
+    throw walletError('Missing passphrase for encrypted wallet', WALLET_PASSPHRASE_REQUIRED)
   }
 
   if (!envelope.kdf || !envelope.kdf.params || !envelope.cipher) {
@@ -262,18 +336,51 @@ export async function decryptV3Envelope(envelope, password, progressCallback) {
   }
 
   const params = { ...DEFAULT_SCRYPT_PARAMS, ...envelope.kdf.params }
+
+  // The KDF parameters come from the file, so they are attacker-chosen and are
+  // consumed before anything is authenticated. Validate them - and every field
+  // the decrypt step needs - before starting work, otherwise a crafted envelope
+  // can request a multi-gigabyte allocation or a non-yielding derivation and
+  // take the renderer down before the auth tag is ever checked.
+  assertSupportedScryptParams(params)
+
   const salt = hexToBytes(params.salt)
+  if (salt.length === 0) {
+    throw new Error('Invalid encrypted wallet envelope: empty salt')
+  }
   delete params.salt
-  const key = await deriveKeyScrypt(password, salt, params, progressCallback)
+
+  if (envelope.cipher.name !== 'aes-256-gcm') {
+    throw new Error(`Unsupported cipher: ${envelope.cipher.name}`)
+  }
   const iv = hexToBytes(envelope.cipher.iv)
+  if (iv.length !== DEFAULT_IV_LEN) {
+    throw new Error('Invalid encrypted wallet envelope: bad IV length')
+  }
   const authTag = hexToBytes(envelope.cipher.authTag)
+  if (authTag.length !== TAG_LEN) {
+    throw new Error('Invalid encrypted wallet envelope: bad auth tag length')
+  }
+  if (typeof envelope.data !== 'string' || envelope.data.length === 0) {
+    throw new Error('Invalid encrypted wallet envelope: missing ciphertext')
+  }
+
+  const key = await deriveKeyScrypt(password, salt, params, progressCallback)
   const aad = buildAad({
     version: envelope.version,
     kdf: envelope.kdf,
     cipher: { name: envelope.cipher.name, iv: envelope.cipher.iv },
   })
 
-  const plainBytes = await decryptAead(hexToBytes(envelope.data), key, iv, authTag, aad)
+  // AES-GCM authentication fails on the wrong key, so a rejected tag here means
+  // the passphrase was wrong (or the ciphertext has been tampered with).
+  let plainBytes
+  try {
+    plainBytes = await decryptAead(hexToBytes(envelope.data), key, iv, authTag, aad)
+  } catch (error) {
+    throw walletError('Wallet passphrase is incorrect', WALLET_PASSPHRASE_INCORRECT)
+  }
+
   return JSON.parse(decodeUtf8(plainBytes))
 }
 
@@ -283,7 +390,7 @@ export async function decryptLegacyWallet(walletEntries, passphrase, progressCal
   }
 
   if (!passphrase) {
-    throw new Error('Missing passphrase for encrypted wallet')
+    throw walletError('Missing passphrase for encrypted wallet', WALLET_PASSPHRASE_REQUIRED)
   }
 
   const decrypted = []
@@ -308,8 +415,10 @@ export async function decryptLegacyWallet(walletEntries, passphrase, progressCal
       ? undefined
       : await decryptLegacyOptionalField(wallet.addressB32, passphrase, isValidAddressB32)
 
+    // Legacy AES fields decrypt to garbage rather than failing on a wrong
+    // passphrase, so unreadable content here is the signal that it was wrong.
     if (!isValidMnemonic(mnemonic) || !isValidHexseed(hexseed) || !isValidQAddress(address)) {
-      throw new Error('Wallet content is invalid or passphrase is incorrect')
+      throw walletError('Wallet content is invalid or passphrase is incorrect', WALLET_PASSPHRASE_INCORRECT)
     }
 
     decrypted.push({

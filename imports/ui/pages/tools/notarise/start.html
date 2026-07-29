@@ -123,9 +123,8 @@
 
       <fieldset class="fieldset w-full">
         <legend class="fieldset-legend">Notarisation Hash Function</legend>
-        <select id="hashFunction" class="select select-bordered w-full bg-base-100">
-          <option value="SHA256">SHA256</option>
-        </select>
+        <input type="hidden" id="hashFunction" value="SHA256">
+        <p class="input input-bordered flex w-full items-center bg-base-200 text-base-content/70">SHA256</p>
       </fieldset>
 
       {{#unless isLedgerWallet}}

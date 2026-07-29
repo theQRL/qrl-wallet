@@ -10,7 +10,13 @@ import async from 'async'
 import './open.html'
 
 import { isElectrified, createTransport } from '../../../startup/client/functions'
-import { getPrimaryWalletRecord, getWalletTypeLabel } from '../../lib/wallet-format'
+import {
+  getPrimaryWalletRecord,
+  getWalletFileType,
+  getWalletTypeLabel,
+  isFormatDeprecated,
+  isWalletEncrypted,
+} from '../../lib/wallet-format'
 import {
   buildEncryptedEnvelope,
   buildUnencryptedEnvelope,
@@ -18,6 +24,8 @@ import {
   getPrimaryWalletRecordOrThrow,
   loadWalletDataForUse,
   normalizeWalletRecord,
+  WALLET_PASSPHRASE_INCORRECT,
+  WALLET_PASSPHRASE_REQUIRED,
 } from '../../lib/wallet-crypto'
 
 const LEDGER_OPEN_TIMEOUT_MS = 10000
@@ -550,6 +558,11 @@ function updateWalletType() {
   const walletCode = document.getElementById('walletCode')
   const walletFile = document.getElementById('walletFile')
 
+  // The legacy-format warning only applies to a selected wallet file.
+  if (walletType !== 'file') {
+    hideElement('legacyWalletWarning')
+  }
+
   if (walletType === 'file') {
     hideElement('walletCode')
     walletCode?.classList.add('hidden')
@@ -793,7 +806,13 @@ async function unlockWallet() {
     } catch (error) {
       console.error('Failed to open wallet file:', error)
       hideElement('unlocking')
-      showElement('noWalletFileSelected')
+      if (error && error.code === WALLET_PASSPHRASE_INCORRECT) {
+        showElement('incorrectPassphrase')
+      } else if (error && error.code === WALLET_PASSPHRASE_REQUIRED) {
+        showElement('passphraseRequired')
+      } else {
+        showElement('noWalletFileSelected')
+      }
     }
   } else {
     // Open from hexseed or mnemonic directly
@@ -801,11 +820,17 @@ async function unlockWallet() {
   }
 }
 
+function hideWalletFileErrors() {
+  hideElement('noWalletFileSelected')
+  hideElement('incorrectPassphrase')
+  hideElement('passphraseRequired')
+}
+
 function clickUnlockButton() {
   showElement('unlocking')
   hideElement('unlockError')
   hideLedgerStatusMessages()
-  hideElement('noWalletFileSelected')
+  hideWalletFileErrors()
   setTimeout(() => { unlockWallet() }, 50)
 }
 
@@ -821,8 +846,29 @@ Template.appAddressOpen.events({
     hideElement('unlocking')
     hideElement('unlockError')
     hideLedgerStatusMessages()
-    hideElement('noWalletFileSelected')
+    hideWalletFileErrors()
     setTimeout(() => { refreshLedger(thisAttemptId) }, 1000)
+  },
+  'change #walletFile': async (event) => {
+    // Classify the file as soon as it is selected so the user learns their
+    // backup uses a weak legacy format before they type its password, not
+    // after. Any failure here is silent: this is advisory only, and unlock
+    // still performs the real parsing and reports real errors.
+    hideElement('legacyWalletWarning')
+    const selectedFile = event.currentTarget?.files?.[0]
+    if (!selectedFile) {
+      return
+    }
+
+    try {
+      const walletInput = JSON.parse(await selectedFile.text())
+      const walletType = getWalletFileType(walletInput)
+      if (isFormatDeprecated(walletType) && isWalletEncrypted(walletInput)) {
+        showElement('legacyWalletWarning')
+      }
+    } catch (error) {
+      // Not parseable as a wallet - unlock will report the real problem.
+    }
   },
   'change #walletType': () => {
     updateWalletType()

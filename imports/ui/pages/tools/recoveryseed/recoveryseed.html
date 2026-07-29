@@ -1,0 +1,63 @@
+<template name="appRecoverySeed">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="bg-primary/20 p-3 rounded-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+    </div>
+    <h1 class="text-2xl font-bold text-base-content">Wallet Recovery Seed</h1>
+  </div>
+
+  <div class="rounded-xl border border-base-300 bg-base-100 p-4 pageSegment">
+    {{#if isSeedWallet}}
+      <div class="alert alert-warning gap-3">
+        <div>
+          <div class="text-lg font-semibold">
+            Warning: Keep this information private at all times!
+          </div>
+          <p class="text-sm">
+            Anyone who sees your mnemonic phrase or hexseed can spend the funds held by this address. Make sure nobody can see your screen, and never share or store these details anywhere others can read them.
+          </p>
+        </div>
+      </div>
+
+      <div id="revealRecoverySeedArea" class="mt-4 text-center">
+        <button id="revealRecoverySeed" class="btn btn-md btn-error" style="width: 100%">Reveal Recovery Seed</button>
+      </div>
+
+      <div id="recoverySeedDetails" class="mt-4 space-y-4" style="display: none;">
+        <div>
+          <h4>Mnemonic Phrase</h4>
+          <p class="break-words text-sm">{{recoverySeed.mnemonic}}</p>
+        </div>
+
+        <div>
+          <h4>Hexseed</h4>
+          <p class="break-all font-mono text-sm">{{recoverySeed.hexseed}}</p>
+        </div>
+
+        <div>
+          <h4>Private Key QR</h4>
+          <div class="flex justify-center">
+            <div id="recoverySeedQR" class="inline-block rounded-xl bg-white p-4"></div>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button id="hideRecoverySeed" class="btn btn-md btn-secondary" style="width: 100%">Hide Recovery Seed</button>
+        </div>
+      </div>
+    {{else}}
+      <div class="alert gap-3">
+        <div>
+          <div class="text-lg font-semibold">
+            No recovery seed available
+          </div>
+          <p class="text-sm">
+            This address is held on a Ledger device. Its keys never leave the device, so there is no recovery seed to display here. Use your Ledger recovery sheet to restore the device.
+          </p>
+        </div>
+      </div>
+    {{/if}}
+  </div>
+</template>
