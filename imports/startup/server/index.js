@@ -223,6 +223,86 @@ function parseGrpcErrorCode(value) {
   }
 }
 
+// gRPC follows Node's error-first contract, so a failed call yields (err, null).
+// Reading the response before checking both throws inside a callback that runs
+// on a later event-loop turn, where neither the lexical try nor Meteor's method
+// promise can catch it - which takes the whole process down.
+function relayFailureMessage(err) {
+  if (err && err.message) {
+    return err.message
+  }
+  if (err) {
+    return String(err)
+  }
+  return 'Node returned an empty response'
+}
+
+// A gRPC call can also return status OK with a required nested message omitted,
+// which decodes to null under `defaults: true`.
+function missingResponseError(context) {
+  return new Error(`Node returned an incomplete ${context} response`)
+}
+
+// Buffer.from() throws on null/undefined and plain objects. The Ledger methods
+// that convert arguments before reaching a transport used to let that throw
+// escape as an unhandled rejection, so reject those shapes at the method
+// boundary and return an ordinary DDP error instead.
+//
+// These are deliberately NOT Match patterns passed to check(). A failing check()
+// aborts the method before its remaining arguments are checked, which trips
+// Meteor's "did not check() all arguments" audit; that audit re-raises the match
+// failure outside the method's promise settlement path, taking the process down
+// - the very failure mode being fixed here. So every argument is checked with
+// Match.Any first, and validation then throws a client-safe Meteor.Error.
+function isBufferSource(value) {
+  if (typeof value === 'string') return true
+  if (Array.isArray(value)) return true
+  if (Buffer.isBuffer(value) || value instanceof Uint8Array) return true
+  return false
+}
+
+function assertBufferSource(value, name) {
+  if (!isBufferSource(value)) {
+    throw new Meteor.Error(
+      'ledger-invalid-request',
+      `${name} must be a string, array or byte buffer`
+    )
+  }
+}
+
+function assertBufferSourceArray(value, name) {
+  if (!Array.isArray(value) || !value.every(isBufferSource)) {
+    throw new Meteor.Error(
+      'ledger-invalid-request',
+      `${name} must be an array of strings, arrays or byte buffers`
+    )
+  }
+}
+
+// The QRL Ledger app accepts at most three destinations. Enforcing it here
+// stops a caller forcing large conversion work that the device library would
+// reject anyway.
+const LEDGER_MAX_DESTINATIONS = 3
+
+// Anonymous callers choose these collection sizes and each entry drives at
+// least one outbound node call, so an unbounded list turns a single request
+// into unbounded server and public-node work.
+const MAX_DDP_COLLECTION_ENTRIES = 100
+const ADDRESS_TX_ERROR_LOG_LIMIT = 5
+
+function checkCollectionBound(value, name, limit = MAX_DDP_COLLECTION_ENTRIES) {
+  if (!Array.isArray(value)) {
+    throw new Meteor.Error('invalid-request', `${name} must be an array`)
+  }
+  if (value.length > limit) {
+    throw new Meteor.Error(
+      'request-too-large',
+      `${name} is limited to ${limit} entries`
+    )
+  }
+  return value
+}
+
 function getPushTransactionError(response) {
   if (!response || typeof response !== 'object') {
     return 'Empty pushTransaction response'
@@ -366,16 +446,45 @@ const loadGrpcClient = (endpoint, callback) => {
             console.log(`Error fetching qrl.proto from ${normalizedEndpoint}`)
             callback(err, null)
           } else {
-            // Write a new temp file for this grpc connection
-            const qrlProtoFilePath = tmp.fileSync({
+            // Write a new temp file for this grpc connection.
+            // Keeping only `.name` used to discard both the open descriptor and
+            // the remove callback, leaking one file and one descriptor for every
+            // bootstrap that got this far - including ones later rejected for a
+            // bad schema hash. Retain the handle and release it on every path.
+            const qrlProtoFile = tmp.fileSync({
               mode: '0644',
               prefix: 'qrl-',
               postfix: '.proto',
-            }).name
+              discardDescriptor: true,
+            })
+            const qrlProtoFilePath = qrlProtoFile.name
+
+            let released = false
+            const releaseProtoFile = () => {
+              if (released) {
+                return
+              }
+              released = true
+              try {
+                qrlProtoFile.removeCallback()
+              } catch (cleanupError) {
+                console.log(
+                  `Failed to remove temporary qrl.proto file ${qrlProtoFilePath}`,
+                  cleanupError
+                )
+              }
+            }
+            // Every exit below settles through this so the file is always freed.
+            const settle = (settleErr, settleRes) => {
+              releaseProtoFile()
+              callback(settleErr, settleRes)
+            }
+
             fs.writeFile(qrlProtoFilePath, res.grpcProto, (fsErr) => {
               if (fsErr) {
                 console.log(fsErr)
-                throw fsErr
+                settle(fsErr, null)
+                return
               }
               let { allowUnchecksummedNodes } = Meteor.settings
               if (allowUnchecksummedNodes !== true) {
@@ -385,7 +494,8 @@ const loadGrpcClient = (endpoint, callback) => {
               fs.readFile(qrlProtoFilePath, (errR, contents) => {
                 if (errR) {
                   console.log(errR)
-                  throw errR
+                  settle(errR, null)
+                  return
                 }
 
                 // Calculate the hash of the qrl.proto file contents
@@ -472,7 +582,7 @@ const loadGrpcClient = (endpoint, callback) => {
 
                         console.log(`qrlClient loaded for ${normalizedEndpoint}`)
 
-                        callback(null, true)
+                        settle(null, true)
                       } else {
                         // grpc object shasum does not match verified known shasum
                         // Could be local side attack changing the proto file in between validation
@@ -485,8 +595,19 @@ const loadGrpcClient = (endpoint, callback) => {
                           `Invalid qrl.proto grpc object shasum - node version: ${res.version}, qrl.proto object sha256: ${calculatedObjectHash}`,
                           '**ERROR/connect**'
                         )
-                        callback(myError, null)
+                        settle(myError, null)
                       }
+                    })
+                    .catch((loadError) => {
+                      // Malformed node-supplied schema text rejects here. The
+                      // outer try only covers chain setup, so without this the
+                      // rejection is unhandled and terminates the process.
+                      const myError = errorCallback(
+                        loadError,
+                        `Cannot parse qrl.proto from node: ${normalizedEndpoint}`,
+                        '**ERROR/connect**'
+                      )
+                      settle(myError, null)
                     })
                 } else {
                   // qrl.proto file shasum does not match verified known shasum
@@ -499,12 +620,21 @@ const loadGrpcClient = (endpoint, callback) => {
                     `Invalid qrl.proto shasum - node version: ${res.version}, qrl.proto sha256: ${calculatedProtoHash}`,
                     '**ERROR/connect**'
                   )
-                  callback(myError, null)
+                  settle(myError, null)
                 }
               })
             })
           }
         })
+      })
+      .catch((baseLoadError) => {
+        // Same ownership rule for the bundled base schema chain.
+        const myError = errorCallback(
+          baseLoadError,
+          `Cannot access node: ${endpoint}`,
+          '**ERROR/connect**'
+        )
+        callback(myError, null)
       })
   } catch (err) {
     console.log('node connection error exception')
@@ -1092,6 +1222,8 @@ const getFullAddressState = (request, callback) => {
           '**ERROR/getAddressState** '
         )
         callback(myError, null)
+      } else if (!response || !response.state) {
+        callback(missingResponseError('address state'), null)
       } else {
         if (response.state.address) {
           response.state.address = `Q${Buffer.from(
@@ -1123,6 +1255,8 @@ const getAddressState = (request, callback) => {
           '**ERROR/getAddressState** '
         )
         callback(myError, null)
+      } else if (!response || !response.state) {
+        callback(missingResponseError('address state'), null)
       } else {
         // Parse OTS Bitfield, and grab the lowest unused key
         const newOtsBitfield = {}
@@ -1512,16 +1646,16 @@ const confirmMultiSigCreate = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            console.log(
-              'Relayed Txn: ',
-              Buffer.from(res.tx_hash).toString('hex')
-            )
-
-            if (err) {
-              console.log(`Error:  ${err.message}`)
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error:  ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
+              console.log(
+                'Relayed Txn: ',
+                Buffer.from(res.tx_hash).toString('hex')
+              )
               const hashResponse = {
                 txnHash: Buffer.from(
                   confirmTxn.transaction_signed.transaction_hash
@@ -1626,16 +1760,16 @@ const confirmMultiSigSpend = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            console.log(
-              'Relayed Txn: ',
-              Buffer.from(res.tx_hash).toString('hex')
-            )
-
-            if (err) {
-              console.log(`Error:  ${err.message}`)
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error:  ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
+              console.log(
+                'Relayed Txn: ',
+                Buffer.from(res.tx_hash).toString('hex')
+              )
               const hashResponse = {
                 txnHash: Buffer.from(
                   confirmTxn.transaction_signed.transaction_hash
@@ -1730,16 +1864,16 @@ const confirmMultiSigVote = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            console.log(
-              'Relayed Txn: ',
-              Buffer.from(res.tx_hash).toString('hex')
-            )
-
-            if (err) {
-              console.log(`Error:  ${err.message}`)
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error:  ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
+              console.log(
+                'Relayed Txn: ',
+                Buffer.from(res.tx_hash).toString('hex')
+              )
               const hashResponse = {
                 txnHash: Buffer.from(
                   confirmTxn.transaction_signed.transaction_hash
@@ -1819,6 +1953,12 @@ const createTokenTxn = (request, callback) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
+    } else if (
+      !response
+      || !response.extended_transaction_unsigned
+      || !response.extended_transaction_unsigned.tx
+    ) {
+      callback(missingResponseError('unsigned transaction'), null)
     } else {
       const transferResponse = {
         txnHash: Buffer.from(
@@ -1847,6 +1987,12 @@ const createMessageTxn = (request, callback) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
+    } else if (
+      !response
+      || !response.extended_transaction_unsigned
+      || !response.extended_transaction_unsigned.tx
+    ) {
+      callback(missingResponseError('unsigned transaction'), null)
     } else {
       const transferResponse = {
         txnHash: Buffer.from(
@@ -1875,6 +2021,12 @@ const createKeybaseTxn = (request, callback) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
+    } else if (
+      !response
+      || !response.extended_transaction_unsigned
+      || !response.extended_transaction_unsigned.tx
+    ) {
+      callback(missingResponseError('unsigned transaction'), null)
     } else {
       const transferResponse = {
         txnHash: Buffer.from(
@@ -1903,6 +2055,12 @@ const createGithubTxn = (request, callback) => {
     if (err) {
       console.log(`Error:  ${err.message}`)
       callback(err, null)
+    } else if (
+      !response
+      || !response.extended_transaction_unsigned
+      || !response.extended_transaction_unsigned.tx
+    ) {
+      callback(missingResponseError('unsigned transaction'), null)
     } else {
       const transferResponse = {
         txnHash: Buffer.from(
@@ -1964,11 +2122,10 @@ const confirmTokenCreation = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            if (err) {
-              console.log(
-                `Error: Failed to send transaction through ${res.relayed} - ${err}`
-              )
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error: Failed to send transaction - ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
               const hashResponse = {
@@ -2063,11 +2220,10 @@ const confirmMessageCreation = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            if (err) {
-              console.log(
-                `Error: Failed to send transaction through ${res.relayed} - ${err}`
-              )
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error: Failed to send transaction - ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
               const hashResponse = {
@@ -2162,11 +2318,10 @@ const confirmKeybaseCreation = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            if (err) {
-              console.log(
-                `Error: Failed to send transaction through ${res.relayed} - ${err}`
-              )
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error: Failed to send transaction - ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
               const hashResponse = {
@@ -2261,11 +2416,10 @@ const confirmGithubCreation = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            if (err) {
-              console.log(
-                `Error: Failed to send transaction through ${res.relayed} - ${err}`
-              )
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error: Failed to send transaction - ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
               const hashResponse = {
@@ -2394,11 +2548,10 @@ const confirmTokenTransfer = (request, callback) => {
       function (wfcb) {
         try {
           qrlApi('pushTransaction', confirmTxn, (err, res) => {
-            if (err) {
-              console.log(
-                `Error: Failed to send transaction through ${res.relayed} - ${err}`
-              )
-              txnResponse = { error: err.message, response: err.message }
+            if (err || !res) {
+              const failure = relayFailureMessage(err)
+              console.log(`Error: Failed to send transaction - ${failure}`)
+              txnResponse = { error: failure, response: failure }
               wfcb()
             } else {
               const hashResponse = {
@@ -2783,88 +2936,75 @@ const apiCallAsync = (apiUrl) => {
   })
 }
 
-const ledgerGetStateAsync = (request) => {
-  return new Promise((resolve, reject) => {
-    ledgerGetState(request, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+// Each adapter below is an async function that can reject before it ever
+// reaches its callback - Buffer.from(null) on a malformed DDP argument does
+// exactly that. A bare `new Promise` that only wires up the callback discards
+// that rejection, which Node 22 escalates to an uncaught exception and a
+// process exit, while the outer promise stays pending forever. Owning the
+// returned promise as well as the callback settles the operation either way.
+const promisifyLedger = (invoke) => new Promise((resolve, reject) => {
+  let settled = false
+  const settle = (err, res) => {
+    if (settled) {
+      return
+    }
+    settled = true
+    if (err) reject(err)
+    else resolve(res)
+  }
 
-const ledgerPublicKeyAsync = (request) => {
-  return new Promise((resolve, reject) => {
-    ledgerPublicKey(request, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+  try {
+    const pending = invoke(settle)
+    if (pending && typeof pending.then === 'function') {
+      pending.catch((error) => settle(error, null))
+    }
+  } catch (error) {
+    settle(error, null)
+  }
+})
 
-const ledgerAppVersionAsync = (request) => {
-  return new Promise((resolve, reject) => {
-    ledgerAppVersion(request, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerGetStateAsync = (request) => promisifyLedger(
+  (cb) => ledgerGetState(request, cb)
+)
 
-const ledgerLibraryVersionAsync = (request) => {
-  return new Promise((resolve, reject) => {
-    ledgerLibraryVersion(request, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerPublicKeyAsync = (request) => promisifyLedger(
+  (cb) => ledgerPublicKey(request, cb)
+)
 
-const ledgerVerifyAddressAsync = (request) => {
-  return new Promise((resolve, reject) => {
-    ledgerVerifyAddress(request, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerAppVersionAsync = (request) => promisifyLedger(
+  (cb) => ledgerAppVersion(request, cb)
+)
 
-const ledgerCreateTxAsync = (sourceAddr, fee, destAddr, destAmount) => {
-  return new Promise((resolve, reject) => {
-    ledgerCreateTx(sourceAddr, fee, destAddr, destAmount, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerLibraryVersionAsync = (request) => promisifyLedger(
+  (cb) => ledgerLibraryVersion(request, cb)
+)
 
-const ledgerRetrieveSignatureAsync = (txn) => {
-  return new Promise((resolve, reject) => {
-    ledgerRetrieveSignature(txn, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerVerifyAddressAsync = (request) => promisifyLedger(
+  (cb) => ledgerVerifyAddress(request, cb)
+)
 
-const ledgerSetIdxAsync = (otsKey) => {
-  return new Promise((resolve, reject) => {
-    ledgerSetIdx(otsKey, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerCreateTxAsync = (sourceAddr, fee, destAddr, destAmount) => promisifyLedger(
+  (cb) => ledgerCreateTx(sourceAddr, fee, destAddr, destAmount, cb)
+)
 
-const ledgerCreateMessageTxAsync = (sourceAddr, fee, message) => {
-  return new Promise((resolve, reject) => {
-    ledgerCreateMessageTx(sourceAddr, fee, message, (err, res) => {
-      if (err) reject(err)
-      else resolve(res)
-    })
-  })
-}
+const ledgerRetrieveSignatureAsync = (txn) => promisifyLedger(
+  (cb) => ledgerRetrieveSignature(txn, cb)
+)
+
+const ledgerSetIdxAsync = (otsKey) => promisifyLedger(
+  (cb) => ledgerSetIdx(otsKey, cb)
+)
+
+const ledgerCreateMessageTxAsync = (sourceAddr, fee, message) => promisifyLedger(
+  (cb) => ledgerCreateMessageTx(sourceAddr, fee, message, cb)
+)
 
 // Ledger Nano S Integration for Electron Desktop Apps
+
+// Preserves the existing device-open timeout; the discovery timeout is what
+// bounds a no-device call so it settles and releases its USB listeners.
+const LEDGER_OPEN_TIMEOUT_MS = 10
+const LEDGER_DISCOVERY_TIMEOUT_MS = 2000
 
 const LEDGER_USB_OPEN_PATH_ERROR = 'cannot open device with path'
 
@@ -2914,7 +3054,14 @@ const createLedgerMethodError = (methodName, error) => {
 const withLedgerTransport = async (operationName, action, cb) => {
   let localTransport = null
   try {
-    localTransport = await TransportNodeHid.create(10)
+    // create(openTimeout, listenTimeout): the second argument bounds device
+    // *discovery*. Without it, a call made with no device attached waits for an
+    // attach event forever, retaining a USB attach listener, a detach listener
+    // and the pending method for the life of the process.
+    localTransport = await TransportNodeHid.create(
+      LEDGER_OPEN_TIMEOUT_MS,
+      LEDGER_DISCOVERY_TIMEOUT_MS
+    )
     const qrlLedger = new Qrl(localTransport)
     const response = await action(qrlLedger)
     cb(null, response)
@@ -3158,8 +3305,9 @@ Meteor.methods({
   },
   async addressTransactions(request) {
     check(request, Object)
-    const targets = request.tx
+    const targets = checkCollectionBound(request.tx, 'request.tx')
     const result = []
+    let suppressedErrors = 0
 
     for (const arr of targets) {
       const thisRequest = {
@@ -3335,10 +3483,21 @@ Meteor.methods({
           result.push(thisTxn)
         }
       } catch (err) {
-        console.log(
-          `Error fetching transaction hash in addressTransactions '${arr.txhash}' - ${err}`
-        )
+        // Per-item logging is caller-driven, so log the first few and count the
+        // rest rather than letting one request write an unbounded log volume.
+        if (suppressedErrors < ADDRESS_TX_ERROR_LOG_LIMIT) {
+          console.log(
+            `Error fetching transaction hash in addressTransactions - ${err}`
+          )
+        }
+        suppressedErrors += 1
       }
+    }
+
+    if (suppressedErrors > ADDRESS_TX_ERROR_LOG_LIMIT) {
+      console.log(
+        `addressTransactions: ${suppressedErrors - ADDRESS_TX_ERROR_LOG_LIMIT} further errors suppressed`
+      )
     }
 
     return result
@@ -3479,6 +3638,24 @@ Meteor.methods({
     check(destAddr, Match.Any)
     check(destAmount, Match.Any)
 
+    assertBufferSource(sourceAddr, 'sourceAddr')
+    assertBufferSource(fee, 'fee')
+    assertBufferSourceArray(destAddr, 'destAddr')
+    assertBufferSourceArray(destAmount, 'destAmount')
+
+    if (destAddr.length !== destAmount.length) {
+      throw new Meteor.Error(
+        'ledger-invalid-request',
+        'Destination and amount counts must match'
+      )
+    }
+    if (destAddr.length > LEDGER_MAX_DESTINATIONS) {
+      throw new Meteor.Error(
+        'ledger-invalid-request',
+        `A maximum of ${LEDGER_MAX_DESTINATIONS} destinations is supported`
+      )
+    }
+
     console.log(
       '2: sourceAddr: ',
       sourceAddr,
@@ -3506,6 +3683,10 @@ Meteor.methods({
     check(sourceAddr, Match.Any)
     check(fee, Match.Any)
     check(message, Match.Any)
+
+    assertBufferSource(sourceAddr, 'sourceAddr')
+    assertBufferSource(fee, 'fee')
+    assertBufferSource(message, 'message')
     try {
       const response = await ledgerCreateMessageTxAsync(
         sourceAddr,

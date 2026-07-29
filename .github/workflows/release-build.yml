@@ -7,13 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Tag to publish assets to (example: v1.9.0)'
+        description: 'Tag to publish assets to (example: v1.9.1)'
         required: true
         type: string
 
+# Build jobs are read-only. Only the publish job is granted contents: write, so
+# a compromised build input cannot write to the release on its own.
 permissions:
   actions: read
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -63,12 +65,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+          # Don't leave a usable token in .git/config for later build steps.
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -97,7 +101,25 @@ jobs:
         # tool whose solver hangs in prepareProjectForBuild. Install 3.4 directly
         # everywhere so no runner springboards.
         run: |
-          curl 'https://install.meteor.com/?release=3.4' | sh
+          set -euo pipefail
+          # Piping this straight into sh executes whatever the endpoint serves at
+          # build time, with no review boundary. Download it, check it against a
+          # committed digest, and only then run it.
+          #
+          # If Meteor legitimately updates the installer this step fails. Review
+          # the new script, then update METEOR_INSTALLER_SHA256 below with the
+          # digest printed in the failure output.
+          METEOR_INSTALLER_SHA256=6b3928175473d07970eb127abebd9f2b17b9676f28af8ecd6b54cd4cdef14a11
+          curl -fsSL 'https://install.meteor.com/?release=3.4' -o meteor-install.sh
+          ACTUAL_SHA256=$(shasum -a 256 meteor-install.sh | cut -d' ' -f1)
+          if [ "$ACTUAL_SHA256" != "$METEOR_INSTALLER_SHA256" ]; then
+            echo "::error::Meteor installer digest mismatch."
+            echo "expected: $METEOR_INSTALLER_SHA256"
+            echo "actual:   $ACTUAL_SHA256"
+            exit 1
+          fi
+          sh meteor-install.sh
+          rm -f meteor-install.sh
           echo "$HOME/.meteor" >> "$GITHUB_PATH"
 
       - name: Install Meteor (Windows)
@@ -148,7 +170,7 @@ jobs:
         run: node -e "const fs=require('fs');fs.rmSync('.electrify/.dist',{recursive:true,force:true});fs.mkdirSync('.electrify/.dist',{recursive:true});"
 
       - name: Cache Meteor build artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           # Meteor's build cache (isopacks / bundler-cache / plugin-cache) so the
           # bundle + minify phases aren't cold on every run.
@@ -227,7 +249,7 @@ jobs:
 
       - name: Upload release artifacts (Windows installer)
         if: matrix.platform == 'win32'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact_name }}
           path: .electrify/.dist/installers/**
@@ -236,7 +258,7 @@ jobs:
 
       - name: Upload release artifacts (non-Windows)
         if: matrix.platform != 'win32'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
@@ -250,11 +272,15 @@ jobs:
     runs-on: ubuntu-24.04
     needs: release-build
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    # The only job that may write to the release. Attach a protected GitHub
+    # environment to this job to require reviewed approval before publication.
+    permissions:
+      contents: write
     env:
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
     steps:
       - name: Download matrix artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: qrlwallet-release-*
           path: release-artifacts
@@ -264,7 +290,7 @@ jobs:
           find release-artifacts -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.pacman' -o -name '*.exe' -o -name '*-portable.zip' \) -print | sort
 
       - name: Upload assets to GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           fail_on_unmatched_files: true

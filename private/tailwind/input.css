@@ -1,4 +1,35 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Archivo";
+  src: url("/fonts/webfonts/archivo.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("/fonts/webfonts/source-sans-3.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/webfonts/jetbrains-mono.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+}
+
+@theme {
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 @plugin "daisyui" {
   themes: qrl --default, qrl --prefersdark;
 }
@@ -8,52 +39,414 @@
   prefersdark: true;
   color-scheme: dark;
 
-  --color-base-100: #1a1a1a;
-  --color-base-200: #2d2d2d;
-  --color-base-300: #404040;
-  --color-base-content: #ffffff;
+  --color-base-100: #0a1720;
+  --color-base-200: #0e1f2b;
+  --color-base-300: #14293a;
+  --color-base-content: #e6eef5;
 
   --color-primary: #ffa729;
-  --color-primary-content: #0b181e;
-  --color-secondary: #4aafff;
-  --color-secondary-content: #0b181e;
-  --color-accent: #523ae2;
-  --color-accent-content: #ffffff;
-  --color-neutral: #0b181e;
-  --color-neutral-content: #ffffff;
+  --color-primary-content: #0a1720;
+  --color-secondary: #3fa9ff;
+  --color-secondary-content: #04223c;
+  --color-accent: #3fa9ff;
+  --color-accent-content: #04223c;
+  --color-neutral: #14293a;
+  --color-neutral-content: #e6eef5;
 
-  --color-info: #4aafff;
-  --color-info-content: #0b181e;
-  --color-success: #4fe296;
-  --color-success-content: #0b181e;
-  --color-warning: #fde047;
-  --color-warning-content: #0b181e;
-  --color-error: #ff6066;
-  --color-error-content: #0b181e;
+  --color-info: #3fa9ff;
+  --color-info-content: #04223c;
+  --color-success: #4fb477;
+  --color-success-content: #04140b;
+  --color-warning: #ffa729;
+  --color-warning-content: #0a1720;
+  --color-error: #e85c41;
+  --color-error-content: #1a0500;
 
   --radius-selector: 0.25rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
   --size-selector: 0.3125rem;
   --size-field: 0.3125rem;
   --border: 1px;
-  --depth: 1;
+  --depth: 0;
   --noise: 0;
 }
 
+@layer base {
+  html {
+    min-width: 20rem;
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-base-100);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-secondary) 35%, transparent);
+    color: var(--color-base-content);
+  }
+}
+
 @layer components {
+  .wallet-app {
+    isolation: isolate;
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
+  }
+
+  .wallet-shell {
+    min-height: 100dvh;
+  }
+
+  .wallet-content {
+    min-width: 0;
+    background-color: var(--color-base-100);
+  }
+
+  .wallet-mobile-bar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    min-height: 4.25rem;
+    padding-inline: 0.75rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .wallet-mobile-bar .btn {
+    min-height: 2.5rem;
+  }
+
+  .wallet-status-wrap {
+    padding-top: 1rem;
+  }
+
+  .wallet-status-card {
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    background-color: color-mix(in oklab, var(--color-base-200) 70%, var(--color-base-100));
+    box-shadow: 0 12px 30px -26px rgba(0, 0, 0, 0.8);
+  }
+
+  .wallet-main {
+    min-width: 0;
+  }
+
+  .wallet-main > .w-full {
+    width: 100%;
+    max-width: 82rem;
+    margin-inline: auto;
+  }
+
+  .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 {
+    min-height: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > div:first-child {
+    display: inline-flex;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 1.25rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > div:first-child svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    stroke-width: 1.8;
+  }
+
+  .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+
+  .wallet-sidebar {
+    width: 17rem !important;
+    border-right: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    background-color: var(--color-base-200);
+    box-shadow: 18px 0 44px -38px rgba(0, 0, 0, 0.9);
+  }
+
+  .wallet-sidebar-brand {
+    display: flex;
+    min-height: 5rem;
+    align-items: center;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    background-color: color-mix(in oklab, var(--color-base-100) 42%, var(--color-base-200));
+  }
+
+  .wallet-sidebar-brand a {
+    width: 100%;
+    justify-content: flex-start;
+    padding-inline: 1.25rem;
+  }
+
+  .wallet-brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-base-content);
+    text-decoration: none;
+  }
+
+  .wallet-brand-lockup img {
+    flex-shrink: 0;
+  }
+
+  .wallet-brand-separator {
+    width: 1px;
+    height: 1.5rem;
+    flex-shrink: 0;
+    background-color: color-mix(in oklab, var(--color-base-content) 16%, transparent);
+  }
+
+  .wallet-brand-product {
+    color: color-mix(in oklab, var(--color-base-content) 82%, transparent);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .wallet-nav {
+    gap: 0.125rem;
+    padding: 1.25rem 0.875rem;
+  }
+
+  .wallet-nav .menu-title {
+    min-height: auto;
+    margin-top: 0.8rem;
+    padding: 0.35rem 0.75rem;
+    color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .wallet-nav .menu-title:first-child {
+    margin-top: 0;
+  }
+
+  .wallet-nav li > a {
+    min-height: 2.65rem;
+    gap: 0.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-field);
+    color: color-mix(in oklab, var(--color-base-content) 76%, transparent);
+    font-size: 0.94rem;
+    font-weight: 500;
+  }
+
+  .wallet-nav li > a svg {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 1rem;
+    color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+    stroke-width: 1.8;
+  }
+
+  .wallet-nav li > a:hover {
+    border-color: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    background-color: color-mix(in oklab, var(--color-base-content) 5%, transparent);
+    color: var(--color-base-content);
+  }
+
+  .wallet-nav li > a:hover svg {
+    color: var(--color-secondary);
+  }
+
+  .wallet-nav li > a.active {
+    border-color: color-mix(in oklab, var(--color-primary) 28%, var(--color-base-300));
+    background-color: color-mix(in oklab, var(--color-primary) 11%, var(--color-base-200));
+    color: var(--color-base-content);
+  }
+
+  .wallet-nav li > a.active svg {
+    color: var(--color-primary);
+  }
+
+  .wallet-network,
+  .wallet-connection {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-base-content) 9%, transparent);
+  }
+
+  .wallet-network {
+    background-color: color-mix(in oklab, var(--color-base-100) 24%, var(--color-base-200));
+  }
+
+  .wallet-connection {
+    padding-block: 0.75rem;
+  }
+
+  .wallet-main .card,
+  .wallet-modal-box {
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    border-radius: var(--radius-box);
+    background-color: color-mix(in oklab, var(--color-base-200) 80%, var(--color-base-100));
+    box-shadow: 0 18px 45px -38px rgba(0, 0, 0, 0.95);
+  }
+
+  .wallet-main .card-body,
+  .card-gradient > .card-body {
+    padding: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .btn {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    box-shadow: none;
+    transition: transform 0.12s ease;
+  }
+
+  .wallet-app .btn > svg,
+  .wallet-app .input > svg,
+  .wallet-app .alert > svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    stroke-width: 1.8;
+  }
+
+  .btn:not(.btn-disabled):not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    border-color: color-mix(in oklab, var(--color-primary) 78%, var(--color-base-300));
+  }
+
+  .btn-ghost {
+    color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+  }
+
+  .btn-ghost:hover {
+    background-color: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+    color: var(--color-base-content);
+  }
+
+  .input,
+  .select,
+  .file-input,
+  .textarea {
+    border-color: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+    border-radius: var(--radius-field);
+    background-color: color-mix(in oklab, var(--color-base-100) 88%, black);
+    color: var(--color-base-content);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, white 3%, transparent);
+  }
+
+  .input:hover,
+  .select:hover,
+  .file-input:hover,
+  .textarea:hover {
+    border-color: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+  }
+
+  .input:focus,
+  .input:focus-within,
+  .select:focus,
+  .file-input:focus,
+  .textarea:focus {
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-secondary) 16%, transparent);
+    outline: none;
+  }
+
+  .fieldset-legend {
+    padding-bottom: 0.4rem;
+    color: color-mix(in oklab, var(--color-base-content) 82%, transparent);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .label {
+    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    font-size: 0.78rem;
+  }
+
+  .tabs-boxed {
+    --tabs-inset: 0.25rem;
+    gap: 0.2rem;
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    border-radius: var(--radius-box);
+    background-color: color-mix(in oklab, var(--color-base-100) 72%, var(--color-base-200));
+  }
+
+  .tabs-boxed .tab {
+    min-height: var(--tab-height);
+    border-radius: calc(var(--radius-box) - var(--tabs-inset));
+    color: color-mix(in oklab, var(--color-base-content) 66%, transparent);
+  }
+
+  .tabs-boxed .tab:hover {
+    color: var(--color-base-content);
+  }
+
+  .divider {
+    color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+    font-size: 0.75rem;
+  }
+
+  .divider::before,
+  .divider::after {
+    background-color: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  }
+
+  .modal-box {
+    border-radius: var(--radius-box);
+  }
+
+  .badge {
+    border-radius: var(--radius-selector);
+    font-weight: 600;
+  }
+
+  .table :where(th, td) {
+    border-color: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  }
+
   .card-gradient {
-    border: 1px solid var(--color-base-300);
-    border-top: 2px solid transparent;
-    border-radius: var(--radius-box, 0.75rem);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-    background-image:
-      linear-gradient(var(--color-base-200), var(--color-base-200)),
-      radial-gradient(circle at 12% -32%, rgba(255, 167, 41, 0.14), transparent 48%),
-      radial-gradient(circle at 88% -24%, rgba(74, 175, 255, 0.12), transparent 44%),
-      linear-gradient(90deg, rgba(255, 167, 41, 0.35), rgba(74, 175, 255, 0.16));
-    background-origin: border-box;
-    background-clip: padding-box, padding-box, padding-box, border-box;
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    border-radius: var(--radius-box);
+    background-color: color-mix(in oklab, var(--color-base-200) 80%, var(--color-base-100));
+    box-shadow: 0 18px 45px -38px rgba(0, 0, 0, 0.95);
   }
 
   #sendReceiveTabs {
@@ -67,18 +460,16 @@
   #sendReceiveTabs .tab,
   #walletTypeTabs .tab {
     font-weight: 500;
-    letter-spacing: 0.01em;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    letter-spacing: 0;
   }
 
   #sendReceiveTabs .tab.tab-active,
   #walletTypeTabs .tab.tab-active {
-    background: var(--color-primary);
-    color: var(--color-primary-content);
-    border: 1px solid var(--color-primary);
-    font-weight: 700;
-    box-shadow: 0 4px 14px color-mix(in oklab, var(--color-primary) 32%, transparent);
-    transform: translateY(-1px);
+    border: 1px solid color-mix(in oklab, var(--color-primary) 32%, var(--color-base-300));
+    background: color-mix(in oklab, var(--color-primary) 11%, var(--color-base-200));
+    color: var(--color-base-content);
+    font-weight: 600;
+    box-shadow: none;
   }
 
   #sendReceiveTabs .tab:not(.tab-active):hover,
@@ -91,12 +482,78 @@
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     border-top: 1px solid color-mix(in oklab, var(--color-base-300) 85%, transparent);
-    background-image:
-      linear-gradient(var(--color-base-200), var(--color-base-200)),
-      radial-gradient(circle at 12% -32%, rgba(255, 167, 41, 0.14), transparent 48%),
-      radial-gradient(circle at 88% -24%, rgba(74, 175, 255, 0.12), transparent 44%);
-    background-origin: border-box;
-    background-clip: padding-box, padding-box, padding-box;
+    background-color: color-mix(in oklab, var(--color-base-200) 80%, var(--color-base-100));
+  }
+
+  .transaction-history-column {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .transaction-history-header {
+    display: flex;
+    min-height: 3rem;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    border-left: 2px solid color-mix(in oklab, var(--color-primary) 72%, var(--color-base-300));
+    border-radius: var(--radius-box);
+    background-color: color-mix(in oklab, var(--color-base-200) 88%, var(--color-base-100));
+  }
+
+  .transaction-history-header-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--color-primary);
+    stroke-width: 1.8;
+  }
+
+  .transaction-history-header h2 {
+    color: var(--color-base-content);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .transaction-history-state {
+    display: flex;
+    min-height: 4.25rem;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.875rem;
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    border-radius: var(--radius-box);
+    background-color: color-mix(in oklab, var(--color-base-200) 70%, var(--color-base-100));
+  }
+
+  .transaction-history-state .loading {
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+  }
+
+  .transaction-history-state h3 {
+    color: var(--color-base-content);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .transaction-history-state p {
+    margin-top: 0.2rem;
+    color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  .transaction-history-state-error {
+    border-color: color-mix(in oklab, var(--color-error) 36%, var(--color-base-300));
+    background-color: color-mix(in oklab, var(--color-error) 9%, var(--color-base-200));
+  }
+
+  .transaction-history-action {
+    margin-top: 0.25rem;
   }
 
   .transactionRecord {
@@ -104,8 +561,8 @@
     align-items: flex-start;
     border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
     background-color: color-mix(in oklab, var(--color-base-200) 88%, transparent);
-    border-radius: var(--radius-box, 0.75rem);
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    border-radius: var(--radius-box);
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
   }
 
   .transactionRecord > :nth-child(2) {
@@ -116,24 +573,19 @@
 
   .tx-direction-icon {
     display: inline-flex;
-    height: 2.5rem;
-    width: 2.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    border-radius: 9999px;
+    border-radius: 0;
   }
 
-  .tx-direction-outgoing {
-    border: 1px solid color-mix(in oklab, var(--color-primary) 40%, transparent);
-    background-color: color-mix(in oklab, var(--color-primary) 16%, transparent);
-    color: var(--color-primary);
-  }
-
-  .tx-direction-incoming {
-    border: 1px solid color-mix(in oklab, var(--color-secondary) 40%, transparent);
-    background-color: color-mix(in oklab, var(--color-secondary) 16%, transparent);
-    color: var(--color-secondary);
+  .tx-direction-icon svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    stroke-width: 1.8;
   }
 
   .transactionRecord:hover {
@@ -207,22 +659,12 @@
   .site-footer {
     position: relative;
     overflow: hidden;
-    border-top: 1px solid var(--color-base-300);
-    background-color: var(--color-base-200);
-    background-image:
-      radial-gradient(circle at 12% -40%, rgba(255, 167, 41, 0.2), transparent 50%),
-      radial-gradient(circle at 85% -25%, rgba(74, 175, 255, 0.18), transparent 45%);
+    border-top: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    background-color: color-mix(in oklab, var(--color-base-200) 74%, var(--color-base-100));
   }
 
-  .site-footer::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    pointer-events: none;
-    background: linear-gradient(90deg, rgba(255, 167, 41, 0), rgba(255, 167, 41, 0.8), rgba(74, 175, 255, 0.75), rgba(74, 175, 255, 0));
+  .site-footer > div {
+    padding-block: 1.5rem !important;
   }
 
   .site-footer-grid {
@@ -255,7 +697,7 @@
   .site-footer-brand-title {
     font-size: 1.25rem;
     font-weight: 600;
-    letter-spacing: 0.025em;
+    letter-spacing: 0;
     color: var(--color-base-content);
   }
 
@@ -268,7 +710,7 @@
 
   .site-footer-meta {
     font-size: 0.75rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
     text-transform: uppercase;
     color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
   }
@@ -279,7 +721,7 @@
     margin-bottom: 0.2rem;
     line-height: 1;
     font-size: 0.75rem;
-    letter-spacing: 0.18em;
+    letter-spacing: 0;
     text-transform: uppercase;
     color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
   }
@@ -307,10 +749,15 @@
     font-size: 0.875rem;
     color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
     text-decoration: none;
-    transition: color 0.2s ease;
   }
 
-  .site-footer-link::after {
+  .site-footer-link svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .site-footer-link-underline::after {
     content: "";
     position: absolute;
     left: 0;
@@ -318,14 +765,14 @@
     height: 1px;
     width: 0;
     transition: width 0.2s ease;
-    background: linear-gradient(90deg, #ffa729, #4aafff);
+    background: var(--color-primary);
   }
 
-  .site-footer-link:hover {
+  .site-footer-link-underline:hover {
     color: var(--color-base-content);
   }
 
-  .site-footer-link:hover::after {
+  .site-footer-link-underline:hover::after {
     width: 100%;
   }
 
@@ -363,29 +810,14 @@
 
   .site-footer-utility-link {
     font-size: 0.75rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
     text-transform: uppercase;
     color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     text-decoration: none;
-    transition: color 0.2s ease;
   }
 
   .site-footer-utility-link:hover {
     color: var(--color-primary);
-  }
-
-  .border-gradient-top {
-    position: relative;
-  }
-
-  .border-gradient-top::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #ffa729, #4aafff, transparent);
   }
 
   .modal.modal-open,
@@ -417,9 +849,206 @@
     position: relative;
     z-index: 1;
   }
+
+  @media (max-width: 639px) {
+    .wallet-mobile-bar {
+      min-height: 4rem;
+    }
+
+    .wallet-mobile-bar .dropdown-content {
+      width: min(18rem, calc(100vw - 2rem));
+    }
+
+    .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 {
+      gap: 0.625rem;
+      margin-bottom: 1rem;
+    }
+
+    .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > div:first-child {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-basis: 1.25rem;
+    }
+
+    .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > h1 {
+      min-width: 0;
+      font-size: 1.3rem;
+      overflow-wrap: anywhere;
+    }
+
+    .site-footer > div {
+      padding-block: 1.25rem !important;
+    }
+
+    .site-footer-links {
+      gap: 0.4rem 1rem;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .wallet-mobile-bar .dropdown > label {
+      width: 2.5rem;
+      padding-inline: 0;
+    }
+
+    .wallet-mobile-bar .dropdown > label > span {
+      display: none;
+    }
+
+    .wallet-mobile-bar .flex-1 .btn {
+      padding-inline: 0.35rem;
+    }
+
+    .wallet-status-card .card-body > div > .flex {
+      width: 100%;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+  }
 }
 
 /* ── Unlayered overrides (beat DaisyUI's @layer utilities) ── */
+
+.wallet-app .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > div:first-child {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-basis: 1.25rem;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.wallet-app .wallet-main > .w-full > .flex.items-center.gap-3.mb-6 > div:first-child svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.wallet-app .btn {
+  --size: 2.375rem;
+  --btn-p: 0.75rem;
+  --fontsize: 0.875rem;
+}
+
+.wallet-app .btn.btn-sm {
+  --size: 2rem;
+  --btn-p: 0.625rem;
+  --fontsize: 0.75rem;
+}
+
+.wallet-app .tabs-boxed {
+  --tab-height: 2.375rem;
+}
+
+.wallet-app :is(.input, .select, .file-input) {
+  --size: 2.75rem;
+}
+
+.wallet-app .select.select-sm {
+  --size: 2.25rem;
+}
+
+.wallet-app .alert {
+  align-items: start;
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-items: start;
+  text-align: left;
+  border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  border-radius: var(--radius-field);
+  background-color: color-mix(in oklab, var(--color-base-300) 54%, var(--color-base-200));
+  color: var(--color-base-content);
+  box-shadow: none;
+}
+
+.wallet-app .alert-warning {
+  border-color: color-mix(in oklab, var(--color-warning) 38%, var(--color-base-300));
+  background-color: color-mix(in oklab, var(--color-warning) 10%, var(--color-base-200));
+  color: var(--color-base-content);
+}
+
+.wallet-app .alert-info {
+  border-color: color-mix(in oklab, var(--color-info) 34%, var(--color-base-300));
+  background-color: color-mix(in oklab, var(--color-info) 10%, var(--color-base-200));
+  color: var(--color-base-content);
+}
+
+.wallet-app .alert-success {
+  border-color: color-mix(in oklab, var(--color-success) 34%, var(--color-base-300));
+  background-color: color-mix(in oklab, var(--color-success) 10%, var(--color-base-200));
+  color: var(--color-base-content);
+}
+
+.wallet-app .alert-error {
+  border-color: color-mix(in oklab, var(--color-error) 38%, var(--color-base-300));
+  background-color: color-mix(in oklab, var(--color-error) 10%, var(--color-base-200));
+  color: var(--color-base-content);
+}
+
+.wallet-app .alert.transactionRecord {
+  border-radius: var(--radius-box);
+}
+
+.wallet-app .rounded-lg {
+  border-radius: var(--radius-field);
+}
+
+.wallet-app .rounded-xl {
+  border-radius: var(--radius-box);
+}
+
+@media (max-width: 639px) {
+  .wallet-app .btn {
+    --size: 2.75rem;
+    --btn-p: 0.875rem;
+  }
+
+  .wallet-app .btn.btn-sm {
+    --size: 2.375rem;
+    --btn-p: 0.625rem;
+  }
+
+  .wallet-app .tabs-boxed {
+    --tab-height: 2.75rem;
+  }
+
+  .wallet-app :is(.input, .select, .file-input) {
+    --size: 3rem;
+  }
+
+  .wallet-app .select.select-sm {
+    --size: 2.5rem;
+  }
+
+  .wallet-app #walletTypeTabs {
+    display: grid;
+    height: auto;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wallet-app #walletTypeTabs .tab {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 2.75rem;
+    padding: 0.5rem;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .wallet-app #verifyTransactionForm,
+  .wallet-app #verifyTransactionForm .fieldset {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .wallet-app #verifyTransactionForm .label {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
 
 /* Transaction type left borders */
 .border-type-transfer { border-left: 4px solid #FFA729; }
@@ -431,45 +1060,29 @@
 .border-type-lattice  { border-left: 4px solid #34D399; }
 .border-type-multisig { border-left: 4px solid #FB923C; }
 
-/* Transaction type icon containers */
+/* Transaction type icon colors */
 .tx-direction-icon.tx-icon-transfer {
-  border: 1px solid color-mix(in oklab, #FFA729 40%, transparent);
-  background-color: color-mix(in oklab, #FFA729 16%, transparent);
   color: #FFA729;
 }
 .tx-direction-icon.tx-icon-received {
-  border: 1px solid color-mix(in oklab, #4AAFFF 40%, transparent);
-  background-color: color-mix(in oklab, #4AAFFF 16%, transparent);
   color: #4AAFFF;
 }
 .tx-direction-icon.tx-icon-coinbase {
-  border: 1px solid color-mix(in oklab, #10B981 40%, transparent);
-  background-color: color-mix(in oklab, #10B981 16%, transparent);
   color: #10B981;
 }
 .tx-direction-icon.tx-icon-token {
-  border: 1px solid color-mix(in oklab, #4AAFFF 40%, transparent);
-  background-color: color-mix(in oklab, #4AAFFF 16%, transparent);
   color: #4AAFFF;
 }
 .tx-direction-icon.tx-icon-message {
-  border: 1px solid color-mix(in oklab, #A78BFA 40%, transparent);
-  background-color: color-mix(in oklab, #A78BFA 16%, transparent);
   color: #A78BFA;
 }
 .tx-direction-icon.tx-icon-slave {
-  border: 1px solid color-mix(in oklab, #F472B6 40%, transparent);
-  background-color: color-mix(in oklab, #F472B6 16%, transparent);
   color: #F472B6;
 }
 .tx-direction-icon.tx-icon-lattice {
-  border: 1px solid color-mix(in oklab, #34D399 40%, transparent);
-  background-color: color-mix(in oklab, #34D399 16%, transparent);
   color: #34D399;
 }
 .tx-direction-icon.tx-icon-multisig {
-  border: 1px solid color-mix(in oklab, #FB923C 40%, transparent);
-  background-color: color-mix(in oklab, #FB923C 16%, transparent);
   color: #FB923C;
 }
 
@@ -481,7 +1094,7 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 .badge-pill-transfer {
@@ -554,17 +1167,14 @@
   max-width: 54rem;
   border: 1px solid color-mix(in oklab, var(--color-base-300) 88%, transparent);
   border-top: 2px solid color-mix(in oklab, var(--color-primary) 58%, var(--color-secondary) 42%);
-  border-radius: 1rem;
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--color-base-100) 96%, transparent), color-mix(in oklab, var(--color-base-100) 96%, transparent)),
-    radial-gradient(circle at 8% -30%, rgba(255, 167, 41, 0.2), transparent 52%),
-    radial-gradient(circle at 84% -22%, rgba(74, 175, 255, 0.16), transparent 48%);
+  border-radius: var(--radius-box);
+  background-color: color-mix(in oklab, var(--color-base-100) 96%, transparent);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
 }
 
 .ledger-signing-modal .modal-box > .text-lg.font-semibold:first-child {
   margin-bottom: 0.75rem;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
 }
 
 .ledger-signing-modal .grid.gap-4 {
@@ -598,7 +1208,7 @@
 
 .ledger-signing-modal .container {
   border: 1px solid color-mix(in oklab, var(--color-base-300) 82%, transparent);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-box);
   background-color: color-mix(in oklab, var(--color-base-200) 94%, transparent);
   overflow-x: auto;
 }
@@ -624,7 +1234,7 @@
 
 .ledger-signing-modal .badge.badge-outline.fw {
   font-size: 0.66rem;
-  letter-spacing: 0.07em;
+  letter-spacing: 0;
   text-transform: uppercase;
   font-weight: 700;
   color: color-mix(in oklab, var(--color-base-content) 92%, transparent);
@@ -658,7 +1268,7 @@
 .ledger-signing-modal #signOnLedgerError,
 .ledger-signing-modal #ledgerHasConfirmed {
   grid-column: 1 / -1;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-box);
   padding: 0.75rem 0.9rem !important;
 }
 
@@ -704,9 +1314,7 @@
 /* JSON formatter theme overrides */
 .jsonbox {
   border-color: color-mix(in oklab, var(--color-base-300) 90%, transparent) !important;
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--color-base-100) 96%, transparent), color-mix(in oklab, var(--color-base-100) 96%, transparent)),
-    radial-gradient(circle at 10% -30%, rgba(74, 175, 255, 0.14), transparent 56%);
+  background-color: color-mix(in oklab, var(--color-base-100) 96%, transparent) !important;
 }
 
 .jsonbox .json-formatter-row,

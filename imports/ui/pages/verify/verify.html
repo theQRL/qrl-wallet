@@ -18,9 +18,9 @@
     <form id="verifyTransactionForm" class="space-y-4" novalidate>
       <fieldset class="fieldset">
         <legend class="fieldset-legend">Transaction ID</legend>
-        <div class="join w-full">
-          <input id="transactionId" type="text" placeholder="64-character transaction hash" autocomplete="off" class="input input-bordered join-item w-full bg-base-100" />
-          <button id="verifyTransactionButton" type="submit" class="btn btn-primary join-item gap-2">
+        <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+          <input id="transactionId" name="transactionId" type="text" aria-label="Transaction ID" placeholder="64-character transaction hash" autocomplete="off" class="input input-bordered w-full bg-base-100" />
+          <button id="verifyTransactionButton" type="submit" class="btn btn-primary gap-2 sm:shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>

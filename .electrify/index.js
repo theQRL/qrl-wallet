@@ -41,6 +41,13 @@ function openInSystemBrowser(url) {
   });
 }
 
+// The bundled Meteor server is a desktop-local service for this renderer only,
+// but Meteor binds 0.0.0.0 by default, which puts all of its DDP methods -
+// including the Ledger bridge - on every network interface. ROOT_URL does not
+// constrain the listen address; BIND_IP does. electrify merges process.env into
+// the Meteor child's environment, so this must be set before electrify.start().
+process.env.BIND_IP = process.env.BIND_IP || '127.0.0.1';
+
 app.disableHardwareAcceleration();
 
 app.on('ready', function() {

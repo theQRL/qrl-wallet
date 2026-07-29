@@ -576,7 +576,89 @@ function patchProtobufCSP() {
   // Both require 'unsafe-eval' in CSP — this is a known, documented limitation.
 }
 
+// The electrify control socket is a desktop-local channel, but it calls
+// server.listen(port) with no host, so Node binds 0.0.0.0 and exposes it on
+// every interface. This app never calls electrify.methods(), so the channel has
+// no remote consumer at all - pin it to loopback.
+function patchElectrifySocketBinding() {
+  const socketFile = path.join(
+    projectRoot, 'node_modules', '@theqrl', 'electrify-qrl', 'lib', 'plugins', 'socket.js'
+  );
+
+  if (!fs.existsSync(socketFile)) {
+    console.log('@theqrl/electrify-qrl socket plugin not found, skipping patch');
+    return;
+  }
+
+  let source = fs.readFileSync(socketFile, 'utf8');
+  const oldListen = 'self.server.listen(port);';
+  const newListen = "self.server.listen(port, '127.0.0.1');";
+
+  if (source.includes(newListen)) {
+    return;
+  }
+
+  if (source.includes(oldListen)) {
+    source = source.replace(oldListen, newListen);
+    fs.writeFileSync(socketFile, source);
+    console.log('Patched @theqrl/electrify-qrl socket to listen on loopback only');
+  } else {
+    console.warn(
+      'WARNING: @theqrl/electrify-qrl socket listen call not found - '
+      + 'the control socket may be binding all interfaces'
+    );
+  }
+}
+
+// electrify derives the Electron version to package by stripping the leading
+// non-digits from the .electrify manifest spec, so a range like "^40.0.0"
+// packages literal 40.0.0 while the lockfile installs 40.4.1 - meaning the
+// shipped runtime is not the one the lockfile (or any lock-derived SBOM)
+// describes. Require an exact spec that matches the lock-resolved version.
+function verifyElectronVersionPin() {
+  const manifestPath = path.join(projectRoot, '.electrify', 'package.json');
+  const lockPath = path.join(projectRoot, '.electrify', 'package-lock.json');
+
+  if (!fs.existsSync(manifestPath) || !fs.existsSync(lockPath)) {
+    console.log('.electrify manifest or lockfile not found, skipping Electron pin check');
+    return;
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+
+  const spec = (manifest.dependencies || {}).electron;
+  const locked = lock.dependencies
+    && lock.dependencies.electron
+    && lock.dependencies.electron.version;
+
+  if (!spec || !locked) {
+    console.log('Electron version not declared in both files, skipping pin check');
+    return;
+  }
+
+  if (!/^\d+\.\d+\.\d+$/.test(spec)) {
+    console.error(
+      `ERROR: .electrify electron must be an exact version, found "${spec}". `
+      + `electrify would package ${spec.replace(/^[^0-9]*/, '')} while the lockfile installs ${locked}.`
+    );
+    process.exit(1);
+  }
+
+  if (spec !== locked) {
+    console.error(
+      `ERROR: .electrify electron pin "${spec}" does not match lock-resolved "${locked}". `
+      + 'The packaged runtime would differ from the installed one.'
+    );
+    process.exit(1);
+  }
+
+  console.log(`Electron pin verified: ${spec} matches lockfile`);
+}
+
 patchLedgerDevices();
 patchElectrifyQrl();
+patchElectrifySocketBinding();
+verifyElectronVersionPin();
 patchShellJs();
 patchProtobufCSP();

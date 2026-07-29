@@ -1490,6 +1490,17 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
       logRequestResponse(request, response)
       return false
     }
+    // The loops below only walk the request's entries, so without an exact
+    // cardinality check a node could append an extra signatory and weight that
+    // never get compared but do enter the signed digest.
+    if (
+      request.signatories.length !== response.outputs.length
+      || request.weights.length !== response.outputs.length
+    ) {
+      console.log('Transaction Validation - Signatories length mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
     let testOutputs = true
     _.each(request.signatories, (item, index) => {
       if (
@@ -1508,10 +1519,12 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     if (testOutputs === false) {
       return false
     }
+    // A lowered threshold weakens the multisig authorisation policy, so this
+    // must reject rather than fall through to the return true below.
     if (request.threshold !== response.threshold) {
       console.log('Transaction Validation - Threshold mismatch')
       logRequestResponse(request, response)
-      testOutputs = false
+      return false
     }
     if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
       console.log('Transaction Validation - XMSS PK mismatch')
@@ -1532,6 +1545,16 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // As with create, an appended output would never be compared by the loop
+    // below but would still be signed and relayed.
+    if (
+      request.addrs_to.length !== response.outputs.length
+      || request.amounts.length !== response.outputs.length
+    ) {
+      console.log('Transaction Validation - Outputs length mismatch')
       logRequestResponse(request, response)
       return false
     }
