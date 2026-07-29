@@ -2,7 +2,7 @@
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
-refreshTransferPage, advanceSeedOtsAfterRelayFailure */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -476,33 +476,11 @@ function initialiseFormValidation() {
   // Set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter a fee',
-      },
-      {
-        type: 'number',
-        prompt: 'Fee must be a number',
-      },
-      {
-        type: 'maxDecimals',
-        prompt: 'You can only enter up to 9 decimal places in the fee field',
-      },
-    ],
+    rules: feeValidationRules({ maxDecimals: true }),
   }
   validationRules['otsKey'] = {
     id: 'otsKey',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter an OTS Key Index',
-      },
-      {
-        type: 'number',
-        prompt: 'OTS Key Index must be a number',
-      },
-    ],
+    rules: otsKeyValidationRules(),
   }
 
   // Address Validation

@@ -40,6 +40,14 @@ const TOOLS = [
     ledgerOnly: true,
   },
   {
+    href: '/tools/recoveryseed',
+    title: 'Recovery Seed',
+    description: 'View the mnemonic phrase and hexseed for this address.',
+    category: 'identity',
+    badge: 'Identity',
+    ledgerIncompatible: true,
+  },
+  {
     href: '/tools/keybase',
     title: 'Keybase ID',
     description: 'Add or remove a Keybase ID for your address.',

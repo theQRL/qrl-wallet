@@ -9,7 +9,9 @@ const MAX_MAIN_LOAD_RETRIES = 60;
 const MAX_BLANK_RECOVERY_ATTEMPTS = 3;
 const FORCE_SHOW_DELAY_MS = 12000;
 const CALLBACK_FALLBACK_DELAY_MS = 15000;
-const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+// Only web protocols. mailto:/tel: hand a URI to an OS-registered handler, which
+// a wallet has no reason to invoke — dropped rather than defended.
+const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:']);
 const APP_ICON_PATH = `${__dirname}/assets/${process.platform === 'darwin' ? 'qrl-mac.png' : 'qrl.png'}`;
 
 function parseUrl(url) {

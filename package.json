@@ -35,7 +35,7 @@
     "qrllib": "^1.2.4",
     "sha256": "^0.2.0",
     "stream-browserify": "^3.0.0",
-    "tmp": "^0.2.5",
+    "tmp": "^0.2.7",
     "usb": "^2.17.0",
     "vue": "^3.5.28"
   },
@@ -78,8 +78,6 @@
     "dev": "concurrently \"npm run build:css:watch\" \"meteor\"",
     "test": "echo null",
     "postinstall": "node .scripts/patch-ledger-exports.js",
-    "snyk-protect": "snyk protect",
-    "prepare": "npm run snyk-protect",
     "cleanDist": "run-script-os",
     "cleanDist:darwin": "mkdir -p ./.electrify/.dist && find ./.electrify/.dist -mindepth 1 -maxdepth 1 -type d -name 'QRLWallet-darwin-*' -exec rm -rf {} +",
     "cleanDist:linux": "mkdir -p ./.electrify/.dist && find ./.electrify/.dist -mindepth 1 -maxdepth 1 -type d -name 'QRLWallet-linux-*' -exec rm -rf {} +",
@@ -102,6 +100,5 @@
       "client": "client/main.js",
       "server": "server/main.js"
     }
-  },
-  "snyk": true
+  }
 }

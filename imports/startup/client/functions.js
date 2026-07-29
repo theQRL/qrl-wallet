@@ -6,6 +6,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
+/* global otsKeysTotal, otsKeyValidationRules, feeValidationRules */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 import _ from 'underscore'
 import qrlNft from '@theqrl/nft-providers'
@@ -750,6 +751,99 @@ otsIndexUsed = (otsBitfield, index) => {
     return true
   }
   return false
+}
+
+// Total OTS keys the open address can ever sign with: 2^(XMSS tree height).
+otsKeysTotal = () => {
+  const height = parseInt((getXMSSDetails() || {}).height, 10)
+  if (!Number.isInteger(height) || height <= 0) {
+    return 0
+  }
+  return 2 ** height
+}
+
+// Shared rules for the OTS Key Index field. An index at or above the tree's key
+// count can never be signed by the node, so the transaction would sit pending
+// forever if we let it through.
+otsKeyValidationRules = () => {
+  const rules = [
+    {
+      type: 'empty',
+      prompt: 'You must enter an OTS Key Index',
+    },
+    {
+      type: 'number',
+      prompt: 'OTS Key Index must be a number',
+    },
+    {
+      type: 'integer',
+      prompt: 'OTS Key Index must be a whole number',
+    },
+    {
+      type: 'min[0]',
+      prompt: 'OTS Key Index cannot be negative',
+    },
+  ]
+
+  const keysTotal = otsKeysTotal()
+  if (keysTotal > 0) {
+    rules.push({
+      type: `max[${keysTotal - 1}]`,
+      prompt: `OTS Key Index must be between 0 and ${keysTotal - 1} for this address`,
+    })
+  }
+
+  return rules
+}
+
+// Shared rules for the transaction fee field. maxDecimals is opt-in as only the
+// forms that register that rule can enforce it.
+feeValidationRules = ({ maxDecimals = false } = {}) => {
+  const rules = [
+    {
+      type: 'empty',
+      prompt: 'You must enter a fee',
+    },
+    {
+      type: 'number',
+      prompt: 'Fee must be a number',
+    },
+    {
+      type: 'min[0]',
+      prompt: 'Fee cannot be negative',
+    },
+  ]
+
+  if (maxDecimals) {
+    rules.push({
+      type: 'maxDecimals',
+      prompt: 'You can only enter up to 9 decimal places in the fee field',
+    })
+  }
+
+  rules.push({
+    type: 'withinBalance',
+    prompt: 'Fee is greater than the balance of this address',
+  })
+
+  return rules
+}
+
+// A fee the address cannot cover is relayed but never mined, leaving the
+// transaction pending forever while the OTS key it consumed is already spent.
+// Balance loads asynchronously, so an unknown balance must not block submission.
+if (typeof window !== 'undefined' && window.walletUi) {
+  window.walletUi.addFormRule('withinBalance', (value) => {
+    const amount = Number(value)
+    if (!Number.isFinite(amount)) {
+      return true
+    }
+    const balance = Number(Session.get('transferFromBalance'))
+    if (!Number.isFinite(balance)) {
+      return true
+    }
+    return amount <= balance
+  })
 }
 
 loadAddressTransactions = (a, p) => {

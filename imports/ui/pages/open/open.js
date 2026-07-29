@@ -18,6 +18,8 @@ import {
   getPrimaryWalletRecordOrThrow,
   loadWalletDataForUse,
   normalizeWalletRecord,
+  WALLET_PASSPHRASE_INCORRECT,
+  WALLET_PASSPHRASE_REQUIRED,
 } from '../../lib/wallet-crypto'
 
 const LEDGER_OPEN_TIMEOUT_MS = 10000
@@ -793,7 +795,13 @@ async function unlockWallet() {
     } catch (error) {
       console.error('Failed to open wallet file:', error)
       hideElement('unlocking')
-      showElement('noWalletFileSelected')
+      if (error && error.code === WALLET_PASSPHRASE_INCORRECT) {
+        showElement('incorrectPassphrase')
+      } else if (error && error.code === WALLET_PASSPHRASE_REQUIRED) {
+        showElement('passphraseRequired')
+      } else {
+        showElement('noWalletFileSelected')
+      }
     }
   } else {
     // Open from hexseed or mnemonic directly
@@ -801,11 +809,17 @@ async function unlockWallet() {
   }
 }
 
+function hideWalletFileErrors() {
+  hideElement('noWalletFileSelected')
+  hideElement('incorrectPassphrase')
+  hideElement('passphraseRequired')
+}
+
 function clickUnlockButton() {
   showElement('unlocking')
   hideElement('unlockError')
   hideLedgerStatusMessages()
-  hideElement('noWalletFileSelected')
+  hideWalletFileErrors()
   setTimeout(() => { unlockWallet() }, 50)
 }
 
@@ -821,7 +835,7 @@ Template.appAddressOpen.events({
     hideElement('unlocking')
     hideElement('unlockError')
     hideLedgerStatusMessages()
-    hideElement('noWalletFileSelected')
+    hideWalletFileErrors()
     setTimeout(() => { refreshLedger(thisAttemptId) }, 1000)
   },
   'change #walletType': () => {

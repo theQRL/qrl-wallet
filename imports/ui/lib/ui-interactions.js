@@ -10,6 +10,10 @@ const DEFAULT_FORM_RULES = {
     if (String(value || '').trim() === '') return false
     return Number.isFinite(Number(value))
   },
+  integer(value) {
+    if (String(value || '').trim() === '') return false
+    return Number.isInteger(Number(value))
+  },
   checked(value, $field) {
     if ($field && $field.is(':checkbox')) return $field.is(':checked')
     if ($field && $field.find(':checkbox').length > 0) return $field.find(':checkbox').first().is(':checked')
@@ -28,6 +32,7 @@ function parseRuleType(type) {
 function parseRuleArg(name, arg) {
   if (arg === null || arg === undefined) return null
   if (name === 'maxLength' || name === 'minLength') return Number(arg)
+  if (name === 'min' || name === 'max') return Number(arg)
   if (name === 'regExp') {
     const m = String(arg).match(/^\/(.+)\/([gimsuy]*)$/)
     if (m) return new RegExp(m[1], m[2])
@@ -70,6 +75,11 @@ function evaluateRule(ruleType, value, $field) {
   if (name === 'maxLength') return String(value || '').length <= parsedArg
   if (name === 'minLength') return String(value || '').length >= parsedArg
   if (name === 'regExp') return parsedArg.test(String(value || ''))
+  if (name === 'min' || name === 'max') {
+    const numericValue = Number(value)
+    if (!Number.isFinite(numericValue) || !Number.isFinite(parsedArg)) return false
+    return name === 'min' ? numericValue >= parsedArg : numericValue <= parsedArg
+  }
   if (DEFAULT_FORM_RULES[name]) return DEFAULT_FORM_RULES[name](value, $field)
 
   const customRule = customFormRules[name]

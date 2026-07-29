@@ -326,7 +326,6 @@
   <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
 
-{{> recoverySeedModal }}
 
 <!-- Page Header -->
 <div class="flex items-center gap-3 mb-6">
@@ -832,16 +831,7 @@
               </div>
             </div>
           </div>
-          {{#if isSeedWallet}}
-          <div class="grid gap-4">
-            <div class="text-left mt-4">
-              <h4>View Recovery Seed</h4>
-              <div class="text-center">
-                <button id="showRecoverySeed" class="btn btn-md btn-error" style="width: 100%">Click to View</button>
-              </div>
-            </div>
-          </div>
-          {{else}}
+          {{#unless isSeedWallet}}
           <div class="grid gap-4">
             <div class="text-left">
               <h4>Verify Ledger Nano S Address</h4>
@@ -850,7 +840,7 @@
               </div>
             </div>
           </div>
-          {{/if}}
+          {{/unless}}
       </div>
 
       <!-- Token Balances -->
@@ -1296,28 +1286,4 @@
   <p style="word-wrap: break-word; word-break: break-all;">Error: {{transactionGenerationError}}</p>
 </div>
 
-</template>
-
-<template name="recoverySeedModal">
-  <dialog class="modal" id="recoverySeedModal">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">Wallet Recovery Seed</div>
-      <div class="">
-        <div class="alert alert-warning gap-3"> <div>
-            <div class="text-lg font-semibold">
-              Warning: Keep this information private at all times!
-            </div>
-            <p class="break-words text-sm"><strong>Mnemonic Phrase:</strong> {{recoverySeed.mnemonic}}</p>
-            <p class="break-all font-mono text-sm"><strong>Hexseed:</strong> {{recoverySeed.hexseed}}</p>
-            <p class="wordBreak"><strong>Private key QR:</strong><div id="recQR" width="150" height="150"></div>
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="modal-action">
-        <button type="button" class="btn btn-error">Close</button>
-      </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
 </template>

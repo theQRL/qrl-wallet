@@ -22,6 +22,7 @@ import '../../ui/pages/tools/message/messageResult.js'
 import '../../ui/pages/tools/notarise/start.js'
 import '../../ui/pages/tools/notarise/confirm.js'
 import '../../ui/pages/tools/notarise/result.js'
+import '../../ui/pages/tools/recoveryseed/recoveryseed.js'
 import '../../ui/pages/tools/keybase/keybaseCreate.js'
 import '../../ui/pages/tools/keybase/keybaseConfirm.js'
 import '../../ui/pages/tools/keybase/keybaseResult.js'
@@ -200,6 +201,13 @@ FlowRouter.route('/tools/message/result', {
   action() {
     if (Session.get('walletStatus').unlocked === false) { return FlowRouter.go('/open') }
     BlazeLayout.render('appBody', { main: 'appMessageResult' })
+  },
+})
+FlowRouter.route('/tools/recoveryseed', {
+  name: 'App.recoverySeed',
+  action() {
+    if (Session.get('walletStatus').unlocked === false) { return FlowRouter.go('/open') }
+    BlazeLayout.render('appBody', { main: 'appRecoverySeed' })
   },
 })
 FlowRouter.route('/tools/notarise/start', {

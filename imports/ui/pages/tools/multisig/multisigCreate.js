@@ -3,7 +3,7 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS,
-refreshTransferPage, advanceSeedOtsAfterRelayFailure */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -300,6 +300,24 @@ function generateTransaction() {
     } else {
       $('#checkWeightsModal p').text(cwt.error)
     }
+    window.walletUi.showModal('#checkWeightsModal')
+    return
+  }
+
+  // checkWeightsAndThreshold only rejects a threshold above the sum of weights,
+  // so a threshold of 0 passes. Nodes do not test the threshold until the first
+  // vote is cast, at which point that first vote alone executes the spend.
+  if (threshold < 1) {
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    $('#checkWeightsModal p').text('The threshold must be at least 1, otherwise the first vote cast would execute the transaction.')
+    window.walletUi.showModal('#checkWeightsModal')
+    return
+  }
+
+  // A signatory weighted 0 or below can never help reach the threshold.
+  if (thisAmounts.some((weight) => weight < 1)) {
+    $('#checkWeightsModal .message .header').text('There\'s a problem')
+    $('#checkWeightsModal p').text('Each signatory weight must be at least 1.')
     window.walletUi.showModal('#checkWeightsModal')
     return
   }
@@ -656,33 +674,11 @@ function initialiseFormValidation() {
   // Now set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter a fee',
-      },
-      {
-        type: 'number',
-        prompt: 'Fee must be a number',
-      },
-      {
-        type: 'maxDecimals',
-        prompt: 'You can only enter up to 9 decimal places in the fee field',
-      },
-    ],
+    rules: feeValidationRules({ maxDecimals: true }),
   }
   validationRules['otsKey'] = {
     id: 'otsKey',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter an OTS Key Index',
-      },
-      {
-        type: 'number',
-        prompt: 'OTS Key Index must be a number',
-      },
-    ],
+    rules: otsKeyValidationRules(),
   }
 
   // Address Validation

@@ -39,10 +39,17 @@ const PROTO_PATH = Assets.absoluteFilePath('qrlbase.proto').split(
   'qrlbase.proto'
 )[0]
 
-// When true, reject any custom/user-supplied gRPC endpoints.
-// Only the pre-configured networks (mainnet, testnet, devnet) are allowed.
-// Setting lives under Meteor.settings.public so the client can also read it.
-let lockCustomEndpoints = (Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints) === true
+// Hard override that rejects custom/user-supplied gRPC endpoints outright, even
+// if allowCustomNodes is on. Lives under Meteor.settings.public so the client
+// can read it too.
+//
+// NOTE: this is NOT the default-deny gate, and its `false` default does not mean
+// custom endpoints are permitted. Default-deny comes from `allowCustomNodes`
+// (also false by default) in endpointDenialReason(). Both flags default to
+// false and mean opposite things — a permission vs. a restriction — which is
+// exactly how a previous refactor turned secure-by-default into open-by-default.
+// Read endpointDenialReason() for the actual policy; do not infer it from here.
+const lockCustomEndpoints = (Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints) === true
 
 // CSP nonce generation middleware
 WebApp.connectHandlers.use((req, res, next) => {
@@ -79,12 +86,43 @@ WebApp.connectHandlers.use((req, res, next) => {
   const originalWrite = res.write
   const originalEnd = res.end
   const chunks = []
+  let buffering = true
 
-  res.write = function (chunk) {
-    chunks.push(Buffer.from(chunk))
+  // Only HTML carries <script> tags worth stamping, so don't buffer anything
+  // else. Meteor's static handler serves public/ before this middleware, so
+  // today almost nothing but the app shell reaches here — but this rewrites
+  // whatever it does see through a UTF-8 string, which would silently corrupt
+  // any binary body, and buffers it whole in memory first. Guarding by
+  // content-type keeps a future handler registered after this one from
+  // inheriting both problems.
+  //
+  // The header isn't known until the handler writes, so stop buffering the
+  // first time we see a non-HTML content type and replay what we already hold.
+  const isHtmlResponse = () => /^text\/html\b/i.test(res.getHeader('Content-Type') || '')
+
+  const stopBuffering = () => {
+    buffering = false
+    res.write = originalWrite
+    res.end = originalEnd
+    chunks.forEach((chunk) => originalWrite.call(res, chunk))
+    chunks.length = 0
   }
 
-  res.end = function (chunk) {
+  res.write = function (chunk, ...args) {
+    if (buffering && !isHtmlResponse()) {
+      stopBuffering()
+      return originalWrite.call(res, chunk, ...args)
+    }
+    chunks.push(Buffer.from(chunk))
+    return true
+  }
+
+  res.end = function (chunk, ...args) {
+    if (buffering && !isHtmlResponse()) {
+      stopBuffering()
+      return originalEnd.call(res, chunk, ...args)
+    }
+
     if (chunk) {
       chunks.push(Buffer.from(chunk))
     }
@@ -230,6 +268,55 @@ const errorCallback = (error, message, alert) => {
     `[${getTime}] ${message} (${error})`
   )
   return meteorError
+}
+
+// Endpoints belonging to the pre-configured networks come from operator config,
+// not from user input, so they are always connectable. Anything else is a custom
+// endpoint supplied by a caller and must be explicitly permitted.
+const isConfiguredEndpoint = (endpoint) => {
+  const normalized = normalizeEndpoint(endpoint)
+  if (!normalized) {
+    return false
+  }
+  return DEFAULT_NETWORKS.some((network) => (network.nodes || []).some(
+    (node) => normalizeEndpoint(node.grpc) === normalized
+  ))
+}
+
+// Single source of truth for whether the server may open a gRPC connection.
+// Returns a denial reason, or null if the endpoint is permitted.
+//
+// Enforced inside connectToNode, which is the only place a gRPC client is ever
+// created, so no caller can reach the connection primitive without passing it.
+// Entry points call this too, for an earlier and friendlier error — but they
+// delegate here rather than re-deriving the policy, because two copies of this
+// decision is exactly how the connectToNode method ended up guarded while the
+// qrlApi path stayed open.
+//
+// This is the SSRF control for user-supplied endpoints, and it is deliberately
+// an exact-match ALLOWLIST rather than URL parsing plus a private-IP blocklist:
+//
+//   - An allowlist is strictly stronger. A blocklist has to enumerate every
+//     internal range (RFC1918, loopback, link-local 169.254.0.0/16, IPv6 ULA,
+//     IPv4-mapped IPv6, decimal/octal IP encodings, DNS names resolving to
+//     internal addresses, DNS rebinding after the check). Missing one is a
+//     bypass; here, anything not in operator config is refused by default.
+//   - new URL() would not help. These are gRPC "host:port" authorities, not
+//     URLs, so parsing adds a failure mode without adding a decision.
+//
+// So the absence of new URL()/isPrivate()/RFC1918 filtering here is intentional,
+// not an oversight — those are the weaker design this replaced.
+const endpointDenialReason = (endpoint) => {
+  if (isConfiguredEndpoint(endpoint)) {
+    return null
+  }
+  if (lockCustomEndpoints) {
+    return 'Custom gRPC endpoints are disabled (lockCustomEndpoints is enabled)'
+  }
+  if (Meteor.settings.allowCustomNodes !== true) {
+    return 'Custom node connections are disabled'
+  }
+  return null
 }
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
@@ -440,6 +527,18 @@ const connectToNode = (endpoint, callback) => {
       'Invalid gRPC endpoint',
       'Cannot connect to remote node: empty endpoint',
       '**ERROR/connection** '
+    )
+    callback(myError, null)
+    return
+  }
+
+  // Authorisation chokepoint: every route to a gRPC client passes through here.
+  const denialReason = endpointDenialReason(normalizedEndpoint)
+  if (denialReason) {
+    const myError = errorCallback(
+      denialReason,
+      'Cannot connect to remote node',
+      '**ERROR/connection/denied** '
     )
     callback(myError, null)
     return
@@ -660,9 +759,10 @@ const qrlApi = (api, request, callback) => {
     }
   } else {
     // Handle custom and localhost connections
-    if (lockCustomEndpoints) {
+    const apiDenialReason = endpointDenialReason(request.network)
+    if (apiDenialReason) {
       const myError = errorCallback(
-        'Custom gRPC endpoints are disabled (lockCustomEndpoints is enabled)',
+        apiDenialReason,
         'Cannot connect to custom API endpoint',
         '**ERROR/api/locked**'
       )
@@ -2925,25 +3025,10 @@ const ledgerCreateMessageTx = async (sourceAddr, fee, message, cb) => {
 // Define Meteor Methods
 Meteor.methods({
   async connectToNode(request) {
-    let { allowCustomNodes } = Meteor.settings
-    if (allowCustomNodes !== true) {
-      allowCustomNodes = false
-    }
-    if (!allowCustomNodes) {
-      throw new Meteor.Error(403, 'Custom node connections are disabled')
-    }
     check(request, String)
-    if (lockCustomEndpoints) {
-      // Build allowlist of gRPC endpoints from pre-configured networks
-      const allowedEndpoints = new Set()
-      for (const network of DEFAULT_NETWORKS) {
-        for (const node of (network.nodes || [])) {
-          if (node.grpc) allowedEndpoints.add(node.grpc)
-        }
-      }
-      if (!allowedEndpoints.has(request)) {
-        throw new Meteor.Error(403, 'Custom gRPC endpoints are disabled (lockCustomEndpoints is enabled)')
-      }
+    const denialReason = endpointDenialReason(request)
+    if (denialReason) {
+      throw new Meteor.Error(403, denialReason)
     }
     const response = await connectToNodeAsync(request)
     return response

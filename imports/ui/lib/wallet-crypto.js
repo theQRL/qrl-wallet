@@ -27,6 +27,17 @@ const LEGACY_SCRYPT_PARAMS = {
 const DEFAULT_IV_LEN = 12
 const TAG_LEN = 16
 
+// Codes let callers tell a passphrase problem apart from a malformed wallet file
+// so they can show the user which of the two actually went wrong.
+export const WALLET_PASSPHRASE_REQUIRED = 'WALLET_PASSPHRASE_REQUIRED'
+export const WALLET_PASSPHRASE_INCORRECT = 'WALLET_PASSPHRASE_INCORRECT'
+
+function walletError(message, code) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+
 function encodeUtf8(text) {
   return new TextEncoder().encode(text)
 }
@@ -45,6 +56,11 @@ function hexToBytes(hex) {
   if (typeof hex !== 'string' || hex.length % 2 !== 0) {
     throw new Error('Invalid hex string')
   }
+  // parseInt returns NaN on non-hex, which a Uint8Array silently stores as 0x00,
+  // so reject the whole string rather than decoding it to zero bytes.
+  if (!/^[0-9a-fA-F]*$/.test(hex)) {
+    throw new Error('Invalid hex string')
+  }
   const out = new Uint8Array(hex.length / 2)
   for (let i = 0; i < hex.length; i += 2) {
     out[i / 2] = parseInt(hex.slice(i, i + 2), 16)
@@ -61,6 +77,13 @@ function bytesToHex(bytes) {
   return hex
 }
 
+// The AAD binds the KDF parameters and IV to the ciphertext, so tampering with
+// N/r/p/salt/iv in a wallet file fails authentication rather than being honoured.
+//
+// Note this serialises an object parsed back from the file, so it assumes JSON
+// property order survives the round-trip. That holds for files written by
+// buildEncryptedEnvelope; a file rewritten with different key ordering would
+// fail to open with a misleading "passphrase is incorrect".
 function buildAad(meta) {
   return encodeUtf8(JSON.stringify({
     version: meta.version,
@@ -250,7 +273,7 @@ export async function decryptV3Envelope(envelope, password, progressCallback) {
   }
 
   if (!password) {
-    throw new Error('Missing passphrase for encrypted wallet')
+    throw walletError('Missing passphrase for encrypted wallet', WALLET_PASSPHRASE_REQUIRED)
   }
 
   if (!envelope.kdf || !envelope.kdf.params || !envelope.cipher) {
@@ -273,7 +296,15 @@ export async function decryptV3Envelope(envelope, password, progressCallback) {
     cipher: { name: envelope.cipher.name, iv: envelope.cipher.iv },
   })
 
-  const plainBytes = await decryptAead(hexToBytes(envelope.data), key, iv, authTag, aad)
+  // AES-GCM authentication fails on the wrong key, so a rejected tag here means
+  // the passphrase was wrong (or the ciphertext has been tampered with).
+  let plainBytes
+  try {
+    plainBytes = await decryptAead(hexToBytes(envelope.data), key, iv, authTag, aad)
+  } catch (error) {
+    throw walletError('Wallet passphrase is incorrect', WALLET_PASSPHRASE_INCORRECT)
+  }
+
   return JSON.parse(decodeUtf8(plainBytes))
 }
 
@@ -283,7 +314,7 @@ export async function decryptLegacyWallet(walletEntries, passphrase, progressCal
   }
 
   if (!passphrase) {
-    throw new Error('Missing passphrase for encrypted wallet')
+    throw walletError('Missing passphrase for encrypted wallet', WALLET_PASSPHRASE_REQUIRED)
   }
 
   const decrypted = []
@@ -308,8 +339,10 @@ export async function decryptLegacyWallet(walletEntries, passphrase, progressCal
       ? undefined
       : await decryptLegacyOptionalField(wallet.addressB32, passphrase, isValidAddressB32)
 
+    // Legacy AES fields decrypt to garbage rather than failing on a wrong
+    // passphrase, so unreadable content here is the signal that it was wrong.
     if (!isValidMnemonic(mnemonic) || !isValidHexseed(hexseed) || !isValidQAddress(address)) {
-      throw new Error('Wallet content is invalid or passphrase is incorrect')
+      throw walletError('Wallet content is invalid or passphrase is incorrect', WALLET_PASSPHRASE_INCORRECT)
     }
 
     decrypted.push({
