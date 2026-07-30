@@ -19,33 +19,6 @@
   <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
   <!-- error modal where node returns invalid response  -->
-  <dialog class="modal" id="invalidNodeResponse">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">WARNING - Bad Response</div>
-        <div class="">
-          <div class="alert alert-warning gap-3"> <div class="">
-              <div class="text-lg font-semibold">
-                WARNING - The node you've requested this transaction from replied
-                with bad data that doesn't match your intended transaction
-                parameters.
-                <br /><br />
-                This transaction has been cancelled automatically to protect your
-                funds.
-                <br /><br />
-                Please report this issue through a Github issue, or directly to the
-                QRL Team via email: info@theqrl.org
-              </div>
-              <p></p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-action">
-          <button type="button" class="btn btn-success">Okay</button>
-        </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
-  
   <dialog class="modal" id="cancelTransactionGenerationWarning">
   <div class="modal-box wallet-modal-box">
     <div class="text-lg font-semibold">Whoa there buddy!!</div>
@@ -61,27 +34,6 @@
         <div class="modal-action">
           <button type="button" class="btn btn-success">Yes, cancel this transaction!</button>
           <button type="button" class="btn btn-error btn-outline">Cancel</button>
-        </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
-  
-  <dialog class="modal" id="lowOtsKeyWarning">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">OTS Keys Running Low!</div>
-        <div class="">
-          <div class="alert alert-warning gap-3"> <div class="">
-              <div class="text-lg font-semibold">
-                Warning: Your OTS Keys are running low.
-              </div>
-              <p>You only have <strong>{{otsKeysRemaining}}</strong> OTS Keys remaining. When you have used all of these, you will no longer be able to send QRL or Tokens from this wallet.</p>
-              <p>It is strongly suggested that you create a new wallet, and move all your QRL and Tokens to it to ensure you do not lose access to your funds.</p>
-              <p><a href="https://docs.theqrl.org/developers/ots/" target="_blank">Click here to learn what OTS Keys are.</a></p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-action">
-          <button type="button" class="btn btn-success">Okay</button>
         </div>
   </div>
   <form method="dialog" class="modal-backdrop"><button>close</button></form>
@@ -119,48 +71,6 @@
                 Some exchanges still list our ERC20 token, and will provide an <strong>0x</strong> deposit address that is only compatible with the legacy QRL ERC20 token.
                 <br /><br />
                 Please keep this in mind when attempting to transfer your Quanta around.
-              </div>
-              <p></p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-action">
-          <button type="button" class="btn btn-success">Okay</button>
-        </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
-  
-  <dialog class="modal" id="otsKeyReuseDetected">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">OTS Key Reuse</div>
-        <div class="">
-          <div class="alert alert-warning gap-3"> <div class="">
-              <div class="text-lg font-semibold">
-                You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
-                <br /><br />
-                Please recreate your transaction using a unique OTS Key Index.
-              </div>
-              <p></p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-action">
-          <button type="button" class="btn btn-success">Okay</button>
-        </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
-  
-  <dialog class="modal" id="ledgerOtsKeyReuseDetected">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">OTS Key Reuse</div>
-        <div class="">
-          <div class="alert alert-warning gap-3"> <div class="">
-              <div class="text-lg font-semibold">
-                You have attempted to create a transaction using an OTS Key Index that has previously been used on the QRL Network.
-                <br /><br />
-                You need to update your Ledgers XMSS Index in Tools -> Set XMSS Index.
               </div>
               <p></p>
             </div>

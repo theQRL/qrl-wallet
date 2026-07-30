@@ -3,8 +3,17 @@
 
 import './recoveryseed.html'
 
+// Seed material is rendered only once the user asks for it, so the mnemonic and
+// hexseed are absent from the DOM until then rather than merely hidden by CSS.
+// Reset on create and destroy so a previous reveal never carries across
+// navigation back into this page.
+Template.appRecoverySeed.onCreated(() => {
+  Session.set('recoverySeedRevealed', false)
+})
+
 Template.appRecoverySeed.onDestroyed(() => {
   $('#recoverySeedQR').empty()
+  Session.set('recoverySeedRevealed', false)
 })
 
 Template.appRecoverySeed.events({
@@ -14,16 +23,17 @@ Template.appRecoverySeed.events({
       return
     }
 
-    $('#recoverySeedQR').empty()
-    $('#recoverySeedQR').qrcode({ width: 142, height: 142, text: xmss.hexseed })
+    Session.set('recoverySeedRevealed', true)
 
-    $('#revealRecoverySeedArea').hide()
-    $('#recoverySeedDetails').show()
+    // The QR container only exists once Blaze has rendered the revealed block.
+    Tracker.afterFlush(() => {
+      $('#recoverySeedQR').empty()
+      $('#recoverySeedQR').qrcode({ width: 142, height: 142, text: xmss.hexseed })
+    })
   },
   'click #hideRecoverySeed': () => {
-    $('#recoverySeedDetails').hide()
     $('#recoverySeedQR').empty()
-    $('#revealRecoverySeedArea').show()
+    Session.set('recoverySeedRevealed', false)
   },
 })
 
@@ -34,6 +44,9 @@ Template.appRecoverySeed.helpers({
     } catch (error) {
       return false
     }
+  },
+  seedRevealed() {
+    return Session.get('recoverySeedRevealed') === true
   },
   recoverySeed() {
     try {

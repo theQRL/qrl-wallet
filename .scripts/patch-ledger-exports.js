@@ -628,13 +628,30 @@ function verifyElectronVersionPin() {
   const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
 
   const spec = (manifest.dependencies || {}).electron;
-  const locked = lock.dependencies
-    && lock.dependencies.electron
-    && lock.dependencies.electron.version;
 
-  if (!spec || !locked) {
-    console.log('Electron version not declared in both files, skipping pin check');
+  // .electrify currently ships a lockfileVersion 1 lock, which records resolved
+  // versions under `dependencies`. Regenerating it with a modern npm produces v2/v3,
+  // which uses `packages` instead - so read both, or this check would silently stop
+  // protecting the moment the lockfile is refreshed.
+  const locked = (
+    (lock.dependencies && lock.dependencies.electron && lock.dependencies.electron.version)
+    || (lock.packages && lock.packages['node_modules/electron'] && lock.packages['node_modules/electron'].version)
+  );
+
+  if (!spec) {
+    console.log('Electron not declared in .electrify/package.json, skipping pin check');
     return;
+  }
+
+  // A lockfile that exists but records no Electron is a broken install, not a
+  // reason to skip the check.
+  if (!locked) {
+    console.error(
+      'ERROR: .electrify/package-lock.json records no Electron version in either the '
+      + 'lockfileVersion 1 (dependencies) or v2/v3 (packages) layout. '
+      + 'Cannot verify the packaged runtime matches the installed one.'
+    );
+    process.exit(1);
   }
 
   if (!/^\d+\.\d+\.\d+$/.test(spec)) {

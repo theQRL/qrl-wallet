@@ -2,7 +2,7 @@
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
-refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules, countDecimals, otsIndexUsed */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -274,6 +274,17 @@ function generateTransaction() {
   const sendAmounts = document.getElementsByName('amounts[]')
   const expiryBlock = parseInt(document.getElementById('expiry').value, 10)
   const msFrom = anyAddressToRawAddress(Session.get('multisigTransferFromAddress'))
+  // Fail if OTS Key reuse is detected. Signing twice with the same index
+  // discloses the XMSS one-time key, so this must gate every signing action.
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+    $('#generating').hide()
+    if (getXMSSDetails().walletType === 'ledger') {
+      window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
+    } else {
+      window.walletUi.showModal('#otsKeyReuseDetected')
+    }
+    return
+  }
 
   // Capture outputs
   const thisAddressesTo = []
@@ -594,6 +605,17 @@ function initialiseFormValidation() {
     rules: otsKeyValidationRules(),
   }
 
+  // The fee and amount fields request the maxDecimals rule. The rule engine
+  // treats an unregistered rule as passing, so without this registration the
+  // nine-decimal limit is silently unenforced on this page.
+  window.walletUi.addFormRule('maxDecimals', function (value) {
+    try {
+      return countDecimals(value) <= 9
+    } catch (e) {
+      return false
+    }
+  })
+
   // Address Validation
   window.walletUi.addFormRule('qrlAddressValid', function (value) {
     try {
@@ -607,7 +629,7 @@ function initialiseFormValidation() {
   })
 
   // Initialise the form validation
-  window.walletUi.bindFormValidation('form', {
+  window.walletUi.bindFormValidation('#generateTransactionArea', {
     fields: validationRules,
   })
 }
@@ -665,6 +687,16 @@ Template.multisigSpend.events({
   'click #generateTransaction': (event) => {
     event.preventDefault()
     event.stopPropagation()
+    // The fields live in #generateTransactionArea rather than a <form>, and on
+    // the spend/vote pages that container only renders once a multisig address
+    // has been chosen - so bind here, where it is guaranteed to exist. This
+    // action is a click rather than a submit, so the rules also have to be run
+    // explicitly: without this an empty or non-numeric fee reaches the node as
+    // NaN, and an out-of-range OTS index is never caught.
+    initialiseFormValidation()
+    if (!window.walletUi.validateBoundForm('#generateTransactionArea')) {
+      return
+    }
     generateTransaction()
   },
   'click #confirmTransaction': () => {

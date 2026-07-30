@@ -260,6 +260,31 @@ function addFormRule(name, validator) {
   }
 }
 
+// Run the rules bound by bindFormValidation on demand, and report whether every
+// field passed. Needed by pages whose primary action is a button click rather
+// than a form submit: bindFormValidation only hooks the submit event, so without
+// this their declared rules would never actually run.
+// Returns true when no bound form fails, so an unbound target does not block.
+function validateBoundForm(target) {
+  const $forms = resolveElements(target)
+  if ($forms.length === 0) {
+    return true
+  }
+
+  let valid = true
+  $forms.each(function () {
+    const $form = $(this)
+    const settings = $form.data('wallet-form-settings')
+    if (!settings) {
+      return
+    }
+    if (!validateForm($form, settings)) {
+      valid = false
+    }
+  })
+  return valid
+}
+
 function activateTab(tabName, scope) {
   if (!tabName) return
   const $scope = scope && scope.length ? scope : $(document)
@@ -326,6 +351,7 @@ const walletUi = {
   initTabs,
   isCheckboxChecked,
   showModal,
+  validateBoundForm,
 }
 
 if (typeof window !== 'undefined') {

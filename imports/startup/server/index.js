@@ -475,7 +475,15 @@ const loadGrpcClient = (endpoint, callback) => {
               }
             }
             // Every exit below settles through this so the file is always freed.
+            // Idempotent: the promise chain below has both a .then and a .catch
+            // that settle, and a throw inside the .then after it had already
+            // settled would otherwise invoke callback a second time.
+            let settled = false
             const settle = (settleErr, settleRes) => {
+              if (settled) {
+                return
+              }
+              settled = true
               releaseProtoFile()
               callback(settleErr, settleRes)
             }

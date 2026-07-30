@@ -21,32 +21,34 @@
         </div>
       </div>
 
-      <div id="revealRecoverySeedArea" class="mt-4 text-center">
-        <button id="revealRecoverySeed" class="btn btn-md btn-error" style="width: 100%">Reveal Recovery Seed</button>
-      </div>
+      {{#if seedRevealed}}
+        <div id="recoverySeedDetails" class="mt-4 space-y-4">
+          <div>
+            <h4>Mnemonic Phrase</h4>
+            <p class="break-words text-sm">{{recoverySeed.mnemonic}}</p>
+          </div>
 
-      <div id="recoverySeedDetails" class="mt-4 space-y-4" style="display: none;">
-        <div>
-          <h4>Mnemonic Phrase</h4>
-          <p class="break-words text-sm">{{recoverySeed.mnemonic}}</p>
-        </div>
+          <div>
+            <h4>Hexseed</h4>
+            <p class="break-all font-mono text-sm">{{recoverySeed.hexseed}}</p>
+          </div>
 
-        <div>
-          <h4>Hexseed</h4>
-          <p class="break-all font-mono text-sm">{{recoverySeed.hexseed}}</p>
-        </div>
+          <div>
+            <h4>Private Key QR</h4>
+            <div class="flex justify-center">
+              <div id="recoverySeedQR" class="inline-block rounded-xl bg-white p-4"></div>
+            </div>
+          </div>
 
-        <div>
-          <h4>Private Key QR</h4>
-          <div class="flex justify-center">
-            <div id="recoverySeedQR" class="inline-block rounded-xl bg-white p-4"></div>
+          <div class="text-center">
+            <button id="hideRecoverySeed" class="btn btn-md btn-secondary" style="width: 100%">Hide Recovery Seed</button>
           </div>
         </div>
-
-        <div class="text-center">
-          <button id="hideRecoverySeed" class="btn btn-md btn-secondary" style="width: 100%">Hide Recovery Seed</button>
+      {{else}}
+        <div id="revealRecoverySeedArea" class="mt-4 text-center">
+          <button id="revealRecoverySeed" class="btn btn-md btn-error" style="width: 100%">Reveal Recovery Seed</button>
         </div>
-      </div>
+      {{/if}}
     {{else}}
       <div class="alert gap-3">
         <div>

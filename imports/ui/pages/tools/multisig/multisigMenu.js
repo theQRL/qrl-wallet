@@ -1,4 +1,5 @@
 import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
+/* global getBalance, getXMSSDetails */
 
 Template.appMultisigMenu.helpers({
   isActiveTab(p) {
@@ -63,4 +64,16 @@ Template.appMultisigMenu.events({
 
 Template.appMultisigMenu.onRendered(() => {
   Session.set('activeMultisigTab', 'create')
+
+  // Refresh balance and OTS state for the signing address. The multisig pages
+  // read otsKeyEstimate and the OTS bitfield (for the key-reuse gate) straight
+  // from Session, but previously never loaded them here - they relied on
+  // whatever an earlier page happened to leave behind. This is the same refresh
+  // every other signing page performs on render, and it covers all three
+  // multisig tabs because this template is their common ancestor.
+  getBalance(getXMSSDetails().address, () => {
+    if (Session.get('otsKeysRemaining') < 50) {
+      window.walletUi.showModal('#lowOtsKeyWarning')
+    }
+  })
 })
