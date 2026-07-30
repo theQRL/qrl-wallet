@@ -48,7 +48,10 @@ const SCRYPT_LIMITS = {
   minR: 1,
   maxR: 32,
   minP: 1,
-  maxP: 16,
+  // p multiplies derivation *time* linearly. This application only ever writes
+  // p=1, so keep the accepted range close to that rather than allowing a file to
+  // ask for a 16x slower unlock.
+  maxP: 4,
   minDkLen: 16,
   maxDkLen: 64,
   // scrypt's working array is 128 * r * N bytes; cap it well below the point

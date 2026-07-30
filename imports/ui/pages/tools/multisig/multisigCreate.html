@@ -19,33 +19,6 @@
   <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
   <!-- error modal where node returns invalid response  -->
-  <dialog class="modal" id="invalidNodeResponse">
-  <div class="modal-box wallet-modal-box">
-    <div class="text-lg font-semibold">WARNING - Bad Response</div>
-        <div class="">
-          <div class="alert alert-warning gap-3"> <div class="">
-              <div class="text-lg font-semibold">
-                WARNING - The node you've requested this transaction from replied
-                with bad data that doesn't match your intended transaction
-                parameters.
-                <br /><br />
-                This transaction has been cancelled automatically to protect your
-                funds.
-                <br /><br />
-                Please report this issue through a Github issue, or directly to the
-                QRL Team via email: info@theqrl.org
-              </div>
-              <p></p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-action">
-          <button type="button" class="btn btn-success">Okay</button>
-        </div>
-  </div>
-  <form method="dialog" class="modal-backdrop"><button>close</button></form>
-</dialog>
-
   <div id="generateTransactionArea">
     <p class="mb-4 break-all text-sm"><strong>Creator:</strong> {{ creator }}</p>
     <div class="grid gap-4 md:grid-cols-2">

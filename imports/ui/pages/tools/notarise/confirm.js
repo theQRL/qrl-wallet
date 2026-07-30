@@ -3,7 +3,7 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure, otsKeyReuseBlocksSigning */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import { isElectrified, createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
@@ -148,6 +148,14 @@ async function getLedgerRetrieveSignature(request, callback) {
 
 function confirmMessageCreation() {
   const tx = Session.get('notariseCreationConfirmationResponse')
+
+  // Re-check reuse at the point of signing, not only at generate time: the
+  // user may have sat on this screen while that index was consumed
+  // elsewhere. Once the key signs, reuse discloses it.
+  if (otsKeyReuseBlocksSigning(parseInt(Session.get('notariseCreationConfirmation').otsKey, 10))) {
+    $('#relaying').hide()
+    return
+  }
 
   // Set OTS Key Index in XMSS object
   if (getXMSSDetails().walletType === 'seed') {

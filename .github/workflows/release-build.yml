@@ -274,7 +274,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     # The only job that may write to the release. Attach a protected GitHub
     # environment to this job to require reviewed approval before publication.
+    #
+    # Job-level permissions REPLACE the workflow-level block rather than merging
+    # with it, so actions: read has to be restated here.
     permissions:
+      actions: read
       contents: write
     env:
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}

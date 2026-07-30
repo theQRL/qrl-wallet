@@ -628,13 +628,52 @@ function verifyElectronVersionPin() {
   const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
 
   const spec = (manifest.dependencies || {}).electron;
-  const locked = lock.dependencies
+
+  // .electrify currently ships a lockfileVersion 1 lock, which records resolved
+  // versions under `dependencies`. Regenerating it with a modern npm produces v2/v3,
+  // which uses `packages` instead - so read both, or this check would silently stop
+  // protecting the moment the lockfile is refreshed.
+  //
+  // A v2 lock carries BOTH layouts. npm installs from `packages`; `dependencies`
+  // is only a back-compat mirror for older clients, so `packages` wins here.
+  const lockedFromPackages = lock.packages
+    && lock.packages['node_modules/electron']
+    && lock.packages['node_modules/electron'].version;
+  const lockedFromDependencies = lock.dependencies
     && lock.dependencies.electron
     && lock.dependencies.electron.version;
 
-  if (!spec || !locked) {
-    console.log('Electron version not declared in both files, skipping pin check');
+  // If the two layouts disagree the lockfile is internally inconsistent and
+  // neither value can be trusted to describe what will be installed.
+  if (
+    lockedFromPackages
+    && lockedFromDependencies
+    && lockedFromPackages !== lockedFromDependencies
+  ) {
+    console.error(
+      `ERROR: .electrify/package-lock.json disagrees with itself about Electron: `
+      + `packages says "${lockedFromPackages}", dependencies says "${lockedFromDependencies}". `
+      + 'Regenerate the lockfile before building.'
+    );
+    process.exit(1);
+  }
+
+  const locked = lockedFromPackages || lockedFromDependencies;
+
+  if (!spec) {
+    console.log('Electron not declared in .electrify/package.json, skipping pin check');
     return;
+  }
+
+  // A lockfile that exists but records no Electron is a broken install, not a
+  // reason to skip the check.
+  if (!locked) {
+    console.error(
+      'ERROR: .electrify/package-lock.json records no Electron version in either the '
+      + 'lockfileVersion 1 (dependencies) or v2/v3 (packages) layout. '
+      + 'Cannot verify the packaged runtime matches the installed one.'
+    );
+    process.exit(1);
   }
 
   if (!/^\d+\.\d+\.\d+$/.test(spec)) {

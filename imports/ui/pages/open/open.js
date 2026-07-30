@@ -544,6 +544,43 @@ function refreshLedger(openAttemptId) {
   }) // getLedgerState
 }
 
+// Classify whichever wallet file is currently selected so the user learns their
+// backup uses a weak legacy format before they type its password, not after.
+// Reads the input directly so it can be called from the change handler and from
+// a wallet-type switch alike. Advisory only: failures here are silent, and
+// unlock still does the real parsing and reports real errors.
+async function evaluateSelectedWalletFileForLegacyWarning() {
+  hideElement('legacyWalletWarning')
+
+  const selectedFile = document.getElementById('walletFile')?.files?.[0]
+  if (!selectedFile) {
+    return
+  }
+
+  try {
+    const walletInput = JSON.parse(await selectedFile.text())
+
+    // Reading the file yields to the event loop. By the time it resolves the user
+    // may have picked a different file, or switched away from file mode entirely -
+    // and two reads can resolve out of order. Without re-checking, a slow read can
+    // raise the warning for a file that is no longer selected, or on a view where
+    // it does not apply.
+    if (document.getElementById('walletType')?.value !== 'file') {
+      return
+    }
+    if (document.getElementById('walletFile')?.files?.[0] !== selectedFile) {
+      return
+    }
+
+    const walletFormat = getWalletFileType(walletInput)
+    if (isFormatDeprecated(walletFormat) && isWalletEncrypted(walletInput)) {
+      showElement('legacyWalletWarning')
+    }
+  } catch (error) {
+    // Not parseable as a wallet - unlock will report the real problem.
+  }
+}
+
 function updateWalletType() {
   clearLedgerOpenTimeout()
   clearLedgerDetails()
@@ -558,8 +595,12 @@ function updateWalletType() {
   const walletCode = document.getElementById('walletCode')
   const walletFile = document.getElementById('walletFile')
 
-  // The legacy-format warning only applies to a selected wallet file.
-  if (walletType !== 'file') {
+  // The legacy-format warning only applies to a selected wallet file. Switching
+  // away hides it; switching back re-classifies the file that is still selected,
+  // which would otherwise stay silently un-warned until the user re-picked it.
+  if (walletType === 'file') {
+    evaluateSelectedWalletFileForLegacyWarning()
+  } else {
     hideElement('legacyWalletWarning')
   }
 
@@ -849,26 +890,10 @@ Template.appAddressOpen.events({
     hideWalletFileErrors()
     setTimeout(() => { refreshLedger(thisAttemptId) }, 1000)
   },
-  'change #walletFile': async (event) => {
-    // Classify the file as soon as it is selected so the user learns their
-    // backup uses a weak legacy format before they type its password, not
-    // after. Any failure here is silent: this is advisory only, and unlock
-    // still performs the real parsing and reports real errors.
-    hideElement('legacyWalletWarning')
-    const selectedFile = event.currentTarget?.files?.[0]
-    if (!selectedFile) {
-      return
-    }
-
-    try {
-      const walletInput = JSON.parse(await selectedFile.text())
-      const walletType = getWalletFileType(walletInput)
-      if (isFormatDeprecated(walletType) && isWalletEncrypted(walletInput)) {
-        showElement('legacyWalletWarning')
-      }
-    } catch (error) {
-      // Not parseable as a wallet - unlock will report the real problem.
-    }
+  'change #walletFile': async () => {
+    // A different file invalidates any error shown for the previous attempt.
+    hideWalletFileErrors()
+    await evaluateSelectedWalletFileForLegacyWarning()
   },
   'change #walletType': () => {
     updateWalletType()
