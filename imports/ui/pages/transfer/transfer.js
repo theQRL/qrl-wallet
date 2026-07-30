@@ -3,7 +3,7 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* global _, QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules */
+/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules, otsKeyReuseBlocksSigning */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import JSONFormatter from 'json-formatter-js'
@@ -261,6 +261,15 @@ function confirmTransaction() {
   tx.message_data = transferSupportsMessage()
     ? Session.get('transactionConfirmationMessage')
     : null
+  // Re-check reuse at the point of signing, not only at generate time: the user
+  // may have sat on this confirmation screen while that index was consumed
+  // elsewhere. Once the key signs, reuse discloses it.
+  if (otsKeyReuseBlocksSigning(parseInt(Session.get('transactionConfirmation').otsKey, 10))) {
+    $('#relaying').hide()
+    enableSendButton()
+    return
+  }
+
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
     XMSS_OBJECT.setIndex(
@@ -679,6 +688,15 @@ function confirmTokenTransfer() {
   }
 
   const tx = Session.get('tokenTransferConfirmationResponse')
+
+  // Re-check reuse at the point of signing, not only at generate time: the user
+  // may have sat on this confirmation screen while that index was consumed
+  // elsewhere. Once the key signs, reuse discloses it.
+  if (otsKeyReuseBlocksSigning(parseInt(Session.get('tokenTransferConfirmation').otsKey, 10))) {
+    $('#relaying').hide()
+    enableSendButton()
+    return
+  }
 
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {

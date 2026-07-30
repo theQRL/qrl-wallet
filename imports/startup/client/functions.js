@@ -6,7 +6,7 @@
 /* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
 /* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
 /* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
-/* global otsKeysTotal, otsKeyValidationRules, feeValidationRules */
+/* global otsKeysTotal, otsKeyValidationRules, feeValidationRules, otsKeyReuseBlocksSigning */
 /* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 import _ from 'underscore'
 import qrlNft from '@theqrl/nft-providers'
@@ -751,6 +751,28 @@ otsIndexUsed = (otsBitfield, index) => {
     return true
   }
   return false
+}
+
+// Last-line check before a signature is produced, and the reuse modal to match.
+//
+// The create/generate step already checks the chosen index, but the user then
+// sits on a confirmation screen - during which the same index can be consumed by
+// another tab, or by going back and sending something else. Once XMSS_OBJECT
+// signs, that one-time key is spent and reuse discloses it, so the check has to
+// run again immediately before signing rather than only at generate time.
+//
+// Returns true when signing must be abandoned.
+otsKeyReuseBlocksSigning = (otsKey) => {
+  if (!otsIndexUsed(Session.get('otsBitfield') || {}, otsKey)) {
+    return false
+  }
+
+  if ((getXMSSDetails() || {}).walletType === 'ledger') {
+    window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
+  } else {
+    window.walletUi.showModal('#otsKeyReuseDetected')
+  }
+  return true
 }
 
 // Total OTS keys the open address can ever sign with: 2^(XMSS tree height).

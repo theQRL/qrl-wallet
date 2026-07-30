@@ -2,7 +2,7 @@
 /* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
 selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
 toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
-refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules, countDecimals, otsIndexUsed */
+refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules, countDecimals, otsIndexUsed, otsKeyReuseBlocksSigning */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -378,6 +378,14 @@ function confirmTransaction() {
 
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
+    // Re-check reuse at the point of signing, not only at generate time: the
+    // user may have sat on this screen while that index was consumed
+    // elsewhere. Once the key signs, reuse discloses it.
+    if (otsKeyReuseBlocksSigning(parseInt(Session.get('transactionConfirmation').otsKey, 10))) {
+      $('#relaying').hide()
+      return
+    }
+
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
   }
 

@@ -559,6 +559,19 @@ async function evaluateSelectedWalletFileForLegacyWarning() {
 
   try {
     const walletInput = JSON.parse(await selectedFile.text())
+
+    // Reading the file yields to the event loop. By the time it resolves the user
+    // may have picked a different file, or switched away from file mode entirely -
+    // and two reads can resolve out of order. Without re-checking, a slow read can
+    // raise the warning for a file that is no longer selected, or on a view where
+    // it does not apply.
+    if (document.getElementById('walletType')?.value !== 'file') {
+      return
+    }
+    if (document.getElementById('walletFile')?.files?.[0] !== selectedFile) {
+      return
+    }
+
     const walletFormat = getWalletFileType(walletInput)
     if (isFormatDeprecated(walletFormat) && isWalletEncrypted(walletInput)) {
       showElement('legacyWalletWarning')
