@@ -65,7 +65,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-meteor": "^7.3.0",
     "node-gyp": "^12.2.0",
-    "postcss": "^8.5.0",
+    "postcss": "^8.5.25",
     "run-script-os": "^1.1.6",
     "snyk": "^1.1295.0",
     "tailwindcss": "^4.1.18"
