@@ -7,7 +7,7 @@
   "dependencies": {
     "@babel/runtime": "7.28.6",
     "@grpc/grpc-js": "1.14.4",
-    "@grpc/proto-loader": "0.8.0",
+    "@grpc/proto-loader": "0.8.1",
     "@ledgerhq/devices": "8.10.0",
     "@ledgerhq/hw-transport-node-hid": "6.30.0",
     "@ledgerhq/hw-transport-webusb": "6.30.0",
