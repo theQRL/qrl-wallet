@@ -11,7 +11,7 @@
     "@ledgerhq/devices": "^8.10.0",
     "@ledgerhq/hw-transport-node-hid": "^6.30.0",
     "@ledgerhq/hw-transport-webusb": "^6.30.0",
-    "@theqrl/explorer-helpers": "^2.7.0",
+    "@theqrl/explorer-helpers": "^2.8.2",
     "@theqrl/hw-app-qrl": "^6.28.3",
     "@theqrl/nft-providers": "^1.0.1",
     "@theqrl/node-helpers": "^0.7.1",
