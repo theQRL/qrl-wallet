@@ -60,6 +60,12 @@ To rebuild the stylesheet once, without watching:
 
 	npm run build:css
 
+When updating `qrllib`, refresh its committed browser-worker JS and WASM from the
+exact installed package, then commit both assets:
+
+	npm run build:qrllib-worker
+	npm run verify:qrllib-worker
+
 ## Lint
 
 	npm run releaseready

@@ -171,6 +171,12 @@ jobs:
       - name: Verify electrify patch state
         run: node .scripts/verify-electrify-patches.js
 
+      - name: Verify qrllib worker assets
+        run: npm run verify:qrllib-worker
+
+      - name: Test qrllib wallet compatibility
+        run: node --test tests/qrllib-compatibility.test.cjs
+
       - name: Build CSS
         run: npm run build:css
 
