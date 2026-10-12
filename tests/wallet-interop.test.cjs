@@ -9,6 +9,7 @@ const {
   buildEncryptedEnvelope,
   buildUnencryptedEnvelope,
   loadWalletDataForUse,
+  WALLET_FILE_INVALID,
   WALLET_PASSPHRASE_INCORRECT,
 } = jiti('./imports/ui/lib/wallet-crypto.js')
 
@@ -81,9 +82,13 @@ test('web wallet opens a node v2 wallet and retains slave keys through v3 upgrad
   assert.deepEqual(reopened.walletData, loaded.walletData)
   await assert.rejects(loadWalletDataForUse(source, 'wrong'),
     (error) => error.code === WALLET_PASSPHRASE_INCORRECT)
+  const malformedSlave = JSON.parse(JSON.stringify(source))
+  malformedSlave.addresses[0].slaves[0][0].mnemonic = 'qrl-node-v2:invalid'
+  await assert.rejects(loadWalletDataForUse(malformedSlave, 'wrong'),
+    (error) => error.code === WALLET_FILE_INVALID)
   source.addresses[0].hexseed = legacyField('1'.repeat(102))
   await assert.rejects(loadWalletDataForUse(source, passphrase),
-    (error) => error.code === WALLET_PASSPHRASE_INCORRECT)
+    (error) => error.code === WALLET_FILE_INVALID)
 })
 
 test('web wallet reads legacy node AES-CTR fields', async () => {
@@ -94,6 +99,38 @@ test('web wallet reads legacy node AES-CTR fields', async () => {
   source.encrypted = true
   const loaded = await loadWalletDataForUse(source, passphrase)
   assert.equal(loaded.walletData.addresses[0].hexseed, '1'.repeat(102))
+})
+
+test('encrypted node wallet reports malformed records as an invalid file', async () => {
+  const malformedWallets = [
+    () => {
+      const wallet = nodeWallet()
+      wallet.addresses[0].slaves[0][0] = null
+      return wallet
+    },
+    () => {
+      const wallet = nodeWallet()
+      wallet.addresses[0].slaves[0][0].index = -1
+      return wallet
+    },
+    () => {
+      const wallet = nodeWallet()
+      wallet.addresses[0].slaves = [null]
+      return wallet
+    },
+    () => {
+      const wallet = nodeWallet()
+      wallet.addresses[0].hexseed = 'qrl-node-v2:invalid'
+      return wallet
+    },
+  ]
+
+  for (const makeWallet of malformedWallets) {
+    const wallet = makeWallet()
+    wallet.encrypted = true
+    await assert.rejects(loadWalletDataForUse(wallet, passphrase),
+      (error) => error.code === WALLET_FILE_INVALID)
+  }
 })
 
 test('web wallet opens an unencrypted v3 envelope containing node records', async () => {

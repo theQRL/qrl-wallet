@@ -190,6 +190,8 @@ jobs:
           # bundle + minify phases aren't cold on every run.
           path: .meteor/local
           key: meteor-local-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('.meteor/packages', '.meteor/versions', '.meteor/release', 'package-lock.json', '.electrify/package-lock.json') }}
+          restore-keys: |
+            meteor-local-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: Package desktop app
         if: runner.os != 'Windows'

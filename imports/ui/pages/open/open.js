@@ -20,6 +20,7 @@ import {
   loadWalletDataForUse,
   normalizeWalletRecord,
   normalizeNodeWallet,
+  WALLET_FILE_INVALID,
   WALLET_PASSPHRASE_INCORRECT,
   WALLET_PASSPHRASE_REQUIRED,
 } from '../../lib/wallet-crypto'
@@ -435,7 +436,7 @@ function refreshLedger(openAttemptId) {
             // Check device state again in a second
             setTimeout(callback, 1000)
           },
-          function (err) {
+          function () {
             // The device has generated all keys
             hideElement('ledgerKeysGeneratingError')
             showElement('ledgerKeysGeneratingComplete')
@@ -848,7 +849,9 @@ async function unlockWallet() {
     } catch (error) {
       console.error('Failed to open wallet file:', error)
       hideElement('unlocking')
-      if (error && error.code === WALLET_PASSPHRASE_INCORRECT) {
+      if (error && error.code === WALLET_FILE_INVALID) {
+        showElement('noWalletFileSelected')
+      } else if (error && error.code === WALLET_PASSPHRASE_INCORRECT) {
         showElement('incorrectPassphrase')
       } else if (error && error.code === WALLET_PASSPHRASE_REQUIRED) {
         showElement('passphraseRequired')

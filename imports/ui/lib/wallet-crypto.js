@@ -31,6 +31,7 @@ const TAG_LEN = 16
 // so they can show the user which of the two actually went wrong.
 export const WALLET_PASSPHRASE_REQUIRED = 'WALLET_PASSPHRASE_REQUIRED'
 export const WALLET_PASSPHRASE_INCORRECT = 'WALLET_PASSPHRASE_INCORRECT'
+export const WALLET_FILE_INVALID = 'WALLET_FILE_INVALID'
 
 function walletError(message, code) {
   const error = new Error(message)
@@ -215,40 +216,69 @@ function decryptLegacyAesField(ciphertext, passphrase) {
 
 function decodeBase64(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9+/]+={0,2}$/.test(value) || value.length % 4 !== 0) {
-    throw new Error('Invalid node wallet ciphertext')
+    throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
   }
-  const binary = atob(value)
+  let binary
+  try {
+    binary = atob(value)
+  } catch (error) {
+    throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
+  }
   return Uint8Array.from(binary, (character) => character.charCodeAt(0))
 }
 
-async function decryptNodeField(ciphertext, passphrase, aad, keyCache, allowLegacy) {
-  if (typeof ciphertext !== 'string') throw new Error('Invalid node wallet ciphertext')
+function decodeNodeHex(value) {
+  try {
+    return hexToBytes(value)
+  } catch (error) {
+    throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
+  }
+}
+
+function parseNodeCiphertext(ciphertext, allowLegacy) {
+  if (typeof ciphertext !== 'string') {
+    throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
+  }
   if (ciphertext.startsWith('qrl-node-v2:')) {
     const parts = ciphertext.split(':')
-    if (parts.length !== 5) throw new Error('Invalid node wallet ciphertext')
-    const salt = hexToBytes(parts[1])
-    const iv = hexToBytes(parts[2])
-    const tag = hexToBytes(parts[3])
-    const encrypted = hexToBytes(parts[4])
-    if (salt.length !== 32 || iv.length !== 12 || tag.length !== 16 || encrypted.length === 0) {
-      throw new Error('Invalid node wallet ciphertext')
+    if (parts.length !== 5) {
+      throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
     }
-    let keyPromise = keyCache.get(parts[1])
+    const salt = decodeNodeHex(parts[1])
+    const iv = decodeNodeHex(parts[2])
+    const tag = decodeNodeHex(parts[3])
+    const encrypted = decodeNodeHex(parts[4])
+    if (salt.length !== 32 || iv.length !== 12 || tag.length !== 16 || encrypted.length === 0) {
+      throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
+    }
+    return { version: 2, saltHex: parts[1], salt, iv, tag, encrypted }
+  }
+  if (!allowLegacy || ciphertext.includes(':')) {
+    throw walletError('Unsupported node wallet ciphertext', WALLET_FILE_INVALID)
+  }
+  const bytes = decodeBase64(ciphertext)
+  if (bytes.length <= 16) {
+    throw walletError('Invalid node wallet ciphertext', WALLET_FILE_INVALID)
+  }
+  return { version: 1, bytes }
+}
+
+async function decryptNodeField(ciphertext, passphrase, aad, keyCache, allowLegacy) {
+  const parsed = parseNodeCiphertext(ciphertext, allowLegacy)
+  if (parsed.version === 2) {
+    let keyPromise = keyCache.get(parsed.saltHex)
     if (!keyPromise) {
-      keyPromise = deriveKeyScrypt(passphrase, salt, DEFAULT_SCRYPT_PARAMS)
-      keyCache.set(parts[1], keyPromise)
+      keyPromise = deriveKeyScrypt(passphrase, parsed.salt, DEFAULT_SCRYPT_PARAMS)
+      keyCache.set(parsed.saltHex, keyPromise)
     }
     const key = await keyPromise
-    return decodeUtf8(await decryptAead(encrypted, key, iv, tag, encodeUtf8(aad)))
+    return decodeUtf8(await decryptAead(parsed.encrypted, key, parsed.iv, parsed.tag, encodeUtf8(aad)))
   }
-  if (!allowLegacy || ciphertext.includes(':')) throw new Error('Unsupported node wallet ciphertext')
-  const bytes = decodeBase64(ciphertext)
-  if (bytes.length <= 16) throw new Error('Invalid node wallet ciphertext')
   const key = await crypto.subtle.digest('SHA-256', encodeUtf8(passphrase))
   const aesKey = await crypto.subtle.importKey('raw', key, 'AES-CTR', false, ['decrypt'])
   const plain = await crypto.subtle.decrypt({
-    name: 'AES-CTR', counter: bytes.slice(0, 16), length: 128,
-  }, aesKey, bytes.slice(16))
+    name: 'AES-CTR', counter: parsed.bytes.slice(0, 16), length: 128,
+  }, aesKey, parsed.bytes.slice(16))
   return decodeUtf8(new Uint8Array(plain))
 }
 
@@ -296,22 +326,52 @@ export function normalizeNodeWallet(wallet) {
   }
 }
 
+function validateEncryptedNodeRecord(record, encrypted, allowLegacy) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)
+      || !isValidQAddress(record.address)
+      || (record.pk != null && !isValidPk(record.pk))
+      || !Number.isInteger(record.index) || record.index < 0
+      || !Number.isInteger(record.height)
+      || record.hashFunction === undefined || record.signatureType === undefined
+      || typeof record.hexseed !== 'string' || typeof record.mnemonic !== 'string'
+      || (!encrypted && (!isValidHexseed(record.hexseed) || !isValidMnemonic(record.mnemonic)))) {
+    throw walletError('Invalid node wallet record', WALLET_FILE_INVALID)
+  }
+  if (encrypted) {
+    parseNodeCiphertext(record.hexseed, allowLegacy)
+    parseNodeCiphertext(record.mnemonic, allowLegacy)
+  }
+  if (record.slaves !== undefined) {
+    if (!Array.isArray(record.slaves)) {
+      throw walletError('Invalid node wallet slave groups', WALLET_FILE_INVALID)
+    }
+    for (const group of record.slaves) {
+      if (!Array.isArray(group)) {
+        throw walletError('Invalid node wallet slave group', WALLET_FILE_INVALID)
+      }
+      for (const entry of group) {
+        validateEncryptedNodeRecord(entry, entry && entry.encrypted === true, allowLegacy)
+      }
+    }
+  }
+}
+
 async function decryptNodeWallet(wallet, passphrase, progressCallback) {
+  if (!wallet || !Array.isArray(wallet.addresses) || wallet.addresses.length === 0) {
+    throw walletError('Invalid node wallet file', WALLET_FILE_INVALID)
+  }
+  if (wallet.encryption_version !== undefined && wallet.encryption_version !== 2) {
+    throw walletError('Unsupported node wallet encryption version', WALLET_FILE_INVALID)
+  }
+  const allowLegacy = wallet.encryption_version !== 2
+  for (const record of wallet.addresses) {
+    validateEncryptedNodeRecord(record, true, allowLegacy)
+  }
   if (!passphrase) {
     throw walletError('Missing passphrase for encrypted wallet', WALLET_PASSPHRASE_REQUIRED)
   }
-  if (!wallet || !Array.isArray(wallet.addresses) || wallet.addresses.length === 0) {
-    throw new Error('Invalid node wallet file')
-  }
-  if (wallet.encryption_version !== undefined && wallet.encryption_version !== 2) {
-    throw new Error('Unsupported node wallet encryption version')
-  }
-  const allowLegacy = wallet.encryption_version !== 2
   const keyCache = new Map()
   const decryptRecord = async (record, encrypted) => {
-    if (!record || typeof record !== 'object' || !isValidQAddress(record.address)) {
-      throw new Error('Invalid node wallet record')
-    }
     const result = { ...record }
     if (encrypted) {
       const hexseedAad = `qrl-node-v2:${record.address}:hexseed`
@@ -320,10 +380,8 @@ async function decryptNodeWallet(wallet, passphrase, progressCallback) {
       result.mnemonic = await decryptNodeField(record.mnemonic, passphrase, mnemonicAad, keyCache, allowLegacy)
     }
     if (record.slaves !== undefined) {
-      if (!Array.isArray(record.slaves)) throw new Error('Invalid node wallet slave groups')
       result.slaves = []
       for (const group of record.slaves) {
-        if (!Array.isArray(group)) throw new Error('Invalid node wallet slave group')
         const decryptedGroup = []
         for (const entry of group) {
           decryptedGroup.push(await decryptRecord(entry, entry.encrypted === true))
@@ -342,7 +400,7 @@ async function decryptNodeWallet(wallet, passphrase, progressCallback) {
     }
     return normalizeNodeWallet({ addresses })
   } catch (error) {
-    if (error.code) throw error
+    if (error.code === WALLET_FILE_INVALID) throw error
     throw walletError('Node wallet passphrase is incorrect or file is corrupt', WALLET_PASSPHRASE_INCORRECT)
   }
 }
