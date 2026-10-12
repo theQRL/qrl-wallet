@@ -251,7 +251,10 @@
                     </div>
                     <p>
                       <strong>Proposed by: </strong> {{proposer}}<br>
-                      <strong>Spend details:</strong> {{{details}}}
+                      <strong>Spend details:</strong><br>
+                      {{#each details}}
+                        {{this.amountQuanta}} Quanta =&gt; {{this.address}}<br>
+                      {{/each}}
                     </p>
                   </div>
                 </div>
@@ -349,7 +352,10 @@
                 </div>
                 <p>
                   <strong>Proposed by: </strong> {{proposer}}<br>
-                  <strong>Spend details:</strong> {{{details}}}
+                  <strong>Spend details:</strong><br>
+                  {{#each details}}
+                    {{this.amountQuanta}} Quanta =&gt; {{this.address}}<br>
+                  {{/each}}
                 </p>
               </div>
               <div class="space-y-2">
@@ -507,6 +513,9 @@
 </dialog>
 </template>
 <template name="msvTable">
+  {{#if proposalWarning}}
+    <p role="alert" class="text-warning">{{proposalWarning}}</p>
+  {{/if}}
   {{#if hasMultisig}}
     <table class="table table-zebra w-full selectable celled" id="chooseVoteAddressTable">
         <thead>
@@ -519,7 +528,7 @@
         </thead>
         <tbody style="font-family: 'Hack';">
           {{#each msAddresses}}
-            <tr data-txhash='{{this.txhash}}' data-address='{{this.address}}' data-proposer="{{this.proposedBy}}" data-details="{{ spendDetailHTML this }}">
+            <tr data-txhash='{{this.txhash}}'>
               <td color="#000">
                 {{this.txhash}}
               </td>
@@ -533,7 +542,7 @@
                 {{ this.proposedBy }}
               </td>
               <td color="#000">
-                <small>{{{ spendDetailHTML this }}}</small>
+                <small>{{#each this.outputs}}{{this.amountQuanta}} Quanta =&gt; {{this.address}}<br>{{/each}}</small>
               </td>
             </tr>
           {{/each}}
@@ -543,6 +552,8 @@
       {{#if msLoading}}
       <p>Looking up multisig transactions...</p>
       {{else}}
+      {{#unless proposalWarning}}
       <p>This wallet is not a signatory on any multisig addresses with open spend transactions</p>
+      {{/unless}}
       {{/if}}{{/if}}
 </template>

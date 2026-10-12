@@ -3,10 +3,10 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
-import { checkWeightsAndThreshold } from '@theqrl/wallet-helpers'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
 import sha256 from 'sha256'
+import checkWeightsAndThreshold from '../../../lib/multisig-validation'
 
 function toHexString(byteArray) {
   return Array.from(byteArray, function (byte) {
@@ -226,7 +226,7 @@ function generateTransaction() {
   const pubKey = hexToBytes(getXMSSDetails().pk)
   const sendTo = document.getElementsByName('to[]')
   const sendAmounts = document.getElementsByName('amounts[]')
-  const threshold = parseInt(document.getElementById('threshold').value, 10)
+  const threshold = Number(document.getElementById('threshold').value)
   // Fail if OTS Key reuse is detected. Signing twice with the same index
   // discloses the XMSS one-time key, so this must gate every signing action.
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
@@ -285,7 +285,7 @@ function generateTransaction() {
 
   // Format weights correctly.
   for (let i = 0; i < sendAmounts.length; i += 1) {
-    const weightInt = parseInt(sendAmounts[i].value, 10)
+    const weightInt = Number(sendAmounts[i].value)
     thisAmounts.push(weightInt)
   }
 
@@ -307,24 +307,6 @@ function generateTransaction() {
     } else {
       $('#checkWeightsModal p').text(cwt.error)
     }
-    window.walletUi.showModal('#checkWeightsModal')
-    return
-  }
-
-  // checkWeightsAndThreshold only rejects a threshold above the sum of weights,
-  // so a threshold of 0 passes. Nodes do not test the threshold until the first
-  // vote is cast, at which point that first vote alone executes the spend.
-  if (threshold < 1) {
-    $('#checkWeightsModal .message .header').text('There\'s a problem')
-    $('#checkWeightsModal p').text('The threshold must be at least 1, otherwise the first vote cast would execute the transaction.')
-    window.walletUi.showModal('#checkWeightsModal')
-    return
-  }
-
-  // A signatory weighted 0 or below can never help reach the threshold.
-  if (thisAmounts.some((weight) => weight < 1)) {
-    $('#checkWeightsModal .message .header').text('There\'s a problem')
-    $('#checkWeightsModal p').text('Each signatory weight must be at least 1.')
     window.walletUi.showModal('#checkWeightsModal')
     return
   }

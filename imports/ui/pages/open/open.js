@@ -19,6 +19,8 @@ import {
   getPrimaryWalletRecordOrThrow,
   loadWalletDataForUse,
   normalizeWalletRecord,
+  normalizeNodeWallet,
+  WALLET_FILE_INVALID,
   WALLET_PASSPHRASE_INCORRECT,
   WALLET_PASSPHRASE_REQUIRED,
 } from '../../lib/wallet-crypto'
@@ -434,7 +436,7 @@ function refreshLedger(openAttemptId) {
             // Check device state again in a second
             setTimeout(callback, 1000)
           },
-          function (err) {
+          function () {
             // The device has generated all keys
             hideElement('ledgerKeysGeneratingError')
             showElement('ledgerKeysGeneratingComplete')
@@ -763,9 +765,14 @@ async function showUpgradeWalletModal(walletType, encryptedWallet) {
 }
 
 async function saveUpgradedWallet(walletData, encryptedWallet, passphrase) {
-  const normalizedWalletData = Array.isArray(walletData)
-    ? walletData.map((entry) => normalizeWalletRecord(entry))
-    : getPrimaryWalletRecordOrThrow(walletData)
+  let normalizedWalletData
+  if (walletData && Array.isArray(walletData.addresses)) {
+    normalizedWalletData = normalizeNodeWallet(walletData)
+  } else if (Array.isArray(walletData)) {
+    normalizedWalletData = walletData.map((entry) => normalizeWalletRecord(entry))
+  } else {
+    normalizedWalletData = getPrimaryWalletRecordOrThrow(walletData)
+  }
 
   const walletEnvelope = encryptedWallet
     ? await buildEncryptedEnvelope(normalizedWalletData, passphrase)
@@ -842,7 +849,9 @@ async function unlockWallet() {
     } catch (error) {
       console.error('Failed to open wallet file:', error)
       hideElement('unlocking')
-      if (error && error.code === WALLET_PASSPHRASE_INCORRECT) {
+      if (error && error.code === WALLET_FILE_INVALID) {
+        showElement('noWalletFileSelected')
+      } else if (error && error.code === WALLET_PASSPHRASE_INCORRECT) {
         showElement('incorrectPassphrase')
       } else if (error && error.code === WALLET_PASSPHRASE_REQUIRED) {
         showElement('passphraseRequired')

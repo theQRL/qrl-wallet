@@ -2,8 +2,11 @@
 
 self.window = self
 self.document = { createElement: () => ({}) }
+self.Module = {
+  locateFile: (file) => `/workers/${file.replace(/^\/+/, '')}`,
+}
 
-importScripts('/workers/qrllib.js')
+importScripts('/workers/web-libjsqrl.js')
 
 const HASH_FUNCTION_MAP = {
   SHAKE_128: 'SHAKE_128',

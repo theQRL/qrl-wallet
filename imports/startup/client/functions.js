@@ -11,8 +11,6 @@ import BetterStorage from 'meteor-better-storage'
 import Qrl from '@theqrl/hw-app-qrl'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
-bech32 = require('bech32') // eslint-disable-line
-
 const LEDGER_OTS_RECHECK_INTERVAL_MS = 3000
 let ledgerOtsRecheckInterval = null
 

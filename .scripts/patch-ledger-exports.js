@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Applies compatibility patches after npm install.
+ * Applies compatibility patches from the npm postinstall hook.
  * - @ledgerhq/devices shims for Meteor's bundler (no package exports support)
  * - @theqrl/electrify-qrl fixes for modern electron-packager API behavior
  */
@@ -232,17 +232,28 @@ function patchElectrifyQrl() {
       cwd: this.$.env.app.root,
       stdio: this.$.env.stdio
     }).on('exit', done);`;
-  const newProdEnsureDepsSpawn = `    spawn(npm_cmd, ['i'], {
+  const oldPatchedProdEnsureDepsSpawn = `    spawn(npm_cmd, ['i'], {
       cwd: this.$.env.app.root,
       stdio: this.$.env.stdio,
       shell: this.$.env.os.is_windows
     }).on('exit', done);`;
+  const newProdEnsureDepsSpawn = `    spawn(npm_cmd, ['ci', '--no-audit', '--no-fund'], {
+      cwd: this.$.env.app.root,
+      stdio: this.$.env.stdio,
+      shell: this.$.env.os.is_windows
+    }).on('exit', function(code) {
+      if(code !== 0) throw new Error('npm ci failed in .electrify with exit code ' + code);
+      done();
+    });`;
 
-  if (appSource.includes(oldProdEnsureDepsSpawn)) {
-    appSource = appSource.replace(oldProdEnsureDepsSpawn, newProdEnsureDepsSpawn);
+  if (appSource.includes(oldProdEnsureDepsSpawn) || appSource.includes(oldPatchedProdEnsureDepsSpawn)) {
+    appSource = appSource.replace(
+      appSource.includes(oldProdEnsureDepsSpawn) ? oldProdEnsureDepsSpawn : oldPatchedProdEnsureDepsSpawn,
+      newProdEnsureDepsSpawn
+    );
     fs.writeFileSync(appFile, appSource);
     appSource = fs.readFileSync(appFile, 'utf8');
-    console.log('Patched @theqrl/electrify-qrl ensure_deps spawn for Windows shell');
+    console.log('Patched @theqrl/electrify-qrl ensure_deps to use npm ci');
   }
 
   const oldBundleMeteorSpawn = `  spawn('meteor' + (this.$.env.os.is_windows ? '.bat' : ''), [
@@ -329,6 +340,14 @@ function patchElectrifyQrl() {
   }
 
   let envSource = fs.readFileSync(envFile, 'utf8');
+  const oldElectrifyVersion = "  this.version = '1.1.1';";
+  const newElectrifyVersion = "  this.version = require('../package.json').version;";
+  if (envSource.includes(oldElectrifyVersion)) {
+    envSource = envSource.replace(oldElectrifyVersion, newElectrifyVersion);
+    fs.writeFileSync(envFile, envSource);
+    console.log('Patched @theqrl/electrify-qrl version detection');
+  }
+
   const oldEnvRootLine = "    this.meteor.root           = join(this.app.root, '../', '.meteor');";
   const newEnvRootBlock = `    this.meteor.root = join(meteor_dir, meteor_symlink);
     if (!fs.existsSync(this.meteor.root)) {

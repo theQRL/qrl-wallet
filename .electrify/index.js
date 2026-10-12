@@ -13,6 +13,20 @@ const CALLBACK_FALLBACK_DELAY_MS = 15000;
 // a wallet has no reason to invoke — dropped rather than defended.
 const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:']);
 const APP_ICON_PATH = `${__dirname}/assets/${process.platform === 'darwin' ? 'qrl-mac.png' : 'qrl.png'}`;
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    const activeWindow = window && !window.isDestroyed() ? window : loading;
+    if (activeWindow && !activeWindow.isDestroyed()) {
+      if (activeWindow.isMinimized()) activeWindow.restore();
+      activeWindow.show();
+      activeWindow.focus();
+    }
+  });
+}
 
 function parseUrl(url) {
   try {
@@ -51,6 +65,7 @@ process.env.BIND_IP = process.env.BIND_IP || '127.0.0.1';
 app.disableHardwareAcceleration();
 
 app.on('ready', function() {
+    if (!hasSingleInstanceLock) return;
 
     if (process.platform === 'darwin' && app.dock && typeof app.dock.setIcon === 'function') {
       app.dock.setIcon(APP_ICON_PATH);
@@ -380,6 +395,7 @@ app.on('ready', function() {
 });
 
 app.on('will-quit', function terminate_and_quit(event) {
+  if (!hasSingleInstanceLock) return;
   if(electrify.isup() && event) {
     event.preventDefault();
     electrify.stop(function(){

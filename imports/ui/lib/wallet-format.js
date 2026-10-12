@@ -71,7 +71,7 @@ export function getWalletFileType(wallet) {
 
 export function getWalletTypeLabel(type) {
   const labels = {
-    'PYTHON-NODE': 'Python/Node (v1)',
+    'PYTHON-NODE': 'Node wallet (v1/v2)',
     'WEB-WALLET': 'Web Wallet (v2)',
     'CONVERTED-WEB-WALLET': 'Converted Web Wallet',
     'LEGACY-V3-ARRAY': 'Legacy v3 (Array)',
@@ -109,6 +109,9 @@ export function isFormatDeprecated(type) {
 }
 
 export function getWalletAddresses(walletData) {
+  if (walletData && Array.isArray(walletData.addresses)) {
+    return getWalletAddresses(walletData.addresses)
+  }
   if (Array.isArray(walletData)) {
     return walletData.map((w) => ({
       address: w.address,
@@ -129,6 +132,7 @@ export function getWalletAddresses(walletData) {
 }
 
 export function getPrimaryWalletRecord(walletData) {
+  if (walletData && Array.isArray(walletData.addresses)) return walletData.addresses[0] || null
   if (Array.isArray(walletData)) return walletData[0] || null
   if (walletData && typeof walletData === 'object') return walletData
   return null

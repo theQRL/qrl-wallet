@@ -212,7 +212,7 @@ overrides:
 
 settings:
   import/core-modules: [ meteor ]
-  import/resolver:
-    meteor:
-      extensions:
-        - .js
+  # eslint-plugin-import already includes its Node resolver. Codacy's ESLint
+  # runner cannot load the optional Meteor resolver, which makes import rules
+  # report resolver errors instead of checking the source. Meteor imports are
+  # handled by the build; import/no-unresolved is disabled above for that reason.

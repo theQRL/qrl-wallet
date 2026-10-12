@@ -15,6 +15,11 @@ function main() {
   const checks = [
     {
       file: 'node_modules/@theqrl/electrify-qrl/lib/env.js',
+      needle: "this.version = require('../package.json').version;",
+      label: 'package version detection patch',
+    },
+    {
+      file: 'node_modules/@theqrl/electrify-qrl/lib/env.js',
       needle: "this.stdio = (process.env.CI || /TRACE|ALL/i.test(log_levels)) ? 'inherit' : 'ignore';",
       label: 'CI stdio visibility patch',
     },
@@ -22,6 +27,11 @@ function main() {
       file: 'node_modules/@theqrl/electrify-qrl/lib/app.js',
       needle: "var meteorArgs = ['build', tmp_dir, '--directory'];",
       label: 'Meteor build args patch',
+    },
+    {
+      file: 'node_modules/@theqrl/electrify-qrl/lib/app.js',
+      needle: "spawn(npm_cmd, ['ci', '--no-audit', '--no-fund'], {",
+      label: 'locked desktop dependency install patch',
     },
     {
       file: 'node_modules/@theqrl/electrify-qrl/lib/app.js',

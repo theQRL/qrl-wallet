@@ -4,7 +4,11 @@ import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
-// import sha256 from 'sha256'
+import verifyMultiSigSpendProposal from '../../../lib/multisig-proposal'
+
+let verifiedProposals = new Map()
+let selectedProposal = null
+let proposalLoadEpoch = 0
 
 Template.multisigVote.helpers({
   isActiveTab(p) {
@@ -14,22 +18,22 @@ Template.multisigVote.helpers({
     return ''
   },
   proposer() {
-    return Session.get('multisigTransferFromProposer')
+    return selectedProposal && selectedProposal.proposedBy
   },
   details() {
-    return Session.get('multisigTransferFromDetails')
+    return selectedProposal && selectedProposal.outputs
   },
   transferFrom() {
     const transferFrom = {}
-    if (Session.get('multisigTransferFromAddressSet') === true) {
+    if (Session.get('multisigTransferFromAddressSet') === true && selectedProposal) {
       transferFrom.balance = Session.get('transferFromBalance')
-      transferFrom.address = hexOrB32(Session.get('multisigTransferFromAddress'))
+      transferFrom.address = hexOrB32(selectedProposal.address)
       return transferFrom
     }
     return { address: 'No multisig address selected', balance: 'N/A' }
   },
   hasAddressSet() {
-    return Session.get('multisigTransferFromAddressSet')
+    return Session.get('multisigTransferFromAddressSet') && Boolean(selectedProposal)
   },
   otsKeyEstimate() {
     const otsKeyEstimate = Session.get('otsKeyEstimate')
@@ -100,7 +104,7 @@ Template.multisigVote.helpers({
     return Session.get('transactionGenerationError')
   },
   MSStxhash() {
-    return Session.get('multisigTransferFromTxhash')
+    return selectedProposal && selectedProposal.txhash
   },
   isChecked(v) {
     if (Session.get('unvote') === true) {
@@ -117,6 +121,11 @@ Template.multisigVote.helpers({
 })
 
 const loadMultisigs = (a, p) => {
+  proposalLoadEpoch += 1
+  const currentLoad = proposalLoadEpoch
+  verifiedProposals = new Map()
+  selectedProposal = null
+  Session.set('multisigTransferFromAddressSet', false)
   const addresstx = Buffer.from(a.substring(1), 'hex')
   const request = {
     address: addresstx,
@@ -125,32 +134,38 @@ const loadMultisigs = (a, p) => {
     page_number: p,
     filter_type: 6,
   }
-  console.log('request', request)
-  Session.set('multiSigAddresses', [])
+  Session.set('verifiedProposalsRevision', `${currentLoad}:loading`)
+  Session.set('multisigProposalWarning', '')
   Session.set('loadingmultiSigAddresses', true)
   wrapMeteorCall('getMultiSigSpendTxsByAddress', request, (err, res) => {
-    console.log('err:', err)
-    console.log('res:', res)
+    if (currentLoad !== proposalLoadEpoch || selectedNetwork() !== request.network) {
+      return
+    }
     if (err) {
-      Session.set('multiSigAddresses', { error: err })
+      Session.set('multisigProposalWarning', 'Could not load proposals from the node.')
       Session.set('errorLoadingMultiSig', true)
+      Session.set('loadingmultiSigAddresses', false)
     } else {
       Session.set('active', p)
-      const add = []
-      _.each(res.transactions_detail, (item => {
-        const addrsTo = []
-        _.each(item.tx.multi_sig_spend.addrs_to, i => {
-          addrsTo.push(Buffer.from(i).toString('hex'))
-        })
-        add.push({
-          address: `Q${Buffer.from(item.tx.multi_sig_spend.multi_sig_address).toString('hex')}`,
-          txhash: `${Buffer.from(item.tx.transaction_hash).toString('hex')}`,
-          to: addrsTo,
-          amounts: item.tx.multi_sig_spend.amounts,
-          proposedBy: `Q${Buffer.from(item.addr_from).toString('hex')}`,
-        })
-      }))
-      Session.set('multiSigAddresses', add)
+      let rejected = 0
+      const items = res && res.transactions_detail
+      if (!Array.isArray(items) || items.length > 500) {
+        Session.set('multisigProposalWarning', 'The node returned an invalid proposal list.')
+        Session.set('loadingmultiSigAddresses', false)
+        return
+      }
+      _.each(items, (item) => {
+        try {
+          const proposal = verifyMultiSigSpendProposal(item, QRLLIB)
+          verifiedProposals.set(proposal.txhash, proposal)
+        } catch (error) {
+          rejected += 1
+        }
+      })
+      if (rejected > 0) {
+        Session.set('multisigProposalWarning', `${rejected} proposal${rejected === 1 ? '' : 's'} rejected because verification failed.`)
+      }
+      Session.set('verifiedProposalsRevision', `${currentLoad}:ready`)
       Session.set('loadingmultiSigAddresses', false)
       Session.set('errorLoadingMultiSig', false)
     }
@@ -261,12 +276,19 @@ function pollTransaction(thisTxId, firstPoll = false, failureCount = 0) {
 
 function generateTransaction() {
   // Get to/amount details
+  const proposal = selectedProposal
+  const network = selectedNetwork()
   const sendFrom = anyAddressToRawAddress(Session.get('transferFromAddress'))
   const txnFee = document.getElementById('fee').value
   const otsKey = document.getElementById('otsKey').value
   const pubKey = hexToBytes(getXMSSDetails().pk)
-  const msTxhash = Session.get('multisigTransferFromTxhash')
+  const msTxhash = proposal && proposal.txhash
   const formUnvote = Session.get('unvote')
+  if (!proposal || verifiedProposals.get(proposal.txhash) !== proposal) {
+    $('#generating').hide()
+    window.walletUi.showModal('#invalidNodeResponse')
+    return
+  }
   // Fail if OTS Key reuse is detected. Signing twice with the same index
   // discloses the XMSS one-time key, so this must gate every signing action.
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
@@ -282,10 +304,10 @@ function generateTransaction() {
   console.log('checkbox:', window.walletUi.isCheckboxChecked('.checkbox'))
 
   // check enough balance for fee
-  const totalFee = new BigNumber(txnFee * SHOR_PER_QUANTA).toNumber()
-  const totalBalance = new BigNumber(Session.get('multisigTransferFromTxhash')).times(SHOR_PER_QUANTA).toNumber()
+  const totalFee = new BigNumber(txnFee)
+  const totalBalance = new BigNumber(Session.get('transferFromBalance'))
 
-  if (totalFee > totalBalance) {
+  if (!totalFee.isFinite() || !totalBalance.isFinite() || totalFee.gt(totalBalance)) {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Insufficient balance in your wallet for the transaction fee')
@@ -310,9 +332,12 @@ function generateTransaction() {
     unvote: formUnvote,
     fee: thisTxnFee,
     xmssPk: pubKey,
-    network: selectedNetwork(),
+    network,
   }
   wrapMeteorCall('voteMultiSig', request, (err, res) => {
+    if (selectedProposal !== proposal || selectedNetwork() !== network) {
+      return
+    }
     if (err) {
       console.log('Error with voteMultisig', err)
       Session.set('transactionGenerationError', err.reason)
@@ -348,12 +373,14 @@ function generateTransaction() {
         otsKey,
       }
 
-      if (nodeReturnedValidResponse(request, confirmation, 'multiSigVote')) {
+      const returnedFee = res.response.extended_transaction_unsigned.tx.fee
+      if (nodeReturnedValidResponse(request, confirmation, 'multiSigVote')
+          && new BigNumber(returnedFee).eq(request.fee)) {
         Session.set('transactionConfirmation', confirmation)
         // Session.set('transactionConfirmationAmount', totalTransferAmount / SHOR_PER_QUANTA)
         Session.set('transactionConfirmationFee', confirmation.fee)
         Session.set('transactionConfirmationResponse', res.response)
-        Session.set('transactionConfirmationFromMultiSig', Buffer.from(res.response.extended_transaction_unsigned.tx.multi_sig_vote.shared_key).toString('hex'))
+        Session.set('transactionConfirmationFromMultiSig', proposal.txhash)
         Session.set('transactionConfirmationUnvote', res.response.extended_transaction_unsigned.tx.multi_sig_vote.unvote)
         // Show confirmation
         $('#generateTransactionArea').hide()
@@ -371,6 +398,16 @@ function generateTransaction() {
 // TODO: port this function
 function confirmTransaction() {
   const tx = Session.get('transactionConfirmationResponse')
+  const sharedKey = tx && tx.extended_transaction_unsigned && tx.extended_transaction_unsigned.tx
+    && tx.extended_transaction_unsigned.tx.multi_sig_vote
+    && tx.extended_transaction_unsigned.tx.multi_sig_vote.shared_key
+  if (!selectedProposal || !sharedKey
+      || !Buffer.from(sharedKey).equals(Buffer.from(selectedProposal.txhash, 'hex'))) {
+    $('#relaying').hide()
+    enableSendButton()
+    window.walletUi.showModal('#invalidNodeResponse')
+    return
+  }
 
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
@@ -583,47 +620,40 @@ Template.multisigVote.onRendered(() => {
   initialiseFormValidation()
 })
 
+Template.multisigVote.onDestroyed(() => {
+  proposalLoadEpoch += 1
+  verifiedProposals = new Map()
+  selectedProposal = null
+})
+
 // helpers and events for multisig selection modal
 
 Template.msvTable.helpers({
   msAddresses() {
-    return Session.get('multiSigAddresses')
+    Session.get('verifiedProposalsRevision')
+    return Array.from(verifiedProposals.values())
   },
   msLoading() {
     return Session.get('loadingmultiSigAddresses')
   },
-  hasMultisig() {
-    if (Session.get('multiSigAddresses')) {
-      if (Session.get('multiSigAddresses').length > 0) {
-        return true
-      }
-    }
-    return false
+  proposalWarning() {
+    return Session.get('multisigProposalWarning')
   },
-  spendDetailHTML(item) {
-    // console.log('item:', item)
-    let op = ''
-    if (item.amounts.length > 0) {
-      _.each(item.amounts, (a, i) => {
-        op += `${parseInt(a, 10) / SHOR_PER_QUANTA} Quanta => Q${item.to[i]}<br>`
-      })
-    }
-    return op
+  hasMultisig() {
+    Session.get('verifiedProposalsRevision')
+    return verifiedProposals.size > 0
   },
 })
 
 Template.msvTable.events({
   'click #chooseVoteAddressTable tr': (event) => {
-    // console.log(event)
-    // console.log($(event.currentTarget).closest('tr').attr('data-address'))
-    const a = $(event.currentTarget).closest('tr').attr('data-address')
-    const b = $(event.currentTarget).closest('tr').attr('data-txhash')
-    const c = $(event.currentTarget).closest('tr').attr('data-proposer')
-    const d = $(event.currentTarget).closest('tr').attr('data-details')
-    Session.set('multisigTransferFromAddress', a)
-    Session.set('multisigTransferFromTxhash', b)
-    Session.set('multisigTransferFromProposer', c)
-    Session.set('multisigTransferFromDetails', d)
+    const txhash = $(event.currentTarget).closest('tr').attr('data-txhash')
+    const proposal = verifiedProposals.get(txhash)
+    if (!proposal) {
+      window.walletUi.showModal('#invalidNodeResponse')
+      return
+    }
+    selectedProposal = proposal
     Session.set('multisigTransferFromAddressSet', true)
     window.walletUi.hideModal('#chooseVoteAddress')
   },
