@@ -149,6 +149,8 @@ Template.appRecoverySeed.events({
     const button = event.currentTarget
     const buttonLabel = button.textContent
     button.disabled = true
+    if (passphraseInput) passphraseInput.disabled = true
+    if (confirmInput) confirmInput.disabled = true
     button.textContent = 'Encrypting wallet...'
     try {
       await saveRecoveryWallet(true, passphrase)
@@ -161,6 +163,8 @@ Template.appRecoverySeed.events({
       }
     } finally {
       button.disabled = false
+      if (passphraseInput) passphraseInput.disabled = false
+      if (confirmInput) confirmInput.disabled = false
       button.textContent = buttonLabel
     }
   },
