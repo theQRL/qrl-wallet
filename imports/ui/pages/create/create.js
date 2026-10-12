@@ -250,6 +250,10 @@ function getWalletGenerationInput() {
 
 function setGeneratingUi(isGenerating, xmssHeight = 10) {
   const generateButton = document.getElementById('generate')
+  for (const id of ['passphrase', 'passphraseConfirm', 'xmssHeight', 'hashFunction']) {
+    const input = document.getElementById(id)
+    if (input) input.disabled = isGenerating
+  }
   if (isGenerating) {
     hideElement('passError')
     hideElement('passMismatchError')

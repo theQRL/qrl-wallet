@@ -40,6 +40,43 @@
             </div>
           </div>
 
+          <div class="rounded-lg border border-base-300 bg-base-200/40 p-4 space-y-3">
+            <h4 class="font-semibold">Download wallet file</h4>
+            <p class="text-sm text-base-content/70">Save this address as a wallet.json file. Choose a new passphrase for an encrypted copy.</p>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <fieldset class="fieldset w-full">
+                <legend class="fieldset-legend">New Passphrase</legend>
+                <input type="password" id="recoveryPassphrase" class="input w-full" placeholder="Enter passphrase" autocomplete="new-password" />
+              </fieldset>
+              <fieldset class="fieldset w-full">
+                <legend class="fieldset-legend">Confirm Passphrase</legend>
+                <input type="password" id="recoveryPassphraseConfirm" class="input w-full" placeholder="Confirm passphrase" autocomplete="new-password" />
+              </fieldset>
+            </div>
+            <p class="text-xs text-base-content/70">Use at least 8 characters, including a letter and a number. Store the passphrase separately from the file.</p>
+            <p id="recoverySaveError" class="hidden text-sm text-error" role="alert"></p>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button id="saveRecoveryUnencrypted" class="btn btn-outline btn-error">Save Unencrypted</button>
+              <button id="saveRecoveryEncrypted" class="btn btn-success">Save Secure Wallet</button>
+            </div>
+          </div>
+
+          <dialog class="modal" id="recoveryUnencryptedModal">
+            <div class="modal-box wallet-modal-box">
+              <h3 class="font-bold text-lg">Save an unencrypted wallet file?</h3>
+              <div role="alert" class="alert alert-warning mt-4">
+                <p>This file contains your mnemonic and hexseed in plain text. Anyone with the file can spend the funds held by this address. Store it securely.</p>
+              </div>
+              <div class="modal-action">
+                <button id="confirmRecoveryUnencrypted" class="btn btn-error">I understand, save the file</button>
+                <form method="dialog"><button class="btn btn-ghost">Cancel</button></form>
+              </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+          </dialog>
+
           <div class="text-center">
             <button id="hideRecoverySeed" class="btn btn-md btn-secondary" style="width: 100%">Hide Recovery Seed</button>
           </div>
