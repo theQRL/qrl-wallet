@@ -1,12 +1,7 @@
 /* eslint no-console:0, max-len:0 */
 
 import './recoveryseed.html'
-import {
-  buildEncryptedEnvelope,
-  buildUnencryptedEnvelope,
-  downloadWalletFile,
-  normalizeWalletRecord,
-} from '../../../lib/wallet-crypto'
+import * as walletCrypto from '../../../lib/wallet-crypto'
 
 // The address of the seed wallet currently open, or null if there isn't one.
 // Reveal state is keyed to this rather than being a bare boolean: if the wallet
@@ -60,7 +55,7 @@ function recoverySeedIsRevealedFor(address) {
 function getRevealedWalletRecord() {
   const address = currentSeedIdentity()
   if (!recoverySeedIsRevealedFor(address)) return null
-  const wallet = normalizeWalletRecord(getXMSSDetails())
+  const wallet = walletCrypto.normalizeWalletRecord(getXMSSDetails())
   return wallet.address === address ? wallet : null
 }
 
@@ -70,12 +65,12 @@ async function saveRecoveryWallet(encrypted, passphrase) {
   if (!wallet) return
 
   const envelope = encrypted
-    ? await buildEncryptedEnvelope(wallet, passphrase)
-    : buildUnencryptedEnvelope(wallet)
+    ? await walletCrypto.buildEncryptedEnvelope(wallet, passphrase)
+    : walletCrypto.buildUnencryptedEnvelope(wallet)
 
   if (document.getElementById('recoverySeedDetails') === revealedDetails
       && recoverySeedIsRevealedFor(wallet.address)) {
-    downloadWalletFile(envelope, 'wallet.json')
+    walletCrypto.downloadWalletFile(envelope, 'wallet.json')
   }
 }
 
