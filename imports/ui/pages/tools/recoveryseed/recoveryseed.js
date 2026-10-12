@@ -1,5 +1,4 @@
 /* eslint no-console:0, max-len:0 */
-/* global getXMSSDetails */
 
 import './recoveryseed.html'
 

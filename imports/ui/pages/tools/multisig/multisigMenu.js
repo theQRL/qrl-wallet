@@ -1,5 +1,4 @@
 import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
-/* global getBalance, getXMSSDetails */
 
 Template.appMultisigMenu.helpers({
   isActiveTab(p) {

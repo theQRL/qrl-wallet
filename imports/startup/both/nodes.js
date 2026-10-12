@@ -3,7 +3,6 @@
 // All functions and variables are here are not defined by 'let' or 'const'
 // so that they can be utilised in other files within Meteor.
 
-/* global LocalStore */
 
 // Define the default networks available in the UI.
 // eslint-disable-next-line no-unused-vars, no-undef

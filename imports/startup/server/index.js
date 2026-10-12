@@ -1,5 +1,4 @@
 /* eslint no-console:0, max-len: 0 */
-/* global _, decimalToBinary, DEFAULT_NETWORKS, SHOR_PER_QUANTA, WALLET_VERSION, */
 
 import { Meteor } from 'meteor/meteor'
 import { check } from 'meteor/check'

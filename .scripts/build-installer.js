@@ -123,6 +123,9 @@ const builderConfig = {
   appId: 'org.theqrl.wallet',
   productName: 'QRLWallet',
   executableName: 'QRLWallet',
+  // The trailing ${ext} is passed through literally for electron-builder to
+  // substitute per target, so it must survive our own interpolation.
+  // eslint-disable-next-line no-template-curly-in-string
   artifactName: `QRLWallet-${pkg.version}-${platform}-${arch}.${'${ext}'}`,
   directories: {
     output: outputDir,

@@ -1,9 +1,5 @@
 import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0, max-len:0 */
-/* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
-selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
-toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS,
-refreshTransferPage, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules, countDecimals, otsIndexUsed, otsKeyReuseBlocksSigning */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -599,7 +595,7 @@ function confirmTransaction() {
         } else if (sigResponse.return_code === 14) {
           $('#signOnLedgerTimeout').show()
         // Check for unknown errors
-        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message == "Unknown error code")) {
+        } else if ((sigResponse.return_code === 1) && (sigResponse.error_message === 'Unknown error code')) {
           $('#signOnLedgerError').show()
         } else {
           // Show confirmation message

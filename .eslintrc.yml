@@ -1,7 +1,9 @@
 # root: true
 # enable ES6
 parserOptions:
-  ecmaVersion: 2017
+  # 2022 rather than 2017: this codebase uses object spread, optional chaining
+  # and globalThis. The stale value made ESLint report globalThis as undefined.
+  ecmaVersion: 2022
   sourceType: "module"
   ecmaFeatures:
     jsx: true # enable React's JSX
@@ -22,9 +24,12 @@ env:
   browser: true
   node: true
   es6: true
+  # ecmaVersion controls syntax; the env is what provides the newer globals.
+  # Without this, globalThis is reported as undefined.
+  es2021: true
 
 rules:
-  # overwrite some rules (avoid semicolons) 
+  # overwrite some rules (avoid semicolons)
   semi: [2, 'never']
   no-unexpected-multiline: 2
   no-throw-literal: 0
@@ -44,17 +49,167 @@ rules:
   # eslint-plugin-meteor
   meteor/no-session: [0] # allow Session
   # meteor/prefer-session-equals: [2] # prefer Session.equals instead
- 
 
+  # --- Cosmetic rules, deliberately off ----------------------------------
+  # This app's formatting predates these airbnb defaults. Leaving them on
+  # produced hundreds of findings no reviewer would ever action, which buried
+  # the rules that do catch real defects. Formatting is not enforced here;
+  # the correctness rules below still are.
+  max-len: 0
+  arrow-body-style: 0
+  operator-linebreak: 0
+  implicit-arrow-linebreak: 0
+  function-paren-newline: 0
+  object-curly-newline: 0
+  no-multiple-empty-lines: 0
+  no-plusplus: 0
+  prefer-object-spread: 0
+  quote-props: 0
+  padded-blocks: 0
+  spaced-comment: 0
+  # Byte, address and bitfield manipulation is pervasive and intentional here.
+  no-bitwise: 0
+  # Private-ish members prefixed with _ are an established convention in this
+  # codebase (body.js _reload, _networkChangeHandler, ...).
+  no-underscore-dangle: 0
+  # for..of / for..in and `continue` are used throughout, and the airbnb
+  # objection (regenerator-runtime weight) does not apply to this build.
+  no-restricted-syntax: 0
+  no-continue: 0
+  # Sequential awaits are deliberate where each iteration depends on a node
+  # round-trip completing (addressTransactions, bootstrap paths).
+  no-await-in-loop: 0
+  # Protobuf and node API shapes are snake_case; renaming them would break the
+  # wire format. Identifiers mirroring those payloads are expected.
+  camelcase: [2, { properties: never }]
+  # Function declarations hoist, and the transaction pollers are mutually
+  # recursive by design. `variables: false` covers the other established pattern
+  # here: const arrow functions (the ledger* adapters) referenced from a
+  # Meteor.methods object defined above them - the reference only evaluates when
+  # a method is called, long after initialisation. Classes are still checked.
+  no-use-before-define: [2, { functions: false, classes: true, variables: false }]
+
+  # --- Remaining cosmetic rules, off for the same reason as above ----------
+  quotes: 0
+  no-trailing-spaces: 0
+  semi-style: 0
+  space-before-function-paren: 0
+  newline-per-chained-call: 0
+  prefer-destructuring: 0
+  no-lonely-if: 0
+  # Math.pow is used in decimal-scaling maths; ** is equivalent but rewriting
+  # arithmetic in the transaction path is not worth the risk.
+  prefer-exponentiation-operator: 0
+  no-restricted-properties: 0
+  # Template QRCode is an acronym; renaming a Blaze template means touching the
+  # HTML name and every reference for no functional gain.
+  meteor/template-names: 0
+
+  # --- Kept at inherited severity, because they find real problems --------
+  # no-undef, no-unused-vars, no-redeclare, eqeqeq, no-shadow,
+  # consistent-return, no-param-reassign.
+
+# Every cross-file global this application defines, declared once. Individual
+# files no longer need a /* global ... */ header: those were copy-pasted, listed
+# names the file did not use, and were the single largest source of lint noise in
+# the project (983 no-unused-vars plus 53 no-redeclare between them).
 globals:
+  # third-party / Meteor package globals
   QRLLIB: true
   LocalStore: true
-
-  # packages
+  QrlLedger: true
+  TransportStatusError: true
+  bech32: true
+  _: false # underscore, via the Meteor underscore package
   FlowRouter: false # kadira:flow-router
   moment: false # momentjs:moment
   BlazeLayout: false
-  
+
+  # application constants
+  DEFAULT_NETWORKS: true
+  POLL_MAX_CHECKS: true
+  POLL_TXN_RATE: true
+  QRLPROTO_SHA256: true
+  SHOR_PER_QUANTA: true
+  WALLET_VERSION: true
+  XMSS_OBJECT: true
+
+  # application helpers (imports/startup/client/functions.js and friends)
+  addressForAPI: true
+  advanceSeedOtsAfterRelayFailure: true
+  anyAddressToRawAddress: true
+  binaryToBytes: true
+  binaryToQrlAddress: true
+  bytesToHex: true
+  bytesToString: true
+  concatenateTypedArrays: true
+  countDecimals: true
+  decimalToBinary: true
+  feeValidationRules: true
+  findNetworkData: true
+  getBalance: true
+  getMnemonicOfFirstAddress: true
+  getQrlProtoShasum: true
+  getTokenBalances: true
+  getXMSSDetails: true
+  hexOrB32: true
+  hexToBytes: true
+  isElectrified: true
+  isWalletFileDeprecated: true
+  ledgerHasNoTokenSupport: true
+  loadAddressTransactions: true
+  markLocalOtsKeyAsConsumed: true
+  nodeReturnedValidResponse: true
+  numberToString: true
+  otsIndexUsed: true
+  otsKeyReuseBlocksSigning: true
+  otsKeyValidationRules: true
+  otsKeysTotal: true
+  passwordPolicyValid: true
+  pkRawToB32Address: true
+  rawToHexOrB32: true
+  refreshTransferPage: true
+  resetLocalStorageState: true
+  resetWalletStatus: true
+  selectedNetwork: true
+  stringToBytes: true
+  supportedBrowser: true
+  toBigendianUint64BytesUnsigned: true
+  toUint8Vector: true
+  updateBalanceField: true
+  waitForQRLLIB: true
+  wrapMeteorCall: true
+
+# The build and packaging scripts are plain Node CommonJS in a different house
+# style (semicolons, console output) from the Meteor app. Judging them by the
+# app's rules produced ~400 findings that were purely a config mismatch.
+overrides:
+  # Every route guard is `if (locked) return FlowRouter.go('/open')` followed by
+  # a bare render call. That is 26 identical, deliberate instances; the rule stays
+  # on everywhere else so a genuinely inconsistent return still gets flagged.
+  - files:
+      - 'imports/startup/client/routes.js'
+    rules:
+      consistent-return: 0
+
+  - files:
+      - '.scripts/**/*.js'
+      - 'build-*.js'
+    env:
+      node: true
+      browser: false
+      meteor: false
+    parserOptions:
+      sourceType: "script"
+    rules:
+      # These scripts are inconsistent about semicolons between themselves, and
+      # normalising them would be churn with no benefit - so take no view.
+      semi: 0
+      no-console: 0
+      strict: 0
+      global-require: 0
+      import/newline-after-import: 0
+
 settings:
   import/core-modules: [ meteor ]
   import/resolver:

@@ -1,10 +1,5 @@
 import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
-/* eslint no-console:0, no-len: 0 */
-/* global _, QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure, otsKeyValidationRules, feeValidationRules, otsKeyReuseBlocksSigning */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+/* eslint no-console:0 */
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
@@ -14,7 +9,6 @@ import helpers from '@theqrl/explorer-helpers'
 import {
   isElectrified,
   createTransport,
-  ledgerReturnedError,
 } from '../../../startup/client/functions'
 import './transfer.html'
 
@@ -479,7 +473,7 @@ function confirmTransaction() {
             // Check for unknown errors
           } else if (
             sigResponse.return_code === 1 &&
-            sigResponse.error_message == 'Unknown error code'
+            sigResponse.error_message === 'Unknown error code'
           ) {
             $('#signOnLedgerError').show()
           } else {

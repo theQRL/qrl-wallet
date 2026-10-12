@@ -1,12 +1,7 @@
 import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, advanceSeedOtsAfterRelayFailure, otsKeyReuseBlocksSigning */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
-import { isElectrified, createTransport, ledgerReturnedError } from '../../../../startup/client/functions'
+import { isElectrified, createTransport } from '../../../../startup/client/functions'
 import './messageConfirm.html'
 
 let ledgerSignRequestInFlight = false
@@ -327,7 +322,7 @@ function confirmMessageCreation() {
           $('#signOnLedgerTimeout').show()
           ledgerSignRequestInFlight = false
         // Check for unknown errors
-        } else if ((sigResponseCode === 1) && (sigResponse.error_message == 'Unknown error code')) {
+        } else if ((sigResponseCode === 1) && (sigResponse.error_message === 'Unknown error code')) {
           $('#signOnLedgerError').show()
           ledgerSignRequestInFlight = false
         } else if (!ledgerResponseSuccessful(sigResponse)) {
@@ -418,13 +413,13 @@ Template.appMessageConfirm.helpers({
     return Session.get('nodeExplorerUrl')
   },
   isSeedWallet() {
-    if (getXMSSDetails().walletType == 'seed') {
+    if (getXMSSDetails().walletType === 'seed') {
       return true
     }
     return false
   },
   isLedgerWallet() {
-    if (getXMSSDetails().walletType == 'ledger') {
+    if (getXMSSDetails().walletType === 'ledger') {
       return true
     }
     return false
