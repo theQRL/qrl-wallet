@@ -76,8 +76,8 @@ function main() {
   ensureElectrifyWorkspace();
 
   if (needsElectrifyInstall()) {
-    console.log('[electron-prepare] Installing/updating .electrify dependencies...');
-    runOrExit('npm', ['--prefix', electrifyRoot, 'install', '--no-audit', '--no-fund'], { cwd: projectRoot });
+    console.log('[electron-prepare] Installing locked .electrify dependencies...');
+    runOrExit('npm', ['--prefix', electrifyRoot, 'ci', '--no-audit', '--no-fund'], { cwd: projectRoot });
   }
 
   console.log('[electron-prepare] Applying compatibility patches...');

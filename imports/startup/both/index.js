@@ -10,7 +10,7 @@ import './nodes.js'
 globalThis.SHOR_PER_QUANTA = 1000000000
 
 // qrl-wallet Version
-globalThis.WALLET_VERSION = '1.9.1'
+globalThis.WALLET_VERSION = '1.9.2'
 
 // qrl.proto sha256 sum for each release of QRL Node
 globalThis.QRLPROTO_SHA256 = [

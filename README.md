@@ -19,18 +19,14 @@ All secure XMSS operations are run in a web assembly compiled version of [qrllib
 
 The following dependencies are required for a functional local development environment.
 
-[NodeJS](https://nodejs.org/en/) v22 — we recommend nvm, which will pick up the version in
+[NodeJS](https://nodejs.org/en/) v22.23.2 — we recommend nvm, which will pick up the version in
 [.nvmrc](.nvmrc). That file is the authoritative version for both local development and CI.
 
-[Meteor](https://www.meteor.com/install) 3.4 — install per the official instructions
-(`npm install -g meteor`). The project pins its release in
-[.meteor/release](.meteor/release), and the tool springboards to that version automatically.
+[Meteor](https://www.meteor.com/install) 3.4 — the project pins its release in
+[.meteor/release](.meteor/release). For a version-checked installer, follow the
+Meteor install steps in [.github/workflows/release-build.yml](.github/workflows/release-build.yml).
 
-[node-gyp](https://github.com/nodejs/node-gyp)
-
-	npm install -g node-gyp
-
-_node-gyp issues can generally be solved with updating npm (npm i -g npm) and rebuilding modules (npm rebuild)_
+[node-gyp](https://github.com/nodejs/node-gyp) is installed as an exact local development dependency.
 
 Linux only: libusb-dev, libudev-dev and libarchive-tools
 
@@ -38,14 +34,15 @@ Linux only: libusb-dev, libudev-dev and libarchive-tools
 
 Windows only: [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/) (the "Desktop development with C++" workload), required to compile the native USB/HID modules.
 
-Everything else — including `@theqrl/electrify-qrl` for the desktop build and `electron-builder` for the installers — is a local dependency installed by `npm install`. No global installs are needed beyond the above.
+Everything else — including `@theqrl/electrify-qrl` for the desktop build and `electron-builder` for the installers — is a local dependency installed from the committed lockfiles. Use `npm ci` to reproduce the reviewed dependency tree; the desktop packager also uses `npm ci` for `.electrify`.
 
 
 ## Install qrl-wallet
 
 	git clone https://github.com/theQRL/qrl-wallet.git
 	cd qrl-wallet
-	npm install
+	npm ci
+	npm run verify:pins
 
 ## Run QRL Wallet (web wallet)
 

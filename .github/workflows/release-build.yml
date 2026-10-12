@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Tag to publish assets to (example: v1.9.1)'
+        description: 'Tag to publish assets to (example: v1.9.2)'
         required: true
         type: string
 
@@ -77,6 +77,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Verify dependency pins
+        run: node .scripts/verify-dependency-pins.js
+
       - name: Exclude build paths from Windows Defender
         if: runner.os == 'Windows'
         shell: pwsh
@@ -135,6 +138,11 @@ jobs:
           # release=3.4 pins the tool to the project's release (must be the bare
           # version - release=METEOR@3.4 is not parsed and falls back to latest).
           Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64&release=3.4' -OutFile $bootstrapGz
+          $expectedSha256 = '751168e2f9cb4a0716c4ad705b513beef89798bbfa74f81a2a3b797d5f3643bb'
+          $actualSha256 = (Get-FileHash -Path $bootstrapGz -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualSha256 -ne $expectedSha256) {
+            throw "Meteor bootstrap digest mismatch. Expected $expectedSha256, got $actualSha256"
+          }
           tar -xzf $bootstrapGz -C $extractDir
           $bootstrapTar = Get-ChildItem -Path $extractDir -Filter 'meteor-bootstrap-*.tar' -File -Recurse | Select-Object -First 1
           if ($bootstrapTar) {
@@ -175,9 +183,7 @@ jobs:
           # Meteor's build cache (isopacks / bundler-cache / plugin-cache) so the
           # bundle + minify phases aren't cold on every run.
           path: .meteor/local
-          key: meteor-local-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('.meteor/versions', '.meteor/release', 'package-lock.json') }}
-          restore-keys: |
-            meteor-local-${{ runner.os }}-${{ matrix.arch }}-
+          key: meteor-local-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('.meteor/packages', '.meteor/versions', '.meteor/release', 'package-lock.json', '.electrify/package-lock.json') }}
 
       - name: Package desktop app
         if: runner.os != 'Windows'
