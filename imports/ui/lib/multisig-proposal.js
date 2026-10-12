@@ -120,14 +120,14 @@ function spendOutputs(spend) {
   })
 }
 
-function verifiedHash(qrllib, { master, fee, address, expiry, outputs, signature, publicKey, claimedHash }) {
+function verifiedHash(qrllib, input) {
   const preimage = Buffer.concat([
-    master, fee.bytes, address, expiry.bytes,
-    ...outputs.flatMap((output) => [Buffer.from(output.address.slice(1), 'hex'), output.rawAmount]),
+    input.master, input.fee.bytes, input.address, input.expiry.bytes,
+    ...input.outputs.flatMap((output) => [Buffer.from(output.address.slice(1), 'hex'), output.rawAmount]),
   ])
   const dataHash = hashBytes(qrllib, preimage)
-  const actualHash = hashBytes(qrllib, Buffer.concat([dataHash, signature, publicKey]))
-  if (!actualHash.equals(claimedHash) || !verifySignature(qrllib, dataHash, signature, publicKey)) {
+  const actualHash = hashBytes(qrllib, Buffer.concat([dataHash, input.signature, input.publicKey]))
+  if (!actualHash.equals(input.claimedHash) || !verifySignature(qrllib, dataHash, input.signature, input.publicKey)) {
     throw new Error('Multisig proposal failed cryptographic verification')
   }
   return actualHash
@@ -145,7 +145,9 @@ export default function verifyMultiSigSpendProposal(item, qrllib) {
   if (!qrllib || !qrllib.Xmss || typeof qrllib.Xmss.verify !== 'function') {
     throw new Error('XMSS verification is unavailable')
   }
-  const { tx, spend } = spendTransaction(item)
+  const transaction = spendTransaction(item)
+  const tx = transaction.tx
+  const spend = transaction.spend
   const master = masterAddress(tx)
   const fee = uint64(tx.fee, 'fee')
   const address = bytes(spend.multi_sig_address, 'multisig address', ADDRESS_BYTES)
