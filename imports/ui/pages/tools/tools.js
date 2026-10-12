@@ -37,7 +37,7 @@ const TOOLS = [
   {
     href: '/tools/recoveryseed',
     title: 'Recovery Seed',
-    description: 'View the mnemonic phrase and hexseed for this address.',
+    description: 'View the recovery seed or download a wallet file for this address.',
     category: 'identity',
     badge: 'Identity',
     ledgerIncompatible: true,
