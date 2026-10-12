@@ -84,10 +84,7 @@ function shorToQuanta(amount) {
   return fraction ? `${whole}.${fraction}` : whole.toString()
 }
 
-export function verifyMultiSigSpendProposal(item, qrllib) {
-  if (!qrllib || !qrllib.Xmss || typeof qrllib.Xmss.verify !== 'function') {
-    throw new Error('XMSS verification is unavailable')
-  }
+function spendTransaction(item) {
   const tx = item && item.tx
   const spend = tx && tx.multi_sig_spend
   if (!spend || !Array.isArray(spend.addrs_to) || !Array.isArray(spend.amounts)
@@ -95,22 +92,25 @@ export function verifyMultiSigSpendProposal(item, qrllib) {
       || spend.addrs_to.length > 100) {
     throw new Error('Invalid multisig spend outputs')
   }
+  return { tx, spend }
+}
 
+function masterAddress(tx) {
   const master = bytes(tx.master_addr, 'master address')
   if (master.length !== 0 && master.length !== ADDRESS_BYTES) {
     throw new Error('Invalid master address')
   }
-  const fee = uint64(tx.fee, 'fee')
-  const address = bytes(spend.multi_sig_address, 'multisig address', ADDRESS_BYTES)
-  const expiry = uint64(spend.expiry_block_number, 'expiry block')
-  const publicKey = bytes(tx.public_key, 'public key', PUBLIC_KEY_BYTES)
-  const signature = bytes(tx.signature, 'signature')
-  const claimedHash = bytes(tx.transaction_hash, 'transaction hash', TX_HASH_BYTES)
+  return master
+}
+
+function validateSignatureLength(signature) {
   if (signature.length < 4 || signature.length > 8467) {
     throw new Error('Invalid XMSS signature length')
   }
+}
 
-  const outputs = spend.addrs_to.map((rawAddress, index) => {
+function spendOutputs(spend) {
+  return spend.addrs_to.map((rawAddress, index) => {
     const recipient = bytes(rawAddress, 'recipient address', ADDRESS_BYTES)
     const amount = uint64(spend.amounts[index], 'amount')
     if (amount.decimal === '0') {
@@ -118,6 +118,9 @@ export function verifyMultiSigSpendProposal(item, qrllib) {
     }
     return Object.freeze({ address: `Q${recipient.toString('hex')}`, amount: amount.decimal, rawAmount: amount.bytes })
   })
+}
+
+function verifiedHash(qrllib, { master, fee, address, expiry, outputs, signature, publicKey, claimedHash }) {
   const preimage = Buffer.concat([
     master, fee.bytes, address, expiry.bytes,
     ...outputs.flatMap((output) => [Buffer.from(output.address.slice(1), 'hex'), output.rawAmount]),
@@ -127,15 +130,39 @@ export function verifyMultiSigSpendProposal(item, qrllib) {
   if (!actualHash.equals(claimedHash) || !verifySignature(qrllib, dataHash, signature, publicKey)) {
     throw new Error('Multisig proposal failed cryptographic verification')
   }
+  return actualHash
+}
 
+function proposalSigner(qrllib, publicKey) {
   const proposerHex = qrllib.getAddress(publicKey.toString('hex'))
   if (typeof proposerHex !== 'string' || !/^[0-9a-fA-F]{78}$/.test(proposerHex)) {
     throw new Error('Could not derive proposal signer')
   }
+  return `Q${proposerHex.toLowerCase()}`
+}
+
+export default function verifyMultiSigSpendProposal(item, qrllib) {
+  if (!qrllib || !qrllib.Xmss || typeof qrllib.Xmss.verify !== 'function') {
+    throw new Error('XMSS verification is unavailable')
+  }
+  const { tx, spend } = spendTransaction(item)
+  const master = masterAddress(tx)
+  const fee = uint64(tx.fee, 'fee')
+  const address = bytes(spend.multi_sig_address, 'multisig address', ADDRESS_BYTES)
+  const expiry = uint64(spend.expiry_block_number, 'expiry block')
+  const publicKey = bytes(tx.public_key, 'public key', PUBLIC_KEY_BYTES)
+  const signature = bytes(tx.signature, 'signature')
+  const claimedHash = bytes(tx.transaction_hash, 'transaction hash', TX_HASH_BYTES)
+  validateSignatureLength(signature)
+  const outputs = spendOutputs(spend)
+  const actualHash = verifiedHash(qrllib, {
+    master, fee, address, expiry, outputs, signature, publicKey, claimedHash,
+  })
+
   return Object.freeze({
     txhash: actualHash.toString('hex'),
     address: `Q${address.toString('hex')}`,
-    proposedBy: `Q${proposerHex.toLowerCase()}`,
+    proposedBy: proposalSigner(qrllib, publicKey),
     outputs: Object.freeze(outputs.map((output) => Object.freeze({
       address: output.address,
       amount: output.amount,

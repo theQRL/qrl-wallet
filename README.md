@@ -30,7 +30,7 @@ Meteor install steps in [.github/workflows/release-build.yml](.github/workflows/
 
 Linux only: libusb-dev, libudev-dev and libarchive-tools
 
-	sudo apt-get install libusb-dev libudev-dev libarchive-tools
+    sudo apt-get install libusb-dev libudev-dev libarchive-tools
 
 Windows only: [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/) (the "Desktop development with C++" workload), required to compile the native USB/HID modules.
 
@@ -39,14 +39,14 @@ Everything else — including `@theqrl/electrify-qrl` for the desktop build and 
 
 ## Install qrl-wallet
 
-	git clone https://github.com/theQRL/qrl-wallet.git
-	cd qrl-wallet
-	npm ci
-	npm run verify:pins
+    git clone https://github.com/theQRL/qrl-wallet.git
+    cd qrl-wallet
+    npm ci
+    npm run verify:pins
 
 ## Run QRL Wallet (web wallet)
 
-	meteor
+    meteor
 
 A locally running wallet will be available at http://localhost:3000
 
@@ -54,21 +54,21 @@ The compiled Tailwind stylesheet (`public/tailwind-output.css`) is committed, so
 gives a fully styled wallet. If you are editing styles or Tailwind classes, use the dev script
 instead — it rebuilds the stylesheet on change alongside Meteor:
 
-	npm run dev
+    npm run dev
 
 To rebuild the stylesheet once, without watching:
 
-	npm run build:css
+    npm run build:css
 
 When updating `qrllib`, refresh its committed browser-worker JS and WASM from the
 exact installed package, then commit both assets:
 
-	npm run build:qrllib-worker
-	npm run verify:qrllib-worker
+    npm run build:qrllib-worker
+    npm run verify:qrllib-worker
 
 ## Lint
 
-	npm run releaseready
+    npm run releaseready
 
 This runs `meteor lint` and is the check to run before opening a pull request.
 
@@ -80,14 +80,14 @@ runner is reinstated.
 
 ## Run QRL Wallet (desktop client)
 
-	npm run electron
+    npm run electron
 
 ## Package Electron Client
 
 Ensure a `node` binary for the platform being built for is present in `.electrify/bin`. To copy the
 one currently on your PATH:
 
-	npm run acquire:node
+    npm run acquire:node
 
 The wallet holds no server-side database, so no mongo binaries are required.
 
@@ -95,30 +95,30 @@ The wallet holds no server-side database, so no mongo binaries are required.
 
 > MacOS, Linux and Windows
 
-	npm run cleanDist
+    npm run cleanDist
 
 For explicit platform cleanup:
 
-	npm run cleanDist:darwin
-	npm run cleanDist:linux
-	npm run cleanDist:win32
+    npm run cleanDist:darwin
+    npm run cleanDist:linux
+    npm run cleanDist:win32
 
 2. Package Electron App
 
 > MacOS, Linux and Windows
 
-	npm run releaseready
-	npm run build
+    npm run releaseready
+    npm run build
 
 For explicit platform packaging:
 
-	npm run build:darwin
-	npm run build:linux
-	npm run build:win32
+    npm run build:darwin
+    npm run build:linux
+    npm run build:win32
 
 ## Build Installer
 
-	npm run installer
+    npm run installer
 
 Installers are produced by [electron-builder](https://www.electron.build/): a `.dmg` on macOS,
 `.deb` and `.pacman` packages on Linux, and an NSIS `.exe` on Windows. Output is written alongside
@@ -126,9 +126,9 @@ the packaged app in `.electrify/.dist`.
 
 For explicit platform installers:
 
-	npm run installer:darwin
-	npm run installer:linux
-	npm run installer:win32
+    npm run installer:darwin
+    npm run installer:linux
+    npm run installer:win32
 
 ## Releases
 

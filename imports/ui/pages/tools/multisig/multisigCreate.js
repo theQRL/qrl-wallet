@@ -3,10 +3,10 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
-import { checkWeightsAndThreshold } from '../../../lib/multisig-validation'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
 import sha256 from 'sha256'
+import checkWeightsAndThreshold from '../../../lib/multisig-validation'
 
 function toHexString(byteArray) {
   return Array.from(byteArray, function (byte) {

@@ -1,6 +1,6 @@
 import { checkWeightsAndThreshold as checkWalletWeightsAndThreshold } from '@theqrl/wallet-helpers'
 
-export function checkWeightsAndThreshold(weights, threshold) {
+export default function checkWeightsAndThreshold(weights, threshold) {
   if (!Number.isSafeInteger(threshold) || threshold < 1) {
     return { result: false, error: 'The threshold must be at least 1.' }
   }

@@ -2,8 +2,8 @@ const assert = require('node:assert/strict')
 const test = require('node:test')
 const jiti = require('jiti')(`${process.cwd()}/package.json`)
 
-const { verifyMultiSigSpendProposal } = jiti('./imports/ui/lib/multisig-proposal.js')
-const { checkWeightsAndThreshold } = jiti('./imports/ui/lib/multisig-validation.js')
+const verifyMultiSigSpendProposal = jiti('./imports/ui/lib/multisig-proposal.js').default
+const checkWeightsAndThreshold = jiti('./imports/ui/lib/multisig-validation.js').default
 const qrllib = require('qrllib/build/offline-libjsqrl')
 
 function vector(bytes) {
@@ -88,6 +88,23 @@ test('verified multisig proposal binds its displayed outputs to its signed hash'
     ...item,
     tx: { ...item.tx, signature: invalidSignature, transaction_hash: invalidSignatureHash },
   }, qrllib), /verification/)
+
+  assert.throws(() => verifyMultiSigSpendProposal({
+    ...item,
+    tx: { ...item.tx, master_addr: Buffer.alloc(1) },
+  }, qrllib), /Invalid master address/)
+  assert.throws(() => verifyMultiSigSpendProposal({
+    ...item,
+    tx: { ...item.tx, signature: Buffer.alloc(3) },
+  }, qrllib), /Invalid XMSS signature length/)
+  assert.throws(() => verifyMultiSigSpendProposal({
+    ...item,
+    tx: { ...item.tx, multi_sig_spend: { ...item.tx.multi_sig_spend, addrs_to: [] } },
+  }, qrllib), /Invalid multisig spend outputs/)
+  assert.throws(() => verifyMultiSigSpendProposal({
+    ...item,
+    tx: { ...item.tx, multi_sig_spend: { ...item.tx.multi_sig_spend, amounts: ['0'] } },
+  }, qrllib), /Zero-value multisig output/)
 })
 
 test('multisig creation rejects nonpositive and malformed thresholds or weights', () => {

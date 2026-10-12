@@ -4,7 +4,7 @@ import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
-import { verifyMultiSigSpendProposal } from '../../../lib/multisig-proposal'
+import verifyMultiSigSpendProposal from '../../../lib/multisig-proposal'
 
 let verifiedProposals = new Map()
 let selectedProposal = null
