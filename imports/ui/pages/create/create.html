@@ -1,134 +1,143 @@
 <template name="appCreate">
 
-
-<h4 id="createWallet" class="ui pageHeader header">
-  <i class="tiny plus icon"></i>
-  <div class="content">
-    Create Wallet
+<!-- Page Header -->
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
   </div>
-</h4>
+  <h1 class="text-2xl font-bold text-base-content">Create Wallet</h1>
+</div>
 
-<div class="ui segment pageSegment">
+<!-- Main Card -->
+<div class="card-gradient">
+  <div class="card-body">
+    <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Left Column: Form -->
+      <div class="space-y-3">
+        <!-- Passphrase Fields -->
+        <div id="passphraseArea" class="space-y-0">
+          <fieldset class="fieldset w-full mb-0">
+            <legend class="fieldset-legend">Passphrase</legend>
+            <input type="password" id="passphrase" class="input w-full" placeholder="Enter passphrase" autocomplete="new-password" />
+          </fieldset>
 
+          <fieldset class="fieldset w-full mb-0">
+            <legend class="fieldset-legend">Confirm Passphrase</legend>
+            <input type="password" id="passphraseConfirm" class="input w-full" placeholder="Confirm passphrase" autocomplete="new-password" />
+          </fieldset>
 
-  <div class="ui bottom attached segment">
-    <div class="ui grid stackable">
-      <div class="eight wide column">
-        <div id="passphraseArea" class="ui form">
-          <div class="field">
-            <label>Passphrase</label>
-            <div class="ui left icon input">
-              <input type="password" id="passphrase" >
-              <i class="lock icon"></i>
+          <div id="passwordStrength" class="hidden">
+            <div class="flex gap-1">
+              <div id="passwordStrengthBar1" class="h-1 flex-1 rounded bg-base-300"></div>
+              <div id="passwordStrengthBar2" class="h-1 flex-1 rounded bg-base-300"></div>
+              <div id="passwordStrengthBar3" class="h-1 flex-1 rounded bg-base-300"></div>
             </div>
+            <p id="passwordStrengthText" class="text-xs mt-1 font-medium text-base-content/70">Password is required</p>
           </div>
-          <div class="field">
-            <label>Confirm Passphrase</label>
-            <div class="ui left icon input">
-              <input type="password" id="passphraseConfirm" >
-              <i class="lock icon"></i>
-            </div>
-          </div>
-          <p>Your passphrase must contain at least 8 characters, and contain at least 1 number and 1 letter.</p>
+
+          <p class="text-sm text-base-content/70">Your passphrase must contain at least 8 characters, and contain at least 1 number and 1 letter.</p>
         </div>
 
-        <div id="xmssHeightDropdown" class="ui fluid selection dropdown">
-          <input type="hidden" id="xmssHeight" value="10">
-          <i class="dropdown icon"></i>
-          <div class="default text">XMSS Tree Height</div>
-          <div class="menu">
-            <div class="item" data-value="8">
-              <i class="tree icon"></i>
-              Tree Height: 8, Signatures: 256
-            </div>
-            <div class="item" data-value="10">
-              <i class="tree icon"></i>
-              Tree Height: 10, Signatures: 1,024
-            </div>
-            <div class="item" data-value="12">
-              <i class="tree icon"></i>
-              Tree Height: 12, Signatures: 4,096
-            </div>
-            <div class="item" data-value="14">
-              <i class="tree icon"></i>
-              Tree Height: 14, Signatures: 16,384
-            </div>
-            <div class="item" data-value="16">
-              <i class="tree icon"></i>
-              Tree Height: 16, Signatures: 65,536
-            </div>
-            <div class="item" data-value="18">
-              <i class="tree icon"></i>
-              Tree Height: 18, Signatures: 262,144
-            </div>
-          </div>
-        </div>
-        <br />
-        <div id="hashFunctionDropdown" class="ui fluid selection dropdown">
-          <input type="hidden" id="hashFunction" value="SHAKE_128">
-          <i class="dropdown icon"></i>
-          <div class="default text">Hash Function</div>
-          <div class="menu">
-            <div class="item" data-value="SHAKE_128">
-              <i class="hashtag icon"></i>
-              Hash Function: SHAKE_128 (Default)
-            </div>
-            <div class="item" data-value="SHAKE_256">
-              <i class="hashtag icon"></i>
-              Hash Function: SHAKE_256
-            </div>
-            <div class="item" data-value="SHA2_256">
-              <i class="hashtag icon"></i>
-              Hash Function: SHA2_256
-            </div>
-          </div>
-        </div>
+        <!-- XMSS Tree Height Select -->
+        <fieldset class="fieldset w-full mb-0">
+          <legend class="fieldset-legend">XMSS Tree Height</legend>
+          <select id="xmssHeight" class="select w-full bg-base-100">
+            <option value="8">Tree Height: 8 — 256 signatures</option>
+            <option value="10" selected>Tree Height: 10 — 1,024 signatures</option>
+            <option value="12">Tree Height: 12 — 4,096 signatures</option>
+            <option value="14">Tree Height: 14 — 16,384 signatures</option>
+            <option value="16">Tree Height: 16 — 65,536 signatures</option>
+            <option value="18">Tree Height: 18 — 262,144 signatures</option>
+          </select>
+        </fieldset>
+
+        <!-- Hash Function Select -->
+        <fieldset class="fieldset w-full mb-0">
+          <legend class="fieldset-legend">Hash Function</legend>
+          <select id="hashFunction" class="select w-full bg-base-100">
+            <option value="SHAKE_128" selected>SHAKE_128 (Default)</option>
+            <option value="SHAKE_256">SHAKE_256</option>
+            <option value="SHA2_256">SHA2_256</option>
+          </select>
+        </fieldset>
       </div>
-      <div class="eight wide column">
-        <div class="ui warning icon message">
-          <i class="warning icon"></i>
-          <div class="content">
-            <p>This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase. You will need this passphrase, and wallet file to unlock your wallet file in future. <br /><br />By default an XMSS Tree height of 10 provides 1024 One Time Signatures. Larger XMSS Tree heights will take longer to generate, please be patient.</p>
+
+      <!-- Right Column: Info -->
+      <div>
+        <div role="alert" class="alert alert-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <h3 class="font-bold">Important</h3>
+            <p class="text-sm">This passphrase encrypts the sensitive information that can unlock your wallet file, including your address, hexseed and mnemonic phrase.</p>
+            <p class="text-sm mt-2">You will need this passphrase and wallet file to unlock your wallet in future.</p>
+            <p class="text-sm mt-2">By default, XMSS Tree height of 10 provides 1024 One Time Signatures. Larger heights take longer to generate.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <br />
-    <button id="generate" class="ui huge primary button red">Create Wallet</button>
-  </div>
-
-
-  <div id="generating" style="display: none;">
-    <div class="ui icon message">
-      <i class="notched circle loading icon"></i>
-      <div class="content">
-        <div class="header">
-          Just a moment
-        </div>
-        <p>Generating new wallet...</p>
-      </div>
+    <!-- Action Button -->
+    <div class="card-actions justify-start mt-2">
+      <button id="generate" class="btn btn-primary btn-md gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Create Wallet
+      </button>
     </div>
   </div>
+</div>
 
-  <div id="error" style="display: none;">
-    <div class="ui red segment">
-      <h4>Error!</h4>
-      <p>There was a problem generating your new wallet. Please refresh this page and try again.</p>
+<!-- Generating State -->
+<div id="generating" class="hidden mt-6">
+  <div role="alert" class="alert alert-info">
+    <span class="loading loading-spinner loading-md"></span>
+    <div>
+      <h3 class="font-bold">Just a moment</h3>
+      <p class="text-sm">Generating new wallet in a worker...</p>
+      <p id="estimateTime" class="text-xs mt-1 text-base-content/70">Estimated time: calculating...</p>
+      <p id="elapsedTime" class="text-xs font-mono text-base-content/80">Elapsed: 0s</p>
     </div>
   </div>
+</div>
 
-  <div id="passError" style="display: none;">
-    <div class="ui red segment">
-      <h4>Error!</h4>
-      <p>Please enter a passphrase that is at least 8 characters in length, and contains at least 1 number and 1 letter.</p>
+<!-- Error States -->
+<div id="error" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error!</h3>
+      <p class="text-sm">There was a problem generating your new wallet. Please refresh this page and try again.</p>
     </div>
   </div>
+</div>
 
-  <div id="passMismatchError" style="display: none;">
-    <div class="ui red segment">
-      <h4>Error!</h4>
-      <p>Your passphrases do not match. Please carefully type your passphrase into each box and try again.</p>
+<div id="passError" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error!</h3>
+      <p class="text-sm">Please enter a passphrase that is at least 8 characters in length, and contains at least 1 number and 1 letter.</p>
+    </div>
+  </div>
+</div>
+
+<div id="passMismatchError" class="hidden mt-6">
+  <div role="alert" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="font-bold">Error!</h3>
+      <p class="text-sm">Your passphrases do not match. Please carefully type your passphrase into each box and try again.</p>
     </div>
   </div>
 </div>

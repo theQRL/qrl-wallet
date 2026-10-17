@@ -1,0 +1,323 @@
+name: Release Build Matrix
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag to publish assets to (example: v1.9.2)'
+        required: true
+        type: string
+
+# Build jobs are read-only. Only the publish job is granted contents: write, so
+# a compromised build input cannot write to the release on its own.
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-build:
+    name: release-${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            platform: darwin
+            arch: x64
+            artifact_name: qrlwallet-release-darwin-x64
+          - runner: macos-14
+            platform: darwin
+            arch: arm64
+            artifact_name: qrlwallet-release-darwin-arm64
+          # Pinned to windows-2022: the moving `windows-latest` label rolled to
+          # windows-2025-vs2026, where Meteor's build hangs in prepareProjectForBuild
+          # (VS2026 / node-gyp toolchain drift). RC4 built cleanly on windows-2022.
+          - runner: windows-2022
+            platform: win32
+            arch: x64
+            artifact_name: qrlwallet-release-win32-x64
+          - runner: windows-2022
+            platform: win32
+            arch: arm64
+            artifact_name: qrlwallet-release-win32-arm64
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: x64
+            artifact_name: qrlwallet-release-linux-x64
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: arm64
+            artifact_name: qrlwallet-release-linux-arm64
+
+    env:
+      CI: true
+      BUILD_ARCH: ${{ matrix.arch }}
+      LOGELECTRIFY: TRACE
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+          # Don't leave a usable token in .git/config for later build steps.
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Verify dependency pins
+        run: node .scripts/verify-dependency-pins.js
+
+      - name: Exclude build paths from Windows Defender
+        if: runner.os == 'Windows'
+        shell: pwsh
+        # Real-time scanning of the many thousands of files Meteor writes to
+        # .meteor/local and the --directory bundle is the dominant cause of the
+        # Windows-only slowdown that was blowing the packaging step's timeout.
+        run: |
+          Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE","$env:LOCALAPPDATA\.meteor" -ErrorAction SilentlyContinue
+
+      - name: Install Linux packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libusb-dev libudev-dev libarchive-tools
+
+      - name: Install Meteor (macOS/Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        # Pin the tool to the project's release (.meteor/release = METEOR@3.4).
+        # Installing "latest" (now 3.5) forces a springboard down to 3.4 that
+        # silently fails to happen on Windows, running the build under the 3.5
+        # tool whose solver hangs in prepareProjectForBuild. Install 3.4 directly
+        # everywhere so no runner springboards.
+        run: |
+          set -euo pipefail
+          # Piping this straight into sh executes whatever the endpoint serves at
+          # build time, with no review boundary. Download it, check it against a
+          # committed digest, and only then run it.
+          #
+          # If Meteor legitimately updates the installer this step fails. Review
+          # the new script, then update METEOR_INSTALLER_SHA256 below with the
+          # digest printed in the failure output.
+          METEOR_INSTALLER_SHA256=6b3928175473d07970eb127abebd9f2b17b9676f28af8ecd6b54cd4cdef14a11
+          curl -fsSL 'https://install.meteor.com/?release=3.4' -o meteor-install.sh
+          ACTUAL_SHA256=$(shasum -a 256 meteor-install.sh | cut -d' ' -f1)
+          if [ "$ACTUAL_SHA256" != "$METEOR_INSTALLER_SHA256" ]; then
+            echo "::error::Meteor installer digest mismatch."
+            echo "expected: $METEOR_INSTALLER_SHA256"
+            echo "actual:   $ACTUAL_SHA256"
+            exit 1
+          fi
+          sh meteor-install.sh
+          rm -f meteor-install.sh
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+
+      - name: Install Meteor (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bootstrapGz = Join-Path $env:TEMP 'meteor-bootstrap-os.windows.x86_64.tar.gz'
+          $extractDir = Join-Path $env:TEMP 'meteor-bootstrap-extract'
+          $meteorInstallDir = Join-Path $env:LOCALAPPDATA '.meteor'
+          if (Test-Path $extractDir) { Remove-Item -Recurse -Force $extractDir }
+          New-Item -ItemType Directory -Path $extractDir | Out-Null
+          # release=3.4 pins the tool to the project's release (must be the bare
+          # version - release=METEOR@3.4 is not parsed and falls back to latest).
+          Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64&release=3.4' -OutFile $bootstrapGz
+          $expectedSha256 = '751168e2f9cb4a0716c4ad705b513beef89798bbfa74f81a2a3b797d5f3643bb'
+          $actualSha256 = (Get-FileHash -Path $bootstrapGz -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualSha256 -ne $expectedSha256) {
+            throw "Meteor bootstrap digest mismatch. Expected $expectedSha256, got $actualSha256"
+          }
+          tar -xzf $bootstrapGz -C $extractDir
+          $bootstrapTar = Get-ChildItem -Path $extractDir -Filter 'meteor-bootstrap-*.tar' -File -Recurse | Select-Object -First 1
+          if ($bootstrapTar) {
+            tar -xf $bootstrapTar.FullName -C $env:LOCALAPPDATA
+          } else {
+            $meteorDir = Get-ChildItem -Path $extractDir -Directory -Recurse -Force | Where-Object { $_.Name -eq '.meteor' } | Select-Object -First 1
+            if (-not $meteorDir) { throw 'Meteor bootstrap did not contain a .meteor directory after extraction.' }
+            if (Test-Path $meteorInstallDir) { Remove-Item -Recurse -Force $meteorInstallDir }
+            Copy-Item -Path $meteorDir.FullName -Destination $meteorInstallDir -Recurse -Force
+          }
+          "$env:LOCALAPPDATA\.meteor" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Verify toolchain
+        shell: pwsh
+        run: |
+          node -v
+          npm -v
+          meteor --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply compatibility patches
+        run: node .scripts/patch-ledger-exports.js
+
+      - name: Verify electrify patch state
+        run: node .scripts/verify-electrify-patches.js
+
+      - name: Verify qrllib worker assets
+        run: npm run verify:qrllib-worker
+
+      - name: Test qrllib wallet compatibility
+        run: node --test tests/qrllib-compatibility.test.cjs
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Clean dist directory
+        run: node -e "const fs=require('fs');fs.rmSync('.electrify/.dist',{recursive:true,force:true});fs.mkdirSync('.electrify/.dist',{recursive:true});"
+
+      - name: Cache Meteor build artifacts
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          # Meteor's build cache (isopacks / bundler-cache / plugin-cache) so the
+          # bundle + minify phases aren't cold on every run.
+          path: .meteor/local
+          key: meteor-local-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('.meteor/packages', '.meteor/versions', '.meteor/release', 'package-lock.json', '.electrify/package-lock.json') }}
+          restore-keys: |
+            meteor-local-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: Package desktop app
+        if: runner.os != 'Windows'
+        timeout-minutes: 90
+        env:
+          # Emits per-phase build timings periodically. Doubles as a heartbeat:
+          # in non-TTY CI Meteor suppresses its spinner, so this is what tells a
+          # slow-but-alive build apart from a genuinely stuck one.
+          METEOR_PROFILE: 1000
+        run: node node_modules/@theqrl/electrify-qrl/bin/cli.js package -o .electrify/.dist --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      # Windows stalls in Meteor's `prepareProjectForBuild` phase with zero output.
+      # Run the packager as a background job and print a 30s heartbeat so we can tell
+      # a slow-but-progressing build (.meteor/local file count/size keeps growing,
+      # node burning CPU) from a genuine deadlock (frozen counts, idle process).
+      - name: Package desktop app (Windows, instrumented)
+        if: runner.os == 'Windows'
+        timeout-minutes: 90
+        shell: pwsh
+        env:
+          METEOR_PROFILE: 1000
+        run: |
+          Write-Host '--- Windows Defender exclusions in effect ---'
+          $ex = (Get-MpPreference).ExclusionPath
+          if ($ex) { $ex | ForEach-Object { Write-Host "  $_" } } else { Write-Host '  (none - exclusion did NOT apply)' }
+
+          $local = Join-Path $env:GITHUB_WORKSPACE '.meteor\local'
+          $arch = '${{ matrix.arch }}'
+          $build = Start-Job -ScriptBlock {
+            Set-Location $using:env:GITHUB_WORKSPACE
+            $env:METEOR_PROFILE = '1000'
+            node node_modules/@theqrl/electrify-qrl/bin/cli.js package -o .electrify/.dist --platform win32 --arch $using:arch 2>&1
+            if ($LASTEXITCODE -ne 0) { throw "packager exited with code $LASTEXITCODE" }
+          }
+
+          while ($build.State -eq 'Running') {
+            $c = 0; $mb = 0
+            if (Test-Path $local) {
+              $f = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue $local
+              $c = ($f | Measure-Object).Count
+              $mb = [math]::Round((($f | Measure-Object -Property Length -Sum).Sum) / 1MB, 1)
+            }
+            $procs = (Get-Process node, mongod -ErrorAction SilentlyContinue |
+              ForEach-Object { "$($_.ProcessName)#$($_.Id) cpu=$([math]::Round($_.CPU,0))s ws=$([math]::Round($_.WorkingSet64/1MB,0))MB" }) -join '; '
+            Write-Host ("[hb {0}] .meteor/local files={1} sizeMB={2} | procs: {3}" -f (Get-Date -Format HH:mm:ss), $c, $mb, $procs)
+            Receive-Job $build
+            Start-Sleep -Seconds 30
+          }
+          Receive-Job $build
+          if ($build.State -ne 'Completed') { throw "packager job ended in state: $($build.State)" }
+
+      - name: Harden packaged app
+        run: node .scripts/harden-electron-package.js --platform=${{ matrix.platform }}
+
+      - name: Build installer
+        run: node .scripts/build-installer.js --platform=${{ matrix.platform }} --arch=${{ matrix.arch }}
+
+      - name: Build portable zip (Windows)
+        if: matrix.platform == 'win32'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = node -p "require('./package.json').version"
+          $bundleDir = ".electrify/.dist/QRLWallet-win32-${{ matrix.arch }}"
+          $zipPath = ".electrify/.dist/installers/QRLWallet-$version-win32-${{ matrix.arch }}-portable.zip"
+          if (-not (Test-Path $bundleDir)) { throw "Missing bundle directory: $bundleDir" }
+          if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+          tar -a -c -f $zipPath -C ".electrify/.dist" "QRLWallet-win32-${{ matrix.arch }}"
+
+      - name: Upload release artifacts (Windows installer)
+        if: matrix.platform == 'win32'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: .electrify/.dist/installers/**
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Upload release artifacts (non-Windows)
+        if: matrix.platform != 'win32'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            .electrify/.dist/QRLWallet-${{ matrix.platform }}-${{ matrix.arch }}/**
+            .electrify/.dist/installers/**
+          include-hidden-files: true
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish Release Assets
+    runs-on: ubuntu-24.04
+    needs: release-build
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    # The only job that may write to the release. Attach a protected GitHub
+    # environment to this job to require reviewed approval before publication.
+    #
+    # Job-level permissions REPLACE the workflow-level block rather than merging
+    # with it, so actions: read has to be restated here.
+    permissions:
+      actions: read
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+    steps:
+      - name: Download matrix artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: qrlwallet-release-*
+          path: release-artifacts
+
+      - name: Show collected release assets
+        run: |
+          find release-artifacts -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.pacman' -o -name '*.exe' -o -name '*-portable.zip' \) -print | sort
+
+      - name: Upload assets to GitHub release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          generate_release_notes: true
+          prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
+          files: |
+            release-artifacts/**/*.dmg
+            release-artifacts/**/*.deb
+            release-artifacts/**/*.pacman
+            release-artifacts/**/*-portable.zip
+            release-artifacts/**/*.exe

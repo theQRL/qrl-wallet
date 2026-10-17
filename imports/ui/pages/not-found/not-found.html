@@ -1,17 +1,17 @@
 <template name="appNotFound">
-<div class="ui container">
-  <div id="not-found" class="ui centered stackable grid">
-    <div class="three wide column">
-      <img src="/img/404.svg" alt="" />
-    </div>
-    <div class="two wide column">&nbsp;</div>
-    <div class="eight wide column">
-      <div class="ui hidden divider"></div>
-      <h1>:(</h1>
-      <h1>Sorry, that page doesn't exist</h1>
-      <div class="ui hidden divider"></div>
-      <a href="/" class="gotohomepage ui button">QRL Wallet Homepage</a>
+  <div class="min-h-[60vh] flex items-center justify-center">
+    <div class="card-gradient max-w-2xl w-full">
+      <div class="card-body md:flex-row items-center gap-8">
+        <img src="/img/404.svg" alt="Page not found" class="w-44 h-auto opacity-90" />
+        <div>
+          <p class="text-sm uppercase tracking-wider text-base-content/60">404</p>
+          <h1 class="text-2xl md:text-3xl font-bold mt-1">Sorry, that page does not exist</h1>
+          <p class="text-base-content/70 mt-2">The link may be out of date or mistyped.</p>
+          <div class="mt-6">
+            <a href="/" class="btn btn-primary">QRL Wallet Homepage</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 </template>

@@ -3,21 +3,17 @@
 /* eslint no-global-assign: 0 */
 /* eslint no-unused-vars: 0 */
 /* eslint max-len: 0 */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global  getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import './nodes.js'
 
 // Define amount of SHOR contained per QUANTA (10^9)
-SHOR_PER_QUANTA = 1000000000
+globalThis.SHOR_PER_QUANTA = 1000000000
 
 // qrl-wallet Version
-WALLET_VERSION = '1.8.1'
+globalThis.WALLET_VERSION = '1.9.2'
 
 // qrl.proto sha256 sum for each release of QRL Node
-QRLPROTO_SHA256 = [
+globalThis.QRLPROTO_SHA256 = [
   {
     version: '1.0.0',
     protoSha256:
@@ -236,6 +232,15 @@ QRLPROTO_SHA256 = [
     objectSha256:
       '31aecf09345df75e08f2bb406df3f06dc6e438ab85989ed213884f040ca8c8d9',
   },
+  {
+    version: '4.0.0 python',
+    protoSha256:
+      '0d70a3372c4668a1bf4fd42983ae01f2e0fb54b4030b808bbea78e5adadb23f0',
+    objectSha256:
+      'b1de7b4968bb3605a00670d9c946b993017c17d5cd12d8fedb1ac5c47ea2ef76',
+    walletProto:
+      'b1de7b4968bb3605a00670d9c946b993017c17d5cd12d8fedb1ac5c47ea2ef76',
+  },
   // testnet public release
   {
     version: '0.2.0 python',
@@ -247,7 +252,7 @@ QRLPROTO_SHA256 = [
 ]
 
 // function to get shasum of qrl node version
-getQrlProtoShasum = (nodeVersion, callback) => {
+globalThis.getQrlProtoShasum = (nodeVersion, callback) => {
   let itemsProcessed = 0
   QRLPROTO_SHA256.forEach((qrlnode, index, array) => {
     itemsProcessed += 1
@@ -265,7 +270,7 @@ getQrlProtoShasum = (nodeVersion, callback) => {
 }
 
 // Function to cleanly represent large decimal numbers without exponentional formatting.
-numberToString = (num) => {
+globalThis.numberToString = (num) => {
   const math = require('mathjs') //eslint-disable-line
   return math.format(num, {
     notation: 'fixed',
@@ -275,7 +280,7 @@ numberToString = (num) => {
 }
 
 // Convert decimal value to binary
-decimalToBinary = (decimalNumber) => {
+globalThis.decimalToBinary = (decimalNumber) => {
   const binaryArray = []
   while (decimalNumber >= 1) {
     binaryArray.unshift(decimalNumber % 2)

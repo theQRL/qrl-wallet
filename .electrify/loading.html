@@ -1,28 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>QRL Wallet - Loading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRL Wallet - Loading</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #0b181e;
+    }
+
+    body {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .bg-rotator {
+      position: absolute;
+      inset: -25%;
+      background: url("assets/light-blue-10.png") center/cover no-repeat;
+      opacity: 0.2;
+      transform-origin: center;
+      animation: slow-spin 18s linear infinite;
+      filter: saturate(2) brightness(1.56) contrast(1.34);
+      mix-blend-mode: normal;
+      pointer-events: none;
+    }
+
+    .bg-rotator-secondary {
+      position: absolute;
+      inset: -30%;
+      background: url("assets/light-blue-10.png") center/cover no-repeat;
+      opacity: 0.2;
+      transform-origin: center;
+      animation: slow-spin-reverse 24s linear infinite;
+      filter: hue-rotate(20deg) saturate(2.1) brightness(1.42) contrast(1.24) blur(0.45px);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .bg-color-sweep {
+      position: absolute;
+      inset: -40%;
+      background: conic-gradient(from 0deg, rgba(255, 167, 41, 0.22), rgba(74, 175, 255, 0.2), rgba(82, 58, 226, 0.16), rgba(255, 167, 41, 0.22));
+      opacity: 0.65;
+      animation: sweep-spin 14s linear infinite;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+
+    .bg-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(11, 24, 30, 0.01), rgba(11, 24, 30, 0.38) 72%);
+      pointer-events: none;
+    }
+
+    .loading-logo {
+      position: relative;
+      width: 240px;
+      max-width: 92vw;
+      height: auto;
+      z-index: 1;
+      filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
+    }
+
+    @keyframes slow-spin {
+      from {
+        transform: rotate(0deg) scale(2.16);
+      }
+      to {
+        transform: rotate(360deg) scale(2.16);
+      }
+    }
+
+    @keyframes slow-spin-reverse {
+      from {
+        transform: rotate(360deg) scale(2.24);
+      }
+      to {
+        transform: rotate(0deg) scale(2.24);
+      }
+    }
+
+    @keyframes sweep-spin {
+      from {
+        transform: rotate(0deg) scale(1.18);
+      }
+      to {
+        transform: rotate(360deg) scale(1.18);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bg-rotator {
+        animation: none;
+      }
+      .bg-rotator-secondary {
+        animation: none;
+      }
+      .bg-color-sweep {
+        animation: none;
+      }
+    }
+  </style>
 </head>
-<body style="background-color: #0b181e;">
-	<img src="loading.png" alt="QRL Wallet Loading" style="width: 800px;"/>
-	<script type="text/javascript">
-		var pageTitle = "QRL Wallet - Loading";
-		var counter = 0;
-		window.setInterval(function(){
-			counter += 1;
+<body>
+  <div class="bg-rotator" aria-hidden="true"></div>
+  <div class="bg-rotator-secondary" aria-hidden="true"></div>
+  <div class="bg-color-sweep" aria-hidden="true"></div>
+  <div class="bg-vignette" aria-hidden="true"></div>
+  <img src="assets/yellow.svg" alt="QRL Wallet Loading" class="loading-logo" onerror="this.onerror=null;this.src='loading.png';" />
+  <script type="text/javascript">
+    var pageTitle = "QRL Wallet - Loading";
+    var counter = 0;
+    window.setInterval(function () {
+      counter += 1;
 
-			var dots = "";
-			for (var i = 0; i < counter; i++) { 
-			    dots = dots + ".";
-			}
+      var dots = "";
+      for (var i = 0; i < counter; i++) {
+        dots += ".";
+      }
 
-			document.title = dots + " " + pageTitle + " " + dots;
+      document.title = dots + " " + pageTitle + " " + dots;
 
-			if(counter == 4) {
-				counter = 0;
-			}
-		}, 1000);
-	</script>
+      if (counter === 4) {
+        counter = 0;
+      }
+    }, 1000);
+  </script>
 </body>
 </html>

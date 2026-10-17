@@ -2,22 +2,128 @@
 /* eslint no-global-assign: 0 */
 /* eslint max-len: 0 */
 /* eslint no-unused-vars: 0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse, TransportStatusError */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 import _ from 'underscore'
 import qrlNft from '@theqrl/nft-providers'
 import aes256 from 'aes256'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
 import helpers, { tokens } from '@theqrl/explorer-helpers'
 import BetterStorage from 'meteor-better-storage'
-import 'babel-polyfill'
 import Qrl from '@theqrl/hw-app-qrl'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
-bech32 = require('bech32') // eslint-disable-line
+const LEDGER_OTS_RECHECK_INTERVAL_MS = 3000
+let ledgerOtsRecheckInterval = null
+
+const getLedgerResponseCode = (ledgerState) => {
+  const responseCode = parseInt((ledgerState && ledgerState.return_code), 10)
+  return Number.isInteger(responseCode) ? responseCode : 0
+}
+
+const ledgerStateHasUsableOts = (ledgerState) => {
+  if (!ledgerState) {
+    return false
+  }
+  const responseCode = getLedgerResponseCode(ledgerState)
+  if (responseCode !== 0) {
+    return false
+  }
+  const currentIndex = parseInt(ledgerState.xmss_index, 10)
+  if (!Number.isInteger(currentIndex) || currentIndex < 0) {
+    return false
+  }
+  const appState = parseInt(ledgerState.state, 10)
+  if (Number.isInteger(appState) && appState !== 2) {
+    return false
+  }
+  return true
+}
+
+const ledgerStateNeedsUnlock = (ledgerState) => {
+  const responseCode = getLedgerResponseCode(ledgerState)
+  if (responseCode === 26628 || responseCode === 28160 || responseCode === 28161) {
+    return true
+  }
+  const errorMessage = String(
+    (ledgerState && ledgerState.error_message) || ''
+  ).toLowerCase()
+  return (
+    errorMessage.includes('lock')
+    || errorMessage.includes('conditions of use not satisfied')
+    || errorMessage.includes('app does not seem to be open')
+  )
+}
+
+const stopLedgerOtsRecheck = () => {
+  if (ledgerOtsRecheckInterval !== null) {
+    Meteor.clearInterval(ledgerOtsRecheckInterval)
+    ledgerOtsRecheckInterval = null
+  }
+  Session.set('ledgerOtsAwaitingUnlock', false)
+}
+
+const setLedgerOtsSessions = (walletAddress, xmssIndex) => {
+  const parsedIndex = parseInt(xmssIndex, 10)
+  if (!Number.isInteger(parsedIndex) || parsedIndex < 0) {
+    return false
+  }
+
+  let totalSignatures = 0
+  try {
+    const validationResult = qrlAddressValdidator.hexString(walletAddress)
+    totalSignatures = parseInt(validationResult.sig.number, 10)
+  } catch (error) {
+    totalSignatures = 0
+  }
+
+  Session.set('otsKeyEstimate', parsedIndex)
+  Session.set(
+    'otsKeysRemaining',
+    Math.max(0, totalSignatures - parsedIndex)
+  )
+  // Ledger tracks consumed signatures internally and only exposes current index.
+  Session.set('otsBitfield', {})
+
+  const walletStatus = Session.get('walletStatus') || {}
+  if (walletStatus.walletType === 'ledger') {
+    Session.set(
+      'walletStatus',
+      Object.assign({}, walletStatus, { xmss_index: parsedIndex })
+    )
+  }
+  return true
+}
+
+const requestLedgerState = (callback) => {
+  if (isElectrified()) {
+    Meteor.call('ledgerGetState', [], (err, data) => {
+      callback(err, data)
+    })
+    return
+  }
+
+  createTransport()
+    .then((ledgerTransport) => ledgerTransport.get_state())
+    .then((data) => callback(null, data))
+    .catch((error) => callback(error, null))
+}
+
+const scheduleLedgerOtsRecheck = (walletAddress) => {
+  Session.set('ledgerOtsAwaitingUnlock', true)
+  if (ledgerOtsRecheckInterval !== null) {
+    return
+  }
+  ledgerOtsRecheckInterval = Meteor.setInterval(() => {
+    requestLedgerState((err, data) => {
+      if (err || !ledgerStateHasUsableOts(data)) {
+        return
+      }
+      if (setLedgerOtsSessions(walletAddress, data.xmss_index)) {
+        stopLedgerOtsRecheck()
+        updateBalanceField()
+      }
+    })
+  }, LEDGER_OTS_RECHECK_INTERVAL_MS)
+}
 
 export function ledgerReturnedError(e) {
   let r = false
@@ -135,11 +241,11 @@ getMnemonicOfFirstAddress = (walletObject, passphrase) => {
 
 // Fetchs XMSS details from the global XMSS_OBJECT variable or saved ledger values
 getXMSSDetails = () => {
-  const walletStatus = Session.get('walletStatus')
+  const walletStatus = Session.get('walletStatus') || {}
 
   let xmssDetail
 
-  if (walletStatus.walletType === 'ledger') {
+  if (walletStatus.walletType === 'ledger' && walletStatus.address && walletStatus.pubkey) {
     const thisAddress = walletStatus.address
     const thisPk = walletStatus.pubkey
     const thisAddressB32 = pkRawToB32Address(QRLLIB.hstr2bin(thisPk))
@@ -161,7 +267,7 @@ getXMSSDetails = () => {
       index: walletStatus.xmss_index,
       walletType: 'ledger',
     }
-  } else {
+  } else if (XMSS_OBJECT) {
     const thisAddress = XMSS_OBJECT.getAddress()
     const thisPk = XMSS_OBJECT.getPK()
     const thisPkRaw = XMSS_OBJECT.getPKRaw()
@@ -184,9 +290,70 @@ getXMSSDetails = () => {
       index: 0,
       walletType: 'seed',
     }
+  } else {
+    const generatedWalletDetails = Session.get('generatedWalletDetails') || {}
+    xmssDetail = {
+      address: generatedWalletDetails.address || '',
+      addressB32: generatedWalletDetails.addressB32 || '',
+      pk: generatedWalletDetails.pk || '',
+      hexseed: generatedWalletDetails.hexseed || '',
+      mnemonic: generatedWalletDetails.mnemonic || '',
+      height: generatedWalletDetails.height || 0,
+      hashFunction: generatedWalletDetails.hashFunction || 0,
+      signatureType: generatedWalletDetails.signatureType || 0,
+      index: Number.isInteger(generatedWalletDetails.index) ? generatedWalletDetails.index : 0,
+      walletType: generatedWalletDetails.walletType || 'seed',
+    }
   }
 
   return xmssDetail
+}
+
+markLocalOtsKeyAsConsumed = (otsKey) => {
+  const parsedOtsKey = parseInt(otsKey, 10)
+  if (!Number.isInteger(parsedOtsKey) || parsedOtsKey < 0) {
+    return
+  }
+
+  const updatedOtsBitfield = Object.assign({}, Session.get('otsBitfield') || {})
+  updatedOtsBitfield[parsedOtsKey] = 1
+  Session.set('otsBitfield', updatedOtsBitfield)
+
+  const currentEstimate = parseInt(Session.get('otsKeyEstimate'), 10)
+  if (Number.isInteger(currentEstimate)) {
+    Session.set('otsKeyEstimate', Math.max(currentEstimate, parsedOtsKey + 1))
+  } else {
+    Session.set('otsKeyEstimate', parsedOtsKey + 1)
+  }
+
+  const currentRemaining = parseInt(Session.get('otsKeysRemaining'), 10)
+  if (Number.isInteger(currentRemaining)) {
+    Session.set('otsKeysRemaining', Math.max(0, currentRemaining - 1))
+  }
+
+  const otsInput = document.getElementById('otsKey')
+  if (otsInput) {
+    otsInput.value = parsedOtsKey + 1
+  }
+}
+
+advanceSeedOtsAfterRelayFailure = (confirmationSessionKey) => {
+  const xmssDetails = getXMSSDetails() || {}
+  if (xmssDetails.walletType !== 'seed') {
+    return
+  }
+
+  const confirmation = Session.get(confirmationSessionKey) || {}
+  const usedOtsKey = parseInt(confirmation.otsKey, 10)
+  if (!Number.isInteger(usedOtsKey) || usedOtsKey < 0) {
+    return
+  }
+
+  markLocalOtsKeyAsConsumed(usedOtsKey)
+  Session.set(
+    confirmationSessionKey,
+    Object.assign({}, confirmation, { otsKey: usedOtsKey + 1 })
+  )
 }
 
 // Check if a wallet is deprecated
@@ -216,6 +383,8 @@ isWalletFileDeprecated = (wallet) => {
 }
 
 resetWalletStatus = () => {
+  stopLedgerOtsRecheck()
+  XMSS_OBJECT = null
   const status = {}
   status.colour = 'red'
   status.string = 'No wallet has been opened.'
@@ -256,6 +425,7 @@ resetWalletStatus = () => {
   Session.set('tokenList', [])
   Session.set('tokensHeld', [])
   Session.set('tokensHeldFiltered', [])
+  Session.set('generatedWalletDetails', null)
 }
 
 passwordPolicyValid = (password) => {
@@ -408,14 +578,15 @@ supportedBrowser = () => {
 
 // Wrapper for Meteor.call
 wrapMeteorCall = (method, request, callback) => {
-  // Modify network to gRPC endpoint for custom/localhost settings
-  if (request.network === 'localhost') {
-    // Override network to localhost
-    request.network = 'localhost:19009'
-  }
-  if (request.network === 'custom') {
-    // Override network to localhost
-    request.network = LocalStore.get('customNodeGrpc')
+  if (request && typeof request === 'object' && !Array.isArray(request)) {
+    // Modify network to gRPC endpoint for custom/localhost settings
+    if (request.network === 'localhost') {
+      request.network = 'localhost:19009'
+    }
+    if (request.network === 'custom') {
+      const customNodeGrpc = LocalStore.get('customNodeGrpc')
+      request.network = (typeof customNodeGrpc === 'string') ? customNodeGrpc.trim() : ''
+    }
   }
 
   Meteor.call(method, request, (err, res) => {
@@ -460,6 +631,10 @@ getBalance = (getAddress, callBack) => {
   const request = {
     address: addressForAPI(getAddress),
     network: selectedNetwork(),
+  }
+  const walletType = (getXMSSDetails() || {}).walletType
+  if (walletType !== 'ledger') {
+    stopLedgerOtsRecheck()
   }
 
   wrapMeteorCall('getAddressState', request, async (err, res) => {
@@ -511,49 +686,52 @@ getBalance = (getAddress, callBack) => {
             Session.set('otsKeyEstimate', res.ots.nextKey)
           }
         })
-      } else if (getXMSSDetails().walletType === 'ledger') {
+      } else if (walletType === 'ledger') {
         // Collect next OTS key from Ledger Device
-        // Whilst technically we may have unused ones - we
-        // prefer to rely on state tracked in ledger device
         console.log('-- Getting QRL Ledger Nano App State --')
-        if (isElectrified()) {
-          const retry = Meteor.setInterval(() => {
-            Meteor.call('ledgerGetState', [], (gsErr, data) => {
-              if (data.error_message !== 'Timeout') {
-                console.log('> Got Ledger Nano State from USB')
-                Session.set('otsKeyEstimate', data.xmss_index)
-                // Get remaining OTS Keys
-                const validationResult = qrlAddressValdidator.hexString(getAddress)
-                const totalSignatures = validationResult.sig.number
-                const keysRemaining = totalSignatures - data.xmss_index
-                // Set keys remaining
-                Session.set('otsKeysRemaining', keysRemaining)
-
-                // Store OTS Bitfield in session
-                Session.set('otsBitfield', res.ots.keys)
-                Meteor.clearInterval(retry)
-                callBack()
-              }
-            })
-          }, 2000)
-        } else {
-          const QrlLedger = await createTransport()
-          QrlLedger.get_state().then((data) => {
-            console.log('> Got Ledger Nano State from WebUSB')
-            Session.set('otsKeyEstimate', data.xmss_index)
-            // Get remaining OTS Keys
-            const validationResult = qrlAddressValdidator.hexString(getAddress)
-            const totalSignatures = validationResult.sig.number
-            const keysRemaining = totalSignatures - data.xmss_index
-            // Set keys remaining
-            Session.set('otsKeysRemaining', keysRemaining)
-
-            // Store OTS Bitfield in session
-            Session.set('otsBitfield', res.ots.keys)
-
+        let callbackSent = false
+        const finishLedgerLoad = () => {
+          if (callbackSent) {
+            return
+          }
+          callbackSent = true
+          if (typeof callBack === 'function') {
             callBack()
-          })
+          }
         }
+
+        const cachedLedgerIndex = parseInt(
+          (Session.get('walletStatus') || {}).xmss_index,
+          10
+        )
+        if (Number.isInteger(cachedLedgerIndex) && cachedLedgerIndex >= 0) {
+          setLedgerOtsSessions(getAddress, cachedLedgerIndex)
+        } else {
+          Session.set('otsBitfield', {})
+        }
+
+        requestLedgerState((ledgerErr, ledgerState) => {
+          if (!ledgerErr && ledgerStateHasUsableOts(ledgerState)) {
+            console.log('> Got Ledger Nano State from device')
+            setLedgerOtsSessions(getAddress, ledgerState.xmss_index)
+            stopLedgerOtsRecheck()
+            finishLedgerLoad()
+            return
+          }
+
+          if (ledgerErr) {
+            console.log('-- Unable to read Ledger state while loading OTS --')
+            console.log(ledgerErr)
+          } else if (ledgerStateNeedsUnlock(ledgerState)) {
+            console.log('-- Ledger is locked; waiting for unlock to refresh OTS state --')
+          } else {
+            console.log('-- Ledger state unavailable; waiting for device state recovery to refresh OTS --')
+            console.log(ledgerState)
+          }
+
+          scheduleLedgerOtsRecheck(getAddress)
+          finishLedgerLoad()
+        })
       }
     }
     updateBalanceField()
@@ -565,6 +743,121 @@ otsIndexUsed = (otsBitfield, index) => {
     return true
   }
   return false
+}
+
+// Last-line check before a signature is produced, and the reuse modal to match.
+//
+// The create/generate step already checks the chosen index, but the user then
+// sits on a confirmation screen - during which the same index can be consumed by
+// another tab, or by going back and sending something else. Once XMSS_OBJECT
+// signs, that one-time key is spent and reuse discloses it, so the check has to
+// run again immediately before signing rather than only at generate time.
+//
+// Returns true when signing must be abandoned.
+otsKeyReuseBlocksSigning = (otsKey) => {
+  if (!otsIndexUsed(Session.get('otsBitfield') || {}, otsKey)) {
+    return false
+  }
+
+  if ((getXMSSDetails() || {}).walletType === 'ledger') {
+    window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
+  } else {
+    window.walletUi.showModal('#otsKeyReuseDetected')
+  }
+  return true
+}
+
+// Total OTS keys the open address can ever sign with: 2^(XMSS tree height).
+otsKeysTotal = () => {
+  const height = parseInt((getXMSSDetails() || {}).height, 10)
+  if (!Number.isInteger(height) || height <= 0) {
+    return 0
+  }
+  return 2 ** height
+}
+
+// Shared rules for the OTS Key Index field. An index at or above the tree's key
+// count can never be signed by the node, so the transaction would sit pending
+// forever if we let it through.
+otsKeyValidationRules = () => {
+  const rules = [
+    {
+      type: 'empty',
+      prompt: 'You must enter an OTS Key Index',
+    },
+    {
+      type: 'number',
+      prompt: 'OTS Key Index must be a number',
+    },
+    {
+      type: 'integer',
+      prompt: 'OTS Key Index must be a whole number',
+    },
+    {
+      type: 'min[0]',
+      prompt: 'OTS Key Index cannot be negative',
+    },
+  ]
+
+  const keysTotal = otsKeysTotal()
+  if (keysTotal > 0) {
+    rules.push({
+      type: `max[${keysTotal - 1}]`,
+      prompt: `OTS Key Index must be between 0 and ${keysTotal - 1} for this address`,
+    })
+  }
+
+  return rules
+}
+
+// Shared rules for the transaction fee field. maxDecimals is opt-in as only the
+// forms that register that rule can enforce it.
+feeValidationRules = ({ maxDecimals = false } = {}) => {
+  const rules = [
+    {
+      type: 'empty',
+      prompt: 'You must enter a fee',
+    },
+    {
+      type: 'number',
+      prompt: 'Fee must be a number',
+    },
+    {
+      type: 'min[0]',
+      prompt: 'Fee cannot be negative',
+    },
+  ]
+
+  if (maxDecimals) {
+    rules.push({
+      type: 'maxDecimals',
+      prompt: 'You can only enter up to 9 decimal places in the fee field',
+    })
+  }
+
+  rules.push({
+    type: 'withinBalance',
+    prompt: 'Fee is greater than the balance of this address',
+  })
+
+  return rules
+}
+
+// A fee the address cannot cover is relayed but never mined, leaving the
+// transaction pending forever while the OTS key it consumed is already spent.
+// Balance loads asynchronously, so an unknown balance must not block submission.
+if (typeof window !== 'undefined' && window.walletUi) {
+  window.walletUi.addFormRule('withinBalance', (value) => {
+    const amount = Number(value)
+    if (!Number.isFinite(amount)) {
+      return true
+    }
+    const balance = Number(Session.get('transferFromBalance'))
+    if (!Number.isFinite(balance)) {
+      return true
+    }
+    return amount <= balance
+  })
 }
 
 loadAddressTransactions = (a, p) => {
@@ -840,7 +1133,7 @@ refreshTransferPage = (callback) => {
       $('#tokenBalancesLoading').hide()
 
       // Render dropdown
-      $('.ui.dropdown').dropdown()
+      window.walletUi.initDropdowns('select')
     })
     // Get address balance
     getBalance(getXMSSDetails().address, function () {
@@ -867,23 +1160,20 @@ refreshTransferPage = (callback) => {
 ledgerHasNoTokenSupport = () => {
   // Ledger Nano not supported here.
   if (getXMSSDetails().walletType === 'ledger') {
-    $('#ledgerNotSupported')
-      .modal('transition', 'disable')
-      .modal({
-        onApprove: () => {
-          const reloadPath = FlowRouter.path('/transfer', {})
-          FlowRouter.go(reloadPath)
-        },
-        onHide: () => {
-          const reloadPath = FlowRouter.path('/transfer', {})
-          FlowRouter.go(reloadPath)
-        },
-        onDeny: () => {
-          const reloadPath = FlowRouter.path('/transfer', {})
-          FlowRouter.go(reloadPath)
-        },
-      })
-      .modal('show')
+    window.walletUi.showModal('#ledgerNotSupported', {
+      onApprove: () => {
+        const reloadPath = FlowRouter.path('/transfer', {})
+        FlowRouter.go(reloadPath)
+      },
+      onHide: () => {
+        const reloadPath = FlowRouter.path('/transfer', {})
+        FlowRouter.go(reloadPath)
+      },
+      onDeny: () => {
+        const reloadPath = FlowRouter.path('/transfer', {})
+        FlowRouter.go(reloadPath)
+      },
+    })
   }
 }
 
@@ -1214,6 +1504,17 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
       logRequestResponse(request, response)
       return false
     }
+    // The loops below only walk the request's entries, so without an exact
+    // cardinality check a node could append an extra signatory and weight that
+    // never get compared but do enter the signed digest.
+    if (
+      request.signatories.length !== response.outputs.length
+      || request.weights.length !== response.outputs.length
+    ) {
+      console.log('Transaction Validation - Signatories length mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
     let testOutputs = true
     _.each(request.signatories, (item, index) => {
       if (
@@ -1232,10 +1533,12 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     if (testOutputs === false) {
       return false
     }
+    // A lowered threshold weakens the multisig authorisation policy, so this
+    // must reject rather than fall through to the return true below.
     if (request.threshold !== response.threshold) {
       console.log('Transaction Validation - Threshold mismatch')
       logRequestResponse(request, response)
-      testOutputs = false
+      return false
     }
     if (!Buffer.from(request.xmssPk).equals(Buffer.from(response.xmssPk))) {
       console.log('Transaction Validation - XMSS PK mismatch')
@@ -1256,6 +1559,16 @@ nodeReturnedValidResponse = (request, response, type, tokenDecimals = 0) => {
     }
     if (!Buffer.from(request.master_addr).equals(Buffer.from(response.from))) {
       console.log('Transaction Validation - Creator mismatch')
+      logRequestResponse(request, response)
+      return false
+    }
+    // As with create, an appended output would never be compared by the loop
+    // below but would still be signed and relayed.
+    if (
+      request.addrs_to.length !== response.outputs.length
+      || request.amounts.length !== response.outputs.length
+    ) {
+      console.log('Transaction Validation - Outputs length mismatch')
       logRequestResponse(request, response)
       return false
     }

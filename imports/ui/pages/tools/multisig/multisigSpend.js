@@ -1,8 +1,4 @@
 /* eslint no-console:0, max-len:0 */
-/* global getXMSSDetails, anyAddressToRawAddress, hexToBytes, SHOR_PER_QUANTA,
-selectedNetwork, wrapMeteorCall, nodeReturnedValidResponse, XMSS_OBJECT, concatenateTypedArrays,
-toUint8Vector, toBigendianUint64BytesUnsigned, binaryToBytes, POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, hexOrB32,
-refreshTransferPage */
 
 import helpers from '@theqrl/explorer-helpers'
 import qrlAddressValdidator from '@theqrl/validate-qrl-address'
@@ -274,6 +270,17 @@ function generateTransaction() {
   const sendAmounts = document.getElementsByName('amounts[]')
   const expiryBlock = parseInt(document.getElementById('expiry').value, 10)
   const msFrom = anyAddressToRawAddress(Session.get('multisigTransferFromAddress'))
+  // Fail if OTS Key reuse is detected. Signing twice with the same index
+  // discloses the XMSS one-time key, so this must gate every signing action.
+  if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
+    $('#generating').hide()
+    if (getXMSSDetails().walletType === 'ledger') {
+      window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
+    } else {
+      window.walletUi.showModal('#otsKeyReuseDetected')
+    }
+    return
+  }
 
   // Capture outputs
   const thisAddressesTo = []
@@ -292,7 +299,7 @@ function generateTransaction() {
   } else {
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('One or more of the recipients is invalid: please check the addresses carefully')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -315,7 +322,7 @@ function generateTransaction() {
     console.log('Insufficient balance in wallet for transaction fee')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('Insufficient balance in wallet for transaction fee')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -327,7 +334,7 @@ function generateTransaction() {
     console.log('Insufficient balance in multisig wallet for the outputs listed')
     $('#checkWeightsModal .message .header').text('There\'s a problem')
     $('#checkWeightsModal p').text('There are not enough funds in the multisig wallet for this transaction')
-    $('#checkWeightsModal').modal('show')
+    window.walletUi.showModal('#checkWeightsModal')
     return
   }
 
@@ -407,7 +414,7 @@ function generateTransaction() {
         // Hide generating component
         $('#generating').hide()
         // Show warning modal
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -419,6 +426,14 @@ function confirmTransaction() {
 
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
+    // Re-check reuse at the point of signing, not only at generate time: the
+    // user may have sat on this screen while that index was consumed
+    // elsewhere. Once the key signs, reuse discloses it.
+    if (otsKeyReuseBlocksSigning(parseInt(Session.get('transactionConfirmation').otsKey, 10))) {
+      $('#relaying').hide()
+      return
+    }
+
     XMSS_OBJECT.setIndex(parseInt(Session.get('transactionConfirmation').otsKey, 10))
   }
 
@@ -499,11 +514,16 @@ function confirmTransaction() {
     tx.network = selectedNetwork()
 
     wrapMeteorCall('confirmMultiSigSpend', tx, (err, res) => {
-      if (res.error) {
+      if (err || !res || res.error) {
         $('#transactionConfirmation').hide()
         $('#transactionFailed').show()
 
-        Session.set('transactionFailed', res.error)
+        const errorMessage = (res && res.error)
+          || (err && (err.reason || err.message))
+          || 'Failed to relay transaction'
+        Session.set('transactionFailed', errorMessage)
+        advanceSeedOtsAfterRelayFailure('transactionConfirmation')
+        enableSendButton()
       } else {
         Session.set('transactionHash', txnHash)
         Session.set('transactionSignature', res.response.signature)
@@ -582,37 +602,26 @@ function initialiseFormValidation() {
   // Now set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter a fee',
-      },
-      {
-        type: 'number',
-        prompt: 'Fee must be a number',
-      },
-      {
-        type: 'maxDecimals',
-        prompt: 'You can only enter up to 9 decimal places in the fee field',
-      },
-    ],
+    rules: feeValidationRules({ maxDecimals: true }),
   }
   validationRules['otsKey'] = {
     id: 'otsKey',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter an OTS Key Index',
-      },
-      {
-        type: 'number',
-        prompt: 'OTS Key Index must be a number',
-      },
-    ],
+    rules: otsKeyValidationRules(),
   }
 
+  // The fee and amount fields request the maxDecimals rule. The rule engine
+  // treats an unregistered rule as passing, so without this registration the
+  // nine-decimal limit is silently unenforced on this page.
+  window.walletUi.addFormRule('maxDecimals', function (value) {
+    try {
+      return countDecimals(value) <= 9
+    } catch (e) {
+      return false
+    }
+  })
+
   // Address Validation
-  $.fn.form.settings.rules.qrlAddressValid = function (value) {
+  window.walletUi.addFormRule('qrlAddressValid', function (value) {
     try {
       const rawAddress = anyAddressToRawAddress(value)
       const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
@@ -621,10 +630,10 @@ function initialiseFormValidation() {
     } catch (e) {
       return false
     }
-  }
+  })
 
   // Initialise the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('#generateTransactionArea', {
     fields: validationRules,
   })
 }
@@ -634,7 +643,7 @@ Template.multisigSpend.events({
     Session.set('multisigTransferFromAddressSet', false)
     // call api to get addresses
     loadMultisigs(getXMSSDetails().address, 1)
-    $('#chooseSpendAddress').modal('show')
+    window.walletUi.showModal('#chooseSpendAddress')
   },
   'click #addTransferRecipient': (event) => {
     event.preventDefault()
@@ -646,10 +655,10 @@ Template.multisigSpend.events({
       <div>
         <div class="field">
           <label>Additional Recipient</label>
-          <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
+          <div class="grid gap-2 md:grid-cols-10" id="amountFields" style="width: 100%; margin-bottom: 10px;">
             <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
             <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
-            <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+            <button class="btn btn-error btn-sm removeTransferRecipient" style="width: 10%"><span aria-hidden="true">−</span></button>
           </div>
         </div>
       </div>
@@ -682,11 +691,21 @@ Template.multisigSpend.events({
   'click #generateTransaction': (event) => {
     event.preventDefault()
     event.stopPropagation()
+    // The fields live in #generateTransactionArea rather than a <form>, and on
+    // the spend/vote pages that container only renders once a multisig address
+    // has been chosen - so bind here, where it is guaranteed to exist. This
+    // action is a click rather than a submit, so the rules also have to be run
+    // explicitly: without this an empty or non-numeric fee reaches the node as
+    // NaN, and an out-of-range OTS index is never caught.
+    initialiseFormValidation()
+    if (!window.walletUi.validateBoundForm('#generateTransactionArea')) {
+      return
+    }
     generateTransaction()
   },
   'click #confirmTransaction': () => {
     $('#confirmTransaction').attr('disabled', true)
-    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
+    $('#confirmTransaction').html('<span class="loading loading-spinner loading-sm"></span>')
     setTimeout(() => { confirmTransaction() }, 200)
   },
   'click #quantaJsonClick': () => {
@@ -736,6 +755,6 @@ Template.msTable.events({
     Session.set('multisigTransferFromBalance', b)
     Session.set('multisigTransferFromAddressSet', true)
     estimateExpiry(true) // estimate expiry getting a fresh block height
-    $('#chooseSpendAddress').modal('hide')
+    window.walletUi.hideModal('#chooseSpendAddress')
   },
 })
