@@ -218,13 +218,20 @@ Template.appBody.onDestroyed(function onDestroyed() {
 })
 
 Template.appBody.events({
+  // The tracker grid has a cell per OTS key (4096 at tree height 12), so it is
+  // only rendered while its dialog is open. Kept in the page it made every
+  // restyle, such as opening the mobile drawer, slow enough to freeze phones.
   'click #openOtsTracker': (event) => {
     event.preventDefault()
     Session.set('otsTrackerData', buildOtsTrackerData())
+    Tracker.flush()
     const otsModal = document.getElementById('otsTrackerModal')
     if (otsModal) {
       otsModal.showModal()
     }
+  },
+  'close #otsTrackerModal': () => {
+    Session.set('otsTrackerData', null)
   },
   'click #saveCustomNode': () => {
     // Save custom node settings
@@ -364,7 +371,7 @@ Template.appBody.helpers({
 
   },
   otsTrackerData() {
-    return Session.get('otsTrackerData') || buildOtsTrackerData()
+    return Session.get('otsTrackerData')
   },
   balanceSymbol() {
     return Session.get('balanceSymbol')
