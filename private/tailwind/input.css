@@ -131,10 +131,9 @@
     background-color: var(--color-base-100);
   }
 
+  /* sticky/top/z-index are utilities on the element: DaisyUI's .navbar sets
+     position in @layer utilities, which beats anything set here */
   .wallet-mobile-bar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
     min-height: 4.25rem;
     padding-inline: 0.75rem;
     border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);

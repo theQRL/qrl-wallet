@@ -3085,6 +3085,9 @@
   .mr-1 {
     margin-right: var(--spacing);
   }
+  .mr-3 {
+    margin-right: calc(var(--spacing) * 3);
+  }
   @layer daisyui.l1.l2.l3 {
     .fieldset-legend {
       margin-bottom: calc(0.25rem * -1);
@@ -3406,9 +3409,6 @@
   .h-6 {
     height: calc(var(--spacing) * 6);
   }
-  .h-7 {
-    height: calc(var(--spacing) * 7);
-  }
   .h-8 {
     height: calc(var(--spacing) * 8);
   }
@@ -3473,9 +3473,6 @@
   }
   .w-6 {
     width: calc(var(--spacing) * 6);
-  }
-  .w-7 {
-    width: calc(var(--spacing) * 7);
   }
   .w-8 {
     width: calc(var(--spacing) * 8);
@@ -3720,10 +3717,6 @@
   .border-t {
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
-  }
-  .border-b {
-    border-bottom-style: var(--tw-border-style);
-    border-bottom-width: 1px;
   }
   @layer daisyui.l1.l2 {
     .badge-outline {
@@ -4015,9 +4008,6 @@
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
   }
-  .py-4 {
-    padding-block: calc(var(--spacing) * 4);
-  }
   .py-9 {
     padding-block: calc(var(--spacing) * 9);
   }
@@ -4035,9 +4025,6 @@
   }
   .pt-3 {
     padding-top: calc(var(--spacing) * 3);
-  }
-  .pb-24 {
-    padding-bottom: calc(var(--spacing) * 24);
   }
   .pl-10 {
     padding-left: calc(var(--spacing) * 10);
@@ -4447,9 +4434,6 @@
         background-color: color-mix(in oklab, var(--color-base-300) 45%, transparent);
       }
     }
-    .hover\:text-primary:hover {
-      color: var(--color-primary);
-    }
     .hover\:shadow-lg:hover {
       --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -4486,6 +4470,9 @@
     }
     .sm\:shrink-0 {
       flex-shrink: 0;
+    }
+    .sm\:grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .sm\:grid-cols-8 {
       grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -4685,9 +4672,6 @@
     background-color: var(--color-base-100);
   }
   .wallet-mobile-bar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
     min-height: 4.25rem;
     padding-inline: 0.75rem;
     border-bottom: 1px solid var(--color-base-content);

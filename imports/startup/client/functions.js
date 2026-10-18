@@ -166,6 +166,13 @@ export function isElectrified() {
   return false
 }
 
+// Whether the server permits custom nodes. Set by the server from its private
+// allowCustomNodes / lockCustomEndpoints settings; display only, as the server
+// refuses custom endpoints itself.
+export function customNodesEnabled() {
+  return Meteor.settings.public.customNodesEnabled === true
+}
+
 // Returns the selected node
 selectedNetwork = () => {
   const selectedNetwork = document.getElementById('network').value
