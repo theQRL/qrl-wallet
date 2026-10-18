@@ -4,7 +4,7 @@ import { BlazeLayout } from 'meteor/pwix:blaze-layout'
 import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 import { Tracker } from 'meteor/tracker'
 import { isChecked, isVisible } from '../../lib/dom'
-import { isElectrified } from '../../../startup/client/functions'
+import { customNodesEnabled, isElectrified } from '../../../startup/client/functions'
 
 BlazeLayout.setRoot('body')
 
@@ -92,13 +92,14 @@ const buildOtsTrackerData = () => {
   }
 }
 
-// TODO: refactor this -- duplicate code used in ../mobile/mobile.js
 // Set session state based on selected network node.
 const updateNetwork = (selectedNetwork) => {
   let userNetwork = selectedNetwork
 
-  // If no network is selected, default to mainnet
-  if (selectedNetwork === '') {
+  // If no network is selected, or a custom node is selected that the server no
+  // longer allows, default to mainnet
+  if (selectedNetwork === ''
+    || (!customNodesEnabled() && (selectedNetwork === 'add' || selectedNetwork === 'custom'))) {
     setNetworkSelect(DEFAULT_NETWORKS[0].id)
     userNetwork = DEFAULT_NETWORKS[0].id
   }
@@ -270,6 +271,12 @@ Template.appBody.events({
       setNetworkSelect(Session.get('nodeId') || DEFAULT_NETWORKS[0].id)
     }
   },
+  // On small screens the drawer overlays the page, and its links navigate
+  // without a reload, so close it or it stays open over the new page.
+  'click .drawer-side a': () => {
+    const drawerToggle = document.getElementById('wallet-drawer')
+    if (drawerToggle) drawerToggle.checked = false
+  },
   'change #addressFormatCheckbox': () => {
     const checked = isChecked('addressFormatCheckbox')
     if (checked) {
@@ -423,14 +430,13 @@ Template.appBody.helpers({
     return status
   },
   customNodeCreated() {
-    if (Meteor.settings && Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints) return false
     return LocalStore.get('customNodeCreated')
   },
   customNodeName() {
     return LocalStore.get('customNodeName')
   },
-  lockCustomEndpoints() {
-    return Meteor.settings && Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints === true
+  customNodesEnabled() {
+    return customNodesEnabled()
   },
 
   /* Active Menu Item Helpers */
@@ -507,7 +513,7 @@ Template.customNode.helpers({
   customNodeExplorer() {
     return LocalStore.get('customNodeExplorerUrl')
   },
-  lockCustomEndpoints() {
-    return Meteor.settings && Meteor.settings.public && Meteor.settings.public.lockCustomEndpoints === true
+  customNodesEnabled() {
+    return customNodesEnabled()
   },
 })

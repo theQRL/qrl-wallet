@@ -1,5 +1,5 @@
 <template name="customNode">
-  {{#unless lockCustomEndpoints}}
+  {{#if customNodesEnabled}}
   <dialog id="addNodeModal" class="modal">
     <div class="modal-box wallet-modal-box">
       <h3 class="font-bold text-lg text-primary">Custom QRL Node</h3>
@@ -26,5 +26,5 @@
       <button>close</button>
     </form>
   </dialog>
-  {{/unless}}
+  {{/if}}
 </template>
