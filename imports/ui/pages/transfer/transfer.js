@@ -1,9 +1,5 @@
-/* eslint no-console:0, no-len: 0 */
-/* global _, QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
+/* eslint no-console:0 */
 
 import JSONFormatter from 'json-formatter-js'
 import { BigNumber } from 'bignumber.js'
@@ -13,7 +9,6 @@ import helpers from '@theqrl/explorer-helpers'
 import {
   isElectrified,
   createTransport,
-  ledgerReturnedError,
 } from '../../../startup/client/functions'
 import './transfer.html'
 
@@ -84,8 +79,21 @@ async function getLedgerRetrieveSignature(request, callback) {
 }
 
 function enableSendButton() {
+  const xmssDetails = getXMSSDetails() || {}
+  const confirmLabel =
+    xmssDetails.walletType === 'ledger' ? 'Sign with Ledger' : 'Click to Send'
+  const confirmIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  `
   $('#confirmTransaction').attr('disabled', false)
-  $('#confirmTransaction').html('Click to Send')
+  $('#confirmTransaction').html(`${confirmIcon}${confirmLabel}`)
+}
+
+function transferSupportsMessage() {
+  const xmssDetails = getXMSSDetails() || {}
+  return xmssDetails.walletType !== 'ledger'
 }
 
 function generateTransaction() {
@@ -107,7 +115,7 @@ function generateTransaction() {
     // Fail early if attempting to send to an Ethereum style 0x address
     if (thisAddress[0] === '0' && thisAddress[1] === 'x') {
       $('#generating').hide()
-      $('#invalidAddress0x').modal('show')
+      window.walletUi.showModal('#invalidAddress0x')
       return
     }
 
@@ -117,16 +125,17 @@ function generateTransaction() {
   // Fail if more than 3 recipients using Ledger
   if (thisAddressesTo.length > 3 && getXMSSDetails().walletType === 'ledger') {
     $('#generating').hide()
-    $('#maxThreeRecipientsLedger').modal('show')
+    window.walletUi.showModal('#maxThreeRecipientsLedger')
+    return
   }
 
   // Fail if OTS Key reuse is detected
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     if (getXMSSDetails().walletType === 'ledger') {
-      $('#ledgerOtsKeyReuseDetected').modal('show')
+      window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
     } else {
-      $('#otsKeyReuseDetected').modal('show')
+      window.walletUi.showModal('#otsKeyReuseDetected')
     }
     return
   }
@@ -136,13 +145,18 @@ function generateTransaction() {
     const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     const thisAmount = convertAmountToBigNumber
       .times(SHOR_PER_QUANTA)
-      .toNumber()
-    thisAmounts.push(thisAmount)
+      .integerValue(BigNumber.ROUND_FLOOR)
+    if (!thisAmount.isFinite() || thisAmount.isGreaterThan(Number.MAX_SAFE_INTEGER)) {
+      $('#generating').hide()
+      Session.set('transactionGenerationError', 'Amount exceeds maximum safe precision')
+      return
+    }
+    thisAmounts.push(thisAmount.toNumber())
   }
 
   // Calculate txn fee
   const convertFeeToBigNumber = new BigNumber(txnFee)
-  const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+  const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).integerValue(BigNumber.ROUND_FLOOR).toNumber()
 
   // Construct request
   const request = {
@@ -155,11 +169,15 @@ function generateTransaction() {
   }
 
   // add message field if present
-  const userMessage = document.getElementById('message').value
+  const messageInput = document.getElementById('message')
+  const userMessage = messageInput ? messageInput.value : ''
   let messageBytes = null
-  if (userMessage.length > 0) {
+  if (transferSupportsMessage() && userMessage.length > 0) {
     messageBytes = stringToBytes(userMessage)
     request.message_data = messageBytes
+  } else if (!transferSupportsMessage() && messageInput) {
+    // Ledger transfers do not support message payload signing.
+    messageInput.value = ''
   }
 
   wrapMeteorCall('transferCoins', request, (err, res) => {
@@ -205,8 +223,7 @@ function generateTransaction() {
         otsKey: otsKey, // eslint-disable-line
       }
 
-      if (userMessage.length > 0) {
-        messageBytes = stringToBytes(userMessage)
+      if (messageBytes && messageBytes.length > 0) {
         confirmation.message_data = messageBytes
       }
 
@@ -227,7 +244,7 @@ function generateTransaction() {
         // Hide generating component
         $('#generating').hide()
         // Show warning modal
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -235,7 +252,18 @@ function generateTransaction() {
 
 function confirmTransaction() {
   const tx = Session.get('transactionConfirmationResponse')
-  tx.message_data = Session.get('transactionConfirmationMessage')
+  tx.message_data = transferSupportsMessage()
+    ? Session.get('transactionConfirmationMessage')
+    : null
+  // Re-check reuse at the point of signing, not only at generate time: the user
+  // may have sat on this confirmation screen while that index was consumed
+  // elsewhere. Once the key signs, reuse discloses it.
+  if (otsKeyReuseBlocksSigning(parseInt(Session.get('transactionConfirmation').otsKey, 10))) {
+    $('#relaying').hide()
+    enableSendButton()
+    return
+  }
+
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
     XMSS_OBJECT.setIndex(
@@ -311,20 +339,31 @@ function confirmTransaction() {
 
     console.log('Txn Hash: ', txnHash)
 
-    // add ,message
-    tx.message_data = Session.get('transactionConfirmationMessage')
+    // add message for supported wallet types
+    tx.message_data = transferSupportsMessage()
+      ? Session.get('transactionConfirmationMessage')
+      : null
 
     // Prepare gRPC call
     tx.network = selectedNetwork()
 
     wrapMeteorCall('confirmTransaction', tx, (err, res) => {
-      if (res.error) {
+      if (err || !res || res.error) {
         $('#transactionConfirmation').hide()
         $('#transactionFailed').show()
 
-        Session.set('transactionFailed', res.error)
+        const errorMessage = (res && res.error)
+          || (err && (err.reason || err.message))
+          || 'Failed to relay transaction'
+        Session.set('transactionFailed', errorMessage)
+        advanceSeedOtsAfterRelayFailure('transactionConfirmation')
+        enableSendButton()
       } else {
-        Session.set('transactionHash', txnHash)
+        const relayedTxnHash = (res.response && res.response.txnHash) || txnHash
+        if (relayedTxnHash !== txnHash) {
+          console.log(`Overriding local tx hash with node tx hash: ${relayedTxnHash}`)
+        }
+        Session.set('transactionHash', relayedTxnHash)
         Session.set('transactionSignature', res.response.signature)
         Session.set('transactionRelayedThrough', res.relayed)
 
@@ -350,52 +389,59 @@ function confirmTransaction() {
     $('#noRemainingSignatures').hide()
 
     // Show ledger sign modal
-    $('#ledgerConfirmationModal')
-      .modal({
-        closable: false,
-        onDeny: () => {
-          // Clear session state for transaction
-          Session.set('ledgerTransaction', '')
-          Session.set('ledgerTransactionHash', '')
-        },
-        onApprove: () => {
-          // Hide modal, and show relaying message
-          $('#ledgerConfirmationModal').modal('hide')
-          $('#relaying').show()
+    window.walletUi.showModal('#ledgerConfirmationModal', {
+      closable: false,
+      onDeny: () => {
+        // Clear session state for transaction
+        Session.set('ledgerTransaction', '')
+        Session.set('ledgerTransactionHash', '')
+      },
+      onApprove: () => {
+        // Hide modal, and show relaying message
+        window.walletUi.hideModal('#ledgerConfirmationModal')
+        $('#relaying').show()
 
-          // Relay the transaction
-          wrapMeteorCall(
-            'confirmTransaction',
-            Session.get('ledgerTransaction'),
-            (err, res) => {
-              if (res.error) {
-                $('#transactionConfirmation').hide()
-                $('#transactionFailed').show()
+        // Relay the transaction
+        wrapMeteorCall(
+          'confirmTransaction',
+          Session.get('ledgerTransaction'),
+          (err, res) => {
+            if (err || !res || res.error) {
+              $('#transactionConfirmation').hide()
+              $('#transactionFailed').show()
 
-                Session.set('transactionFailed', res.error)
-              } else {
-                Session.set(
-                  'transactionHash',
-                  Session.get('ledgerTransactionHash')
-                )
-                Session.set('transactionSignature', res.response.signature)
-                Session.set('transactionRelayedThrough', res.relayed)
-
-                // Show result
-                $('#generateTransactionArea').hide()
-                $('#confirmTransactionArea').hide()
-                enableSendButton()
-                $('#transactionResultArea').show()
-
-                // Start polling this transcation
-                // eslint-disable-next-line no-use-before-define
-                pollTransaction(Session.get('transactionHash'), true)
+              const errorMessage = (res && res.error)
+                || (err && (err.reason || err.message))
+                || 'Failed to relay transaction'
+              Session.set('transactionFailed', errorMessage)
+              enableSendButton()
+            } else {
+              const localLedgerTxnHash = Session.get('ledgerTransactionHash')
+              const relayedTxnHash = (res.response && res.response.txnHash) || localLedgerTxnHash
+              if (relayedTxnHash !== localLedgerTxnHash) {
+                console.log(`Overriding local tx hash with node tx hash: ${relayedTxnHash}`)
               }
+              Session.set(
+                'transactionHash',
+                relayedTxnHash
+              )
+              Session.set('transactionSignature', res.response.signature)
+              Session.set('transactionRelayedThrough', res.relayed)
+
+              // Show result
+              $('#generateTransactionArea').hide()
+              $('#confirmTransactionArea').hide()
+              enableSendButton()
+              $('#transactionResultArea').show()
+
+              // Start polling this transcation
+              // eslint-disable-next-line no-use-before-define
+              pollTransaction(Session.get('transactionHash'), true)
             }
-          )
-        },
-      })
-      .modal('show')
+          }
+        )
+      },
+    })
 
     // Create a transaction
     const sourceAddr = hexToBytes(QRLLIB.getAddress(getXMSSDetails().pk))
@@ -427,7 +473,7 @@ function confirmTransaction() {
             // Check for unknown errors
           } else if (
             sigResponse.return_code === 1 &&
-            sigResponse.error_message == 'Unknown error code'
+            sigResponse.error_message === 'Unknown error code'
           ) {
             $('#signOnLedgerError').show()
           } else {
@@ -502,7 +548,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
   // Fail if OTS Key reuse is detected
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
-    $('#otsKeyReuseDetected').modal('show')
+    window.walletUi.showModal('#otsKeyReuseDetected')
     return
   }
 
@@ -518,13 +564,18 @@ function sendTokensTxnCreate(tokenHash, decimals) {
     const convertAmountToBigNumber = new BigNumber(sendAmounts[i].value)
     const thisAmount = convertAmountToBigNumber
       .times(Math.pow(10, decimals))
-      .toNumber() // eslint-disable-line
-    thisAmounts.push(thisAmount)
+      .integerValue(BigNumber.ROUND_FLOOR)
+    if (!thisAmount.isFinite() || thisAmount.isGreaterThan(Number.MAX_SAFE_INTEGER)) {
+      $('#generating').hide()
+      Session.set('tokenTransferError', 'Token amount exceeds maximum safe precision')
+      return
+    }
+    thisAmounts.push(thisAmount.toNumber())
   }
 
   // Calculate txn fee
   const convertFeeToBigNumber = new BigNumber(txnFee)
-  const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+  const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).integerValue(BigNumber.ROUND_FLOOR).toNumber()
 
   // Construct request
   const request = {
@@ -617,7 +668,7 @@ function sendTokensTxnCreate(tokenHash, decimals) {
         $('#generateTransactionArea').hide()
         $('#confirmTokenTransactionArea').show()
       } else {
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -631,6 +682,15 @@ function confirmTokenTransfer() {
   }
 
   const tx = Session.get('tokenTransferConfirmationResponse')
+
+  // Re-check reuse at the point of signing, not only at generate time: the user
+  // may have sat on this confirmation screen while that index was consumed
+  // elsewhere. Once the key signs, reuse discloses it.
+  if (otsKeyReuseBlocksSigning(parseInt(Session.get('tokenTransferConfirmation').otsKey, 10))) {
+    $('#relaying').hide()
+    enableSendButton()
+    return
+  }
 
   // Set OTS Key Index for seed wallets
   if (getXMSSDetails().walletType === 'seed') {
@@ -695,13 +755,21 @@ function confirmTokenTransfer() {
     tx.network = selectedNetwork()
 
     wrapMeteorCall('confirmTokenTransfer', tx, (err, res) => {
-      if (res.error) {
+      if (err || !res || res.error) {
         $('#tokenCreationConfirmation').hide()
         $('#transactionFailed').show()
 
-        Session.set('transactionFailed', res.error)
+        const errorMessage = (res && res.error)
+          || (err && (err.reason || err.message))
+          || 'Failed to relay transaction'
+        Session.set('transactionFailed', errorMessage)
+        advanceSeedOtsAfterRelayFailure('tokenTransferConfirmation')
       } else {
-        Session.set('transactionHash', txnHash)
+        const relayedTxnHash = (res.response && res.response.txnHash) || txnHash
+        if (relayedTxnHash !== txnHash) {
+          console.log(`Overriding local tx hash with node tx hash: ${relayedTxnHash}`)
+        }
+        Session.set('transactionHash', relayedTxnHash)
         Session.set('transactionSignature', res.response.signature)
         Session.set('transactionRelayedThrough', res.relayed)
 
@@ -722,7 +790,14 @@ function confirmTokenTransfer() {
 
 function setRawDetail() {
   try {
-    const myJSON = Session.get('txhash').transaction
+    const txhashResponse = Session.get('txhash')
+    if (!txhashResponse || !txhashResponse.transaction) {
+      const pendingMessage = 'Transaction details are not available yet.'
+      $('#quantaJsonbox').text(pendingMessage)
+      $('#tokenJsonbox').text(pendingMessage)
+      return
+    }
+    const myJSON = txhashResponse.transaction
     const formatter = new JSONFormatter(myJSON)
     $('#quantaJsonbox').html(formatter.render())
     $('#tokenJsonbox').html(formatter.render())
@@ -747,7 +822,7 @@ function checkResult(thisTxId, failureCount) {
         // Show warning is otsKeysRemaining is low
         if (Session.get('otsKeysRemaining') < 50) {
           // Shown low OTS Key warning modal
-          $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+          window.walletUi.showModal('#lowOtsKeyWarning')
         }
       })
       loadAddressTransactions(getXMSSDetails().address, 1)
@@ -890,33 +965,11 @@ function initialiseFormValidation() {
   // Now set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter a fee',
-      },
-      {
-        type: 'number',
-        prompt: 'Fee must be a number',
-      },
-      {
-        type: 'maxDecimals',
-        prompt: 'You can only enter up to 9 decimal places in the fee field',
-      },
-    ],
+    rules: feeValidationRules({ maxDecimals: true }),
   }
   validationRules['otsKey'] = {
     id: 'otsKey',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter an OTS Key Index',
-      },
-      {
-        type: 'number',
-        prompt: 'OTS Key Index must be a number',
-      },
-    ],
+    rules: otsKeyValidationRules(),
   }
 
   validationRules['message'] = {
@@ -930,25 +983,25 @@ function initialiseFormValidation() {
   }
 
   // Valid float
-  $.fn.form.settings.rules.validFloat = function (value) {
+  window.walletUi.addFormRule('validFloat', function (value) {
     // == is intended here
     if (parseFloat(value) == value && parseFloat(value).toString().length === value.length) { // eslint-disable-line
       return true
     }
     return false
-  }
+  })
 
   // Max of 9 decimals
-  $.fn.form.settings.rules.maxDecimals = function (value) {
+  window.walletUi.addFormRule('maxDecimals', function (value) {
     try {
       return countDecimals(value) <= 9
     } catch (e) {
       return false
     }
-  }
+  })
 
   // Address Validation
-  $.fn.form.settings.rules.qrlAddressValid = function (value) {
+  window.walletUi.addFormRule('qrlAddressValid', function (value) {
     try {
       const rawAddress = anyAddressToRawAddress(value)
       const thisAddress = helpers.rawAddressToHexAddress(rawAddress)
@@ -957,10 +1010,10 @@ function initialiseFormValidation() {
     } catch (e) {
       return false
     }
-  }
+  })
 
   // Initialise the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
     inline: true,
     on: 'blur',
@@ -978,31 +1031,35 @@ Template.appTransfer.onCreated(() => {
 
 Template.appTransfer.onRendered(() => {
   // Initialise dropdowns
-  $('.ui.dropdown').dropdown()
+  window.walletUi.initDropdowns('select')
 
   // Initialise Form Validation
   initialiseFormValidation()
 
   // Initialise tabs
-  $('#sendReceiveTabs .item').tab()
+  window.walletUi.initTabs('#sendReceiveTabs [data-tab]')
 
   // Load transactions
   refreshTransferPage(function () {
     // Show warning is otsKeysRemaining is low
     if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
-      $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+      window.walletUi.showModal('#lowOtsKeyWarning')
     }
   })
   loadAddressTransactions(getXMSSDetails().address, 1)
   updateBalanceField()
+  if (!transferSupportsMessage()) {
+    $('#message').val('')
+    $('#messageField').hide()
+  }
 
   // Warn if user is has opened the 0 byte address (test mode on Ledger)
   if (
     getXMSSDetails().address ===
     'Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd'
   ) {
-    $('#zeroBytesAddressWarning').modal('transition', 'disable').modal('show')
+    window.walletUi.showModal('#zeroBytesAddressWarning')
   }
 
   Tracker.autorun(function () {
@@ -1025,8 +1082,6 @@ Template.appTransfer.onRendered(() => {
               text: getXMSSDetails().address,
             })
           }
-          $('#recQR').empty()
-          $('#recQR').qrcode({ width: 142, height: 142, text: xmss.hexseed })
         }
       }
     }
@@ -1042,9 +1097,9 @@ Template.appTransfer.events({
         `token-${this.hash}-0`
       )
       .change()
-    $.tab('change tab', 'send')
-    $('#sendReceiveTabs > a').first().addClass('active')
-    $('#sendReceiveTabs > a').last().removeClass('active')
+    window.walletUi.changeTab('send')
+    $('#sendReceiveTabs [data-tab]').removeClass('active tab-active')
+    $('#sendReceiveTabs [data-tab="send"]').addClass('active tab-active')
   },
   'click .transactionRecord': (event) => {
     event.preventDefault()
@@ -1056,6 +1111,9 @@ Template.appTransfer.events({
     FlowRouter.go(`/verify-txid/${txhash}`)
   },
   'click #showMessageField': (event) => {
+    if (!transferSupportsMessage()) {
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
     $('#messageField').show()
@@ -1088,7 +1146,7 @@ Template.appTransfer.events({
   },
   'click #confirmTransaction': () => {
     $('#confirmTransaction').attr('disabled', true)
-    $('#confirmTransaction').html('<div class="ui active inline loader"></div>')
+    $('#confirmTransaction').html('<span class="loading loading-spinner loading-sm"></span> Sending...')
     setTimeout(() => {
       confirmTransaction()
     }, 200)
@@ -1135,19 +1193,24 @@ Template.appTransfer.events({
       getRecipientIds().length > 2 &&
       getXMSSDetails().walletType === 'ledger'
     ) {
-      $('#maxRecipientsReached').modal('show')
+      window.walletUi.showModal('#maxRecipientsReached')
     } else {
       // Increment count of recipients
       const nextRecipientId = Math.max(...getRecipientIds()) + 1
 
       const newTransferRecipient = `
         <div>
-          <div class="field">
-            <label>Additional Recipient</label>
-            <div class="ui action center aligned input"  id="amountFields" style="width: 100%; margin-bottom: 10px;">
-              <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" style="width: 55%;">
-              <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" style="width: 30%;">
-              <button class="ui red small button removeTransferRecipient" style="width: 10%"><i class="remove user icon"></i></button>
+          <div class="field mt-4">
+            <label class="fieldset-legend">Additional Recipient</label>
+            <div class="grid gap-2 md:grid-cols-[1fr_170px_auto]">
+              <input type="text" id="to_${nextRecipientId}" name="to[]" placeholder="Address" class="input input-bordered w-full bg-base-100">
+              <input type="text" id="amounts_${nextRecipientId}" name="amounts[]" placeholder="Amount" class="input input-bordered w-full bg-base-100">
+              <button type="button" class="btn btn-error btn-sm removeTransferRecipient gap-1" aria-label="Remove recipient">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-3H10a1 1 0 00-1 1v2h6V5a1 1 0 00-1-1z" />
+                </svg>
+                Remove
+              </button>
             </div>
           </div>
         </div>
@@ -1209,11 +1272,8 @@ Template.appTransfer.events({
       }
     }
   },
-  'click #showRecoverySeed': () => {
-    $('#recoverySeedModal').modal('show')
-  },
   'click #verifyLedgerNanoAddress': () => {
-    $('#verifyLedgerNanoAddressModal').modal('show')
+    window.walletUi.showModal('#verifyLedgerNanoAddressModal')
     verifyLedgerNanoAddress(function () {})
   },
 })
@@ -1324,6 +1384,9 @@ Template.appTransfer.helpers({
   },
   providerID() {
     return `0x${this.nft.id}`
+  },
+  canUseTransferMessage() {
+    return transferSupportsMessage()
   },
   includesMessage() {
     try {
@@ -1729,14 +1792,5 @@ Template.appTransfer.helpers({
       return true
     }
     return false
-  },
-})
-Template.recoverySeedModal.helpers({
-  recoverySeed() {
-    try {
-      return getXMSSDetails()
-    } catch (e) {
-      return false
-    }
   },
 })

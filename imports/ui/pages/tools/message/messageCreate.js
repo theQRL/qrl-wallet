@@ -1,9 +1,5 @@
+import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 /* eslint no-console:0 */
-/* global QRLLIB, XMSS_OBJECT, LocalStore, QrlLedger, isElectrified, selectedNetwork,loadAddressTransactions, getTokenBalances, updateBalanceField, refreshTransferPage */
-/* global pkRawToB32Address, hexOrB32, rawToHexOrB32, anyAddressToRawAddress, stringToBytes, binaryToBytes, bytesToString, bytesToHex, hexToBytes, toBigendianUint64BytesUnsigned, numberToString, decimalToBinary */
-/* global getMnemonicOfFirstAddress, getXMSSDetails, isWalletFileDeprecated, waitForQRLLIB, addressForAPI, binaryToQrlAddress, toUint8Vector, concatenateTypedArrays, getQrlProtoShasum */
-/* global resetWalletStatus, passwordPolicyValid, countDecimals, supportedBrowser, wrapMeteorCall, getBalance, otsIndexUsed, ledgerHasNoTokenSupport, resetLocalStorageState, nodeReturnedValidResponse */
-/* global POLL_TXN_RATE, POLL_MAX_CHECKS, DEFAULT_NETWORKS, findNetworkData, SHOR_PER_QUANTA, WALLET_VERSION, QRLPROTO_SHA256,  */
 
 import './messageCreate.html'
 
@@ -17,9 +13,9 @@ function createMessageTxn() {
   if (otsIndexUsed(Session.get('otsBitfield'), otsKey)) {
     $('#generating').hide()
     if (getXMSSDetails().walletType === 'ledger') {
-      $('#ledgerOtsKeyReuseDetected').modal('show')
+      window.walletUi.showModal('#ledgerOtsKeyReuseDetected')
     } else {
-      $('#otsKeyReuseDetected').modal('show')
+      window.walletUi.showModal('#otsKeyReuseDetected')
     }
     return
   }
@@ -58,7 +54,7 @@ function createMessageTxn() {
         const path = FlowRouter.path('/tools/message/confirm', params)
         FlowRouter.go(path)
       } else {
-        $('#invalidNodeResponse').modal('show')
+        window.walletUi.showModal('#invalidNodeResponse')
       }
     }
   })
@@ -85,40 +81,22 @@ function initialiseFormValidation() {
   // Now set fee and otskey validation rules
   validationRules['fee'] = {
     id: 'fee',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter a fee',
-      },
-      {
-        type: 'number',
-        prompt: 'Fee must be a number',
-      },
-    ],
+    rules: feeValidationRules(),
   }
   validationRules['otsKey'] = {
     id: 'otsKey',
-    rules: [
-      {
-        type: 'empty',
-        prompt: 'You must enter an OTS Key Index',
-      },
-      {
-        type: 'number',
-        prompt: 'OTS Key Index must be a number',
-      },
-    ],
+    rules: otsKeyValidationRules(),
   }
 
   // Initliase the form validation
-  $('.ui.form').form({
+  window.walletUi.bindFormValidation('form', {
     fields: validationRules,
   })
 }
 
 Template.appMessageCreate.onRendered(() => {
   // Initialise dropdowns
-  $('.ui.dropdown').dropdown()
+  window.walletUi.initDropdowns('select')
 
   // Initialise Form Validation
   initialiseFormValidation()
@@ -128,7 +106,7 @@ Template.appMessageCreate.onRendered(() => {
     // Show warning is otsKeysRemaining is low
     if (Session.get('otsKeysRemaining') < 50) {
       // Shown low OTS Key warning modal
-      $('#lowOtsKeyWarning').modal('transition', 'disable').modal('show')
+      window.walletUi.showModal('#lowOtsKeyWarning')
     }
   })
 })

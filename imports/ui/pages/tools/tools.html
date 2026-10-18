@@ -1,125 +1,13 @@
 <template name="appTools">
-
-
-<h4 id="tools" class="ui pageHeader header">
-  <i class="tiny wrench icon"></i>
-  <div class="content">
-    Tools
-  </div>
-</h4>
-
-<div class="ui segment pageSegment">
-
-
-  <div class="ui bottom attached segment">
-    <div class="ui grid">
-
-        <div class="six wide column">
-          <div class="ui steps">
-            <div class="step">
-              <i class="tags icon"></i>
-              <div class="content">
-                <div class="title"><a href="/tokens/create">Create Token</a></div>
-                <div class="description">Create your own QRT.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="six wide column">
-          <div class="ui steps">
-            <div class="step">
-              <i class="edit icon"></i>
-              <div class="content">
-                <div class="title"><a href="/tools/notarise/start">Notarise Document</a></div>
-                <div class="description">Notarise a document on the QRL.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="six wide column">
-          <div class="ui steps">
-            <div class="step">
-              <i class="envelope icon"></i>
-              <div class="content">
-                <div class="title"><a href="/tools/message/create">Message</a></div>
-                <div class="description">Save a message on the QRL.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-
-        <div id="setXMSSIndex" class="six wide column" style="display: none;">
-          <div class="ui steps">
-            <div class="step">
-              <i class="sort numeric up icon"></i>
-              <div class="content">
-                <div class="title"><a href="/tools/xmssindex/update">Set XMSS Index</a></div>
-                <div class="description">Update the XMSS index on a Ledger Nano S</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-
-
-        <div class="six wide column">
-        <div class="ui steps"><div class="step">
-          <i class="icon"><img src="/img/keybase-w.svg" style="width:35px;"></i>
-          <div class="content">
-            <div class="title"><a href="/tools/keybase">Keybase id</a></div>
-            <div class="description">Add or remove a Keybase id to your address</div>
-          </div>
-        </div></div>
-      </div>
-      <div class="six wide column" style="display:none;"><!-- WIP functionality -->
-        <div class="ui steps"><div class="step">
-          <i class="icon"><img src="/img/github.svg" style="width:35px;"></i>
-          <div class="content">
-            <div class="title"><a href="/tools/github">Github id</a></div>
-            <div class="description">Add or remove a Github id to your address</div>
-          </div>
-        </div></div>
-      </div>
-      <div class="six wide column">
-        <div class="ui steps"><div class="step">
-          <i class="icon users"></i>
-          <div class="content">
-            <div class="title"><a href="/tools/multisig">Multisig</a></div>
-            <div class="description">Multisignature wallet functionality</div>
-          </div>
-        </div></div>
-      </div>
-      <div class="six wide column">
-        <div class="ui steps"><div class="step">
-          <i class="icon add"></i>
-          <div class="content">
-            <div class="title"><a href="/tools/addTokens">Add/Remove Tokens</a></div>
-            <div class="description">Add/remove held tokens to your wallet</div>
-          </div>
-        </div></div>
-      </div>
-      <div class="six wide column">
-        <div class="ui steps"><div class="step">
-          <i class="icon certificate"></i>
-          <div class="content">
-            <div class="title"><a href="/tools/NFT">Mint QR NFT</a></div>
-            <div class="description">Create a quantum resistant non-fungible token</div>
-          </div>
-        </div></div>
-      </div>
+  <div class="flex items-center gap-3 mb-6">
+    <div class="bg-primary/20 p-3 rounded-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
     </div>
+    <h1 class="text-2xl font-bold text-base-content">Tools</h1>
+  </div>
 
-
-</div>
-
-
-
-
-</div>
-
+  <div id="toolsVueRoot"></div>
 </template>

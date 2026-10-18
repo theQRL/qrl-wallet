@@ -1,0 +1,62 @@
+---
+# Codacy configuration for qrl-wallet.
+#
+# Intent: Codacy should surface defects in first-party application code. This
+# project is a mature Meteor/Blaze wallet whose formatting predates current
+# airbnb defaults, so style-only findings are deliberately not treated as issues
+# - they generated thousands of results nobody would action, which buried the
+# handful that matter. ESLint is configured in .eslintrc.yml and is the source of
+# truth for which rules apply; the exclusions below stop Codacy analysing code we
+# do not author.
+
+exclude_paths:
+  # Vendored third-party source, kept verbatim so it can be diffed upstream.
+  - 'imports/ui/lib/vendor/**'
+
+  # Generated Emscripten/WASM glue and worker bundles from the qrllib build.
+  - 'public/workers/**'
+
+  # Generated protobuf definitions (thousands of files).
+  - 'private/google/**'
+  - 'private/**/*.proto'
+
+  # Generated CSS (Tailwind output is compiled, not written by hand).
+  - 'public/tailwind-output.css'
+
+  # Build and packaging output.
+  - '.electrify/.dist/**'
+  - '.electrify/app/**'
+  - '.electrify/bin/**'
+  - '.meteor/local/**'
+
+  # Dormant Cucumber/WebdriverIO specs with no current runner. Kept in the tree
+  # for reference; see the Tests section of README.md.
+  - 'tests/**'
+
+  # Dependencies and lockfiles.
+  - 'node_modules/**'
+  - '**/package-lock.json'
+
+engines:
+  eslint:
+    enabled: true
+    # Use the repository's own .eslintrc.yml rather than Codacy's defaults, so
+    # local runs and Codacy agree on what counts as an issue.
+    exclude_paths:
+      - 'imports/ui/lib/vendor/**'
+      - 'public/workers/**'
+
+  # Duplication reporting is off by design. The wallet deliberately repeats small
+  # guard blocks (OTS key reuse checks, transaction validation rules) inline at
+  # each signing site so that a reviewer reading one flow sees the whole flow.
+  # Collapsing them to satisfy a duplication metric would reduce, not improve,
+  # the reviewability of security-critical code.
+  duplication:
+    enabled: false
+
+  # Cyclomatic-complexity reporting is off for the same reason: the long
+  # transaction-construction functions are stable, well-understood and heavily
+  # exercised in production. Splitting them for a metric would be a large,
+  # untestable refactor of the code most likely to cause fund loss if broken.
+  metrics:
+    enabled: false

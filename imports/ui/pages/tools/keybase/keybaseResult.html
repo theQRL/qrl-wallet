@@ -1,78 +1,77 @@
 <template name="appKeybaseResult">
 
-<h2 class="ui header pageHeader">
-  <i class="icon"><img src="/img/keybase-w.svg"></i>
-  <div class="content">
-    Keybase Message Result
+<div class="flex items-center gap-3 mb-6">
+  <div class="bg-primary/20 p-3 rounded-lg">
+    <img src="/img/keybase-w.svg" class="h-6 w-6" alt="Keybase">
   </div>
-</h2>
+  <h1 class="text-2xl font-bold text-base-content">Keybase Message Result</h1>
+</div>
 
+<div id="transactionComplete" class="card-gradient p-4 pageSegment">
 
-<div id="transactionComplete" class="ui red segment pageSegment">
-
-  <h4 class="ui horizontal divider header">
-    <i class="icon"><img src="/img/keybase-w.svg"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class=""><img src="/img/keybase-w.svg"></i>
     Your Keybase operation
   </h4>
 
-  <div class="ui items">
-    <div class="item">
+  <div class="">
+    <div class="">
       <div class="image">
         {{> QRCode text=transactionHash size="128px"}}
       </div>
-      <div class="content">
-        <div class="header">Keybase action</div>
-        <div class="description"><p><div class="ui label">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
-        <div class="header">Keybase username</div>
+      <div class="">
+        <div class="text-lg font-semibold">Keybase action</div>
+        <div class="description"><p><div class="badge badge-outline">{{keybaseOperation.addorremove}}</div></p><p>&nbsp;</p></div>
+        <div class="text-lg font-semibold">Keybase username</div>
         <div class="description"><p>{{keybaseOperation.keybaseId}}</p><p>&nbsp;</p></div>
-        <div class="header">Keybase signature</div>
+        <div class="text-lg font-semibold">Keybase signature</div>
         <div class="description"><p>{{keybaseOperation.sigHash}}</p><p>&nbsp;</p></div>
         <div class="meta">
-          <span>Transaction Hash <a  id="confirmedMessageHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
+          <span>Transaction Hash <a  id="confirmedMessageHash" class="badge badge-outline purple" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
       </div>
     </div>
   </div>
 
-  <h4 class="ui horizontal divider header">
-    <i class="signal icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="signal"></i>
     Transaction Status
   </h4>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
       <p id="successMessage" style="overflow-wrap: break-word">
         Success! Your Keybase message has been relayed into the QRL network through the following nodes, and is pending validation.
       </p>
     </div>
   </div>
 
-  <div class="ui mini horizontal divided list">
+  <div class="">
   {{#each transactionRelayedThrough}}
-    <div class="item">
-      <i class="checkmark icon green"></i>
-      <div class="content">
-        <div class="header">{{this}}</div>
+    <div class="">
+      <span class="text-success">✔</span>
+      <div class="">
+        <div class="text-lg font-semibold">{{this}}</div>
       </div>
     </div>
   {{/each}}
   </div>
 
-  <div id="relaying" class="ui icon message">
+  <div id="relaying" class="alert gap-3">
     <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div id="loadingHeader" class="header">
+    <span class="loading loading-spinner loading-md"></span>
+    <div class="">
+      <div id="loadingHeader" class="text-lg font-semibold">
         Just a moment
       </div>
       <p id="finalTxnStatus" style="word-break: break-word;">Transaction Status: {{transactionStatus}}</p>
     </div>
   </div>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
-      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
-      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
+      <button class="btn btn-sm jsonclick">Raw Transaction Details <span aria-hidden="true">▾</span></button>
+      <div class="rounded-xl border border-base-300 bg-base-100/80 p-4 raised jsonbox json unbreakable" style="display: none"></div>
     </div>
   </div>
   

@@ -1,0 +1,2 @@
+# The copied qrllib worker must match the pinned npm package byte for byte.
+public/workers/web-libjsqrl.js -text

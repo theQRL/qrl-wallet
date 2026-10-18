@@ -1,38 +1,38 @@
 <template name="appTokenCreationResult">
 
-<h4 class="ui header pageHeader">
-  <i class="tiny tags icon"></i>
-  <div class="content">
+<h4 class="text-lg font-semibold pageHeader">
+  <i class="tags"></i>
+  <div class="">
     Token Creation Result
   </div>
 </h4>
 
 
-<div id="transactionComplete" class="ui red segment pageSegment">
+<div id="transactionComplete" class="rounded-xl border border-base-300 bg-base-100 p-4 pageSegment">
 
 
-  <h4 class="ui horizontal divider header">
-    <i class="tags icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="tags"></i>
     Token Details
   </h4>
 
-  <div class="ui items">
-    <div class="item">
+  <div class="">
+    <div class="">
       <div class="image">
         {{> QRCode text=transactionHash size="128px" color="#FFF"}}
       </div>
-      <div style="color: #fff;" class="content">
+      <div style="color: #fff;" class="">
         {{#if isNFT}}
           {{#if verifiedProvider}}
-          <i style="color: #fff;" class="ui certificate icon" title="Verified NFT Provider"></i>Verified NFT Provider - {{detailsNFT.name}}
+          <i style="color: #fff;" class="certificate" title="Verified NFT Provider"></i>Verified NFT Provider - {{detailsNFT.name}}
           {{else}}
-          <i style="color: #fff;" class="ui warning icon" title="Unverified NFT Provider"></i>Unverified NFT Provider (0x{{detailsNFT.id}})
+          <i style="color: #fff;" class="" title="Unverified NFT Provider"></i>Unverified NFT Provider (0x{{detailsNFT.id}})
           {{/if}}
         {{else}}
-        <a class="header">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
+        <a class="text-lg font-semibold">{{tokenDetails.name}} ({{tokenDetails.symbol}})</a>
         {{/if}}
         <div class="meta">
-          <span>Token Hash <a  id="confirmedTokenHash" class="ui purple label" target="_blank" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
+          <span>Token Hash <a  id="confirmedTokenHash" class="badge badge-outline purple" target="_blank" rel="noopener noreferrer nofollow" referrerpolicy="no-referrer" href="{{nodeExplorerUrl}}/tx/{{transactionHash}}">{{transactionHash}}</a></span>
         </div>
         <div class="description">
           <p></p>
@@ -51,8 +51,8 @@
     </div>
   </div>
 
-  <h4 class="ui horizontal divider header">
-    <i class="users icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="users"></i>
     {{#if isNFT}}
     Initial NFT Owner
     {{else}}
@@ -60,12 +60,12 @@
     {{/if}}
   </h4>
 
-  <div class="ui relaxed divided list">
+  <div class="">
   {{#each tokenHolders}}
-    <div class="item">
-      <i style="color: #fff;" class="large user middle aligned icon"></i>
-      <div class="content">
-        <a class="header wordBreak">{{this.address}}</a>
+    <div class="">
+      <i style="color: #fff;" class="large user"></i>
+      <div class="">
+        <a class="text-lg font-semibold wordBreak">{{this.address}}</a>
         {{#if isNFT}}
 
         {{else}}
@@ -76,45 +76,45 @@
   {{/each}}
   </div>
 
-  <h4 class="ui horizontal divider header">
-    <i class="signal icon"></i>
+  <h4 class="text-lg font-semibold divider">
+    <i class="signal"></i>
     Transaction Status
   </h4>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
       <p id="successMessage" style="word-wrap: break-word; word-break: break-all;">
         Success! Your token has been relayed into the QRL network through the following nodes, and is pending validation.
       </p>
     </div>
   </div>
 
-  <div class="ui mini horizontal divided list">
+  <div class="">
   {{#each transactionRelayedThrough}}
-    <div class="item">
-      <i class="checkmark icon green"></i>
-      <div class="content">
-        <div class="header">{{this}}</div>
+    <div class="">
+      <span class="text-success">✔</span>
+      <div class="">
+        <div class="text-lg font-semibold">{{this}}</div>
       </div>
     </div>
   {{/each}}
   </div>
 
-  <div id="relaying" class="ui icon message">
+  <div id="relaying" class="alert gap-3">
     <br /><br />
-    <i class="notched circle loading icon"></i>
-    <div class="content">
-      <div id="loadingHeader" class="header">
+    <span class="loading loading-spinner loading-md"></span>
+    <div class="">
+      <div id="loadingHeader" class="text-lg font-semibold">
         Just a moment
       </div>
       <p id="finalTxnStatus">Transaction Status: {{transactionStatus}}</p>
     </div>
   </div>
 
-  <div class="ui stackable one column grid">
-    <div class="column">
-      <button class="ui mini button jsonclick">Raw Transaction Details <i class="down angle icon"></i></button>
-      <div class="ui raised segment jsonbox json unbreakable" style="display: none"></div>
+  <div class="grid gap-4 grid-cols-1">
+    <div class="">
+      <button class="btn btn-sm jsonclick">Raw Transaction Details <span aria-hidden="true">▾</span></button>
+      <div class="rounded-xl border border-base-300 bg-base-100 p-4 raised jsonbox json unbreakable" style="display: none"></div>
     </div>
   </div>
   
