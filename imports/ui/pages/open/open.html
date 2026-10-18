@@ -107,10 +107,13 @@
 <!-- Loading States -->
 <div id="unlocking" class="hidden mt-6">
   <div role="alert" class="alert alert-info">
-    <span class="loading loading-spinner loading-md"></span>
+    <!-- Not DaisyUI's loading-spinner: that animates an SVG on the main thread,
+         which building the XMSS tree blocks for seconds. A CSS transform
+         animation runs on the compositor and keeps turning. -->
+    <span class="inline-block size-6 shrink-0 animate-spin rounded-full border-[3px] border-current border-r-transparent" aria-hidden="true"></span>
     <div>
       <h3 class="font-bold">Just a moment</h3>
-      <p class="text-sm">Unlocking wallet...</p>
+      <p class="text-sm">Unlocking wallet... larger tree heights can take a while.</p>
     </div>
   </div>
 </div>
