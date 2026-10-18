@@ -135,7 +135,7 @@
     <!-- Main Content Area -->
     <div class="wallet-content drawer-content flex flex-col">
       <!-- Top Navbar (mobile) -->
-      <div class="wallet-mobile-bar navbar lg:hidden">
+      <div class="wallet-mobile-bar navbar sticky top-0 z-30 lg:hidden">
         <div class="flex-none">
           <label for="wallet-drawer" class="btn btn-square btn-ghost" aria-label="Open wallet navigation">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="size-5 shrink-0 stroke-current" aria-hidden="true">
@@ -166,11 +166,10 @@
                   {{#each defaultNetworks}}
                   <option value="{{this.id}}">{{this.name}}</option>
                   {{/each}}
+                  {{#if customNodesEnabled}}
                   {{#if customNodeCreated}}
                   <option value="custom">{{customNodeName}}</option>
                   {{/if}}
-                  {{#if lockCustomEndpoints}}
-                  {{else}}
                   <option value="add">+ Add Custom Node</option>
                   {{/if}}
                 </select>
@@ -292,6 +291,11 @@
             <span class="wallet-brand-separator" aria-hidden="true"></span>
             <span class="wallet-brand-product">Wallet</span>
           </a>
+          <label for="wallet-drawer" class="btn btn-square btn-ghost btn-sm mr-3 shrink-0 lg:hidden" aria-label="Close wallet navigation">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </label>
         </div>
 
         <!-- Navigation Menu -->
@@ -372,11 +376,10 @@
               {{#each defaultNetworks}}
               <option value="{{this.id}}">{{this.name}}</option>
               {{/each}}
+              {{#if customNodesEnabled}}
               {{#if customNodeCreated}}
               <option value="custom">{{customNodeName}}</option>
               {{/if}}
-              {{#if lockCustomEndpoints}}
-              {{else}}
               <option value="add">+ Add Custom Node</option>
               {{/if}}
             </select>

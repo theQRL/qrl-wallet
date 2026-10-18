@@ -349,15 +349,26 @@ const errorCallback = (error, message, alert) => {
   return meteorError
 }
 
-// Endpoints belonging to the pre-configured networks come from operator config,
-// not from user input, so they are always connectable. Anything else is a custom
-// endpoint supplied by a caller and must be explicitly permitted.
+// Whether this server is the one bundled in the Electron desktop app. electrify's
+// nodejs plugin sets ELECTRIFY_VERSION in the server's environment for both
+// development runs and packaged builds; a web deployment never has it.
+const isDesktopServer = Boolean(process.env.ELECTRIFY_VERSION)
+
+// Networks of type 'desktop' (the built-in localhost node) point at the user's
+// own machine, which only holds when the server runs on it. On a web server
+// localhost is the server itself, so they are not available there.
+const isAvailableNetwork = (network) => network.type !== 'desktop' || isDesktopServer
+
+// Endpoints belonging to the pre-configured networks available on this server
+// come from operator config, not from user input, so they are always
+// connectable. Anything else is a custom endpoint supplied by a caller and must
+// be explicitly permitted.
 const isConfiguredEndpoint = (endpoint) => {
   const normalized = normalizeEndpoint(endpoint)
   if (!normalized) {
     return false
   }
-  return DEFAULT_NETWORKS.some((network) => (network.nodes || []).some(
+  return DEFAULT_NETWORKS.some((network) => isAvailableNetwork(network) && (network.nodes || []).some(
     (node) => normalizeEndpoint(node.grpc) === normalized
   ))
 }
@@ -385,10 +396,7 @@ const isConfiguredEndpoint = (endpoint) => {
 //
 // So the absence of new URL()/isPrivate()/RFC1918 filtering here is intentional,
 // not an oversight — those are the weaker design this replaced.
-const endpointDenialReason = (endpoint) => {
-  if (isConfiguredEndpoint(endpoint)) {
-    return null
-  }
+const customEndpointDenialReason = () => {
   if (lockCustomEndpoints) {
     return 'Custom gRPC endpoints are disabled (lockCustomEndpoints is enabled)'
   }
@@ -397,6 +405,21 @@ const endpointDenialReason = (endpoint) => {
   }
   return null
 }
+
+const endpointDenialReason = (endpoint) => {
+  if (isConfiguredEndpoint(endpoint)) {
+    return null
+  }
+  return customEndpointDenialReason()
+}
+
+// Tell the client whether to offer custom nodes at all, so the UI never shows a
+// node dialog the server would refuse. Derived from the policy above and always
+// overwritten here, so a value for it in a settings file has no effect. This is
+// display only: endpointDenialReason() remains the enforcement.
+// Meteor ships Meteor.settings.public to the client by reference, so setting it
+// at module load is enough.
+Meteor.settings.public.customNodesEnabled = customEndpointDenialReason() === null
 
 // Load the qrl.proto gRPC client into qrlClient from a remote node.
 const loadGrpcClient = (endpoint, callback) => {
@@ -801,7 +824,7 @@ const checkNetworkHealth = (userNetwork, callback) => {
 const connectNodes = () => {
   // Establish gRPC connections with all enabled DEFAULT_NETWORKS
   DEFAULT_NETWORKS.forEach((network, networkIndex) => {
-    if (network.disabled === '') {
+    if (network.disabled === '' && isAvailableNetwork(network)) {
       console.log(
         `Attempting to create gRPC connections to network: ${network.name} ...`
       )
