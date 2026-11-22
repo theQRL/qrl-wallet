@@ -5,7 +5,7 @@ import { FlowRouter } from 'meteor/ostrio:flow-router-extra'
 import { BigNumber } from 'bignumber.js'
 import helpers from '@theqrl/explorer-helpers'
 import stableStringify from 'json-stable-stringify'
-import crypto from 'crypto-browserify'
+import CryptoJS from 'crypto-js'
 
 let countRecipientsForValidation = 1
 
@@ -44,9 +44,7 @@ function createTokenTxn() {
     // keep as entered
   }
   const jsonR = $('#json').val()
-  const hash = crypto.createHash('sha256')
-  const hashData = hash.update(stableStringify(jsonR), 'utf-8')
-  const generatedHash = hashData.digest('hex')
+  const generatedHash = CryptoJS.SHA256(stableStringify(jsonR)).toString(CryptoJS.enc.Hex)
 
   const nftBytes = getNFTBytesForTransfer(providerRef, generatedHash)
 
@@ -346,9 +344,7 @@ async function validateJSON(JSONtext) {
         valid = { valid: true, message: 'validated JSON' }
         $('#validateJSON').addClass('disabled')
         $('#json').val(jsonR.linted)
-        const hash = crypto.createHash('sha256')
-        const hashData = hash.update(stableStringify(jsonR.linted), 'utf-8')
-        const generatedHash = hashData.digest('hex')
+        const generatedHash = CryptoJS.SHA256(stableStringify(jsonR.linted)).toString(CryptoJS.enc.Hex)
         console.log(generatedHash)
       } else {
         valid = { valid: false, message: jsonR.message }

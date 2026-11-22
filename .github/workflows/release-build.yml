@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Tag to publish assets to (example: v1.9.2)'
+        description: 'Tag to publish assets to (example: v1.9.3)'
         required: true
         type: string
 
@@ -98,10 +98,11 @@ jobs:
       - name: Install Meteor (macOS/Linux)
         if: runner.os != 'Windows'
         shell: bash
-        # Pin the tool to the project's release (.meteor/release = METEOR@3.4).
-        # Installing "latest" (now 3.5) forces a springboard down to 3.4 that
-        # silently fails to happen on Windows, running the build under the 3.5
-        # tool whose solver hangs in prepareProjectForBuild. Install 3.4 directly
+        # Pin the tool to the project's release (.meteor/release = METEOR@3.6.1).
+        # Installing "latest" forces a springboard to the project's release that
+        # silently fails to happen on Windows, running the build under a
+        # mismatched tool (a 3.5 tool on the 3.4 project hung in
+        # prepareProjectForBuild). Install the project's release directly
         # everywhere so no runner springboards.
         run: |
           set -euo pipefail
@@ -112,8 +113,8 @@ jobs:
           # If Meteor legitimately updates the installer this step fails. Review
           # the new script, then update METEOR_INSTALLER_SHA256 below with the
           # digest printed in the failure output.
-          METEOR_INSTALLER_SHA256=6b3928175473d07970eb127abebd9f2b17b9676f28af8ecd6b54cd4cdef14a11
-          curl -fsSL 'https://install.meteor.com/?release=3.4' -o meteor-install.sh
+          METEOR_INSTALLER_SHA256=02e0f640bcd45b3e08dd4fb978e7da0105e37ab801af03495fb1a3cef5471201
+          curl -fsSL 'https://install.meteor.com/?release=3.6.1' -o meteor-install.sh
           ACTUAL_SHA256=$(shasum -a 256 meteor-install.sh | cut -d' ' -f1)
           if [ "$ACTUAL_SHA256" != "$METEOR_INSTALLER_SHA256" ]; then
             echo "::error::Meteor installer digest mismatch."
@@ -135,10 +136,10 @@ jobs:
           $meteorInstallDir = Join-Path $env:LOCALAPPDATA '.meteor'
           if (Test-Path $extractDir) { Remove-Item -Recurse -Force $extractDir }
           New-Item -ItemType Directory -Path $extractDir | Out-Null
-          # release=3.4 pins the tool to the project's release (must be the bare
-          # version - release=METEOR@3.4 is not parsed and falls back to latest).
-          Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64&release=3.4' -OutFile $bootstrapGz
-          $expectedSha256 = '751168e2f9cb4a0716c4ad705b513beef89798bbfa74f81a2a3b797d5f3643bb'
+          # release=3.6.1 pins the tool to the project's release (must be the bare
+          # version - release=METEOR@3.6.1 is not parsed and falls back to latest).
+          Invoke-WebRequest -Uri 'https://packages.meteor.com/bootstrap-link?arch=os.windows.x86_64&release=3.6.1' -OutFile $bootstrapGz
+          $expectedSha256 = '501db31018297be2500b7ce936ac77311252f728f16204e83da1b6cbef17d436'
           $actualSha256 = (Get-FileHash -Path $bootstrapGz -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($actualSha256 -ne $expectedSha256) {
             throw "Meteor bootstrap digest mismatch. Expected $expectedSha256, got $actualSha256"
@@ -305,7 +306,7 @@ jobs:
 
       - name: Show collected release assets
         run: |
-          find release-artifacts -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.pacman' -o -name '*.exe' -o -name '*-portable.zip' \) -print | sort
+          find release-artifacts -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.pacman' -o -name '*.AppImage' -o -name '*.exe' -o -name '*-portable.zip' \) -print | sort
 
       - name: Upload assets to GitHub release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
@@ -314,10 +315,14 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: true
           generate_release_notes: true
+          # Prepended to the generated notes.
+          body: |
+            **Linux:** on Ubuntu 24.04 and later, prefer the `.deb`. It installs an AppArmor profile, so the wallet runs with Chromium's sandbox enabled. The `.AppImage` cannot install one, and Ubuntu's AppArmor policy blocks the user namespaces the sandbox needs, so there it starts with the sandbox disabled.
           prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
           files: |
             release-artifacts/**/*.dmg
             release-artifacts/**/*.deb
             release-artifacts/**/*.pacman
+            release-artifacts/**/*.AppImage
             release-artifacts/**/*-portable.zip
             release-artifacts/**/*.exe

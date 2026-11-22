@@ -2,7 +2,8 @@
   "name": "QRLWallet",
   "productName": "QRLWallet",
   "projectName": "qrl-wallet",
-  "version": "1.9.2",
+  "version": "1.9.3",
+  "desktopName": "QRLWallet.desktop",
   "main": "index.js",
   "dependencies": {
     "@electron/packager": "20.3.0",
@@ -45,6 +46,11 @@
     "postinstall": "node ../.scripts/patch-ledger-exports.js"
   },
   "overrides": {
-    "shelljs": "0.8.5"
+    "shelljs": "0.8.5",
+    "electron": "44.9.1",
+    "uuid": "11.1.1",
+    "electron-packager": {
+      "@electron/get": "2.0.3"
+    }
   }
 }

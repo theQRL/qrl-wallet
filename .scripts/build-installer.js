@@ -39,7 +39,7 @@ const platformMap = {
   },
   linux: {
     targetPlatform: Platform.LINUX,
-    target: ['deb', 'pacman'],
+    target: ['deb', 'pacman', 'AppImage'],
   },
 };
 
@@ -147,11 +147,25 @@ const builderConfig = {
     allowToChangeInstallationDirectory: true,
     perMachine: false,
   },
+  // The legacy AppImage runtime links libz.so and libfuse2 dynamically, neither
+  // of which a stock Ubuntu desktop ships (the arm64 build would not start on
+  // 26.04). The newer runtime is static and needs neither.
+  toolsets: {
+    appimage: '1.0.3',
+  },
   linux: {
+    // Without an explicit Linux icon electron-builder falls back to the 1024px
+    // mac icon, a size the hicolor icon theme has no directory for, so desktops
+    // could not find it and showed a generic icon.
+    icon: path.resolve('.electrify/assets/qrl.png'),
     category: 'Finance',
     maintainer: 'The QRL Contributors',
     synopsis: 'QRL Wallet',
     description: 'Quantum Resistant Ledger desktop wallet.',
+    // Name the installed .desktop file after desktopName in package.json, which
+    // Electron also uses as the window's app_id, so desktops show the wallet's
+    // own icon for its running window instead of a generic one.
+    syncDesktopName: true,
   },
 };
 

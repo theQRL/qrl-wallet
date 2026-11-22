@@ -3,7 +3,7 @@
 > The next generation of QRL, version 2.0, is in development and has its own repositories. See [this discussion page](https://github.com/orgs/theQRL/discussions/2).
 
 [![Release Build](https://github.com/theQRL/qrl-wallet/actions/workflows/release-build.yml/badge.svg)](https://github.com/theQRL/qrl-wallet/actions/workflows/release-build.yml)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a91585507ea24454a43190dfb48d8c09)](https://www.codacy.com/app/qrl/qrl-wallet?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=theQRL/qrl-wallet&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/06ac09f41c6a4462aa2011112d44533a)](https://app.codacy.com/gh/theQRL/qrl-wallet/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/theQRL/qrl-wallet/main/LICENSE)
 
 # qrl-wallet | wallet.theqrl.org
@@ -22,7 +22,7 @@ The following dependencies are required for a functional local development envir
 [NodeJS](https://nodejs.org/en/) v22.23.2 — we recommend nvm, which will pick up the version in
 [.nvmrc](.nvmrc). That file is the authoritative version for both local development and CI.
 
-[Meteor](https://www.meteor.com/install) 3.4 — the project pins its release in
+[Meteor](https://www.meteor.com/install) 3.6.1 — the project pins its release in
 [.meteor/release](.meteor/release). For a version-checked installer, follow the
 Meteor install steps in [.github/workflows/release-build.yml](.github/workflows/release-build.yml).
 
@@ -121,7 +121,7 @@ For explicit platform packaging:
     npm run installer
 
 Installers are produced by [electron-builder](https://www.electron.build/): a `.dmg` on macOS,
-`.deb` and `.pacman` packages on Linux, and an NSIS `.exe` on Windows. Output is written alongside
+`.deb`, `.pacman` and `.AppImage` packages on Linux, and an NSIS `.exe` on Windows. Output is written alongside
 the packaged app in `.electrify/.dist`.
 
 For explicit platform installers:
@@ -135,5 +135,17 @@ For explicit platform installers:
 Official desktop artifacts are built and published by the
 [release-build workflow](.github/workflows/release-build.yml), which runs on a `v*` tag across a
 six-platform matrix.
+
+### Linux packages
+
+Linux releases ship as `.deb`, `.pacman` and `.AppImage`. On Ubuntu 24.04 and later, prefer the
+`.deb`: it installs an AppArmor profile, so the wallet runs with Chromium's sandbox enabled. The
+`.AppImage` cannot install a profile, and Ubuntu's AppArmor policy blocks the unprivileged user
+namespaces the sandbox needs, so there it starts with the sandbox disabled (`--no-sandbox`).
+
+To run the AppImage, make it executable first:
+
+    chmod +x QRLWallet-*.AppImage
+    ./QRLWallet-*.AppImage
 
 If you have issues, the [QRL Discord](https://discord.gg/jBT6BEp) is a good place to ask for help.
