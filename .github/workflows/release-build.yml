@@ -30,11 +30,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-14
+          # GitHub retired the macos-14 images on 2 November 2026. macos-15 is
+          # also an arm64 runner, so the x64 app is cross-packaged as before.
+          - runner: macos-15
             platform: darwin
             arch: x64
             artifact_name: qrlwallet-release-darwin-x64
-          - runner: macos-14
+          - runner: macos-15
             platform: darwin
             arch: arm64
             artifact_name: qrlwallet-release-darwin-arm64
