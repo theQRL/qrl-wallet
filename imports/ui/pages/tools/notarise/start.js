@@ -67,6 +67,47 @@ function createMessageTxn() {
   })
 }
 
+// Bytes of the document read and hashed per step. The whole file is never
+// held in memory, so documents of any size can be notarised.
+const HASH_CHUNK_SIZE = 4 * 1024 * 1024
+
+// SHA256 a File/Blob incrementally, calling back with (error, hexDigest).
+// onProgress, if given, is called with the whole-number percentage hashed so far.
+function sha256File(file, callback, onProgress) {
+  const hasher = CryptoJS.algo.SHA256.create()
+  const reader = new FileReader()
+  let offset = 0
+
+  const readNextChunk = () => {
+    reader.readAsArrayBuffer(file.slice(offset, offset + HASH_CHUNK_SIZE))
+  }
+
+  reader.onerror = () => {
+    callback(reader.error || new Error('the file could not be read'))
+  }
+  reader.onload = () => {
+    try {
+      hasher.update(CryptoJS.lib.WordArray.create(reader.result))
+      offset += reader.result.byteLength
+      if (offset < file.size && reader.result.byteLength === 0) {
+        // File shrank or became unreadable mid-way; avoid looping forever
+        callback(new Error('the file changed while it was being read'))
+      } else if (offset < file.size) {
+        if (onProgress) {
+          onProgress(Math.floor((offset / file.size) * 100))
+        }
+        readNextChunk()
+      } else {
+        callback(null, hasher.finalize().toString(CryptoJS.enc.Hex))
+      }
+    } catch (err) {
+      callback(err)
+    }
+  }
+
+  readNextChunk()
+}
+
 function notariseDocument() {
   $('#documentNotarisationFailed').hide()
 
@@ -76,17 +117,19 @@ function notariseDocument() {
   const additionalTextInput = document.getElementById('additional_text')
   const additionalText = additionalTextInput ? additionalTextInput.value : ''
 
-  const reader = new FileReader()
-  reader.onloadend = function () {
+  const showError = (message) => {
+    Session.set('documentNotarisationError', message)
+    $('#documentNotarisationFailed').show()
+    $('#generating').hide()
+  }
+
+  const onHashed = (sha256Hex) => {
     try {
       let notarisation = 'AFAFA'
       let fileHash
 
-      // Convert FileReader ArrayBuffer to WordArray first
-      const resultWordArray = CryptoJS.lib.WordArray.create(reader.result)
-
       if (hashFunction === 'SHA256') {
-        fileHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex)
+        fileHash = sha256Hex
         notarisation = notarisation + '2' + fileHash
       }
 
@@ -110,21 +153,33 @@ function notariseDocument() {
       createMessageTxn()
     } catch (err) {
       console.log(err)
-      // Invalid file format
-      Session.set('documentNotarisationError', 'Unable to open Document - Are you sure you selected a document to notarise?')
-      $('#documentNotarisationFailed').show()
-      $('#generating').hide()
+      showError('Unable to notarise Document - ' + ((err && err.message) || 'unknown error'))
     }
   }
 
   // Verify user selected a document to notarise
   if (notaryDocument === undefined) {
-    Session.set('documentNotarisationError', 'Unable to open Document - Are you sure you selected a document to notarise?')
-    $('#documentNotarisationFailed').show()
-    $('#generating').hide()
+    showError('Unable to open Document - Are you sure you selected a document to notarise?')
   } else {
     console.log('reading file ', notaryDocument)
-    reader.readAsArrayBuffer(notaryDocument)
+    const progress = document.getElementById('notariseProgress')
+    const setProgress = (text) => {
+      if (progress) {
+        progress.textContent = text
+      }
+    }
+    setProgress('')
+    sha256File(notaryDocument, (err, sha256Hex) => {
+      setProgress('')
+      if (err) {
+        console.log(err)
+        showError('Unable to read Document - ' + ((err && err.message) || 'the file could not be read'))
+        return
+      }
+      onHashed(sha256Hex)
+    }, (percent) => {
+      setProgress(percent + '% hashed')
+    })
   }
 }
 
